@@ -168,13 +168,22 @@ build/app/intermediates/merged_manifests/prodRelease/processProdReleaseManifest/
 - [ ] `pubspec.yaml` version and build number incremented.
 - [ ] `assets/config/app_config.json` version and build match.
 - [ ] `dart run build_runner build --delete-conflicting-outputs` run (Drift codegen).
-- [ ] `dart format --output=none --set-exit-if-changed .` passes.
+- [ ] `dart format --output=none --set-exit-if-changed lib test integration_test` passes.
 - [ ] `flutter analyze` reports no issues.
 - [ ] `flutter test` — **all** tests pass.
 
-> **Blocker today:** `test/widget_test.dart` → "Journal detail groups entries and reacts to entry
-> CRUD" has been failing since before 2026-07-25. Fix it or consciously accept it; do not let it
-> quietly become normal.
+> **Do not run `dart format .`** — it walks into `build/` and crashes on stale Gradle transform
+> paths (`PathNotFoundException`). Always name the source directories.
+
+> **Two blockers today (2026-07-25), both pre-existing:**
+>
+> 1. `test/widget_test.dart` → "Journal detail groups entries and reacts to entry CRUD" fails.
+>    It failed before the security work began and still does. Fix it or consciously accept it;
+>    do not let it quietly become normal.
+> 2. **95 of 132 source files do not match `dart format`.** Dart 3.11 shipped a new formatter
+>    style, and the codebase predates it. Reformatting is a mechanical but enormous diff, so it
+>    was deliberately not bundled with security work. Do it as its own commit, before this
+>    checklist item can honestly be ticked.
 
 ### Security
 

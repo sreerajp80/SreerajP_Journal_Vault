@@ -53,7 +53,10 @@ class AboutScreen extends ConsumerWidget {
               if (entry.key.trim().isNotEmpty && entry.value.trim().isNotEmpty)
                 _InfoRow(label: entry.key, value: entry.value),
             // Runtime values, not config: these stay explicit.
-            _InfoRow(label: 'App Version / Build', value: metadata.versionBuild),
+            _InfoRow(
+              label: 'App Version / Build',
+              value: metadata.versionBuild,
+            ),
             _InfoRow(
               label: 'Last Build Timestamp',
               value: metadata.lastBuildTimestamp,

@@ -14,7 +14,7 @@ import 'package:sreerajp_journal_vault/core/logging/app_logger.dart';
 /// fixed across apps — do not rename them.
 class ConfigService {
   ConfigService({Future<String> Function(String path)? loadAsset})
-      : _loadAsset = loadAsset ?? rootBundle.loadString;
+    : _loadAsset = loadAsset ?? rootBundle.loadString;
 
   static const String assetPath = 'assets/config/app_config.json';
 

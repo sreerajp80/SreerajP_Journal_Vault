@@ -73,7 +73,8 @@ TODO — see section 7.
 ```text
 lib/
 |-- app/          # app shell, routing, bottom nav, settings UI (app.dart)
-|-- core/         # cross-cutting: database, security, theme, errors, links, utils, constants
+|-- core/         # cross-cutting: config, logging, database, security, theme,
+|                 # errors, links, utils, constants
 |-- features/     # 15 feature modules (see below)
 `-- main.dart     # composition root and provider overrides
 ```
@@ -87,6 +88,8 @@ Feature modules under `lib/features/`: `about`, `attachments`, `backup`, `entrie
 | Path | Responsibility |
 |------|----------------|
 | `lib/app/` | App shell, `MaterialApp`, bottom navigation, settings screen |
+| `lib/core/config/` | `AppConfig` + `ConfigService` (About, fixed paths per `guideline.md` §1) and `AppFlavorConfig` |
+| `lib/core/logging/` | `AppLogger` — the only logging entry point |
 | `lib/core/database/` | Drift schema, DAOs, migrations, FTS5 tables |
 | `lib/core/security/` | Shared security constants |
 | `lib/core/theme/` | Theme tokens and the Light/Dark mode controller |
@@ -94,9 +97,9 @@ Feature modules under `lib/features/`: `about`, `attachments`, `backup`, `entrie
 | `lib/features/*/services/` | Business logic; no widget imports |
 | `lib/features/*/providers/` | Riverpod wiring between the two |
 
-> **Known deviation.** `lib/application/`, `lib/data/`, `lib/domain/`, and `lib/presentation/` also
-> exist but are **empty** — 0 files each. They are leftovers from an abandoned layer-first layout.
-> See section 21.
+> Four empty leftover folders (`lib/application/`, `lib/data/`, `lib/domain/`, `lib/presentation/`)
+> were deleted on 2026-07-25. They contained no files at all — only directory skeletons, some of
+> them (`copy_todos`, `daily_list`, `recurring_tasks`) scaffolding from a different app.
 
 ---
 
@@ -121,10 +124,11 @@ data and trigger the app lock.
 
 ## 7. Offline Behavior
 
-- **Connectivity requirement**: `fully offline` in practice today
-- **Network permission**: TODO — verify. `AndroidManifest.xml` declares `USE_BIOMETRIC` and one
-  other permission; `INTERNET` was not observed, but this MUST be verified against the **merged
-  release manifest**, not the source manifest, per the template's instructions.
+- **Connectivity requirement**: `fully offline`
+- **Network permission**: **`INTERNET` is absent.** Verified 2026-07-25 against the merged
+  `prodRelease` manifest at
+  `build/app/intermediates/merged_manifests/prodRelease/processProdReleaseManifest/AndroidManifest.xml`,
+  not the source manifest. (It *is* present in debug builds — Flutter injects it for hot reload.)
 - **Offline data source**: Drift / SQLite
 
 The `lib/features/sync/` module implements encrypted sync protocol and conflict resolution logic,
@@ -221,8 +225,7 @@ TODO — not yet audited. FTS5 covers entry title and plain text; other query pa
 - Protected-route strategy: a lock gate wraps the shell; `AppLockController` drives it
 - Deep-link support: no
 
-> **Known deviation.** `go_router: ^17.1.0` is declared in `pubspec.yaml` but **never imported**
-> anywhere in `lib/`. See section 21.
+> `go_router` was removed from `pubspec.yaml` on 2026-07-25 — it was declared but never imported.
 
 ---
 
@@ -254,11 +257,15 @@ TODO — not yet audited. FTS5 covers entry title and plain text; other query pa
 ## 15. Environment And Build Model
 
 - Flavors used: `dev` and `prod` on flavor dimension `env`, defined in
-  `android/app/build.gradle.kts`; they differ only by `appLabel` manifest placeholder
-- Runtime config mechanism: TODO — no `AppFlavorConfig` equivalent was found in `lib/`. The
-  flavors change the app label but do not appear to drive any runtime configuration.
-- Build outputs supported: TODO
-- Obfuscation: **not configured** — see section 21
+  `android/app/build.gradle.kts`. They differ only by the `appLabel` manifest placeholder — they
+  share one application ID and so cannot coexist on a device (see section 21).
+- Runtime config mechanism: `AppFlavorConfig` (`lib/core/config/app_flavor_config.dart`), added
+  2026-07-25. Reads `APP_FLAVOR` then `FLUTTER_APP_FLAVOR`, defaulting to `prod`. Currently
+  gates verbose logging only.
+- Build outputs supported: release APK, `--split-per-abi` for sideloading. No app bundle (no
+  store distribution). See `release_process.md`.
+- Obfuscation: **enabled** for release builds via `--obfuscate --split-debug-info`, alongside R8.
+  Symbols are git-ignored and must be archived per release.
 
 ---
 
@@ -274,9 +281,20 @@ TODO — not yet audited. FTS5 covers entry title and plain text; other query pa
 
 ## 17. Logging
 
-TODO — no logging framework was found. `pubspec.yaml` declares no `logger` package. The
-engineering standard requires structured logging under `Sensitive Data Extension`, with verbose
-logging gated by flavor config and no protected data in logs. See section 21.
+- Logger implementation: `AppLogger` (`lib/core/logging/app_logger.dart`) over the `logger`
+  package, added 2026-07-25. The six standard levels; `AppLogger.init()` runs first in `main()`.
+- Log file location: **none.** Console output only — a log file in an encrypted journal app is
+  another place for content to leak, and nothing needs post-hoc retrieval. Deliberate, not an
+  omission.
+- Log rotation policy: n/a, no files.
+- Verbose logging gate: `AppFlavorConfig.enableVerboseLogging` — `trace` and `debug` are silent
+  outside the `dev` flavor.
+- Sensitive data policy: never log journal content, attachment names or bytes, PINs, salts,
+  verifiers, or key material. `AppLogger.redact()` masks values that might carry user data. Full
+  policy in `security.md` section 9.
+
+> Pre-existing log statements elsewhere in the codebase have not been audited against this
+> policy — the policy and the logger are both newer than the code. See section 21.
 
 ---
 
@@ -289,11 +307,17 @@ logging gated by flavor config and no protected data in logs. See section 21.
 | Integration | `integration_test/lock_gate_test.dart` | Lock gate only |
 | Performance | none | TODO |
 
+235 tests pass as of 2026-07-25, with one known failure (see section 21).
+
 ### Critical Test Areas
 
 - App lock trigger and re-authentication across restart — covered
 - Attachment encryption round-trip and temp-file cleanup — covered
-- Database upgrade path from version 1 to 7 — **TODO, not covered**
+- Database upgrade path from version 1 to 7 — **covered** since 2026-07-25
+  (`test/core/database/migration_test.dart`), including data survival. Its stated limits are
+  documented at the top of that file.
+- Backup/restore round-trip — **not covered**, see `security.md` section 17
+- Malformed import input — **not covered**
 - Error boundary behavior for unhandled exceptions — TODO
 
 ---
@@ -321,73 +345,75 @@ logging gated by flavor config and no protected data in logs. See section 21.
 
 ## 21. Known Risks And Follow-Ups
 
-These are gaps between what the three in-force profiles require and what the app does today.
-Found while declaring the profile on 2026-07-25. **None of these are fixed by this document.**
+Gaps between what the three in-force profiles require and what the app does. Opened 2026-07-25
+when the profile was declared; worked through the same day.
 
-### Release-blocking under `Production App Extension`
+### Closed on 2026-07-25
 
-- **Risk: release builds are signed with debug keys.**
-  `android/app/build.gradle.kts` still carries the Flutter starter code
-  `signingConfig = signingConfigs.getByName("debug")` with the `TODO: Add your own signing config`
-  comment. An app signed with the debug key cannot be updated later by a properly signed build,
-  and the debug key is not secret. This also breaks `guideline.md`, which the manifest names as
-  the source of truth for keystore rules.
-  *Mitigation:* create a real release keystore and signing config. Needs its own plan.
+| Gap | How it was closed |
+|---|---|
+| No screenshot protection | `FLAG_SECURE` set app-wide in `MainActivity.onCreate`. Screenshots and task-switcher previews are now blocked everywhere. |
+| Android auto-backup enabled | `allowBackup="false"` plus `res/xml/data_extraction_rules.xml` blocking cloud backup **and** device transfer. Verified in the merged release manifest. |
+| Obfuscation not configured | Release builds verified working with `--obfuscate --split-debug-info`. Symbols git-ignored. |
+| No R8 / ProGuard | Enabled with keep rules in `android/app/proguard-rules.pro`. First run failed on 11 Play Core classes; `-dontwarn` added. |
+| Signing secrets not git-ignored | `.gitignore` now covers `key.properties`, `*.jks`, `*.keystore`, `/build/symbols/`. |
+| Four empty leftover folders | Deleted. They held only directory skeletons — `lib/presentation/screens/` contained folders from a **different app** (`copy_todos`, `daily_list`, `recurring_tasks`). |
+| `go_router` unused dependency | Removed. |
+| Stock analyzer config | Stricter rule set from standard §16.1 added. Surfaced 48 issues, all fixed. |
+| About screen hard-codes field names | Replaced with the `guideline.md` §1 config pattern: `assets/config/app_config.json` + `lib/core/config/`. The screen now loops `details`. |
+| Migration v1→v7 untested | 7 tests added, mutation-verified. |
+| No structured logging | `AppLogger` + `AppFlavorConfig` added; verbose gated to the `dev` flavor. |
+| Flavors drove no runtime config | `AppFlavorConfig` now reads `APP_FLAVOR` / `FLUTTER_APP_FLAVOR`. |
+| `security.md` blank | Filled — see [`security.md`](security.md). |
+| `release_process.md` blank | Filled — see [`release_process.md`](release_process.md). |
+| **Resolved as compliant:** secrets in SharedPreferences | Read `MainActivity.kt`: `wrapPayload()` AES-GCM-encrypts under a Keystore-resident key with `setRandomizedEncryptionRequired(true)`. Only `iv:ciphertext` is stored. Satisfies §15.2 — no change needed. |
 
-- **Risk: `release_process.md` has not been filled in for this app.** No versioning, hardening,
-  signing, build, or rollback runbook exists.
-  *Mitigation:* fill in the local copy. Separate plan.
+### Still open — release-blocking
 
-- **Risk: obfuscation is not configured.** The standard requires `--obfuscate` on release builds
-  (OWASP M7). No build script or documented command applies it.
-  *Mitigation:* add it to the release runbook along with a symbol-storage location.
+- **The release keystore does not exist.** The Gradle wiring is in place and reads
+  `android/key.properties`, but with no keystore the build falls back to the **debug key** and
+  prints a warning. A debug-signed build must not be installed: switching to a real key later
+  requires uninstalling, which destroys all journal data.
+  *Action:* run the `keytool` command in [`release_process.md`](release_process.md) section 0.
 
-### Required under `Sensitive Data Extension`
+- **R8 has never been runtime-verified.** It compiles, but no shrunk, obfuscated build has run on
+  a device. Missing keep rules fail only at runtime.
+  *Action:* the smoke-test list in `release_process.md` section 6.2.
 
-- **Risk: `security.md` has not been filled in.** No threat model, no sensitive-data inventory, no
-  crypto design record, no OWASP Mobile Top 10 sign-off, and no data retention and purge policy.
-  Section 15.4 requires a user-accessible "delete all data" action; whether one exists is unverified.
-  *Mitigation:* fill in the local copy. Separate plan.
+### Still open — Sensitive Data
 
-- **Risk: screenshot and screen-recording protection is not implemented.** Section 15.2 states
-  `FLAG_SECURE` MUST be enabled. No `FLAG_SECURE` or `setFlags` call was found in
-  `MainActivity.kt`. Journal content and attachments are currently capturable by screenshot and
-  visible in the Android task switcher.
-  *Mitigation:* add `FLAG_SECURE` via the existing method channel pattern.
+Detailed in [`security.md`](security.md) section 17. Summary:
 
-- **Risk: no structured logging.** Section 15.5 requires structured logging with verbose output
-  gated by flavor config. No logging package is present.
-  *Mitigation:* choose a logger and define the sensitive-data policy in `security.md`.
+- **No "Delete all data" action** anywhere in `lib/`. Required by standard §15.4.
+- **The SQLite database is not encrypted at rest** — entry text and the FTS index are plain
+  inside the app-private directory. Risk-accepted (OWASP M9); only defeated by root or an
+  offline flash dump, both out of scope.
+- **The attachment crypto format has no version byte** (M10). Cheap to fix now, expensive later.
+- **No backup/restore round-trip test**, and **no malformed-import test**.
+- **Existing log statements not yet audited** against the new logging policy.
+- **`ACCESS_NETWORK_STATE` and `WAKE_LOCK`** arrive transitively from plugins and are unused.
+- **No retention caps** on entry revisions, security events, or sync logs.
 
-- **To verify, not yet a confirmed violation: secrets in SharedPreferences.** Section 15.2 states
-  sensitive values MUST NOT be stored in `SharedPreferences`.
-  `method_channel_journal_secret_store.dart` and `platform_attachment_key_manager.dart` both use
-  it. The code comments say the native side Keystore-wraps the secret first, so only ciphertext
-  is stored — which would be compliant. This needs an actual read of `MainActivity.kt` to confirm.
+### Still open — Core Baseline
 
-### Core Baseline hygiene
+- **`lib/app/app.dart` is 2,568 lines**, holding the shell, navigation, and the whole settings UI.
+  Deliberately deferred to its own plan: it is a pure refactor with real regression risk across
+  every settings flow, and it fixes no security or correctness problem.
+  *Action:* extract settings into `lib/features/settings/`.
 
-- **Risk: four empty leftover folders.** `lib/application/`, `lib/data/`, `lib/domain/`, and
-  `lib/presentation/` contain zero files. They contradict the declared Tier 2 feature-first
-  structure and will mislead anyone reading the tree.
-  *Mitigation:* delete them.
+- **One pre-existing test failure.** `test/widget_test.dart` → "Journal detail groups entries and
+  reacts to entry CRUD" was already failing before this work began and still is. Everything else
+  passes (235 tests).
 
-- **Risk: `go_router` is an unused dependency.** Declared at `^17.1.0`, imported nowhere.
-  Unused dependencies are supply-chain surface (OWASP M2).
-  *Mitigation:* remove it, or adopt it and retire the imperative navigation in `app.dart`.
+- **95 of 132 source files do not match `dart format`.** Pre-existing: Dart 3.11 changed the
+  formatter style and the codebase predates it. Files added or edited on 2026-07-25 are
+  formatted; the rest are not. Reformatting is mechanical but touches nearly every file, so it
+  was kept out of the security commits. Note `dart format .` crashes on stale paths under
+  `build/` — name the source directories instead.
 
-- **Risk: `lib/app/app.dart` is 2,568 lines.** It holds the shell, navigation, and the entire
-  settings UI. This is well past the point where it should be split.
-  *Mitigation:* extract the settings screen into its own feature module.
-
-- **Risk: analyzer config is stock.** `analysis_options.yaml` includes `flutter_lints` (pinned at
-  `^6.0.0`, satisfying the pin requirement) but adds none of the stricter rules the standard
-  recommends as a baseline.
-  *Mitigation:* add the recommended rule set from engineering standard section 16.1.
-
-- **Risk: database migration path from v1 to v7 is untested.** The standard names this a critical
-  test area. A migration bug destroys journal entries with no recovery path.
-  *Mitigation:* add a migration test.
+- **`dev` and `prod` flavors share one application ID**, so they cannot be installed side by side.
+  Installing a dev build over the real one destroys its data. Add an `applicationIdSuffix` to the
+  dev flavor before ever using it on the device holding real entries.
 
 ---
 

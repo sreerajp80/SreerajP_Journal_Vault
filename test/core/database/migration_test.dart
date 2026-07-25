@@ -47,7 +47,12 @@ void main() {
     3: ['entry_revisions', 'voice_notes'],
     4: ['backup_logs'],
     5: ['sync_metadata', 'sync_conflicts', 'sync_logs'],
-    6: ['auto_lock_profiles', 'attachment_locks', 'security_events', 'entry_moods'],
+    6: [
+      'auto_lock_profiles',
+      'attachment_locks',
+      'security_events',
+      'entry_moods',
+    ],
   };
 
   const v7Columns = [
@@ -57,10 +62,7 @@ void main() {
     'updated_at',
   ];
 
-  const ftsObjects = [
-    'entries_fts',
-    'attachment_text_fts',
-  ];
+  const ftsObjects = ['entries_fts', 'attachment_text_fts'];
 
   Future<bool> tableExists(AppDatabase db, String name) async {
     final rows = await db
@@ -124,11 +126,10 @@ void main() {
     // Without this, every test below could pass vacuously: if the drops above
     // silently did nothing, the tables would still be present after the
     // "upgrade" and the assertions would prove nothing at all.
-    final remaining = (await db
-            .customSelect('SELECT name FROM sqlite_master')
-            .get())
-        .map((r) => r.read<String>('name'))
-        .toSet();
+    final remaining =
+        (await db.customSelect('SELECT name FROM sqlite_master').get())
+            .map((r) => r.read<String>('name'))
+            .toSet();
 
     for (final entry in addedAfterV1.entries) {
       if (entry.key > version) {
@@ -136,7 +137,8 @@ void main() {
           expect(
             remaining,
             isNot(contains(table)),
-            reason: 'rewindTo($version) failed to drop $table, so any '
+            reason:
+                'rewindTo($version) failed to drop $table, so any '
                 'assertion about it being recreated would be meaningless',
           );
         }

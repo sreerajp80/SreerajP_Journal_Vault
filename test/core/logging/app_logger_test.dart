@@ -41,10 +41,14 @@ void main() {
       AppLogger.error('e');
       AppLogger.fatal('f');
 
-      expect(
-        recorder.levels,
-        [Level.trace, Level.debug, Level.info, Level.warning, Level.error, Level.fatal],
-      );
+      expect(recorder.levels, [
+        Level.trace,
+        Level.debug,
+        Level.info,
+        Level.warning,
+        Level.error,
+        Level.fatal,
+      ]);
     });
   });
 
@@ -73,28 +77,52 @@ class _RecordingLogger implements Logger {
   }
 
   @override
-  void t(dynamic message, {Object? error, StackTrace? stackTrace, DateTime? time}) =>
-      log(Level.trace, message);
+  void t(
+    dynamic message, {
+    Object? error,
+    StackTrace? stackTrace,
+    DateTime? time,
+  }) => log(Level.trace, message);
 
   @override
-  void d(dynamic message, {Object? error, StackTrace? stackTrace, DateTime? time}) =>
-      log(Level.debug, message);
+  void d(
+    dynamic message, {
+    Object? error,
+    StackTrace? stackTrace,
+    DateTime? time,
+  }) => log(Level.debug, message);
 
   @override
-  void i(dynamic message, {Object? error, StackTrace? stackTrace, DateTime? time}) =>
-      log(Level.info, message);
+  void i(
+    dynamic message, {
+    Object? error,
+    StackTrace? stackTrace,
+    DateTime? time,
+  }) => log(Level.info, message);
 
   @override
-  void w(dynamic message, {Object? error, StackTrace? stackTrace, DateTime? time}) =>
-      log(Level.warning, message);
+  void w(
+    dynamic message, {
+    Object? error,
+    StackTrace? stackTrace,
+    DateTime? time,
+  }) => log(Level.warning, message);
 
   @override
-  void e(dynamic message, {Object? error, StackTrace? stackTrace, DateTime? time}) =>
-      log(Level.error, message);
+  void e(
+    dynamic message, {
+    Object? error,
+    StackTrace? stackTrace,
+    DateTime? time,
+  }) => log(Level.error, message);
 
   @override
-  void f(dynamic message, {Object? error, StackTrace? stackTrace, DateTime? time}) =>
-      log(Level.fatal, message);
+  void f(
+    dynamic message, {
+    Object? error,
+    StackTrace? stackTrace,
+    DateTime? time,
+  }) => log(Level.fatal, message);
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

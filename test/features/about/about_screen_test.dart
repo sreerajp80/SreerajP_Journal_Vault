@@ -35,9 +35,7 @@ void main() {
 }
 ''';
 
-    await tester.pumpWidget(
-      wrap(ConfigService(loadAsset: (_) async => json)),
-    );
+    await tester.pumpWidget(wrap(ConfigService(loadAsset: (_) async => json)));
     await tester.pumpAndSettle();
 
     expect(find.text('Test Vault'), findsOneWidget);
@@ -71,9 +69,7 @@ void main() {
 }
 ''';
 
-    await tester.pumpWidget(
-      wrap(ConfigService(loadAsset: (_) async => json)),
-    );
+    await tester.pumpWidget(wrap(ConfigService(loadAsset: (_) async => json)));
     await tester.pumpAndSettle();
 
     expect(find.text('Kept'), findsOneWidget);
@@ -81,22 +77,23 @@ void main() {
     expect(find.text('Orphan Key'), findsNothing);
   });
 
-  testWidgets('about falls back instead of erroring when the asset is missing', (
-    WidgetTester tester,
-  ) async {
-    await tester.pumpWidget(
-      wrap(
-        ConfigService(
-          loadAsset: (_) async => throw StateError('asset missing'),
+  testWidgets(
+    'about falls back instead of erroring when the asset is missing',
+    (WidgetTester tester) async {
+      await tester.pumpWidget(
+        wrap(
+          ConfigService(
+            loadAsset: (_) async => throw StateError('asset missing'),
+          ),
         ),
-      ),
-    );
-    await tester.pumpAndSettle();
+      );
+      await tester.pumpAndSettle();
 
-    // A missing config must never show the error state — ConfigService
-    // degrades to AppConfig.fallback, so the screen still renders.
-    expect(find.text('Unable to load app metadata'), findsNothing);
-    expect(find.text('SreerajP_Journal_Vault'), findsOneWidget);
-    expect(find.text('0.0.0 (build 0)'), findsOneWidget);
-  });
+      // A missing config must never show the error state — ConfigService
+      // degrades to AppConfig.fallback, so the screen still renders.
+      expect(find.text('Unable to load app metadata'), findsNothing);
+      expect(find.text('SreerajP_Journal_Vault'), findsOneWidget);
+      expect(find.text('0.0.0 (build 0)'), findsOneWidget);
+    },
+  );
 }

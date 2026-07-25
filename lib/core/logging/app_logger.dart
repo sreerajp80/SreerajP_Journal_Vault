@@ -69,17 +69,9 @@ class AppLogger {
   static void warning(String message, {Object? error}) =>
       _logger?.w(message, error: error);
 
-  static void error(
-    String message, {
-    Object? error,
-    StackTrace? stackTrace,
-  }) =>
+  static void error(String message, {Object? error, StackTrace? stackTrace}) =>
       _logger?.e(message, error: error, stackTrace: stackTrace);
 
-  static void fatal(
-    String message, {
-    Object? error,
-    StackTrace? stackTrace,
-  }) =>
+  static void fatal(String message, {Object? error, StackTrace? stackTrace}) =>
       _logger?.f(message, error: error, stackTrace: stackTrace);
 }

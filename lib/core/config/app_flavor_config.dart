@@ -26,7 +26,9 @@ class AppFlavorConfig {
   static String _resolved() =>
       _appFlavorValue.isNotEmpty ? _appFlavorValue : _frameworkFlavorValue;
 
-  static final AppFlavorConfig instance = AppFlavorConfig._(_parse(_resolved()));
+  static final AppFlavorConfig instance = AppFlavorConfig._(
+    _parse(_resolved()),
+  );
 
   final AppFlavor flavor;
 
