@@ -3,7 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sreerajp_journal_vault/features/about/application/about_metadata.dart';
 
-/// Displays app metadata: name, version, build timestamp, and attribution.
+/// Displays app metadata: name, description, version, build timestamp, and the
+/// attribution rows from `assets/config/app_config.json`.
+///
+/// Per guideline.md section 1.6 this screen MUST NOT hard-code row names such
+/// as `Author` or `Email`. Every attribution row comes from the config's
+/// `details` map, rendered in file order.
 class AboutScreen extends ConsumerWidget {
   const AboutScreen({super.key});
 
@@ -35,12 +40,24 @@ class AboutScreen extends ConsumerWidget {
               metadata.appName,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
+            if (metadata.description.trim().isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                metadata.description,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ],
             const SizedBox(height: 16),
-            _InfoRow(label: 'Author', value: metadata.author),
-            _InfoRow(label: 'AI Used', value: metadata.aiUsed),
-            _InfoRow(label: 'IDE Used', value: metadata.ideUsed),
+            // Every row below comes from the config. Skip blank keys or values.
+            for (final entry in metadata.details.entries)
+              if (entry.key.trim().isNotEmpty && entry.value.trim().isNotEmpty)
+                _InfoRow(label: entry.key, value: entry.value),
+            // Runtime values, not config: these stay explicit.
             _InfoRow(label: 'App Version / Build', value: metadata.versionBuild),
-            _InfoRow(label: 'Last Build Timestamp', value: metadata.lastBuildTimestamp),
+            _InfoRow(
+              label: 'Last Build Timestamp',
+              value: metadata.lastBuildTimestamp,
+            ),
           ],
         ),
       ),

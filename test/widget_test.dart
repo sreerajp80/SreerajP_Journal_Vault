@@ -173,11 +173,14 @@ void main() {
         aboutMetadataProvider.overrideWith(
           (ref) async => const AboutMetadata(
             appName: 'SreerajP_Journal_Vault',
-            author: 'Sreeraj P',
-            aiUsed: 'OpenAI Codex',
-            ideUsed: 'Visual Studio Code',
+            description: 'A private, encrypted journal.',
             versionBuild: '1.0.0 (build 7)',
             lastBuildTimestamp: '2026-03-19 12:34:56',
+            details: {
+              'Author': 'Sreeraj P',
+              'AI Used': 'OpenAI Codex',
+              'IDE Used': 'Visual Studio Code',
+            },
           ),
         ),
       ],

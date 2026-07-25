@@ -1,68 +1,45 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sreerajp_journal_vault/core/config/app_config.dart';
+import 'package:sreerajp_journal_vault/core/config/config_service.dart';
+
 /// Label shown when the build timestamp define is absent or empty.
 const String missingBuildTimestampLabel = 'Build date unavailable';
 
-/// A snapshot of package information read at runtime.
-class PackageMetadataSnapshot {
-  const PackageMetadataSnapshot({
-    required this.appName,
-    required this.version,
-    required this.buildNumber,
-  });
-
-  final String appName;
-  final String version;
-  final String buildNumber;
-}
-
 /// Formatted metadata shown on the About screen.
+///
+/// Per guideline.md section 1.6 the attribution rows live in [details] and are
+/// rendered by looping the map. This class must NOT gain named fields like
+/// `author` or `ideUsed` — adding a row is a change to
+/// `assets/config/app_config.json`, not to Dart.
 class AboutMetadata {
   const AboutMetadata({
     required this.appName,
-    required this.author,
-    required this.aiUsed,
-    required this.ideUsed,
+    required this.description,
     required this.versionBuild,
     required this.lastBuildTimestamp,
+    this.details = const {},
   });
 
   final String appName;
-  final String author;
-  final String aiUsed;
-  final String ideUsed;
+  final String description;
 
-  /// e.g. "1.0.0 (build 7)"
+  /// e.g. "1.0.1 (build 1)"
   final String versionBuild;
 
   /// Formatted build timestamp or [missingBuildTimestampLabel].
   final String lastBuildTimestamp;
+
+  /// Label/value rows straight from the config, in file order.
+  final Map<String, String> details;
 }
 
-/// Reads package metadata from the platform at runtime.
-abstract class AppPackageInfoReader {
-  Future<PackageMetadataSnapshot> load();
-}
-
-/// Provider for the [AppPackageInfoReader] implementation.
+/// Provider for the [ConfigService] used to load About values.
 ///
-/// Override in tests with a fake implementation.
-final appPackageInfoReaderProvider = Provider<AppPackageInfoReader>((ref) {
-  return _DefaultAppPackageInfoReader();
+/// Override in tests with an injected asset loader.
+final configServiceProvider = Provider<ConfigService>((ref) {
+  return ConfigService();
 });
-
-class _DefaultAppPackageInfoReader implements AppPackageInfoReader {
-  @override
-  Future<PackageMetadataSnapshot> load() async {
-    // Uses package_info_plus on real devices.
-    // Avoids a hard dependency on package_info_plus in this layer.
-    return const PackageMetadataSnapshot(
-      appName: 'SreerajP_Journal_Vault',
-      version: '1.0.0',
-      buildNumber: '1',
-    );
-  }
-}
 
 /// Formats a raw ISO-8601 [buildTimestamp] string into a human-readable date.
 ///
@@ -83,21 +60,17 @@ String formatBuildTimestamp(String raw) {
   }
 }
 
-/// Builds an [AboutMetadata] from [packageInfo] and a raw [buildTimestamp].
+/// Builds an [AboutMetadata] from a loaded [config] and a raw [buildTimestamp].
 AboutMetadata buildAboutMetadata({
-  required PackageMetadataSnapshot packageInfo,
+  required AppConfig config,
   required String buildTimestamp,
-  String author = 'Sreeraj P',
-  String aiUsed = 'Claude (Anthropic)',
-  String ideUsed = 'VS Code',
 }) {
   return AboutMetadata(
-    appName: packageInfo.appName,
-    author: author,
-    aiUsed: aiUsed,
-    ideUsed: ideUsed,
-    versionBuild: '${packageInfo.version} (build ${packageInfo.buildNumber})',
+    appName: config.appName,
+    description: config.description,
+    versionBuild: config.versionBuild,
     lastBuildTimestamp: formatBuildTimestamp(buildTimestamp),
+    details: config.details,
   );
 }
 
@@ -105,10 +78,9 @@ AboutMetadata buildAboutMetadata({
 ///
 /// Override in tests via [aboutMetadataProvider.overrideWith].
 final aboutMetadataProvider = FutureProvider<AboutMetadata>((ref) async {
-  final reader = ref.watch(appPackageInfoReaderProvider);
-  final packageInfo = await reader.load();
+  final config = await ref.watch(configServiceProvider).loadAndVerify();
   return buildAboutMetadata(
-    packageInfo: packageInfo,
+    config: config,
     buildTimestamp: const String.fromEnvironment('BUILD_TIMESTAMP'),
   );
 });
