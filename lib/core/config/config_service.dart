@@ -6,6 +6,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'package:sreerajp_journal_vault/core/config/app_config.dart';
+import 'package:sreerajp_journal_vault/core/logging/app_logger.dart';
 
 /// Loads the About-screen config asset.
 ///
@@ -56,7 +57,7 @@ class ConfigService {
       final mismatch =
           info.version != config.version || info.buildNumber != config.build;
       if (mismatch) {
-        debugPrint(
+        AppLogger.warning(
           'ConfigService: version/build in app_config.json '
           '(${config.version}+${config.build}) does not match the build '
           '(${info.version}+${info.buildNumber}).',

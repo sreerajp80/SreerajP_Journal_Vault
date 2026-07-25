@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 
 import 'package:sreerajp_journal_vault/app/app.dart';
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
+import 'package:sreerajp_journal_vault/core/logging/app_logger.dart';
 import 'package:sreerajp_journal_vault/features/attachments/domain/attachment_open_router.dart';
 import 'package:sreerajp_journal_vault/features/attachments/providers/attachment_providers.dart';
 import 'package:sreerajp_journal_vault/features/attachments/services/attachment_crypto_storage.dart';
@@ -18,6 +19,10 @@ import 'package:sreerajp_journal_vault/features/permissions/services/permission_
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Logging first, so every step below can report failures.
+  AppLogger.init();
+  AppLogger.info('App starting');
 
   final database = AppDatabase.forExecutor(
     driftDatabase(name: 'journal_vault'),
