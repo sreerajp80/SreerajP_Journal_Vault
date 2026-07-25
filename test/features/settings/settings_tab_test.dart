@@ -73,7 +73,7 @@ void main() {
   ) async {
     await pumpApp(tester);
 
-    final headers = const ['Security', 'Appearance', 'Storage', 'Permissions', 'About'];
+    const headers = ['Security', 'Appearance', 'Storage', 'Permissions', 'About'];
     for (final h in headers) {
       expect(find.text(h), findsOneWidget,
           reason: '$h section header missing');

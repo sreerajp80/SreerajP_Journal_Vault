@@ -214,10 +214,6 @@ class _TableBlockState extends State<_TableBlock> {
       ),
       child: Table(
         border: TableBorder.all(color: borderColor, width: 0.5),
-        // FlexColumnWidth gives each column an equal share of the available
-        // width. IntrinsicColumnWidth (the previous default) collapsed empty
-        // cells to near-zero, leaving almost no tap target to type into.
-        defaultColumnWidth: const FlexColumnWidth(1),
         children: [
           for (int r = 0; r < widget.rows.length; r++)
             TableRow(

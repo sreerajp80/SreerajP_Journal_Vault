@@ -145,7 +145,6 @@ class BackupScheduler {
 
     return _backupService.createBackup(
       password: password,
-      triggerType: 'manual',
     );
   }
 

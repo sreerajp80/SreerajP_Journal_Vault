@@ -158,7 +158,7 @@ void main() {
 
     test('parses paragraphs from a minimal docx archive', () async {
       // Build a minimal valid docx in memory: a ZIP with word/document.xml.
-      final docXml = '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+      const docXml = '''<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
   <w:body>
     <w:p><w:r><w:t>Hello</w:t></w:r></w:p>

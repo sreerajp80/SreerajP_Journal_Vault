@@ -51,7 +51,7 @@ class VoiceNoteService {
     _currentPath = p.join(tempDir.path, fileName);
 
     await _recorder.start(
-      const RecordConfig(encoder: AudioEncoder.aacLc),
+      const RecordConfig(),
       path: _currentPath!,
     );
 

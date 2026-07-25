@@ -124,7 +124,7 @@ void main() {
       final target = DateTime(2026, 5, 9);
       // Boundary case: midnight at start of day must be included.
       await insertEntry(
-        DateTime(target.year, target.month, target.day, 0, 0, 0),
+        DateTime(target.year, target.month, target.day),
         title: 'midnight',
       );
       // Just before next day midnight: included.
@@ -134,7 +134,7 @@ void main() {
       );
       // Next day midnight: excluded.
       await insertEntry(
-        DateTime(target.year, target.month, target.day + 1, 0, 0, 0),
+        DateTime(target.year, target.month, target.day + 1),
         title: 'next-day',
       );
 

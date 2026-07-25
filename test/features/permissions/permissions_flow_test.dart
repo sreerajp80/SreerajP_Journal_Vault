@@ -36,7 +36,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [appPermissionsServiceProvider.overrideWithValue(service)],
-        child: _TestApp(child: const PermissionsScreen()),
+        child: const _TestApp(child: PermissionsScreen()),
       ),
     );
     await tester.pumpAndSettle();

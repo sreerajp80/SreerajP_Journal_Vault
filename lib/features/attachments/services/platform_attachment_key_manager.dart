@@ -24,7 +24,7 @@ class PlatformAttachmentKeyManager implements AttachmentKeyManager {
       },
     );
     if (encoded == null) {
-      throw AttachmentKeyUnavailableException(activeAttachmentKeyReference);
+      throw const AttachmentKeyUnavailableException(activeAttachmentKeyReference);
     }
     final keyBytes = base64.decode(encoded);
     return AttachmentKeyMaterial(

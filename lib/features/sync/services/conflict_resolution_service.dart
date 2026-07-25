@@ -135,7 +135,7 @@ class ConflictResolutionService {
           remoteData =
               jsonDecode(conflict.remoteDataJson) as Map<String, dynamic>;
         } catch (_) {
-          throw ConflictResolutionException(
+          throw const ConflictResolutionException(
             'Cannot apply remote data — decryption required',
           );
         }
@@ -152,7 +152,7 @@ class ConflictResolutionService {
 
       case ConflictResolution.merged:
         if (mergedData == null) {
-          throw ConflictResolutionException(
+          throw const ConflictResolutionException(
             'Merged data must be provided for merge resolution',
           );
         }

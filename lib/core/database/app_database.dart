@@ -949,7 +949,6 @@ class AttachmentLocksDao extends DatabaseAccessor<AppDatabase>
             ..where((t) => t.attachmentId.equals(attachmentId)))
           .write(const AttachmentLocksCompanion(
         isLocked: Value(true),
-        unlockedAt: Value.absent(),
       ));
 
   Future<void> removeLock(int attachmentId) =>

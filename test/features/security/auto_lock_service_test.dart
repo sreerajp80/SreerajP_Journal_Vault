@@ -62,7 +62,6 @@ void main() {
     final id = await service.createProfile(
       name: 'Default',
       timeoutSeconds: 300,
-      lockOnMinimize: true,
     );
 
     await service.updateProfile(id: id, timeoutSeconds: 120);
@@ -127,7 +126,7 @@ void main() {
       await Future<void>.delayed(const Duration(milliseconds: 200));
       elapsed += 200;
       final events =
-          await database.securityEventsDao.getRecentEvents(limit: 50);
+          await database.securityEventsDao.getRecentEvents();
       if (events.any((e) => e.eventType == 'lock_triggered')) {
         return; // success
       }

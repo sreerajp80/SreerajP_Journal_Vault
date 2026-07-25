@@ -82,7 +82,7 @@ class SyncEngine {
     for (int attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         if (!await _protocol.isAvailable()) {
-          throw SyncException('Remote endpoint is not reachable');
+          throw const SyncException('Remote endpoint is not reachable');
         }
 
         // ── Phase 1: Ensure all local records have sync metadata ──

@@ -47,9 +47,7 @@ class LocalAuthBiometricAuthenticator implements BiometricAuthenticator {
       final ok = await _localAuth.authenticate(
         localizedReason: reason,
         options: const AuthenticationOptions(
-          biometricOnly: false,
           stickyAuth: true,
-          useErrorDialogs: true,
         ),
       );
       return ok ? BiometricAuthResult.success : BiometricAuthResult.failed;

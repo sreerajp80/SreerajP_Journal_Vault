@@ -38,7 +38,6 @@ class AutoLockService {
     );
     await _securityEventService.logEvent(
       eventType: 'profile_created',
-      severity: 'info',
       description: 'Auto-lock profile "$name" created',
       metadata: '{"profileId": $id, "timeoutSeconds": $timeoutSeconds}',
     );
@@ -71,7 +70,6 @@ class AutoLockService {
     );
     await _securityEventService.logEvent(
       eventType: 'profile_changed',
-      severity: 'info',
       description: 'Auto-lock profile updated',
       metadata: '{"profileId": $id}',
     );
@@ -85,7 +83,6 @@ class AutoLockService {
       _startInactivityTimer(profile.timeoutSeconds);
       await _securityEventService.logEvent(
         eventType: 'profile_changed',
-        severity: 'info',
         description: 'Auto-lock profile "${profile.name}" activated',
         metadata:
             '{"profileId": $id, "timeoutSeconds": ${profile.timeoutSeconds}}',
@@ -99,7 +96,6 @@ class AutoLockService {
     _cancelInactivityTimer();
     await _securityEventService.logEvent(
       eventType: 'profile_changed',
-      severity: 'info',
       description: 'All auto-lock profiles deactivated',
     );
   }
@@ -109,7 +105,6 @@ class AutoLockService {
     await _db.autoLockProfilesDao.deleteProfile(id);
     await _securityEventService.logEvent(
       eventType: 'profile_changed',
-      severity: 'info',
       description: 'Auto-lock profile deleted',
       metadata: '{"profileId": $id}',
     );
@@ -170,7 +165,6 @@ class AutoLockService {
       // App has a lock mode configured — mark as locked
       await _securityEventService.logEvent(
         eventType: 'lock_triggered',
-        severity: 'info',
         description: 'App locked due to $reason',
         metadata: '{"reason": "$reason"}',
       );

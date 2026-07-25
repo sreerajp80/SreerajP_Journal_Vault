@@ -302,7 +302,7 @@ class _ConflictDetailDialog extends StatelessWidget {
                     border: TableBorder.all(
                         color: theme.dividerColor, width: 0.5),
                     columnWidths: const {
-                      0: FlexColumnWidth(1),
+                      0: FlexColumnWidth(),
                       1: FlexColumnWidth(2),
                       2: FlexColumnWidth(2),
                     },

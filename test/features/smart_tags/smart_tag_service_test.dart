@@ -45,7 +45,7 @@ void main() {
 
     test('orders suggestions by occurrence count (descending)', () async {
       await seedTags(['focus', 'travel', 'idea']);
-      final text =
+      const text =
           'idea of travel and idea about idea of focus on travel';
       // counts: idea=3, travel=2, focus=1
       final suggestions = await service.suggest(text);
@@ -61,14 +61,14 @@ void main() {
 
     test('honors the limit parameter', () async {
       await seedTags(['a', 'b', 'c', 'd', 'e']);
-      final text = 'a b c d e a b';
+      const text = 'a b c d e a b';
       final suggestions = await service.suggest(text, limit: 3);
       expect(suggestions, hasLength(3));
     });
 
     test('only returns tags that actually appear in the text', () async {
       await seedTags(['present', 'absent']);
-      final text = 'this text mentions present';
+      const text = 'this text mentions present';
       final suggestions = await service.suggest(text);
       expect(suggestions.map((s) => s.tag.name).toList(), ['present']);
     });

@@ -84,7 +84,7 @@ void main() {
         () async {
       final s1 = await createLog(status: 'success');
       await db.backupLogsDao.updateLog(s1, BackupLogsCompanion(
-        completedAt: Value(DateTime.utc(2026, 5, 1)),
+        completedAt: Value(DateTime.utc(2026, 5)),
       ));
       final s2 = await createLog(status: 'success');
       await db.backupLogsDao.updateLog(s2, BackupLogsCompanion(
@@ -105,7 +105,7 @@ void main() {
     test('counts failed runs after the given timestamp only', () async {
       await createLog(
         status: 'failed',
-        startedAt: DateTime.utc(2026, 4, 1),
+        startedAt: DateTime.utc(2026, 4),
       );
       await createLog(
         status: 'failed',
@@ -121,7 +121,7 @@ void main() {
       );
 
       final count = await db.backupLogsDao
-          .getFailureCountSince(DateTime.utc(2026, 5, 1));
+          .getFailureCountSince(DateTime.utc(2026, 5));
       expect(count, 2);
     });
   });
@@ -131,7 +131,7 @@ void main() {
       for (var i = 0; i < 60; i++) {
         await createLog(
           status: 'success',
-          startedAt: DateTime.utc(2026, 1, 1).add(Duration(hours: i)),
+          startedAt: DateTime.utc(2026).add(Duration(hours: i)),
         );
       }
 
@@ -147,7 +147,7 @@ void main() {
       for (var i = 0; i < 10; i++) {
         await createLog(
           status: 'success',
-          startedAt: DateTime.utc(2026, 1, 1).add(Duration(hours: i)),
+          startedAt: DateTime.utc(2026).add(Duration(hours: i)),
         );
       }
       await db.backupLogsDao.deleteOldLogs(keepCount: 4);

@@ -89,7 +89,6 @@ class _Calendar extends StatelessWidget {
           selectedDay != null && isSameDay(day, selectedDay),
       onDaySelected: (selected, focused) => onDaySelected(selected),
       onPageChanged: onPageChanged,
-      calendarFormat: CalendarFormat.month,
       availableCalendarFormats: const {CalendarFormat.month: 'Month'},
       calendarBuilders: CalendarBuilders(
         markerBuilder: (context, day, _) {

@@ -30,7 +30,6 @@ class AttachmentLockService {
     );
     await _securityEventService.logEvent(
       eventType: 'attachment_locked',
-      severity: 'info',
       description: 'Attachment locked',
       metadata: '{"attachmentId": $attachmentId}',
     );
@@ -41,7 +40,6 @@ class AttachmentLockService {
     await _db.attachmentLocksDao.unlockAttachment(attachmentId);
     await _securityEventService.logEvent(
       eventType: 'attachment_unlocked',
-      severity: 'info',
       description: 'Attachment unlocked',
       metadata: '{"attachmentId": $attachmentId}',
     );
@@ -52,7 +50,6 @@ class AttachmentLockService {
     await _db.attachmentLocksDao.relockAttachment(attachmentId);
     await _securityEventService.logEvent(
       eventType: 'attachment_locked',
-      severity: 'info',
       description: 'Attachment re-locked',
       metadata: '{"attachmentId": $attachmentId}',
     );
@@ -63,7 +60,6 @@ class AttachmentLockService {
     await _db.attachmentLocksDao.removeLock(attachmentId);
     await _securityEventService.logEvent(
       eventType: 'attachment_unlocked',
-      severity: 'info',
       description: 'Attachment lock removed',
       metadata: '{"attachmentId": $attachmentId}',
     );

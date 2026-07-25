@@ -181,7 +181,7 @@ class InsightsService {
 
     if (rows.isEmpty) {
       return const StreakInfo(
-          currentStreak: 0, longestStreak: 0, lastEntryDate: null);
+          currentStreak: 0, longestStreak: 0);
     }
 
     final dates = rows

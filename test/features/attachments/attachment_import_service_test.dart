@@ -37,7 +37,7 @@ void main() {
       await service.importToEntry(
         database: database,
         entryId: entryId,
-        picked: PickedAttachmentData(
+        picked: const PickedAttachmentData(
           fileName: 'document.pdf',
           mimeType: 'application/pdf',
           bytes: [1, 2, 3, 4],
@@ -60,7 +60,7 @@ void main() {
         service.importToEntry(
           database: database,
           entryId: 9999,
-          picked: PickedAttachmentData(
+          picked: const PickedAttachmentData(
             fileName: 'document.pdf',
             mimeType: 'application/pdf',
             bytes: [1, 2, 3, 4],

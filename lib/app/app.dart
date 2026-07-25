@@ -568,14 +568,14 @@ class _FirstLaunchSetupScreenState
                 key: const Key('first-launch-pin-field'),
                 controller: _pin,
                 obscureText: true,
-                keyboardType: TextInputType.numberWithOptions(decimal: false),
+                keyboardType: const TextInputType.numberWithOptions(),
                 decoration: const InputDecoration(labelText: 'PIN'),
               ),
               TextField(
                 key: const Key('first-launch-pin-confirm-field'),
                 controller: _confirm,
                 obscureText: true,
-                keyboardType: TextInputType.numberWithOptions(decimal: false),
+                keyboardType: const TextInputType.numberWithOptions(),
                 decoration: const InputDecoration(labelText: 'Confirm PIN'),
               ),
             ],
@@ -846,7 +846,6 @@ class _LockGateScreenState extends ConsumerState<_LockGateScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(modeLabel, style: Theme.of(context).textTheme.titleMedium),

@@ -52,7 +52,7 @@ final activeAutoLockProfileProvider =
 final recentSecurityEventsProvider =
     StreamProvider<List<SecurityEvent>>((ref) {
   final service = ref.read(securityEventServiceProvider);
-  return service.watchRecentEvents(limit: 50);
+  return service.watchRecentEvents();
 });
 
 final criticalSecurityEventsProvider =
