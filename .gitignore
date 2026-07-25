@@ -43,3 +43,11 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Signing — never commit (guideline.md section 2.3)
+android/key.properties
+android/*.jks
+android/*.keystore
+
+# Obfuscation debug symbols — store securely, never commit (security.md section 8.1)
+/build/symbols/

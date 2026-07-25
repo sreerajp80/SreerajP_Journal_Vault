@@ -1,0 +1,23 @@
+# Release signing template — guideline.md section 2.2
+#
+# Copy this file to android/key.properties and fill in your real values.
+# key.properties is git-ignored and MUST NEVER be committed.
+#
+# To create the keystore (run once, from the android/ folder):
+#
+#   keytool -genkeypair -v \
+#     -keystore sreerajp_journal_vault.jks \
+#     -keyalg RSA -keysize 4096 -validity 10000 \
+#     -alias sreerajp_journal_vault
+#
+# keytool will prompt for the store password, the key password, and your name
+# and organisation details. Use a strong, unique password and record it in your
+# password manager.
+#
+# BACK THE KEYSTORE UP OFFLINE. If you lose it you can never ship an update
+# that the installed app will accept as the same application.
+
+storePassword=<store password>
+keyPassword=<key password>
+keyAlias=sreerajp_journal_vault
+storeFile=sreerajp_journal_vault.jks

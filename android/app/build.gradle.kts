@@ -1,9 +1,29 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+
+// Release signing, per guideline.md section 2.
+//
+// The keystore and its passwords live in android/key.properties, which is
+// git-ignored and never committed. See android/key.properties.example for the
+// format and docs/release_process.md for how to create the keystore.
+//
+// If key.properties is absent (fresh clone, CI without secrets), the release
+// build falls back to the debug key so `flutter run --release` still works.
+// A fallback build is NOT distributable — the build prints a warning saying so.
+val keystorePropertiesFile = rootProject.file("key.properties")
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) {
+        keystorePropertiesFile.inputStream().use { load(it) }
+    }
+}
+val hasReleaseSigning = keystorePropertiesFile.exists() &&
+    keystoreProperties.getProperty("storeFile") != null
 
 android {
     namespace = "in.sreerajp.sreerajp_journal_vault"
@@ -30,11 +50,35 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (hasReleaseSigning) {
+                signingConfigs.getByName("release")
+            } else {
+                logger.warn(
+                    "WARNING: android/key.properties not found. Signing the release " +
+                        "build with the DEBUG key. This build must not be distributed. " +
+                        "See docs/release_process.md to create a release keystore.",
+                )
+                signingConfigs.getByName("debug")
+            }
+
+            isMinifyEnabled = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
 
