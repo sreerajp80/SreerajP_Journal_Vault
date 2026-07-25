@@ -4,9 +4,11 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import android.view.WindowManager
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.documentfile.provider.DocumentFile
 import io.flutter.embedding.android.FlutterFragmentActivity
@@ -61,6 +63,19 @@ class MainActivity : FlutterFragmentActivity() {
         } catch (error: Exception) {
             pendingResult.error("storage_unavailable", error.message, null)
         }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        // Sensitive Data Extension, engineering standard 15.2: FLAG_SECURE blocks
+        // screenshots, screen recording, and the task-switcher preview. Applied once
+        // for the whole window rather than per screen, because every screen in this
+        // app can show private journal content.
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_SECURE,
+            WindowManager.LayoutParams.FLAG_SECURE,
+        )
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
