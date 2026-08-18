@@ -152,13 +152,14 @@ class InsightsService {
     // Compute averages
     final results = <MoodDataPoint>[];
     for (final entry in dailyMoods.entries) {
-      final avg =
-          entry.value.reduce((a, b) => a + b) / entry.value.length;
-      results.add(MoodDataPoint(
-        date: DateTime.parse(entry.key),
-        averageMood: avg,
-        entryCount: entry.value.length,
-      ));
+      final avg = entry.value.reduce((a, b) => a + b) / entry.value.length;
+      results.add(
+        MoodDataPoint(
+          date: DateTime.parse(entry.key),
+          averageMood: avg,
+          entryCount: entry.value.length,
+        ),
+      );
     }
     results.sort((a, b) => a.date.compareTo(b.date));
     return results;
@@ -170,18 +171,15 @@ class InsightsService {
   Future<StreakInfo> getStreakInfo() async {
     // entry_date is stored as Unix seconds by drift's default DateTime
     // mapping, so feed it directly to unixepoch (no extra divide).
-    final rows = await _db.customSelect(
-      '''
+    final rows = await _db.customSelect('''
       SELECT DISTINCT DATE(entry_date, 'unixepoch') AS day
       FROM entries
       WHERE entry_date IS NOT NULL
       ORDER BY day DESC
-      ''',
-    ).get();
+      ''').get();
 
     if (rows.isEmpty) {
-      return const StreakInfo(
-          currentStreak: 0, longestStreak: 0);
+      return const StreakInfo(currentStreak: 0, longestStreak: 0);
     }
 
     final dates = rows
@@ -197,8 +195,7 @@ class InsightsService {
 
     // Allow current day or yesterday to count
     if (dates.first == todayKey ||
-        dates.first ==
-            todayKey.subtract(const Duration(days: 1))) {
+        dates.first == todayKey.subtract(const Duration(days: 1))) {
       expectedDate = dates.first;
       for (final date in dates) {
         if (date == expectedDate) {
@@ -218,14 +215,14 @@ class InsightsService {
       if (diff == 1) {
         tempStreak++;
       } else {
-        longestStreak =
-            tempStreak > longestStreak ? tempStreak : longestStreak;
+        longestStreak = tempStreak > longestStreak ? tempStreak : longestStreak;
         tempStreak = 1;
       }
     }
     longestStreak = tempStreak > longestStreak ? tempStreak : longestStreak;
-    longestStreak =
-        currentStreak > longestStreak ? currentStreak : longestStreak;
+    longestStreak = currentStreak > longestStreak
+        ? currentStreak
+        : longestStreak;
 
     return StreakInfo(
       currentStreak: currentStreak,
@@ -238,15 +235,13 @@ class InsightsService {
 
   /// Returns tag usage frequencies for heatmap visualization.
   Future<List<TagFrequency>> getTagHeatmap() async {
-    final results = await _db.customSelect(
-      '''
+    final results = await _db.customSelect('''
       SELECT t.id AS tag_id, t.name AS tag_name, COUNT(et.id) AS cnt
       FROM tags t
       INNER JOIN entry_tags et ON et.tag_id = t.id
       GROUP BY t.id, t.name
       ORDER BY cnt DESC
-      ''',
-    ).get();
+      ''').get();
 
     return results.map((row) {
       return TagFrequency(
@@ -265,8 +260,9 @@ class InsightsService {
     final month = targetDate.month.toString().padLeft(2, '0');
     final day = targetDate.day.toString().padLeft(2, '0');
 
-    final results = await _db.customSelect(
-      '''
+    final results = await _db
+        .customSelect(
+          '''
       SELECT id, journal_id, title, plain_text, entry_date
       FROM entries
       WHERE entry_date IS NOT NULL
@@ -275,12 +271,13 @@ class InsightsService {
         AND strftime('%Y', entry_date, 'unixepoch') != ?
       ORDER BY entry_date DESC
       ''',
-      variables: [
-        Variable.withString(month),
-        Variable.withString(day),
-        Variable.withString(targetDate.year.toString()),
-      ],
-    ).get();
+          variables: [
+            Variable.withString(month),
+            Variable.withString(day),
+            Variable.withString(targetDate.year.toString()),
+          ],
+        )
+        .get();
 
     return results.map((row) {
       final entryDate = DateTime.fromMillisecondsSinceEpoch(
@@ -309,9 +306,13 @@ class InsightsService {
     DateTime? weekStart,
   }) async {
     final now = DateTime.now();
-    final start = weekStart ??
-        DateTime(now.year, now.month, now.day)
-            .subtract(Duration(days: now.weekday - 1));
+    final start =
+        weekStart ??
+        DateTime(
+          now.year,
+          now.month,
+          now.day,
+        ).subtract(Duration(days: now.weekday - 1));
     final end = start.add(const Duration(days: 7));
 
     // Get entries for the week
@@ -337,8 +338,7 @@ class InsightsService {
         if (mood != null) moodValues.add(mood.mood);
       }
       if (moodValues.isNotEmpty) {
-        avgMood =
-            moodValues.reduce((a, b) => a + b) / moodValues.length;
+        avgMood = moodValues.reduce((a, b) => a + b) / moodValues.length;
       }
     }
 
@@ -362,45 +362,54 @@ class InsightsService {
 
   // ──────────────── Helpers ────────────────
 
-  Future<List<Entry>> _getAllEntriesInRange(
-      DateTime from, DateTime to) async {
+  Future<List<Entry>> _getAllEntriesInRange(DateTime from, DateTime to) async {
     // entry_date is stored as Unix seconds by drift's default mapping.
-    return (await _db.customSelect(
-      '''
+    return (await _db
+            .customSelect(
+              '''
       SELECT * FROM entries
       WHERE entry_date IS NOT NULL
         AND entry_date >= ?
         AND entry_date < ?
       ORDER BY entry_date ASC
       ''',
-      variables: [
-        Variable.withInt(from.millisecondsSinceEpoch ~/ 1000),
-        Variable.withInt(to.millisecondsSinceEpoch ~/ 1000),
-      ],
-    ).get())
-        .map((row) => Entry(
-              id: row.read<int>('id'),
-              journalId: row.read<int>('journal_id'),
-              title: row.readNullable<String>('title'),
-              contentJson: row.readNullable<String>('content_json'),
-              plainText: row.readNullable<String>('plain_text'),
-              // Drift stores DateTime as Unix seconds, multiply back to ms.
-              entryDate: DateTime.fromMillisecondsSinceEpoch(
-                  row.read<int>('entry_date') * 1000),
-              createdAt: DateTime.fromMillisecondsSinceEpoch(
-                  row.read<int>('created_at') * 1000),
-              updatedAt: DateTime.fromMillisecondsSinceEpoch(
-                  row.read<int>('updated_at') * 1000),
-            ))
+              variables: [
+                Variable.withInt(from.millisecondsSinceEpoch ~/ 1000),
+                Variable.withInt(to.millisecondsSinceEpoch ~/ 1000),
+              ],
+            )
+            .get())
+        .map(
+          (row) => Entry(
+            id: row.read<int>('id'),
+            journalId: row.read<int>('journal_id'),
+            title: row.readNullable<String>('title'),
+            contentJson: row.readNullable<String>('content_json'),
+            plainText: row.readNullable<String>('plain_text'),
+            // Drift stores DateTime as Unix seconds, multiply back to ms.
+            entryDate: DateTime.fromMillisecondsSinceEpoch(
+              row.read<int>('entry_date') * 1000,
+            ),
+            createdAt: DateTime.fromMillisecondsSinceEpoch(
+              row.read<int>('created_at') * 1000,
+            ),
+            updatedAt: DateTime.fromMillisecondsSinceEpoch(
+              row.read<int>('updated_at') * 1000,
+            ),
+          ),
+        )
         .toList();
   }
 
-  Future<List<String>> _getTopTagsForEntries(List<int> entryIds,
-      {int limit = 5}) async {
+  Future<List<String>> _getTopTagsForEntries(
+    List<int> entryIds, {
+    int limit = 5,
+  }) async {
     if (entryIds.isEmpty) return [];
     final placeholders = entryIds.map((_) => '?').join(', ');
-    final results = await _db.customSelect(
-      '''
+    final results = await _db
+        .customSelect(
+          '''
       SELECT t.name, COUNT(et.id) AS cnt
       FROM tags t
       INNER JOIN entry_tags et ON et.tag_id = t.id
@@ -409,11 +418,12 @@ class InsightsService {
       ORDER BY cnt DESC
       LIMIT ?
       ''',
-      variables: [
-        ...entryIds.map((id) => Variable.withInt(id)),
-        Variable.withInt(limit),
-      ],
-    ).get();
+          variables: [
+            ...entryIds.map((id) => Variable.withInt(id)),
+            Variable.withInt(limit),
+          ],
+        )
+        .get();
     return results.map((r) => r.read<String>('name')).toList();
   }
 

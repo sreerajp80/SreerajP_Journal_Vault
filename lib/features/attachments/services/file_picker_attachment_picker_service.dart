@@ -7,7 +7,7 @@ import 'package:sreerajp_journal_vault/features/attachments/services/attachment_
 class FilePickerAttachmentPickerService implements AttachmentPickerService {
   @override
   Future<PickedAttachmentData?> pickAttachment() async {
-    final result = await FilePicker.platform.pickFiles(withData: true);
+    final result = await FilePicker.pickFiles(withData: true);
     if (result == null || result.files.isEmpty) return null;
 
     final file = result.files.first;
@@ -17,10 +17,6 @@ class FilePickerAttachmentPickerService implements AttachmentPickerService {
     final name = file.name;
     final mime = lookupMimeType(name) ?? 'application/octet-stream';
 
-    return PickedAttachmentData(
-      fileName: name,
-      mimeType: mime,
-      bytes: bytes,
-    );
+    return PickedAttachmentData(fileName: name, mimeType: mime, bytes: bytes);
   }
 }

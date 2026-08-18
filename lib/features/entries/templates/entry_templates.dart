@@ -153,7 +153,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Daily Reflection',
     description: 'Highlights, gratitudes, and tomorrow\'s focus.',
     defaultTitle: 'Daily Reflection',
-    contentJson: '[{"insert":"Highlights\\n\\n"},'
+    contentJson:
+        '[{"insert":"Highlights\\n\\n"},'
         '{"insert":"Lowlights\\n\\n"},'
         '{"insert":"Tomorrow\'s focus\\n\\n"}]',
   ),
@@ -163,7 +164,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Today for Me',
     description: 'Did, thought, saw, encountered, felt, and learned today.',
     defaultTitle: 'Today for Me',
-    contentJson: '[{"insert":"What I did today\\n\\n"},'
+    contentJson:
+        '[{"insert":"What I did today\\n\\n"},'
         '{"insert":"What I thought today\\n\\n"},'
         '{"insert":"What I saw today\\n\\n"},'
         '{"insert":"What I encountered today\\n\\n"},'
@@ -176,7 +178,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Evening Wind-down',
     description: 'Wins, struggles, one thing to let go of.',
     defaultTitle: 'Evening Wind-down',
-    contentJson: '[{"insert":"Wins\\n\\n"},'
+    contentJson:
+        '[{"insert":"Wins\\n\\n"},'
         '{"insert":"Struggles\\n\\n"},'
         '{"insert":"One thing to let go of\\n\\n"}]',
   ),
@@ -194,7 +197,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Highlight of the Day',
     description: 'Single most memorable moment and why.',
     defaultTitle: 'Highlight of the Day',
-    contentJson: '[{"insert":"The moment\\n\\n"},'
+    contentJson:
+        '[{"insert":"The moment\\n\\n"},'
         '{"insert":"Why it stood out\\n\\n"}]',
   ),
   EntryTemplate(
@@ -203,7 +207,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Energy Check',
     description: 'Energy level, what drained it, what restored it.',
     defaultTitle: 'Energy Check',
-    contentJson: '[{"insert":"Energy level (1-10): \\n\\n"},'
+    contentJson:
+        '[{"insert":"Energy level (1-10): \\n\\n"},'
         '{"insert":"What drained it\\n\\n"},'
         '{"insert":"What restored it\\n\\n"}]',
   ),
@@ -213,7 +218,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Mood Check-in',
     description: 'Note your current mood and what is shaping it.',
     defaultTitle: 'Mood Check-in',
-    contentJson: '[{"insert":"How I feel right now\\n\\n"},'
+    contentJson:
+        '[{"insert":"How I feel right now\\n\\n"},'
         '{"insert":"What is shaping it\\n\\n"}]',
   ),
 
@@ -224,7 +230,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'My Thoughts',
     description: 'Free-form reflection on a topic.',
     defaultTitle: 'My Thoughts',
-    contentJson: '[{"insert":"Topic\\n\\n"},'
+    contentJson:
+        '[{"insert":"Topic\\n\\n"},'
         '{"insert":"My thoughts\\n\\n"}]',
   ),
   EntryTemplate(
@@ -233,7 +240,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Idea Capture',
     description: 'Idea, why it matters, next step.',
     defaultTitle: 'Idea Capture',
-    contentJson: '[{"insert":"The idea\\n\\n"},'
+    contentJson:
+        '[{"insert":"The idea\\n\\n"},'
         '{"insert":"Why it matters\\n\\n"},'
         '{"insert":"Next step\\n\\n"}]',
   ),
@@ -243,7 +251,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Open Question',
     description: 'A question I am sitting with and current thinking.',
     defaultTitle: 'Open Question',
-    contentJson: '[{"insert":"The question\\n\\n"},'
+    contentJson:
+        '[{"insert":"The question\\n\\n"},'
         '{"insert":"What I think so far\\n\\n"},'
         '{"insert":"What I still don\'t know\\n\\n"}]',
   ),
@@ -253,7 +262,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Opinion / Hot Take',
     description: 'Belief, evidence for, evidence against.',
     defaultTitle: 'Opinion / Hot Take',
-    contentJson: '[{"insert":"My belief\\n\\n"},'
+    contentJson:
+        '[{"insert":"My belief\\n\\n"},'
         '{"insert":"Evidence for\\n\\n"},'
         '{"insert":"Evidence against\\n\\n"}]',
   ),
@@ -263,7 +273,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Lessons Learned',
     description: 'What happened, what I learned, how I\'ll apply it.',
     defaultTitle: 'Lessons Learned',
-    contentJson: '[{"insert":"What happened\\n\\n"},'
+    contentJson:
+        '[{"insert":"What happened\\n\\n"},'
         '{"insert":"What I learned\\n\\n"},'
         '{"insert":"How I\'ll apply it\\n\\n"}]',
   ),
@@ -275,7 +286,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'My Projects',
     description: 'Project, status, blockers, next action.',
     defaultTitle: 'My Projects',
-    contentJson: '[{"insert":"Project\\n\\n"},'
+    contentJson:
+        '[{"insert":"Project\\n\\n"},'
         '{"insert":"Status\\n\\n"},'
         '{"insert":"Blockers\\n\\n"},'
         '{"insert":"Next action\\n\\n"}]',
@@ -286,7 +298,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Project Update',
     description: 'Progress, risks, decisions made.',
     defaultTitle: 'Project Update',
-    contentJson: '[{"insert":"Progress\\n\\n"},'
+    contentJson:
+        '[{"insert":"Progress\\n\\n"},'
         '{"insert":"Risks\\n\\n"},'
         '{"insert":"Decisions made\\n\\n"}]',
   ),
@@ -296,7 +309,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Weekly Review',
     description: 'Wins, misses, focus for next week.',
     defaultTitle: 'Weekly Review',
-    contentJson: '[{"insert":"Wins\\n\\n"},'
+    contentJson:
+        '[{"insert":"Wins\\n\\n"},'
         '{"insert":"Misses\\n\\n"},'
         '{"insert":"Focus for next week\\n\\n"}]',
   ),
@@ -306,7 +320,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Goal Tracker',
     description: 'Goal, progress, obstacles, adjustments.',
     defaultTitle: 'Goal Tracker',
-    contentJson: '[{"insert":"Goal\\n\\n"},'
+    contentJson:
+        '[{"insert":"Goal\\n\\n"},'
         '{"insert":"Progress\\n\\n"},'
         '{"insert":"Obstacles\\n\\n"},'
         '{"insert":"Adjustments\\n\\n"}]',
@@ -317,7 +332,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Decision Log',
     description: 'Decision, options considered, why I chose this.',
     defaultTitle: 'Decision Log',
-    contentJson: '[{"insert":"The decision\\n\\n"},'
+    contentJson:
+        '[{"insert":"The decision\\n\\n"},'
         '{"insert":"Options considered\\n\\n"},'
         '{"insert":"Why I chose this\\n\\n"}]',
   ),
@@ -327,7 +343,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Stuck Point',
     description: 'Where I\'m stuck, what I\'ve tried, what to try next.',
     defaultTitle: 'Stuck Point',
-    contentJson: '[{"insert":"Where I\'m stuck\\n\\n"},'
+    contentJson:
+        '[{"insert":"Where I\'m stuck\\n\\n"},'
         '{"insert":"What I\'ve tried\\n\\n"},'
         '{"insert":"What to try next\\n\\n"}]',
   ),
@@ -337,7 +354,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Meeting Notes',
     description: 'Attendees, agenda, decisions, action items.',
     defaultTitle: 'Meeting Notes',
-    contentJson: '[{"insert":"Attendees: \\n"},'
+    contentJson:
+        '[{"insert":"Attendees: \\n"},'
         '{"insert":"Agenda\\n\\n"},'
         '{"insert":"Decisions\\n\\n"},'
         '{"insert":"Action items\\n\\n"}]',
@@ -350,7 +368,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Conversation Recap',
     description: 'Who, what we discussed, follow-ups.',
     defaultTitle: 'Conversation Recap',
-    contentJson: '[{"insert":"Who\\n\\n"},'
+    contentJson:
+        '[{"insert":"Who\\n\\n"},'
         '{"insert":"What we discussed\\n\\n"},'
         '{"insert":"Follow-ups\\n\\n"}]',
   ),
@@ -360,7 +379,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'People I\'m Grateful For',
     description: 'Person and a specific reason.',
     defaultTitle: 'People I\'m Grateful For',
-    contentJson: '[{"insert":"Person\\n\\n"},'
+    contentJson:
+        '[{"insert":"Person\\n\\n"},'
         '{"insert":"Specific reason\\n\\n"}]',
   ),
   EntryTemplate(
@@ -369,7 +389,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Letter I Won\'t Send',
     description: 'Unsent letter to process feelings.',
     defaultTitle: 'Unsent Letter',
-    contentJson: '[{"insert":"Dear ...,\\n\\n"},'
+    contentJson:
+        '[{"insert":"Dear ...,\\n\\n"},'
         '{"insert":"\\n\\n"},'
         '{"insert":"— Me\\n\\n"}]',
   ),
@@ -379,7 +400,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Relationship Check-in',
     description: 'How a key relationship is going.',
     defaultTitle: 'Relationship Check-in',
-    contentJson: '[{"insert":"Person\\n\\n"},'
+    contentJson:
+        '[{"insert":"Person\\n\\n"},'
         '{"insert":"How it\'s going\\n\\n"},'
         '{"insert":"What needs attention\\n\\n"}]',
   ),
@@ -389,7 +411,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Gratitude',
     description: 'Three things I am grateful for today.',
     defaultTitle: 'Gratitude',
-    contentJson: '[{"insert":"Three things I\'m grateful for\\n\\n"},'
+    contentJson:
+        '[{"insert":"Three things I\'m grateful for\\n\\n"},'
         '{"insert":"1. \\n"},{"insert":"2. \\n"},{"insert":"3. \\n"}]',
   ),
 
@@ -400,7 +423,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Body Check-in',
     description: 'Sleep, food, movement, pain or tension.',
     defaultTitle: 'Body Check-in',
-    contentJson: '[{"insert":"Sleep\\n\\n"},'
+    contentJson:
+        '[{"insert":"Sleep\\n\\n"},'
         '{"insert":"Food\\n\\n"},'
         '{"insert":"Movement\\n\\n"},'
         '{"insert":"Pain or tension\\n\\n"}]',
@@ -411,7 +435,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Mental Health Log',
     description: 'Mood, triggers, coping used.',
     defaultTitle: 'Mental Health Log',
-    contentJson: '[{"insert":"Mood\\n\\n"},'
+    contentJson:
+        '[{"insert":"Mood\\n\\n"},'
         '{"insert":"Triggers\\n\\n"},'
         '{"insert":"Coping used\\n\\n"}]',
   ),
@@ -421,7 +446,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Habit Tracker',
     description: 'Habits done today and streak notes.',
     defaultTitle: 'Habit Tracker',
-    contentJson: '[{"insert":"Habits done today\\n\\n"},'
+    contentJson:
+        '[{"insert":"Habits done today\\n\\n"},'
         '{"insert":"Missed today\\n\\n"},'
         '{"insert":"Streak notes\\n\\n"}]',
   ),
@@ -431,7 +457,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Sleep Log',
     description: 'Hours, quality, dreams.',
     defaultTitle: 'Sleep Log',
-    contentJson: '[{"insert":"Hours\\n\\n"},'
+    contentJson:
+        '[{"insert":"Hours\\n\\n"},'
         '{"insert":"Quality\\n\\n"},'
         '{"insert":"Dreams\\n\\n"}]',
   ),
@@ -443,7 +470,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Taught to Me Today',
     description: 'Lesson, source, takeaway.',
     defaultTitle: 'Taught to Me Today',
-    contentJson: '[{"insert":"Lesson\\n\\n"},'
+    contentJson:
+        '[{"insert":"Lesson\\n\\n"},'
         '{"insert":"Source\\n\\n"},'
         '{"insert":"Takeaway\\n\\n"}]',
   ),
@@ -453,7 +481,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Book / Article Notes',
     description: 'Title, key ideas, my reaction.',
     defaultTitle: 'Book / Article Notes',
-    contentJson: '[{"insert":"Title: \\n"},'
+    contentJson:
+        '[{"insert":"Title: \\n"},'
         '{"insert":"Author: \\n\\n"},'
         '{"insert":"Key ideas\\n\\n"},'
         '{"insert":"My reaction\\n\\n"}]',
@@ -464,7 +493,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Skill Practice',
     description: 'What I practiced, what improved, next focus.',
     defaultTitle: 'Skill Practice',
-    contentJson: '[{"insert":"Skill\\n\\n"},'
+    contentJson:
+        '[{"insert":"Skill\\n\\n"},'
         '{"insert":"What I practiced\\n\\n"},'
         '{"insert":"What improved\\n\\n"},'
         '{"insert":"Next focus\\n\\n"}]',
@@ -475,7 +505,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Mistake Log',
     description: 'What went wrong, root cause, prevention.',
     defaultTitle: 'Mistake Log',
-    contentJson: '[{"insert":"What went wrong\\n\\n"},'
+    contentJson:
+        '[{"insert":"What went wrong\\n\\n"},'
         '{"insert":"Root cause\\n\\n"},'
         '{"insert":"Prevention\\n\\n"}]',
   ),
@@ -487,7 +518,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Dream Journal',
     description: 'Dream details, emotions, possible meaning.',
     defaultTitle: 'Dream Journal',
-    contentJson: '[{"insert":"Dream details\\n\\n"},'
+    contentJson:
+        '[{"insert":"Dream details\\n\\n"},'
         '{"insert":"Emotions\\n\\n"},'
         '{"insert":"Possible meaning\\n\\n"}]',
   ),
@@ -497,7 +529,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Observation Sketch',
     description: 'Something I noticed in detail.',
     defaultTitle: 'Observation Sketch',
-    contentJson: '[{"insert":"What I noticed\\n\\n"},'
+    contentJson:
+        '[{"insert":"What I noticed\\n\\n"},'
         '{"insert":"Details\\n\\n"}]',
   ),
   EntryTemplate(
@@ -506,7 +539,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Quote of the Day',
     description: 'Quote and why it resonates.',
     defaultTitle: 'Quote of the Day',
-    contentJson: '[{"insert":"Quote\\n\\n"},'
+    contentJson:
+        '[{"insert":"Quote\\n\\n"},'
         '{"insert":"Source\\n\\n"},'
         '{"insert":"Why it resonates\\n\\n"}]',
   ),
@@ -516,7 +550,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Story Seed',
     description: 'A tiny story idea or scene.',
     defaultTitle: 'Story Seed',
-    contentJson: '[{"insert":"The seed\\n\\n"},'
+    contentJson:
+        '[{"insert":"The seed\\n\\n"},'
         '{"insert":"Possible direction\\n\\n"}]',
   ),
   EntryTemplate(
@@ -525,7 +560,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Travel Log',
     description: 'Place, weather, what happened, who you met.',
     defaultTitle: 'Travel Log',
-    contentJson: '[{"insert":"Place: \\n"},'
+    contentJson:
+        '[{"insert":"Place: \\n"},'
         '{"insert":"Weather: \\n"},'
         '{"insert":"What happened\\n\\n"},'
         '{"insert":"People I met\\n\\n"}]',
@@ -538,7 +574,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Tomorrow\'s Focus',
     description: 'Top 3 priorities and the first step.',
     defaultTitle: 'Tomorrow\'s Focus',
-    contentJson: '[{"insert":"Top 3 priorities\\n\\n"},'
+    contentJson:
+        '[{"insert":"Top 3 priorities\\n\\n"},'
         '{"insert":"1. \\n"},{"insert":"2. \\n"},{"insert":"3. \\n\\n"},'
         '{"insert":"First step\\n\\n"}]',
   ),
@@ -548,7 +585,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Weekly Intentions',
     description: 'Theme, priorities, what to avoid.',
     defaultTitle: 'Weekly Intentions',
-    contentJson: '[{"insert":"Theme\\n\\n"},'
+    contentJson:
+        '[{"insert":"Theme\\n\\n"},'
         '{"insert":"Priorities\\n\\n"},'
         '{"insert":"What to avoid\\n\\n"}]',
   ),
@@ -558,7 +596,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Monthly Review',
     description: 'Wins, lessons, what changes next month.',
     defaultTitle: 'Monthly Review',
-    contentJson: '[{"insert":"Wins\\n\\n"},'
+    contentJson:
+        '[{"insert":"Wins\\n\\n"},'
         '{"insert":"Lessons\\n\\n"},'
         '{"insert":"What changes next month\\n\\n"}]',
   ),
@@ -570,7 +609,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Workout Log',
     description: 'Exercises, sets, reps, how it felt.',
     defaultTitle: 'Workout Log',
-    contentJson: '[{"insert":"Workout\\n\\n"},'
+    contentJson:
+        '[{"insert":"Workout\\n\\n"},'
         '{"insert":"Sets / reps\\n\\n"},'
         '{"insert":"How it felt\\n\\n"}]',
   ),
@@ -580,7 +620,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Reading Log',
     description: 'Book, pages read, favorite passage.',
     defaultTitle: 'Reading Log',
-    contentJson: '[{"insert":"Book\\n\\n"},'
+    contentJson:
+        '[{"insert":"Book\\n\\n"},'
         '{"insert":"Pages read\\n\\n"},'
         '{"insert":"Favorite passage\\n\\n"}]',
   ),
@@ -590,7 +631,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Food Journal',
     description: 'Meals and how I felt after.',
     defaultTitle: 'Food Journal',
-    contentJson: '[{"insert":"Meals\\n\\n"},'
+    contentJson:
+        '[{"insert":"Meals\\n\\n"},'
         '{"insert":"How I felt after\\n\\n"}]',
   ),
   EntryTemplate(
@@ -599,7 +641,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Spending Log',
     description: 'Purchases — was it worth it?',
     defaultTitle: 'Spending Log',
-    contentJson: '[{"insert":"Purchase\\n\\n"},'
+    contentJson:
+        '[{"insert":"Purchase\\n\\n"},'
         '{"insert":"Cost\\n\\n"},'
         '{"insert":"Was it worth it?\\n\\n"}]',
   ),
@@ -609,7 +652,8 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
     label: 'Prayer / Meditation',
     description: 'Practice, duration, reflections.',
     defaultTitle: 'Prayer / Meditation',
-    contentJson: '[{"insert":"Practice\\n\\n"},'
+    contentJson:
+        '[{"insert":"Practice\\n\\n"},'
         '{"insert":"Duration\\n\\n"},'
         '{"insert":"Reflections\\n\\n"}]',
   ),
@@ -632,7 +676,10 @@ Map<EntryTemplateCategory, List<EntryTemplate>> get entryTemplatesByCategory {
 /// Looks a template up by [id]. Returns the blank template if [id] is null.
 EntryTemplate templateFor(EntryTemplateId? id) {
   if (id == null) return _templates.first;
-  return _templates.firstWhere((t) => t.id == id, orElse: () => _templates.first);
+  return _templates.firstWhere(
+    (t) => t.id == id,
+    orElse: () => _templates.first,
+  );
 }
 
 /// Lightweight sanity check that every template has a parseable Quill delta.

@@ -11,11 +11,14 @@ class SearchQueryNotifier extends Notifier<String> {
 }
 
 /// The current search query entered by the user.
-final searchQueryProvider =
-    NotifierProvider<SearchQueryNotifier, String>(SearchQueryNotifier.new);
+final searchQueryProvider = NotifierProvider<SearchQueryNotifier, String>(
+  SearchQueryNotifier.new,
+);
 
 /// FTS search results for the current query.
-final searchResultsProvider = FutureProvider<List<FtsSearchResult>>((ref) async {
+final searchResultsProvider = FutureProvider<List<FtsSearchResult>>((
+  ref,
+) async {
   final query = ref.watch(searchQueryProvider);
   if (query.trim().isEmpty) return [];
   final db = ref.read(appDatabaseProvider);

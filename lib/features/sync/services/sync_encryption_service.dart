@@ -30,10 +30,7 @@ class SyncEncryptionService {
   /// Encrypts a JSON-serialisable map into a Base64 string.
   ///
   /// The output format is: `base64([nonce_len(1)][nonce][mac(16)][ciphertext])`.
-  Future<String> encryptRecord(
-    Map<String, dynamic> data,
-    SecretKey key,
-  ) async {
+  Future<String> encryptRecord(Map<String, dynamic> data, SecretKey key) async {
     final plaintext = utf8.encode(jsonEncode(data));
     final nonce = _algorithm.newNonce();
     final secretBox = await _algorithm.encrypt(

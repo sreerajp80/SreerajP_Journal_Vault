@@ -28,10 +28,9 @@ class AttachmentTempFileHandle {
 /// Manages temporary decrypted attachment files and cleans them up.
 class AttachmentTempFileManager {
   AttachmentTempFileManager({
-    required Future<Directory> Function() cacheDirectoryProvider,
-    Duration backgroundCleanupDelay = const Duration(minutes: 5),
-  })  : _cacheDirectoryProvider = cacheDirectoryProvider,
-        _backgroundCleanupDelay = backgroundCleanupDelay;
+    required this._cacheDirectoryProvider,
+    this._backgroundCleanupDelay = const Duration(minutes: 5),
+  });
 
   final Future<Directory> Function() _cacheDirectoryProvider;
   final Duration _backgroundCleanupDelay;
@@ -60,11 +59,8 @@ class AttachmentTempFileManager {
     );
     await tempDir.create(recursive: true);
 
-    final uniqueName =
-        '${DateTime.now().microsecondsSinceEpoch}_$fileName';
-    final file = File(
-      '${tempDir.path}${Platform.pathSeparator}$uniqueName',
-    );
+    final uniqueName = '${DateTime.now().microsecondsSinceEpoch}_$fileName';
+    final file = File('${tempDir.path}${Platform.pathSeparator}$uniqueName');
     await file.writeAsBytes(bytes, flush: true);
 
     final handle = AttachmentTempFileHandle(file: file);

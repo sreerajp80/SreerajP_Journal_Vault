@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sreerajp_journal_vault/features/permissions/domain/app_permission_models.dart';
 import 'package:sreerajp_journal_vault/features/permissions/providers/permissions_providers.dart';
+import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 class PermissionsScreen extends ConsumerStatefulWidget {
   const PermissionsScreen({super.key});
@@ -28,19 +29,18 @@ class _PermissionsScreenState extends ConsumerState<PermissionsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final snapshot = _snapshot;
     if (snapshot == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Permissions')),
+      appBar: AppBar(title: Text(l10n.permissionsTitle)),
       body: ListView(
         children: [
           if (snapshot.explicitPermissions.isNotEmpty) ...[
-            const _SectionHeader(title: 'Explicit permissions'),
+            _SectionHeader(title: l10n.permissionsExplicitHeader),
             ...snapshot.explicitPermissions.map(
               (p) => _PermissionTile(
                 item: p,
@@ -50,7 +50,7 @@ class _PermissionsScreenState extends ConsumerState<PermissionsScreen> {
             ),
           ],
           if (snapshot.implicitPermissions.isNotEmpty) ...[
-            const _SectionHeader(title: 'Implicit permissions'),
+            _SectionHeader(title: l10n.permissionsImplicitHeader),
             ...snapshot.implicitPermissions.map(
               (p) => _PermissionTile(
                 item: p,
@@ -85,10 +85,7 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.titleMedium,
-      ),
+      child: Text(title, style: Theme.of(context).textTheme.titleMedium),
     );
   }
 }
@@ -104,37 +101,38 @@ class _PermissionTile extends StatelessWidget {
   final VoidCallback onRequest;
   final VoidCallback onOpenSettings;
 
-  String get _statusLabel {
+  String _statusLabel(AppLocalizations l10n) {
     switch (item.status) {
       case AppPermissionState.granted:
-        return 'Allowed';
+        return l10n.permissionStatusAllowed;
       case AppPermissionState.denied:
-        return 'Denied';
+        return l10n.permissionStatusDenied;
       case AppPermissionState.permanentlyDenied:
-        return 'Permanently denied';
+        return l10n.permissionStatusPermanentlyDenied;
       case AppPermissionState.userSelected:
-        return 'User selected';
+        return l10n.permissionStatusUserSelected;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return ListTile(
       title: Text(item.title),
-      subtitle: Text(_statusLabel),
+      subtitle: Text(_statusLabel(l10n)),
       trailing: item.canRequestAgain
           ? TextButton(
               key: Key('permission-request-${item.id.name}'),
               onPressed: onRequest,
-              child: const Text('Request'),
+              child: Text(l10n.permissionsRequest),
             )
           : item.canOpenSystemSettings
-              ? TextButton(
-                  key: Key('permission-settings-${item.id.name}'),
-                  onPressed: onOpenSettings,
-                  child: const Text('Open settings'),
-                )
-              : null,
+          ? TextButton(
+              key: Key('permission-settings-${item.id.name}'),
+              onPressed: onOpenSettings,
+              child: Text(l10n.permissionsOpenSettings),
+            )
+          : null,
     );
   }
 }

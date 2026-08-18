@@ -21,57 +21,63 @@ void main() {
     DateTime? startedAt,
     String trigger = 'manual',
   }) {
-    return db.backupLogsDao.createLog(BackupLogsCompanion.insert(
-      status: status,
-      trigger: Value(trigger),
-      startedAt: startedAt != null ? Value(startedAt) : const Value.absent(),
-    ));
+    return db.backupLogsDao.createLog(
+      BackupLogsCompanion.insert(
+        status: status,
+        trigger: Value(trigger),
+        startedAt: startedAt != null ? Value(startedAt) : const Value.absent(),
+      ),
+    );
   }
 
   group('createLog + updateLog', () {
-    test('inserts a new in-progress row that can be marked success later',
-        () async {
-      final id = await createLog(status: 'in_progress');
-      await db.backupLogsDao.updateLog(
-        id,
-        BackupLogsCompanion(
-          status: const Value('success'),
-          backupPath: const Value('/tmp/backup.vault'),
-          sizeBytes: const Value(2048),
-          entryCount: const Value(5),
-          attachmentCount: const Value(2),
-          completedAt: Value(DateTime.utc(2026, 5, 9, 12)),
-        ),
-      );
+    test(
+      'inserts a new in-progress row that can be marked success later',
+      () async {
+        final id = await createLog(status: 'in_progress');
+        await db.backupLogsDao.updateLog(
+          id,
+          BackupLogsCompanion(
+            status: const Value('success'),
+            backupPath: const Value('/tmp/backup.vault'),
+            sizeBytes: const Value(2048),
+            entryCount: const Value(5),
+            attachmentCount: const Value(2),
+            completedAt: Value(DateTime.utc(2026, 5, 9, 12)),
+          ),
+        );
 
-      final log = (await db.backupLogsDao.getAllLogs()).single;
-      expect(log.status, 'success');
-      expect(log.backupPath, '/tmp/backup.vault');
-      expect(log.sizeBytes, 2048);
-      expect(log.entryCount, 5);
-    });
+        final log = (await db.backupLogsDao.getAllLogs()).single;
+        expect(log.status, 'success');
+        expect(log.backupPath, '/tmp/backup.vault');
+        expect(log.sizeBytes, 2048);
+        expect(log.entryCount, 5);
+      },
+    );
   });
 
   group('getRecentLogs', () {
-    test('returns logs ordered by startedAt desc with the given limit',
-        () async {
-      for (var i = 0; i < 5; i++) {
-        await createLog(
-          status: 'success',
-          startedAt: DateTime.utc(2026, 5, i + 1, 12),
+    test(
+      'returns logs ordered by startedAt desc with the given limit',
+      () async {
+        for (var i = 0; i < 5; i++) {
+          await createLog(
+            status: 'success',
+            startedAt: DateTime.utc(2026, 5, i + 1, 12),
+          );
+        }
+        final recent = await db.backupLogsDao.getRecentLogs(limit: 3);
+        expect(recent, hasLength(3));
+        expect(
+          recent.first.startedAt.isAtSameMomentAs(DateTime.utc(2026, 5, 5, 12)),
+          isTrue,
         );
-      }
-      final recent = await db.backupLogsDao.getRecentLogs(limit: 3);
-      expect(recent, hasLength(3));
-      expect(
-        recent.first.startedAt.isAtSameMomentAs(DateTime.utc(2026, 5, 5, 12)),
-        isTrue,
-      );
-      expect(
-        recent.last.startedAt.isAtSameMomentAs(DateTime.utc(2026, 5, 3, 12)),
-        isTrue,
-      );
-    });
+        expect(
+          recent.last.startedAt.isAtSameMomentAs(DateTime.utc(2026, 5, 3, 12)),
+          isTrue,
+        );
+      },
+    );
   });
 
   group('getLatestSuccessful', () {
@@ -80,48 +86,41 @@ void main() {
       expect(await db.backupLogsDao.getLatestSuccessful(), isNull);
     });
 
-    test('returns the latest success ignoring failures and in_progress',
-        () async {
-      final s1 = await createLog(status: 'success');
-      await db.backupLogsDao.updateLog(s1, BackupLogsCompanion(
-        completedAt: Value(DateTime.utc(2026, 5)),
-      ));
-      final s2 = await createLog(status: 'success');
-      await db.backupLogsDao.updateLog(s2, BackupLogsCompanion(
-        completedAt: Value(DateTime.utc(2026, 5, 5)),
-      ));
-      await createLog(status: 'failed');
+    test(
+      'returns the latest success ignoring failures and in_progress',
+      () async {
+        final s1 = await createLog(status: 'success');
+        await db.backupLogsDao.updateLog(
+          s1,
+          BackupLogsCompanion(completedAt: Value(DateTime.utc(2026, 5))),
+        );
+        final s2 = await createLog(status: 'success');
+        await db.backupLogsDao.updateLog(
+          s2,
+          BackupLogsCompanion(completedAt: Value(DateTime.utc(2026, 5, 5))),
+        );
+        await createLog(status: 'failed');
 
-      final latest = await db.backupLogsDao.getLatestSuccessful();
-      expect(latest, isNotNull);
-      expect(
-        latest!.completedAt!.isAtSameMomentAs(DateTime.utc(2026, 5, 5)),
-        isTrue,
-      );
-    });
+        final latest = await db.backupLogsDao.getLatestSuccessful();
+        expect(latest, isNotNull);
+        expect(
+          latest!.completedAt!.isAtSameMomentAs(DateTime.utc(2026, 5, 5)),
+          isTrue,
+        );
+      },
+    );
   });
 
   group('getFailureCountSince', () {
     test('counts failed runs after the given timestamp only', () async {
-      await createLog(
-        status: 'failed',
-        startedAt: DateTime.utc(2026, 4),
-      );
-      await createLog(
-        status: 'failed',
-        startedAt: DateTime.utc(2026, 5, 5),
-      );
-      await createLog(
-        status: 'failed',
-        startedAt: DateTime.utc(2026, 5, 6),
-      );
-      await createLog(
-        status: 'success',
-        startedAt: DateTime.utc(2026, 5, 6),
-      );
+      await createLog(status: 'failed', startedAt: DateTime.utc(2026, 4));
+      await createLog(status: 'failed', startedAt: DateTime.utc(2026, 5, 5));
+      await createLog(status: 'failed', startedAt: DateTime.utc(2026, 5, 6));
+      await createLog(status: 'success', startedAt: DateTime.utc(2026, 5, 6));
 
-      final count = await db.backupLogsDao
-          .getFailureCountSince(DateTime.utc(2026, 5));
+      final count = await db.backupLogsDao.getFailureCountSince(
+        DateTime.utc(2026, 5),
+      );
       expect(count, 2);
     });
   });

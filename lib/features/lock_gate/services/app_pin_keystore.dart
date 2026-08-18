@@ -35,8 +35,8 @@ abstract class AppPinKeystore {
 /// MethodChannel implemented in `MainActivity.kt`.
 class MethodChannelAppPinKeystore implements AppPinKeystore {
   MethodChannelAppPinKeystore({MethodChannel? channel})
-      : _channel = channel ??
-            const MethodChannel('sreerajp.journal_vault/app_pin_lock');
+    : _channel =
+          channel ?? const MethodChannel('sreerajp.journal_vault/app_pin_lock');
 
   final MethodChannel _channel;
 
@@ -55,8 +55,9 @@ class MethodChannelAppPinKeystore implements AppPinKeystore {
 
   @override
   Future<AppPinCredentialPayload?> getCredential() async {
-    final result =
-        await _channel.invokeMapMethod<String, dynamic>('getAppPinCredential');
+    final result = await _channel.invokeMapMethod<String, dynamic>(
+      'getAppPinCredential',
+    );
     if (result == null) return null;
     final salt = result['saltBase64'];
     final verifier = result['verifierBase64'];

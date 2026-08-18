@@ -1,0 +1,8 @@
+# Shell scripts must keep LF line endings.
+#
+# This machine has core.autocrlf=true, which would otherwise check these out
+# with CRLF. A shell script with CRLF fails on Linux and macOS with a
+# "bad interpreter" error, so the hook would silently stop working for anyone
+# who is not on Windows.
+*.sh text eol=lf
+.githooks/* text eol=lf

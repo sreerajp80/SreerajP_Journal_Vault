@@ -13,6 +13,7 @@ import 'package:sreerajp_journal_vault/features/permissions/domain/app_permissio
 import 'package:sreerajp_journal_vault/features/permissions/presentation/permissions_screen.dart';
 import 'package:sreerajp_journal_vault/features/permissions/providers/permissions_providers.dart';
 import 'package:sreerajp_journal_vault/features/permissions/services/app_permissions_service.dart';
+import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 void main() {
   late AppDatabase database;
@@ -119,12 +120,13 @@ class _TestApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       localizationsDelegates: const [
+        AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
         FlutterQuillLocalizations.delegate,
       ],
-      supportedLocales: const [Locale('en')],
+      supportedLocales: AppLocalizations.supportedLocales,
       home: child,
     );
   }
@@ -132,9 +134,9 @@ class _TestApp extends StatelessWidget {
 
 class _FakeAppPermissionsService implements AppPermissionsService {
   _FakeAppPermissionsService({
-    required AppPermissionState currentState,
+    required this._currentState,
     required this.nextRequestState,
-  }) : _currentState = currentState;
+  });
 
   AppPermissionState _currentState;
   final AppPermissionState nextRequestState;

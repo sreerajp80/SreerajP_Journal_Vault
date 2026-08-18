@@ -50,10 +50,7 @@ class VoiceNoteService {
     final fileName = 'voice_${const Uuid().v4()}.m4a';
     _currentPath = p.join(tempDir.path, fileName);
 
-    await _recorder.start(
-      const RecordConfig(),
-      path: _currentPath!,
-    );
+    await _recorder.start(const RecordConfig(), path: _currentPath!);
 
     _recordingStartTime = DateTime.now();
     _isRecording = true;

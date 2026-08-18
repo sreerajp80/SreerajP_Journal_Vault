@@ -4,19 +4,21 @@ import 'package:table_calendar/table_calendar.dart';
 
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/features/timeline/providers/timeline_providers.dart';
+import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 class TimelineScreen extends ConsumerWidget {
   const TimelineScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final focusedMonth = ref.watch(focusedMonthProvider);
     final selectedDate = ref.watch(selectedDateProvider);
     final countsAsync = ref.watch(monthEntryCountsProvider);
     final entriesAsync = ref.watch(selectedDateEntriesProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Timeline')),
+      appBar: AppBar(title: Text(l10n.timelineTitle)),
       body: Column(
         children: [
           countsAsync.when(
@@ -26,7 +28,7 @@ class TimelineScreen extends ConsumerWidget {
             ),
             error: (e, _) => SizedBox(
               height: 360,
-              child: Center(child: Text('Error: $e')),
+              child: Center(child: Text(l10n.commonError(e.toString()))),
             ),
             data: (counts) => _Calendar(
               focusedDay: focusedMonth,
@@ -43,14 +45,12 @@ class TimelineScreen extends ConsumerWidget {
           const Divider(height: 1),
           Expanded(
             child: entriesAsync.when(
-              loading: () =>
-                  const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Error: $e')),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) =>
+                  Center(child: Text(l10n.commonError(e.toString()))),
               data: (entries) {
                 if (entries.isEmpty) {
-                  return const Center(
-                    child: Text('No entries for this date'),
-                  );
+                  return Center(child: Text(l10n.timelineNoEntriesForDate));
                 }
                 return _EntryList(entries: entries);
               },
@@ -79,6 +79,7 @@ class _Calendar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return TableCalendar<void>(
@@ -89,7 +90,9 @@ class _Calendar extends StatelessWidget {
           selectedDay != null && isSameDay(day, selectedDay),
       onDaySelected: (selected, focused) => onDaySelected(selected),
       onPageChanged: onPageChanged,
-      availableCalendarFormats: const {CalendarFormat.month: 'Month'},
+      availableCalendarFormats: {
+        CalendarFormat.month: l10n.timelineCalendarFormatMonth,
+      },
       calendarBuilders: CalendarBuilders(
         markerBuilder: (context, day, _) {
           final normalised = DateTime(day.year, day.month, day.day);
@@ -106,7 +109,7 @@ class _Calendar extends StatelessWidget {
               ),
               alignment: Alignment.center,
               child: Text(
-                count > 9 ? '9+' : '$count',
+                count > 9 ? l10n.timelineDayCountOverflow : '$count',
                 style: TextStyle(
                   color: theme.colorScheme.onPrimary,
                   fontSize: 10,
@@ -128,6 +131,7 @@ class _EntryList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return ListView.separated(
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: entries.length,
@@ -136,7 +140,7 @@ class _EntryList extends StatelessWidget {
         final entry = entries[index];
         return ListTile(
           title: Text(
-            entry.title ?? 'Untitled entry',
+            entry.title ?? l10n.commonUntitledEntry,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),

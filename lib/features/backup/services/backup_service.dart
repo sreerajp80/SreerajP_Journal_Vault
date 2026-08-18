@@ -1,36 +1,64 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
-import 'package:cryptography/cryptography.dart';
 import 'package:drift/drift.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
+import 'package:sreerajp_journal_vault/core/logging/app_logger.dart';
+import 'package:sreerajp_journal_vault/core/security/vault_envelope.dart';
+import 'package:sreerajp_journal_vault/features/backup/domain/backup_format.dart';
+import 'package:sreerajp_journal_vault/features/backup/services/backup_attachment_cipher.dart';
 
-/// Manages creation and verification of encrypted backup archives.
+/// Creates and verifies encrypted backup archives.
 ///
-/// Backups are ZIP archives encrypted with AES-256-GCM. The archive contains:
-/// - `manifest.json` — metadata (version, timestamp, entry/attachment counts)
-/// - `database.json` — full export of all journals, entries, tags, and relations
-/// - `attachments/` — encrypted attachment files (copied as-is since they are
-///   already encrypted at rest)
+/// Layer: service. Reads the database and writes files; knows nothing about
+/// widgets or navigation.
+///
+/// A backup is a ZIP sealed by [VaultEnvelope] (AES-256-GCM under a key
+/// derived from the user's password). Inside:
+///
+/// - `manifest.json` — format version, database schema version, counts.
+/// - `database.json` — every user-data table as JSON rows.
+/// - `attachments/<id>` and `voice_notes/<id>` — the files themselves.
+///
+/// **Format version 2 stores those files as plain bytes** inside the sealed
+/// container, rather than copying them still encrypted with the device key as
+/// version 1 did. Version 1 archives could only ever be opened again on the
+/// device that wrote them, which made them useless for the case a backup
+/// exists for. The trade-off is that the backup password is now the only
+/// thing protecting attachment content in the file — see `docs/security.md`.
 class BackupService {
+  BackupService(
+    this._db, {
+    this.cipher,
+    VaultEnvelope? envelope,
+    this.backupDirectoryProvider,
+  }) : _envelope = envelope ?? VaultEnvelope();
+
   final AppDatabase _db;
 
-  BackupService(this._db);
+  /// Decrypts attachment files on the way out. Null means the archive is
+  /// written without file contents — rows only.
+  final BackupAttachmentCipher? cipher;
+
+  final VaultEnvelope _envelope;
+
+  /// Where backup files are written. Defaults to `backups/` inside the app's
+  /// documents directory; injectable so tests can use a temporary folder.
+  final Future<Directory> Function()? backupDirectoryProvider;
 
   /// Creates an encrypted backup archive.
   ///
-  /// [password] is used to derive an AES-256-GCM key via Argon2id.
-  /// Returns the path to the created backup file.
+  /// [password] must be at least [minimumVaultPasswordLength] characters.
   Future<BackupResult> createBackup({
     required String password,
     String triggerType = 'manual',
   }) async {
-    // Create backup log entry
+    validateVaultPassword(password);
+
     final logId = await _db.backupLogsDao.createLog(
       BackupLogsCompanion.insert(
         status: 'in_progress',
@@ -41,59 +69,63 @@ class BackupService {
     try {
       final backupDir = await _getBackupDirectory();
       final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
-      final backupFileName = 'journal_backup_$timestamp.vault';
-      final backupPath = p.join(backupDir.path, backupFileName);
-
-      // Export database content
-      final dbExport = await _exportDatabase();
-      final entryCount = dbExport['entries']?.length ?? 0;
-      final attachmentCount = dbExport['attachments']?.length ?? 0;
-
-      // Build manifest
-      final manifest = {
-        'version': 1,
-        'appVersion': '1.0.0',
-        'createdAt': DateTime.now().toIso8601String(),
-        'entryCount': entryCount,
-        'attachmentCount': attachmentCount,
-        'journalCount': dbExport['journals']?.length ?? 0,
-      };
-
-      // Create ZIP archive
-      final archive = Archive();
-      archive.addFile(_archiveFileFromString(
-          'manifest.json', jsonEncode(manifest)));
-      archive.addFile(_archiveFileFromString(
-          'database.json', jsonEncode(dbExport)));
-
-      // Add encrypted attachment files
-      await _addAttachmentFiles(archive, dbExport['attachments'] ?? []);
-
-      final zipBytes = ZipEncoder().encode(archive);
-
-      // Encrypt the archive
-      final encryptedBytes = await _encrypt(
-        Uint8List.fromList(zipBytes),
-        password,
+      final backupPath = p.join(
+        backupDir.path,
+        'journal_backup_$timestamp.vault',
       );
 
-      // Write to file
-      final file = File(backupPath);
-      await file.writeAsBytes(encryptedBytes);
+      final dbExport = await _exportDatabase();
+      final tableCounts = {
+        for (final entry in dbExport.entries)
+          entry.key: (entry.value as List<dynamic>).length,
+      };
+      final entryCount = tableCounts['entries'] ?? 0;
+      final attachmentCount = tableCounts['attachments'] ?? 0;
 
+      final manifest = BackupManifest(
+        formatVersion: backupFormatVersion,
+        schemaVersion: _db.schemaVersion,
+        createdAt: DateTime.now(),
+        entryCount: entryCount,
+        attachmentCount: attachmentCount,
+        journalCount: tableCounts['journals'] ?? 0,
+        tableCounts: tableCounts,
+      );
+
+      final archive = Archive();
+      archive.addFile(
+        _archiveFileFromString(
+          backupManifestFileName,
+          jsonEncode(manifest.toJson()),
+        ),
+      );
+      archive.addFile(
+        _archiveFileFromString(backupDatabaseFileName, jsonEncode(dbExport)),
+      );
+
+      final fileReport = await _addPayloadFiles(archive, dbExport);
+
+      final zipBytes = ZipEncoder().encode(archive);
+      final sealed = await _envelope.seal(
+        plainBytes: Uint8List.fromList(zipBytes),
+        password: password,
+      );
+
+      final file = File(backupPath);
+      await file.writeAsBytes(sealed, flush: true);
       final sizeBytes = await file.length();
 
-      // Update log
-      await _db.backupLogsDao.updateLog(logId, BackupLogsCompanion(
-        status: const Value('success'),
-        backupPath: Value(backupPath),
-        sizeBytes: Value(sizeBytes),
-        entryCount: Value(entryCount),
-        attachmentCount: Value(attachmentCount),
-        completedAt: Value(DateTime.now()),
-      ));
-
-      // Prune old logs
+      await _db.backupLogsDao.updateLog(
+        logId,
+        BackupLogsCompanion(
+          status: const Value('success'),
+          backupPath: Value(backupPath),
+          sizeBytes: Value(sizeBytes),
+          entryCount: Value(entryCount),
+          attachmentCount: Value(attachmentCount),
+          completedAt: Value(DateTime.now()),
+        ),
+      );
       await _db.backupLogsDao.deleteOldLogs();
 
       return BackupResult(
@@ -101,18 +133,23 @@ class BackupService {
         sizeBytes: sizeBytes,
         entryCount: entryCount,
         attachmentCount: attachmentCount,
+        filesIncluded: fileReport.included,
+        filesFailed: fileReport.failed,
       );
     } catch (e) {
-      await _db.backupLogsDao.updateLog(logId, BackupLogsCompanion(
-        status: const Value('failed'),
-        errorMessage: Value(e.toString()),
-        completedAt: Value(DateTime.now()),
-      ));
+      await _db.backupLogsDao.updateLog(
+        logId,
+        BackupLogsCompanion(
+          status: const Value('failed'),
+          errorMessage: Value(e.toString()),
+          completedAt: Value(DateTime.now()),
+        ),
+      );
       rethrow;
     }
   }
 
-  /// Verifies that a backup file can be decrypted and has a valid manifest.
+  /// Checks that a backup file decrypts and holds a readable manifest.
   Future<BackupVerification> verifyBackup({
     required String backupPath,
     required String password,
@@ -126,11 +163,13 @@ class BackupService {
         );
       }
 
-      final encryptedBytes = await file.readAsBytes();
-      final decryptedBytes = await _decrypt(encryptedBytes, password);
+      final decrypted = await _envelope.open(
+        sealedBytes: await file.readAsBytes(),
+        password: password,
+      );
 
-      final archive = ZipDecoder().decodeBytes(decryptedBytes);
-      final manifestFile = archive.findFile('manifest.json');
+      final archive = ZipDecoder().decodeBytes(decrypted);
+      final manifestFile = archive.findFile(backupManifestFileName);
       if (manifestFile == null) {
         return const BackupVerification(
           isValid: false,
@@ -138,18 +177,18 @@ class BackupService {
         );
       }
 
-      final manifest = jsonDecode(
-        utf8.decode(manifestFile.content as List<int>),
-      ) as Map<String, dynamic>;
+      final manifest = BackupManifest.fromJson(
+        jsonDecode(utf8.decode(manifestFile.content as List<int>))
+            as Map<String, dynamic>,
+      );
 
       return BackupVerification(
         isValid: true,
-        entryCount: manifest['entryCount'] as int?,
-        attachmentCount: manifest['attachmentCount'] as int?,
-        journalCount: manifest['journalCount'] as int?,
-        createdAt: manifest['createdAt'] != null
-            ? DateTime.tryParse(manifest['createdAt'] as String)
-            : null,
+        entryCount: manifest.entryCount,
+        attachmentCount: manifest.attachmentCount,
+        journalCount: manifest.journalCount,
+        createdAt: manifest.createdAt,
+        formatVersion: manifest.formatVersion,
       );
     } catch (e) {
       return BackupVerification(
@@ -159,13 +198,117 @@ class BackupService {
     }
   }
 
+  /// Lists the backup files this app has written, newest first.
+  ///
+  /// Without this the user cannot see that any backup exists, which makes the
+  /// restore screen guesswork. Copied from `sreerajp_todo`.
+  Future<List<BackupFileInfo>> listBackups() async {
+    final backupDir = await _getBackupDirectory();
+    if (!await backupDir.exists()) return const [];
+
+    final infos = <BackupFileInfo>[];
+    await for (final entity in backupDir.list()) {
+      if (entity is! File) continue;
+      if (!entity.path.toLowerCase().endsWith('.vault')) continue;
+      final stat = await entity.stat();
+      infos.add(
+        BackupFileInfo(
+          path: entity.path,
+          fileName: p.basename(entity.path),
+          createdAt: stat.modified,
+          sizeBytes: stat.size,
+        ),
+      );
+    }
+
+    infos.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return infos;
+  }
+
+  /// Deletes one backup file.
+  Future<void> deleteBackup(String backupPath) async {
+    final file = File(backupPath);
+    if (await file.exists()) {
+      await file.delete();
+    }
+  }
+
   Future<Directory> _getBackupDirectory() async {
+    final provided = backupDirectoryProvider;
+    if (provided != null) {
+      final dir = await provided();
+      if (!await dir.exists()) {
+        await dir.create(recursive: true);
+      }
+      return dir;
+    }
     final appDir = await getApplicationDocumentsDirectory();
     final backupDir = Directory(p.join(appDir.path, 'backups'));
     if (!await backupDir.exists()) {
       await backupDir.create(recursive: true);
     }
     return backupDir;
+  }
+
+  /// Adds attachment and voice-note files to [archive] as **plain bytes**.
+  ///
+  /// A file that cannot be read or decrypted is counted and skipped: one
+  /// unreadable attachment must not cost the user the whole backup.
+  Future<_PayloadFileReport> _addPayloadFiles(
+    Archive archive,
+    Map<String, dynamic> dbExport,
+  ) async {
+    final fileCipher = cipher;
+    if (fileCipher == null) {
+      return const _PayloadFileReport(included: 0, failed: 0);
+    }
+
+    var included = 0;
+    var failed = 0;
+
+    Future<void> addOne({
+      required Map<String, dynamic> row,
+      required String folder,
+    }) async {
+      final encryptedPath = row['encryptedPath'] as String?;
+      final nonce = row['nonceBase64'] as String?;
+      final keyReference = row['keyReference'] as String?;
+      if (encryptedPath == null || nonce == null || keyReference == null) {
+        failed++;
+        return;
+      }
+      try {
+        final bytes = await fileCipher.decryptToBytes(
+          encryptedPath: encryptedPath,
+          nonceBase64: nonce,
+          keyReference: keyReference,
+          fileName: (row['fileName'] as String?) ?? 'file',
+        );
+        archive.addFile(
+          ArchiveFile('$folder/${row['id']}', bytes.length, bytes),
+        );
+        included++;
+      } catch (_) {
+        // Never log the file name or its contents.
+        AppLogger.warning('Backup skipped one unreadable payload file');
+        failed++;
+      }
+    }
+
+    for (final row in (dbExport['attachments'] as List<dynamic>)) {
+      await addOne(
+        row: row as Map<String, dynamic>,
+        folder: backupAttachmentsFolder,
+      );
+    }
+    for (final row in (dbExport['voiceNotes'] as List<dynamic>)) {
+      await addOne(
+        row: row as Map<String, dynamic>,
+        folder: backupVoiceNotesFolder,
+      );
+    }
+
+    return _PayloadFileReport(included: included, failed: failed);
   }
 
   Future<Map<String, dynamic>> _exportDatabase() async {
@@ -179,169 +322,153 @@ class BackupService {
     final revisions = await _db.select(_db.entryRevisions).get();
     final voiceNotes = await _db.select(_db.voiceNotes).get();
     final syncMetadata = await _db.select(_db.syncMetadata).get();
+    // Added in format version 2. Both are user data that cannot be recreated,
+    // and version 1 archives silently lost them.
+    final entryMoods = await _db.select(_db.entryMoods).get();
+    final searchPresets = await _db.select(_db.searchPresets).get();
 
     return {
-      'journals': journals.map((j) => {
-        'id': j.id,
-        'title': j.title,
-        'description': j.description,
-        'isLocked': j.isLocked,
-        'credentialReference': j.credentialReference,
-        'passwordSaltBase64': j.passwordSaltBase64,
-        'passwordVerifierBase64': j.passwordVerifierBase64,
-        'passwordIterations': j.passwordIterations,
-        'createdAt': j.createdAt.toIso8601String(),
-        'updatedAt': j.updatedAt.toIso8601String(),
-      }).toList(),
-      'entries': entries.map((e) => {
-        'id': e.id,
-        'journalId': e.journalId,
-        'title': e.title,
-        'contentJson': e.contentJson,
-        'plainText': e.plainText,
-        'entryDate': e.entryDate?.toIso8601String(),
-        'createdAt': e.createdAt.toIso8601String(),
-        'updatedAt': e.updatedAt.toIso8601String(),
-      }).toList(),
-      'tags': tags.map((t) => {
-        'id': t.id,
-        'name': t.name,
-        'createdAt': t.createdAt.toIso8601String(),
-        'updatedAt': t.updatedAt.toIso8601String(),
-      }).toList(),
-      'journalTags': journalTags.map((jt) => {
-        'id': jt.id,
-        'journalId': jt.journalId,
-        'tagId': jt.tagId,
-      }).toList(),
-      'entryTags': entryTags.map((et) => {
-        'id': et.id,
-        'entryId': et.entryId,
-        'tagId': et.tagId,
-      }).toList(),
-      'attachments': attachments.map((a) => {
-        'id': a.id,
-        'entryId': a.entryId,
-        'fileName': a.fileName,
-        'mimeType': a.mimeType,
-        'encryptedPath': a.encryptedPath,
-        'nonceBase64': a.nonceBase64,
-        'keyReference': a.keyReference,
-        'sizeBytes': a.sizeBytes,
-        'createdAt': a.createdAt.toIso8601String(),
-      }).toList(),
-      'backlinks': backlinks.map((b) => {
-        'id': b.id,
-        'sourceEntryId': b.sourceEntryId,
-        'targetType': b.targetType,
-        'targetId': b.targetId,
-      }).toList(),
-      'revisions': revisions.map((r) => {
-        'id': r.id,
-        'entryId': r.entryId,
-        'title': r.title,
-        'contentJson': r.contentJson,
-        'plainText': r.plainText,
-        'createdAt': r.createdAt.toIso8601String(),
-      }).toList(),
-      'voiceNotes': voiceNotes.map((v) => {
-        'id': v.id,
-        'entryId': v.entryId,
-        'fileName': v.fileName,
-        'encryptedPath': v.encryptedPath,
-        'nonceBase64': v.nonceBase64,
-        'keyReference': v.keyReference,
-        'durationMs': v.durationMs,
-        'transcript': v.transcript,
-        'createdAt': v.createdAt.toIso8601String(),
-      }).toList(),
-      'syncMetadata': syncMetadata.map((s) => {
-        'id': s.id,
-        'recordTable': s.recordTable,
-        'localId': s.localId,
-        'syncId': s.syncId,
-        'version': s.version,
-        'deviceId': s.deviceId,
-        'isDeleted': s.isDeleted,
-        'lastSyncedAt': s.lastSyncedAt?.toIso8601String(),
-        'lastModifiedAt': s.lastModifiedAt.toIso8601String(),
-      }).toList(),
+      'journals': journals
+          .map(
+            (j) => {
+              'id': j.id,
+              'title': j.title,
+              'description': j.description,
+              'isLocked': j.isLocked,
+              'credentialReference': j.credentialReference,
+              'passwordSaltBase64': j.passwordSaltBase64,
+              'passwordVerifierBase64': j.passwordVerifierBase64,
+              'passwordIterations': j.passwordIterations,
+              'createdAt': j.createdAt.toIso8601String(),
+              'updatedAt': j.updatedAt.toIso8601String(),
+            },
+          )
+          .toList(),
+      'entries': entries
+          .map(
+            (e) => {
+              'id': e.id,
+              'journalId': e.journalId,
+              'title': e.title,
+              'contentJson': e.contentJson,
+              'plainText': e.plainText,
+              'entryDate': e.entryDate?.toIso8601String(),
+              'createdAt': e.createdAt.toIso8601String(),
+              'updatedAt': e.updatedAt.toIso8601String(),
+            },
+          )
+          .toList(),
+      'tags': tags
+          .map(
+            (t) => {
+              'id': t.id,
+              'name': t.name,
+              'colorArgb': t.colorArgb,
+              'createdAt': t.createdAt.toIso8601String(),
+              'updatedAt': t.updatedAt.toIso8601String(),
+            },
+          )
+          .toList(),
+      'journalTags': journalTags
+          .map(
+            (jt) => {'id': jt.id, 'journalId': jt.journalId, 'tagId': jt.tagId},
+          )
+          .toList(),
+      'entryTags': entryTags
+          .map((et) => {'id': et.id, 'entryId': et.entryId, 'tagId': et.tagId})
+          .toList(),
+      'attachments': attachments
+          .map(
+            (a) => {
+              'id': a.id,
+              'entryId': a.entryId,
+              'fileName': a.fileName,
+              'mimeType': a.mimeType,
+              'encryptedPath': a.encryptedPath,
+              'nonceBase64': a.nonceBase64,
+              'keyReference': a.keyReference,
+              'sizeBytes': a.sizeBytes,
+              'createdAt': a.createdAt.toIso8601String(),
+            },
+          )
+          .toList(),
+      'backlinks': backlinks
+          .map(
+            (b) => {
+              'id': b.id,
+              'sourceEntryId': b.sourceEntryId,
+              'targetType': b.targetType,
+              'targetId': b.targetId,
+            },
+          )
+          .toList(),
+      'revisions': revisions
+          .map(
+            (r) => {
+              'id': r.id,
+              'entryId': r.entryId,
+              'title': r.title,
+              'contentJson': r.contentJson,
+              'plainText': r.plainText,
+              'createdAt': r.createdAt.toIso8601String(),
+            },
+          )
+          .toList(),
+      'voiceNotes': voiceNotes
+          .map(
+            (v) => {
+              'id': v.id,
+              'entryId': v.entryId,
+              'fileName': v.fileName,
+              'encryptedPath': v.encryptedPath,
+              'nonceBase64': v.nonceBase64,
+              'keyReference': v.keyReference,
+              'durationMs': v.durationMs,
+              'transcript': v.transcript,
+              'createdAt': v.createdAt.toIso8601String(),
+            },
+          )
+          .toList(),
+      'syncMetadata': syncMetadata
+          .map(
+            (s) => {
+              'id': s.id,
+              'recordTable': s.recordTable,
+              'localId': s.localId,
+              'syncId': s.syncId,
+              'version': s.version,
+              'deviceId': s.deviceId,
+              'isDeleted': s.isDeleted,
+              'lastSyncedAt': s.lastSyncedAt?.toIso8601String(),
+              'lastModifiedAt': s.lastModifiedAt.toIso8601String(),
+            },
+          )
+          .toList(),
+      'entryMoods': entryMoods
+          .map(
+            (m) => {
+              'id': m.id,
+              'entryId': m.entryId,
+              'mood': m.mood,
+              'note': m.note,
+              'createdAt': m.createdAt.toIso8601String(),
+              'updatedAt': m.updatedAt.toIso8601String(),
+            },
+          )
+          .toList(),
+      'searchPresets': searchPresets
+          .map(
+            (s) => {
+              'id': s.id,
+              'name': s.name,
+              'query': s.query,
+              'resultType': s.resultType,
+              'createdAt': s.createdAt.toIso8601String(),
+              'updatedAt': s.updatedAt.toIso8601String(),
+            },
+          )
+          .toList(),
     };
-  }
-
-  Future<void> _addAttachmentFiles(
-    Archive archive,
-    List<dynamic> attachments,
-  ) async {
-    for (final att in attachments) {
-      final path = att['encryptedPath'] as String?;
-      if (path == null) continue;
-      final file = File(path);
-      if (await file.exists()) {
-        final bytes = await file.readAsBytes();
-        final archivePath = 'attachments/${att['id']}_${att['fileName']}';
-        archive.addFile(ArchiveFile(archivePath, bytes.length, bytes));
-      }
-    }
-  }
-
-  Future<Uint8List> _encrypt(Uint8List data, String password) async {
-    final algorithm = AesGcm.with256bits();
-    final keyDerivation = Argon2id(
-      parallelism: 1,
-      memory: 65536,
-      iterations: 3,
-      hashLength: 32,
-    );
-
-    final secretKey = await keyDerivation.deriveKey(
-      secretKey: SecretKey(utf8.encode(password)),
-      nonce: List.generate(16, (i) => i), // Fixed salt for backup key derivation
-    );
-
-    final nonce = algorithm.newNonce();
-    final secretBox = await algorithm.encrypt(
-      data,
-      secretKey: secretKey,
-      nonce: nonce,
-    );
-
-    // Format: [nonce_length(1)][nonce][mac(16)][ciphertext]
-    final output = BytesBuilder();
-    output.addByte(nonce.length);
-    output.add(nonce);
-    output.add(secretBox.mac.bytes);
-    output.add(secretBox.cipherText);
-    return output.toBytes();
-  }
-
-  Future<Uint8List> _decrypt(Uint8List data, String password) async {
-    final algorithm = AesGcm.with256bits();
-    final keyDerivation = Argon2id(
-      parallelism: 1,
-      memory: 65536,
-      iterations: 3,
-      hashLength: 32,
-    );
-
-    final secretKey = await keyDerivation.deriveKey(
-      secretKey: SecretKey(utf8.encode(password)),
-      nonce: List.generate(16, (i) => i),
-    );
-
-    final nonceLength = data[0];
-    final nonce = data.sublist(1, 1 + nonceLength);
-    final mac = Mac(data.sublist(1 + nonceLength, 1 + nonceLength + 16));
-    final cipherText = data.sublist(1 + nonceLength + 16);
-
-    final secretBox = SecretBox(
-      cipherText,
-      nonce: nonce,
-      mac: mac,
-    );
-
-    final decrypted = await algorithm.decrypt(secretBox, secretKey: secretKey);
-    return Uint8List.fromList(decrypted);
   }
 
   ArchiveFile _archiveFileFromString(String name, String content) {
@@ -350,28 +477,37 @@ class BackupService {
   }
 }
 
-class BackupResult {
-  final String path;
-  final int sizeBytes;
-  final int entryCount;
-  final int attachmentCount;
+class _PayloadFileReport {
+  const _PayloadFileReport({required this.included, required this.failed});
 
+  final int included;
+  final int failed;
+}
+
+class BackupResult {
   const BackupResult({
     required this.path,
     required this.sizeBytes,
     required this.entryCount,
     required this.attachmentCount,
+    this.filesIncluded = 0,
+    this.filesFailed = 0,
   });
+
+  final String path;
+  final int sizeBytes;
+  final int entryCount;
+  final int attachmentCount;
+
+  /// Attachment and voice-note files written into the archive.
+  final int filesIncluded;
+
+  /// Files that could not be read or decrypted, so the archive does not hold
+  /// them. Their database rows are still in the backup.
+  final int filesFailed;
 }
 
 class BackupVerification {
-  final bool isValid;
-  final String? error;
-  final int? entryCount;
-  final int? attachmentCount;
-  final int? journalCount;
-  final DateTime? createdAt;
-
   const BackupVerification({
     required this.isValid,
     this.error,
@@ -379,5 +515,29 @@ class BackupVerification {
     this.attachmentCount,
     this.journalCount,
     this.createdAt,
+    this.formatVersion,
   });
+
+  final bool isValid;
+  final String? error;
+  final int? entryCount;
+  final int? attachmentCount;
+  final int? journalCount;
+  final DateTime? createdAt;
+  final int? formatVersion;
+}
+
+/// One backup file on disk.
+class BackupFileInfo {
+  const BackupFileInfo({
+    required this.path,
+    required this.fileName,
+    required this.createdAt,
+    required this.sizeBytes,
+  });
+
+  final String path;
+  final String fileName;
+  final DateTime createdAt;
+  final int sizeBytes;
 }

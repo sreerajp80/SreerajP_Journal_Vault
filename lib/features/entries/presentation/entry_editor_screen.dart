@@ -11,9 +11,12 @@ import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
 import 'package:sreerajp_journal_vault/core/links/vault_backlink_parser.dart';
 import 'package:sreerajp_journal_vault/features/attachments/domain/attachment_open_models.dart';
+import 'package:sreerajp_journal_vault/features/attachments/presentation/attachment_viewer_screen.dart';
 import 'package:sreerajp_journal_vault/features/attachments/providers/attachment_providers.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/callout_embed.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/editor_toolbar.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/editor/image_embed.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/editor/inline_image_store.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/table_embed.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/voice_note_recorder.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/version_history_screen.dart';
@@ -21,11 +24,15 @@ import 'package:sreerajp_journal_vault/features/entries/providers/entry_provider
 import 'package:sreerajp_journal_vault/features/entries/services/voice_note_service.dart';
 import 'package:sreerajp_journal_vault/features/entries/templates/entry_templates.dart';
 import 'package:sreerajp_journal_vault/features/insights/providers/insights_providers.dart';
+import 'package:sreerajp_journal_vault/features/export/export_strings.dart';
+import 'package:sreerajp_journal_vault/features/export/presentation/export_screen.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/providers/lock_gate_providers.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/services/biometric_authenticator.dart';
+import 'package:sreerajp_journal_vault/features/smart_tags/presentation/smart_tag_chip_bar.dart';
 import 'package:sreerajp_journal_vault/features/permissions/domain/app_permission_models.dart';
 import 'package:sreerajp_journal_vault/features/permissions/providers/permissions_providers.dart';
 import 'package:sreerajp_journal_vault/features/security/providers/security_providers.dart';
+import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 class EntryEditorScreen extends ConsumerStatefulWidget {
   const EntryEditorScreen({
@@ -67,11 +74,17 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
   /// the user has typed anything.
   bool _trackingChanges = false;
 
-  /// Custom embed builders for tables and callouts.
-  final List<EmbedBuilder> _embedBuilders = [
-    TableEmbedBuilder(),
-    CalloutEmbedBuilder(),
-  ];
+  /// Decrypts inline images to temp files for this screen, and deletes them
+  /// again when the screen closes.
+  late final InlineImageStore _imageStore;
+
+  /// Custom embed builders for tables, callouts and inline images.
+  late final List<EmbedBuilder> _embedBuilders;
+
+  /// Bumped whenever an attachment is added, so the tray reloads. The tray
+  /// reads the database once on mount; without this an image inserted into the
+  /// body would not appear in the list below until the screen was reopened.
+  int _attachmentRefreshToken = 0;
 
   /// Subscribes to document delta events. We don't use
   /// [QuillController.addListener] for the dirty flag because that fires on
@@ -93,6 +106,12 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
     super.initState();
     _quillController = QuillController.basic();
     _titleController = TextEditingController();
+    _imageStore = buildInlineImageStore(ref);
+    _embedBuilders = [
+      TableEmbedBuilder(),
+      CalloutEmbedBuilder(),
+      VaultImageEmbedBuilder(store: _imageStore),
+    ];
     if (widget.entryId != null) {
       _loadEntry(widget.entryId!);
     } else {
@@ -105,7 +124,9 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
     final entry = await database.entriesDao.getEntryById(id);
     if (!mounted) return;
     _titleController.text = entry.title ?? '';
-    if (entry.contentJson != null && entry.contentJson!.isNotEmpty && entry.contentJson != '[]') {
+    if (entry.contentJson != null &&
+        entry.contentJson!.isNotEmpty &&
+        entry.contentJson != '[]') {
       try {
         final doc = Document.fromJson(jsonDecode(entry.contentJson!) as List);
         _quillController.document = doc;
@@ -114,8 +135,9 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
         // Ignore parse errors — start with empty doc.
       }
     }
-    final existingMood =
-        await ref.read(insightsServiceProvider).getMoodForEntry(id);
+    final existingMood = await ref
+        .read(insightsServiceProvider)
+        .getMoodForEntry(id);
     if (!mounted) return;
     setState(() {
       _entryId = id;
@@ -132,11 +154,14 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
       _titleController.text = selected.defaultTitle;
       if (selected.contentJson != '[]') {
         try {
-          final doc =
-              Document.fromJson(jsonDecode(selected.contentJson) as List);
+          final doc = Document.fromJson(
+            jsonDecode(selected.contentJson) as List,
+          );
           _quillController.document = doc;
           _quillController.moveCursorToEnd();
-        } catch (_) {/* fall through to empty doc */}
+        } catch (_) {
+          /* fall through to empty doc */
+        }
       }
     }
 
@@ -168,7 +193,9 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
   /// because the old subscription points at the old document object.
   void _subscribeToDocChanges() {
     _docChangeSub?.cancel();
-    _docChangeSub = _quillController.document.changes.listen((_) => _markDirty());
+    _docChangeSub = _quillController.document.changes.listen(
+      (_) => _markDirty(),
+    );
   }
 
   void _handleTitleChange() {
@@ -188,6 +215,8 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
       _titleController.removeListener(_handleTitleChange);
     }
     _docChangeSub?.cancel();
+    // Deletes the decrypted copies of every inline image this screen showed.
+    unawaited(_imageStore.dispose());
     _quillController.dispose();
     _titleController.dispose();
     super.dispose();
@@ -226,16 +255,14 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
 
     // Refresh outbound backlinks from the saved plain text.
     final targets = VaultBacklinkParser.parse(plainText);
-    await database.backlinksDao
-        .replaceBacklinksForEntry(_entryId!, targets);
+    await database.backlinksDao.replaceBacklinksForEntry(_entryId!, targets);
 
     // Persist the mood rating if the user picked one. Clear when nulled.
     final mood = _mood;
     if (mood != null) {
-      await ref.read(insightsServiceProvider).setMood(
-            entryId: _entryId!,
-            mood: mood,
-          );
+      await ref
+          .read(insightsServiceProvider)
+          .setMood(entryId: _entryId!, mood: mood);
     } else {
       await ref.read(insightsServiceProvider).deleteMood(_entryId!);
     }
@@ -245,10 +272,10 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(
-        const SnackBar(
-          key: Key('entry-saved-snackbar'),
-          content: Text('Entry saved'),
-          duration: Duration(seconds: 2),
+        SnackBar(
+          key: const Key('entry-saved-snackbar'),
+          content: Text(AppLocalizations.of(context).entrySaved),
+          duration: const Duration(seconds: 2),
         ),
       );
   }
@@ -258,17 +285,17 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete entry?'),
-        content: const Text('This will permanently remove the entry.'),
+        title: Text(AppLocalizations.of(dialogContext).entryDeleteTitle),
+        content: Text(AppLocalizations.of(dialogContext).entryDeleteBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(dialogContext).commonCancel),
           ),
           TextButton(
             key: const Key('entry-delete-confirm'),
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Delete'),
+            child: Text(AppLocalizations.of(dialogContext).commonDelete),
           ),
         ],
       ),
@@ -282,10 +309,7 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
   void _insertTable() {
     _showTableSizeDialog().then((size) {
       if (size == null) return;
-      final embed = TableEmbed.create(
-        rowCount: size.rows,
-        colCount: size.cols,
-      );
+      final embed = TableEmbed.create(rowCount: size.rows, colCount: size.cols);
       final index = _quillController.selection.baseOffset;
       // Insert the embed, then a trailing newline. Without it, an
       // end-of-document table has no editable line after it and the cursor
@@ -309,66 +333,91 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
       final n = int.tryParse(v);
       return n == null ? 3 : n.clamp(1, 20);
     }
+
     return showDialog<({int rows, int cols})>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Insert table'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              decoration: const InputDecoration(
-                labelText: 'Rows',
-                helperText: '1–20',
+      builder: (dialogContext) {
+        final l10n = AppLocalizations.of(dialogContext);
+        return AlertDialog(
+          title: Text(l10n.editorInsertTable),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                decoration: InputDecoration(
+                  labelText: l10n.entryTableRows,
+                  helperText: l10n.entryTableDimensionHelp,
+                ),
+                keyboardType: TextInputType.number,
+                controller: TextEditingController(text: '3'),
+                onChanged: (v) => rows = parseDim(v),
               ),
-              keyboardType: TextInputType.number,
-              controller: TextEditingController(text: '3'),
-              onChanged: (v) => rows = parseDim(v),
+              TextField(
+                decoration: InputDecoration(
+                  labelText: l10n.entryTableColumns,
+                  helperText: l10n.entryTableDimensionHelp,
+                ),
+                keyboardType: TextInputType.number,
+                controller: TextEditingController(text: '3'),
+                onChanged: (v) => cols = parseDim(v),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(l10n.commonCancel),
             ),
-            TextField(
-              decoration: const InputDecoration(
-                labelText: 'Columns',
-                helperText: '1–20',
-              ),
-              keyboardType: TextInputType.number,
-              controller: TextEditingController(text: '3'),
-              onChanged: (v) => cols = parseDim(v),
+            FilledButton(
+              onPressed: () =>
+                  Navigator.pop(dialogContext, (rows: rows, cols: cols)),
+              child: Text(l10n.commonInsert),
             ),
           ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, (rows: rows, cols: cols)),
-            child: const Text('Insert'),
-          ),
-        ],
-      ),
+        );
+      },
     );
+  }
+
+  /// The callout `type` is a document code, not text for the user. Map it to a
+  /// translated label rather than capitalising the code.
+  String _calloutLabel(AppLocalizations l10n, String type) {
+    switch (type) {
+      case 'info':
+        return l10n.entryCalloutInfo;
+      case 'tip':
+        return l10n.entryCalloutTip;
+      case 'warning':
+        return l10n.entryCalloutWarning;
+      case 'important':
+        return l10n.entryCalloutImportant;
+      default:
+        return type;
+    }
   }
 
   void _insertCallout() async {
     final style = await showDialog<String>(
       context: context,
-      builder: (context) => SimpleDialog(
-        title: const Text('Callout type'),
-        children: [
-          for (final type in ['info', 'tip', 'warning', 'important'])
-            SimpleDialogOption(
-              onPressed: () => Navigator.pop(context, type),
-              child: Row(
-                children: [
-                  Icon(_calloutIcon(type), color: _calloutColor(type)),
-                  const SizedBox(width: 12),
-                  Text(type[0].toUpperCase() + type.substring(1)),
-                ],
+      builder: (dialogContext) {
+        final l10n = AppLocalizations.of(dialogContext);
+        return SimpleDialog(
+          title: Text(l10n.entryCalloutTypeTitle),
+          children: [
+            for (final type in ['info', 'tip', 'warning', 'important'])
+              SimpleDialogOption(
+                onPressed: () => Navigator.pop(dialogContext, type),
+                child: Row(
+                  children: [
+                    Icon(_calloutIcon(type), color: _calloutColor(type)),
+                    const SizedBox(width: 12),
+                    Text(_calloutLabel(l10n, type)),
+                  ],
+                ),
               ),
-            ),
-        ],
-      ),
+          ],
+        );
+      },
     );
     if (style == null) return;
 
@@ -387,18 +436,18 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
   }
 
   IconData _calloutIcon(String type) => switch (type) {
-        'warning' => Icons.warning_amber_rounded,
-        'tip' => Icons.lightbulb_outline,
-        'important' => Icons.priority_high,
-        _ => Icons.info_outline,
-      };
+    'warning' => Icons.warning_amber_rounded,
+    'tip' => Icons.lightbulb_outline,
+    'important' => Icons.priority_high,
+    _ => Icons.info_outline,
+  };
 
   Color _calloutColor(String type) => switch (type) {
-        'warning' => Colors.orange,
-        'tip' => Colors.green,
-        'important' => Colors.red,
-        _ => Colors.blue,
-      };
+    'warning' => Colors.orange,
+    'tip' => Colors.green,
+    'important' => Colors.red,
+    _ => Colors.blue,
+  };
 
   void _openVersionHistory() {
     if (_entryId == null) return;
@@ -408,6 +457,40 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
         builder: (_) => VersionHistoryScreen(
           entryId: _entryId!,
           onRevisionRestored: _reloadContent,
+        ),
+      ),
+    );
+  }
+
+  /// Opens the export screen for this entry.
+  ///
+  /// Unsaved edits are saved first, so what is exported is what the user can
+  /// see on screen. Exporting a stale copy of an entry the user has just
+  /// changed would be a quiet, confusing kind of wrong.
+  Future<void> _openExport() async {
+    if (_entryId == null) return;
+
+    if (_isDirty) {
+      await _saveContent();
+      if (!mounted) return;
+    }
+
+    final journal = await ref
+        .read(appDatabaseProvider)
+        .journalsDao
+        .getJournalById(widget.journalId);
+    if (!mounted) return;
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) => ExportScreen(
+          journalId: widget.journalId,
+          journalTitle: journal.title,
+          entryId: _entryId,
+          entryTitle: _titleController.text.trim().isEmpty
+              ? null
+              : _titleController.text.trim(),
         ),
       ),
     );
@@ -448,9 +531,8 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
   void _showVoiceNoteRecorder() {
     showModalBottomSheet(
       context: context,
-      builder: (_) => VoiceNoteRecorder(
-        onRecordingComplete: _handleVoiceNoteComplete,
-      ),
+      builder: (_) =>
+          VoiceNoteRecorder(onRecordingComplete: _handleVoiceNoteComplete),
     );
   }
 
@@ -490,7 +572,9 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Voice note saved (${(result.durationMs / 1000).toStringAsFixed(0)}s)',
+            AppLocalizations.of(context).entryVoiceNoteSaved(
+              (result.durationMs / 1000).toStringAsFixed(0),
+            ),
           ),
         ),
       );
@@ -499,29 +583,41 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isDirty ? 'Edit entry •' : 'Edit entry'),
+        title: Text(_isDirty ? l10n.entryEditTitleDirty : l10n.entryEditTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.history),
             onPressed: _openVersionHistory,
-            tooltip: 'Version history',
+            tooltip: l10n.entryVersionHistoryTooltip,
           ),
+          // Export is offered only once the entry exists, because there is
+          // nothing to write out before the first save.
+          if (_entryId != null)
+            IconButton(
+              key: const Key('entry-export-button'),
+              icon: const Icon(Icons.ios_share),
+              onPressed: _openExport,
+              tooltip: ExportStrings.exportEntryTooltip,
+            ),
           if (_entryId != null)
             IconButton(
               key: const Key('entry-delete-button'),
               icon: const Icon(Icons.delete_outline),
               onPressed: _confirmDelete,
-              tooltip: 'Delete entry',
+              tooltip: l10n.entryDeleteTooltip,
             ),
           IconButton(
             key: const Key('entry-save-button'),
             icon: Icon(_isDirty ? Icons.save : Icons.save_outlined),
             color: _isDirty ? theme.colorScheme.primary : null,
             onPressed: _isDirty ? _saveContent : null,
-            tooltip: _isDirty ? 'Save' : 'No unsaved changes',
+            tooltip: _isDirty
+                ? l10n.entrySaveTooltip
+                : l10n.entryNoUnsavedChanges,
           ),
         ],
       ),
@@ -533,8 +629,8 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
             child: TextField(
               key: const Key('entry-title-field'),
               controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title',
+              decoration: InputDecoration(
+                labelText: l10n.entryTitleLabel,
                 border: InputBorder.none,
               ),
               style: Theme.of(context).textTheme.titleLarge,
@@ -548,6 +644,9 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
             controller: _quillController,
             onInsertTable: _insertTable,
             onInsertCallout: _insertCallout,
+            // Offered only once the entry exists — an inline image needs a row
+            // to hang its attachment off.
+            onInsertImage: _entryId == null ? null : _insertImage,
           ),
           // Editor body
           Expanded(
@@ -560,6 +659,14 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
               ),
             ),
           ),
+          // Smart tag suggestions for what has been written so far. Reads the
+          // live document rather than the saved row, so suggestions track the
+          // text as it is typed. Renders nothing when there is no match.
+          if (_entryId != null)
+            SmartTagChipBar(
+              entryId: _entryId!,
+              plainText: _quillController.document.toPlainText(),
+            ),
           // 1–5 mood picker; persisted by _saveContent.
           if (_entryId != null)
             _MoodPickerRow(
@@ -575,7 +682,11 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
           // Linked-from panel: inbound references to this entry.
           if (_entryId != null) _LinkedFromPanel(entryId: _entryId!),
           // Attachment tray with per-attachment lock toggle.
-          if (_entryId != null) _AttachmentTray(entryId: _entryId!),
+          if (_entryId != null)
+            _AttachmentTray(
+              entryId: _entryId!,
+              refreshToken: _attachmentRefreshToken,
+            ),
           // Bottom action bar
           _BottomActionBar(
             onAddAttachment: _handleAddAttachment,
@@ -654,74 +765,152 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
   }
 
   Future<void> _handleAddAttachment() async {
+    if (!await _ensureAttachmentPermission()) return;
+    final picker = ref.read(attachmentPickerServiceProvider);
+    await picker.pickAttachment();
+  }
+
+  /// Makes sure the app may read files, asking for the permission if needed.
+  ///
+  /// Returns true when the caller can go ahead and open the picker. Shared by
+  /// the attachment button and the inline-image button so both ask in exactly
+  /// the same way.
+  Future<bool> _ensureAttachmentPermission() async {
     final service = ref.read(appPermissionsServiceProvider);
     final permission = await service.getPermission(
       AppPermissionId.attachmentImport,
     );
 
-    if (!mounted) return;
+    if (!mounted) return false;
 
     if (permission.status == AppPermissionState.denied ||
         permission.status == AppPermissionState.permanentlyDenied) {
       final shouldContinue = await showDialog<bool>(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Allow attachment import?'),
-          content: const Text(
-            'This app needs permission to access your files.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Continue'),
-            ),
-          ],
-        ),
+        builder: (dialogContext) {
+          final l10n = AppLocalizations.of(dialogContext);
+          return AlertDialog(
+            title: Text(l10n.entryPermissionTitle),
+            content: Text(l10n.entryPermissionBody),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: Text(l10n.commonCancel),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: Text(l10n.commonContinue),
+              ),
+            ],
+          );
+        },
       );
 
-      if (shouldContinue != true || !mounted) return;
+      if (shouldContinue != true || !mounted) return false;
 
       final newState = await service.requestPermission(
         AppPermissionId.attachmentImport,
       );
 
-      if (!mounted) return;
+      if (!mounted) return false;
 
       if (newState == AppPermissionState.permanentlyDenied) {
         await showDialog<void>(
           context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Attachment access blocked'),
-            content: const Text(
-              'Permission was permanently denied. Please enable it in system settings.',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () {
-                  service.openSystemSettings();
-                  Navigator.pop(context);
-                },
-                child: const Text('Open system settings'),
-              ),
-            ],
-          ),
+          builder: (dialogContext) {
+            final l10n = AppLocalizations.of(dialogContext);
+            return AlertDialog(
+              title: Text(l10n.entryPermissionBlockedTitle),
+              content: Text(l10n.entryPermissionBlockedBody),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: Text(l10n.commonCancel),
+                ),
+                TextButton(
+                  onPressed: () {
+                    service.openSystemSettings();
+                    Navigator.pop(dialogContext);
+                  },
+                  child: Text(l10n.commonOpenSystemSettings),
+                ),
+              ],
+            );
+          },
         );
-        return;
+        return false;
       }
 
-      if (newState != AppPermissionState.granted) return;
+      if (newState != AppPermissionState.granted) return false;
     }
 
-    final picker = ref.read(attachmentPickerServiceProvider);
-    await picker.pickAttachment();
+    return true;
+  }
+
+  /// Picks an image and puts it into the body of the entry.
+  ///
+  /// The picture is imported exactly like any other attachment — encrypted,
+  /// with a row in `Attachments` — and the embed holds only that row's id. So
+  /// an inline image is backed up, synced and exported by the paths that
+  /// already exist, and the document JSON never carries image bytes.
+  Future<void> _insertImage() async {
+    if (_entryId == null) return;
+    if (!await _ensureAttachmentPermission()) return;
+
+    final picked = await ref
+        .read(attachmentPickerServiceProvider)
+        .pickAttachment();
+    if (picked == null || !mounted) return;
+
+    if (!picked.mimeType.startsWith('image/')) {
+      _showMessage(AppLocalizations.of(context).entryNotAnImage);
+      return;
+    }
+
+    final int attachmentId;
+    try {
+      attachmentId = await ref
+          .read(attachmentImportServiceProvider)
+          .importToEntry(
+            database: ref.read(appDatabaseProvider),
+            entryId: _entryId!,
+            picked: picked,
+          );
+    } catch (_) {
+      // The import service has already removed the encrypted file it wrote, so
+      // there is nothing left behind to clean up here.
+      if (mounted) {
+        _showMessage(AppLocalizations.of(context).entryImageAddFailed);
+      }
+      return;
+    }
+
+    if (!mounted) return;
+
+    final embed = VaultImageEmbed.create(
+      attachmentId: attachmentId,
+      fileName: picked.fileName,
+    );
+    final index = _quillController.selection.baseOffset;
+    // Insert the embed, then a trailing newline — without it an image at the
+    // end of the document has no editable line after it and the cursor gets
+    // trapped, the same as for tables and callouts above.
+    _quillController.replaceText(index, 0, embed, null);
+    _quillController.replaceText(
+      index + 1,
+      0,
+      '\n',
+      TextSelection.collapsed(offset: index + 2),
+    );
+
+    // The picture is also a normal attachment, so the tray below has to know.
+    setState(() => _attachmentRefreshToken++);
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
@@ -739,9 +928,7 @@ class _BottomActionBar extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         border: Border(
-          top: BorderSide(
-            color: Theme.of(context).colorScheme.outlineVariant,
-          ),
+          top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
         ),
       ),
       padding: const EdgeInsets.all(8),
@@ -751,13 +938,13 @@ class _BottomActionBar extends StatelessWidget {
             key: const Key('entry-attachment-add-button'),
             icon: const Icon(Icons.attach_file),
             onPressed: onAddAttachment,
-            tooltip: 'Add attachment',
+            tooltip: AppLocalizations.of(context).entryAddAttachment,
           ),
           IconButton(
             key: const Key('entry-voice-note-button'),
             icon: const Icon(Icons.mic_outlined),
             onPressed: onRecordVoiceNote,
-            tooltip: 'Record voice note',
+            tooltip: AppLocalizations.of(context).entryRecordVoiceNote,
           ),
         ],
       ),
@@ -798,8 +985,9 @@ class _LinkedFromPanelState extends ConsumerState<_LinkedFromPanel> {
 
   Future<void> _load() async {
     final db = ref.read(appDatabaseProvider);
-    final links =
-        await db.backlinksDao.getBacklinksForEntryTarget(widget.entryId);
+    final links = await db.backlinksDao.getBacklinksForEntryTarget(
+      widget.entryId,
+    );
     if (mounted) setState(() => _links = links);
   }
 
@@ -811,9 +999,7 @@ class _LinkedFromPanelState extends ConsumerState<_LinkedFromPanel> {
       key: const Key('entry-linked-from-panel'),
       decoration: BoxDecoration(
         border: Border(
-          top: BorderSide(
-            color: Theme.of(context).colorScheme.outlineVariant,
-          ),
+          top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
         ),
       ),
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
@@ -821,7 +1007,7 @@ class _LinkedFromPanelState extends ConsumerState<_LinkedFromPanel> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Linked from',
+            AppLocalizations.of(context).entryLinkedFrom,
             style: Theme.of(context).textTheme.labelLarge,
           ),
           const SizedBox(height: 4),
@@ -853,14 +1039,14 @@ class _LinkedFromRow extends ConsumerWidget {
           onTap: entry == null
               ? null
               : () => Navigator.push(
-                    context,
-                    MaterialPageRoute<void>(
-                      builder: (_) => EntryEditorScreen(
-                        journalId: entry.journalId,
-                        entryId: entry.id,
-                      ),
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => EntryEditorScreen(
+                      journalId: entry.journalId,
+                      entryId: entry.id,
                     ),
                   ),
+                ),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Row(
@@ -893,16 +1079,14 @@ class _MoodPickerRow extends StatelessWidget {
       key: const Key('entry-mood-picker'),
       decoration: BoxDecoration(
         border: Border(
-          top: BorderSide(
-            color: Theme.of(context).colorScheme.outlineVariant,
-          ),
+          top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
         ),
       ),
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       child: Row(
         children: [
           Text(
-            'Mood',
+            AppLocalizations.of(context).entryMood,
             style: Theme.of(context).textTheme.labelLarge,
           ),
           const SizedBox(width: 12),
@@ -916,7 +1100,11 @@ class _MoodPickerRow extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: ChoiceChip(
                         key: Key('entry-mood-$level'),
-                        label: Text('${_labels[level]} $level'),
+                        label: Text(
+                          AppLocalizations.of(
+                            context,
+                          ).entryMoodChip(_labels[level]!, level),
+                        ),
                         selected: value == level,
                         onSelected: (_) =>
                             onChanged(value == level ? null : level),
@@ -938,9 +1126,13 @@ class _MoodPickerRow extends StatelessWidget {
 /// can be opened — gated through [BiometricAuthenticator] so the user gets
 /// the same prompt the app-lock gate uses.
 class _AttachmentTray extends ConsumerStatefulWidget {
-  const _AttachmentTray({required this.entryId});
+  const _AttachmentTray({required this.entryId, this.refreshToken = 0});
 
   final int entryId;
+
+  /// Changes when the editor has added an attachment, which is the tray's cue
+  /// to read the list again.
+  final int refreshToken;
 
   @override
   ConsumerState<_AttachmentTray> createState() => _AttachmentTrayState();
@@ -959,13 +1151,17 @@ class _AttachmentTrayState extends ConsumerState<_AttachmentTray> {
   @override
   void didUpdateWidget(covariant _AttachmentTray oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.entryId != widget.entryId) _load();
+    if (oldWidget.entryId != widget.entryId ||
+        oldWidget.refreshToken != widget.refreshToken) {
+      _load();
+    }
   }
 
   Future<void> _load() async {
     final db = ref.read(appDatabaseProvider);
-    final attachments =
-        await db.attachmentsDao.getAttachmentsForEntry(widget.entryId);
+    final attachments = await db.attachmentsDao.getAttachmentsForEntry(
+      widget.entryId,
+    );
     final lockService = ref.read(attachmentLockServiceProvider);
     final lockedMap = <int, bool>{
       for (final a in attachments) a.id: await lockService.isLocked(a.id),
@@ -991,13 +1187,13 @@ class _AttachmentTrayState extends ConsumerState<_AttachmentTray> {
   Future<void> _open(Attachment a) async {
     if (_lockedById[a.id] ?? false) {
       final auth = ref.read(biometricAuthenticatorProvider);
-      final result = await auth.authenticate(
-        reason: 'Unlock "${a.fileName}"',
-      );
+      final result = await auth.authenticate(reason: 'Unlock "${a.fileName}"');
       if (result != BiometricAuthResult.success) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Authentication required.')),
+            SnackBar(
+              content: Text(AppLocalizations.of(context).entryAuthRequired),
+            ),
           );
         }
         return;
@@ -1005,7 +1201,29 @@ class _AttachmentTrayState extends ConsumerState<_AttachmentTray> {
     }
     final openService = ref.read(attachmentOpenServiceProvider);
     try {
-      await openService.prepareOpen(a);
+      final session = await openService.prepare(a);
+
+      // PDF, audio and ZIP render inside the app; everything else is handed to
+      // another app. Only the external path leaves the temp file in place —
+      // the viewer deletes it on dispose.
+      if (!session.opensInApp) {
+        await openService.openExternally(session);
+        return;
+      }
+
+      if (!mounted) {
+        await session.close();
+        return;
+      }
+
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => AttachmentViewerScreen(
+            session: session,
+            onOpenExternally: () => openService.openExternally(session),
+          ),
+        ),
+      );
     } on AttachmentOpenException catch (error) {
       if (!mounted) return;
       await _showOpenFailureDialog(a, error.failure);
@@ -1016,17 +1234,21 @@ class _AttachmentTrayState extends ConsumerState<_AttachmentTray> {
     Attachment a,
     AttachmentOpenFailure failure,
   ) async {
+    final l10n = AppLocalizations.of(context);
     final (title, retry) = switch (failure) {
-      AttachmentOpenFailure.noCompatibleApp => (
-          'No compatible app found',
-          true,
-        ),
-      AttachmentOpenFailure.decryptFailed => ('Could not decrypt attachment', true),
-      AttachmentOpenFailure.fileNotFound => ('Attachment file is missing', false),
+      AttachmentOpenFailure.noCompatibleApp => (l10n.attachmentOpenNoApp, true),
+      AttachmentOpenFailure.decryptFailed => (
+        l10n.attachmentOpenDecryptFailed,
+        true,
+      ),
+      AttachmentOpenFailure.fileNotFound => (
+        l10n.attachmentOpenFileMissing,
+        false,
+      ),
       AttachmentOpenFailure.permissionDenied => (
-          'Permission required to open attachment',
-          true,
-        ),
+        l10n.attachmentOpenPermissionDenied,
+        true,
+      ),
     };
     await showDialog<void>(
       context: context,
@@ -1037,7 +1259,7 @@ class _AttachmentTrayState extends ConsumerState<_AttachmentTray> {
             TextButton(
               key: Key('attachment-open-with-${a.id}'),
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Open with...'),
+              child: Text(l10n.attachmentOpenWith),
             ),
           if (retry)
             TextButton(
@@ -1046,12 +1268,12 @@ class _AttachmentTrayState extends ConsumerState<_AttachmentTray> {
                 Navigator.pop(dialogContext);
                 _open(a);
               },
-              child: const Text('Retry'),
+              child: Text(l10n.commonRetry),
             ),
           TextButton(
             key: Key('attachment-close-${a.id}'),
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Close'),
+            child: Text(l10n.commonClose),
           ),
         ],
       ),
@@ -1068,9 +1290,7 @@ class _AttachmentTrayState extends ConsumerState<_AttachmentTray> {
       key: const Key('entry-attachment-tray'),
       decoration: BoxDecoration(
         border: Border(
-          top: BorderSide(
-            color: Theme.of(context).colorScheme.outlineVariant,
-          ),
+          top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
         ),
       ),
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
@@ -1078,7 +1298,7 @@ class _AttachmentTrayState extends ConsumerState<_AttachmentTray> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Attachments',
+            AppLocalizations.of(context).entryAttachments,
             style: Theme.of(context).textTheme.labelLarge,
           ),
           const SizedBox(height: 4),
@@ -1088,9 +1308,7 @@ class _AttachmentTrayState extends ConsumerState<_AttachmentTray> {
               dense: true,
               contentPadding: EdgeInsets.zero,
               leading: Icon(
-                (_lockedById[a.id] ?? false)
-                    ? Icons.lock
-                    : Icons.attach_file,
+                (_lockedById[a.id] ?? false) ? Icons.lock : Icons.attach_file,
               ),
               title: Text(a.fileName),
               trailing: Row(
@@ -1104,14 +1322,14 @@ class _AttachmentTrayState extends ConsumerState<_AttachmentTray> {
                           : Icons.lock_outline,
                     ),
                     tooltip: (_lockedById[a.id] ?? false)
-                        ? 'Remove attachment lock'
-                        : 'Lock attachment',
+                        ? AppLocalizations.of(context).entryRemoveAttachmentLock
+                        : AppLocalizations.of(context).entryLockAttachment,
                     onPressed: () => _toggleLock(a),
                   ),
                   IconButton(
                     key: Key('open-attachment-${a.id}'),
                     icon: const Icon(Icons.open_in_new),
-                    tooltip: 'Open attachment',
+                    tooltip: AppLocalizations.of(context).entryOpenAttachment,
                     onPressed: () => _open(a),
                   ),
                 ],

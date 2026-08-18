@@ -1,0 +1,2173 @@
+{
+  "@@locale": "en",
+  "vaultUnavailableTitle": "The vault cannot be opened",
+  "@vaultUnavailableTitle": {
+    "description": "Title of the screen shown when the encrypted database cannot be opened at startup"
+  },
+  "vaultUnavailableKeyMissing": "The key that unlocks your journal is no longer on this device. Without it, nothing can read the vault — not even this app.",
+  "@vaultUnavailableKeyMissing": {
+    "description": "Reason line when the Android Keystore no longer holds the database key"
+  },
+  "vaultUnavailableCipherMissing": "This build of the app cannot encrypt the vault, so it has stopped rather than store your journal unprotected.",
+  "@vaultUnavailableCipherMissing": {
+    "description": "Reason line when the SQLCipher library was not the one loaded, which is a build fault"
+  },
+  "vaultUnavailableConversionFailed": "Your journal could not be moved into encrypted storage. It has been left exactly as it was — nothing has been deleted.",
+  "@vaultUnavailableConversionFailed": {
+    "description": "Reason line when the one-time plain to encrypted conversion failed"
+  },
+  "vaultUnavailableFileUnreadable": "The vault file cannot be read. It may be damaged, or it may belong to a different installation of the app.",
+  "@vaultUnavailableFileUnreadable": {
+    "description": "Reason line when the database file exists but will not open"
+  },
+  "vaultUnavailableDataIntact": "Nothing has been deleted. Your entries and attachments are still on this device.",
+  "@vaultUnavailableDataIntact": {
+    "description": "Reassurance line telling the user no data was destroyed"
+  },
+  "vaultUnavailableNextSteps": "If you have a backup file, reinstall the app and restore from it. If not, keep this installation as it is and do not clear the app data — that would remove the vault for good.",
+  "@vaultUnavailableNextSteps": {
+    "description": "Advice on what the user can do next when the vault cannot be opened"
+  },
+  "appTitle": "SreerajP Journal Vault",
+  "@appTitle": {
+    "description": "The application title, shown in the task switcher"
+  },
+  "aboutTitle": "About",
+  "@aboutTitle": {
+    "description": "Title of the About screen"
+  },
+  "aboutLoadError": "Unable to load app metadata",
+  "@aboutLoadError": {
+    "description": "Shown when the About screen cannot read the app config"
+  },
+  "commonRetry": "Retry",
+  "@commonRetry": {
+    "description": "Button that tries the failed action again"
+  },
+  "aboutVersionBuildLabel": "App Version / Build",
+  "@aboutVersionBuildLabel": {
+    "description": "Row label for the app version and build number on the About screen"
+  },
+  "aboutLastBuildLabel": "Last Build Timestamp",
+  "@aboutLastBuildLabel": {
+    "description": "Row label for when the app was last built, on the About screen"
+  },
+  "permissionsTitle": "Permissions",
+  "@permissionsTitle": {
+    "description": "Title of the Permissions screen"
+  },
+  "permissionsExplicitHeader": "Explicit permissions",
+  "@permissionsExplicitHeader": {
+    "description": "Section header for permissions the user is asked for directly"
+  },
+  "permissionsImplicitHeader": "Implicit permissions",
+  "@permissionsImplicitHeader": {
+    "description": "Section header for permissions granted without a prompt"
+  },
+  "permissionStatusAllowed": "Allowed",
+  "@permissionStatusAllowed": {
+    "description": "Permission state: the user granted it"
+  },
+  "permissionStatusDenied": "Denied",
+  "@permissionStatusDenied": {
+    "description": "Permission state: the user refused it"
+  },
+  "permissionStatusPermanentlyDenied": "Permanently denied",
+  "@permissionStatusPermanentlyDenied": {
+    "description": "Permission state: refused and the system will not ask again"
+  },
+  "permissionStatusUserSelected": "User selected",
+  "@permissionStatusUserSelected": {
+    "description": "Permission state: the user granted access to specific items only"
+  },
+  "permissionsRequest": "Request",
+  "@permissionsRequest": {
+    "description": "Button that asks the system for a permission"
+  },
+  "permissionsOpenSettings": "Open settings",
+  "@permissionsOpenSettings": {
+    "description": "Button that opens the system settings page for this app"
+  },
+  "commonCancel": "Cancel",
+  "@commonCancel": {
+    "description": "Button that closes a dialog without doing anything"
+  },
+  "commonDelete": "Delete",
+  "@commonDelete": {
+    "description": "Button that deletes the item being discussed"
+  },
+  "commonSave": "Save",
+  "@commonSave": {
+    "description": "Button that saves the current edit"
+  },
+  "tagsTitle": "Tags",
+  "@tagsTitle": {
+    "description": "Title of the tag manager screen"
+  },
+  "tagsLoadError": "Could not load tags: {error}",
+  "@tagsLoadError": {
+    "description": "Shown when the list of tags cannot be read",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "tagsEmpty": "No tags yet. Add tags to a journal and they will show up here.",
+  "@tagsEmpty": {
+    "description": "Empty state on the tag manager screen"
+  },
+  "tagsAutomaticColour": "Automatic colour",
+  "@tagsAutomaticColour": {
+    "description": "Subtitle on a tag that has no colour chosen by the user"
+  },
+  "tagsActionsTooltip": "Tag actions",
+  "@tagsActionsTooltip": {
+    "description": "Tooltip on the menu button that opens tag actions"
+  },
+  "tagsRename": "Rename",
+  "@tagsRename": {
+    "description": "Menu item that renames a tag"
+  },
+  "tagsChooseColour": "Choose colour",
+  "@tagsChooseColour": {
+    "description": "Menu item, and dialog title, for picking a tag colour"
+  },
+  "tagsResetColour": "Reset to automatic",
+  "@tagsResetColour": {
+    "description": "Menu item that clears a tag colour so it is chosen automatically"
+  },
+  "tagsRenameFailed": "That name is empty or already used by another tag.",
+  "@tagsRenameFailed": {
+    "description": "Message shown when a tag rename is rejected"
+  },
+  "tagsDeleted": "Deleted #{name}.",
+  "@tagsDeleted": {
+    "description": "Confirmation shown after a tag is deleted",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "tagsDeleteTitle": "Delete tag?",
+  "@tagsDeleteTitle": {
+    "description": "Title of the confirm-delete dialog for a tag"
+  },
+  "tagsDeleteBody": "Delete \"#{name}\"? It will be removed from every journal and entry that uses it.",
+  "@tagsDeleteBody": {
+    "description": "Body of the confirm-delete dialog for a tag",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "tagsRenameTitle": "Rename tag",
+  "@tagsRenameTitle": {
+    "description": "Title of the rename dialog for a tag"
+  },
+  "tagsNameLabel": "Tag name",
+  "@tagsNameLabel": {
+    "description": "Label of the text field where a new tag name is typed"
+  },
+  "commonError": "Error: {message}",
+  "@commonError": {
+    "description": "Generic inline error text, followed by the reason",
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "commonUntitledEntry": "Untitled entry",
+  "@commonUntitledEntry": {
+    "description": "Placeholder title for an entry that has no title"
+  },
+  "commonUntitled": "Untitled",
+  "@commonUntitled": {
+    "description": "Short placeholder title for an item that has no title"
+  },
+  "timelineTitle": "Timeline",
+  "@timelineTitle": {
+    "description": "Title of the timeline screen"
+  },
+  "timelineNoEntriesForDate": "No entries for this date",
+  "@timelineNoEntriesForDate": {
+    "description": "Empty state under the calendar when the chosen day has no entries"
+  },
+  "timelineCalendarFormatMonth": "Month",
+  "@timelineCalendarFormatMonth": {
+    "description": "Name of the month view of the calendar"
+  },
+  "timelineDayCountOverflow": "9+",
+  "@timelineDayCountOverflow": {
+    "description": "Marker on a calendar day that has more than nine entries"
+  },
+  "insightsTitle": "Insights",
+  "@insightsTitle": {
+    "description": "Title of the insights screen"
+  },
+  "insightsStreakHeading": "Writing Streak",
+  "@insightsStreakHeading": {
+    "description": "Heading of the card showing how many days in a row the user wrote"
+  },
+  "insightsStreakCurrent": "Current",
+  "@insightsStreakCurrent": {
+    "description": "Label for the streak running right now"
+  },
+  "insightsStreakLongest": "Longest",
+  "@insightsStreakLongest": {
+    "description": "Label for the longest streak ever reached"
+  },
+  "insightsStreakUnitDays": "days",
+  "@insightsStreakUnitDays": {
+    "description": "Unit shown under a streak number"
+  },
+  "insightsStreakStat": "{label} ({unit})",
+  "@insightsStreakStat": {
+    "description": "Pairs a streak label with its unit, for example \"Current (days)\"",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "insightsLastEntry": "Last entry: {date}",
+  "@insightsLastEntry": {
+    "description": "Date of the most recent entry, on the streak card",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "insightsMoodHeading": "Mood Trends (30 days)",
+  "@insightsMoodHeading": {
+    "description": "Heading of the mood chart card"
+  },
+  "insightsMoodEmpty": "No mood data yet.\nRate your mood on entries to see trends.",
+  "@insightsMoodEmpty": {
+    "description": "Empty state of the mood chart card"
+  },
+  "insightsMoodTooltip": "{date}\nMood: {mood}\nEntries: {count}",
+  "@insightsMoodTooltip": {
+    "description": "Tooltip on one bar of the mood chart",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "mood": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "insightsTagHeatmapHeading": "Tag Heatmap",
+  "@insightsTagHeatmapHeading": {
+    "description": "Heading of the card showing which tags are used most"
+  },
+  "insightsTagHeatmapEmpty": "No tags used yet.",
+  "@insightsTagHeatmapEmpty": {
+    "description": "Empty state of the tag heatmap card"
+  },
+  "insightsTagChip": "{tag} ({count})",
+  "@insightsTagChip": {
+    "description": "One tag and how many times it was used",
+    "placeholders": {
+      "tag": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "insightsMemoriesHeading": "On This Day",
+  "@insightsMemoriesHeading": {
+    "description": "Heading of the card showing entries from the same date in past years"
+  },
+  "insightsMemoriesEmpty": "No memories for today.\nKeep journaling to build memories!",
+  "@insightsMemoriesEmpty": {
+    "description": "Empty state of the memories card"
+  },
+  "insightsYearsAgo": "{years}y",
+  "@insightsYearsAgo": {
+    "description": "Short label on a memory, meaning that many years ago",
+    "placeholders": {
+      "years": {
+        "type": "int"
+      }
+    }
+  },
+  "insightsReflectionHeading": "Weekly Reflection",
+  "@insightsReflectionHeading": {
+    "description": "Heading of the weekly summary card"
+  },
+  "insightsReflectionPeriod": "Period",
+  "@insightsReflectionPeriod": {
+    "description": "Row label for the dates the weekly summary covers"
+  },
+  "insightsReflectionEntries": "Entries",
+  "@insightsReflectionEntries": {
+    "description": "Row label for how many entries were written this week"
+  },
+  "insightsReflectionWords": "Words Written",
+  "@insightsReflectionWords": {
+    "description": "Row label for how many words were written this week"
+  },
+  "insightsReflectionAverageMood": "Average Mood",
+  "@insightsReflectionAverageMood": {
+    "description": "Row label for the average mood this week"
+  },
+  "insightsReflectionTopTags": "Top Tags",
+  "@insightsReflectionTopTags": {
+    "description": "Row label for the most used tags this week"
+  },
+  "insightsReflectionStreak": "Current Streak",
+  "@insightsReflectionStreak": {
+    "description": "Row label for the streak running right now"
+  },
+  "insightsDateRange": "{start} – {end}",
+  "@insightsDateRange": {
+    "description": "A start and end date, shown as one range",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "insightsMoodOutOfFive": "{mood} / 5",
+  "@insightsMoodOutOfFive": {
+    "description": "An average mood score out of five",
+    "placeholders": {
+      "mood": {
+        "type": "String"
+      }
+    }
+  },
+  "insightsStreakDays": "{count} days",
+  "@insightsStreakDays": {
+    "description": "A number of days in a row",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commonClose": "Close",
+  "@commonClose": {
+    "description": "Button that closes a dialog or panel"
+  },
+  "commonUnknownError": "Unknown error",
+  "@commonUnknownError": {
+    "description": "Placeholder shown when a failure gives no reason"
+  },
+  "importTitle": "Import Files",
+  "@importTitle": {
+    "description": "Title of the import screen"
+  },
+  "importSelecting": "Importing...",
+  "@importSelecting": {
+    "description": "Button label while an import is running"
+  },
+  "importSelectFiles": "Select Files to Import",
+  "@importSelectFiles": {
+    "description": "Button that opens the file picker to choose files to import"
+  },
+  "importResultsHeading": "Import Results",
+  "@importResultsHeading": {
+    "description": "Heading above the list of imported files"
+  },
+  "importFileSucceeded": "Imported successfully",
+  "@importFileSucceeded": {
+    "description": "Shown under a file that imported without a problem"
+  },
+  "importCountSucceeded": "{count, plural, =1{1 file imported successfully} other{{count} files imported successfully}}",
+  "@importCountSucceeded": {
+    "description": "Confirmation after an import finishes",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "attachmentArchiveEmpty": "This archive is empty.",
+  "@attachmentArchiveEmpty": {
+    "description": "Shown when a ZIP attachment has no files inside"
+  },
+  "attachmentOpenWith": "Open with...",
+  "@attachmentOpenWith": {
+    "description": "Button and tooltip that hands the attachment to another app"
+  },
+  "attachmentUnsupportedTitle": "Unsupported file type",
+  "@attachmentUnsupportedTitle": {
+    "description": "Heading when an attachment cannot be shown inside the app"
+  },
+  "attachmentUnsupportedBody": "{fileName} cannot be shown inside the app.",
+  "@attachmentUnsupportedBody": {
+    "description": "Explains which attachment cannot be shown in the app",
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "attachmentPdfMissing": "The decrypted file is no longer available.",
+  "@attachmentPdfMissing": {
+    "description": "Shown when the temporary decrypted PDF has already been deleted"
+  },
+  "attachmentPdfOpenFailed": "Could not open PDF: {reason}",
+  "@attachmentPdfOpenFailed": {
+    "description": "Shown when the PDF viewer fails to load a file",
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "autoLockTitle": "Auto-Lock Profiles",
+  "@autoLockTitle": {
+    "description": "Title of the auto-lock profiles screen"
+  },
+  "autoLockNewProfile": "New profile",
+  "@autoLockNewProfile": {
+    "description": "Button, and dialog title, for creating an auto-lock profile"
+  },
+  "autoLockEditProfile": "Edit profile",
+  "@autoLockEditProfile": {
+    "description": "Dialog title, and tooltip, for changing an auto-lock profile"
+  },
+  "autoLockEmpty": "No auto-lock profiles yet. Create one to lock the app after a period of inactivity.",
+  "@autoLockEmpty": {
+    "description": "Empty state of the auto-lock profiles screen"
+  },
+  "autoLockDeleteProfile": "Delete profile",
+  "@autoLockDeleteProfile": {
+    "description": "Tooltip on the button that removes an auto-lock profile"
+  },
+  "autoLockActivate": "Activate",
+  "@autoLockActivate": {
+    "description": "Tooltip on the button that turns an auto-lock profile on"
+  },
+  "autoLockDeactivate": "Deactivate",
+  "@autoLockDeactivate": {
+    "description": "Tooltip on the button that turns an auto-lock profile off"
+  },
+  "autoLockSummary": "{timeout}{lockOnMinimize}{active}",
+  "@autoLockSummary": {
+    "description": "Joins the parts of an auto-lock profile summary line",
+    "placeholders": {
+      "timeout": {
+        "type": "String"
+      },
+      "lockOnMinimize": {
+        "type": "String"
+      },
+      "active": {
+        "type": "String"
+      }
+    }
+  },
+  "autoLockSuffixLockOnMinimize": " • lock on minimize",
+  "@autoLockSuffixLockOnMinimize": {
+    "description": "Part of the summary line saying the app locks when minimized"
+  },
+  "autoLockSuffixActive": " • active",
+  "@autoLockSuffixActive": {
+    "description": "Part of the summary line saying this profile is the one in use"
+  },
+  "autoLockTimeoutSeconds": "{seconds}s",
+  "@autoLockTimeoutSeconds": {
+    "description": "A timeout of under a minute, in seconds",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "autoLockTimeoutMinutes": "{minutes}m",
+  "@autoLockTimeoutMinutes": {
+    "description": "A timeout of under an hour, in minutes",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "autoLockTimeoutHours": "{hours}h",
+  "@autoLockTimeoutHours": {
+    "description": "A timeout of an hour or more, in hours",
+    "placeholders": {
+      "hours": {
+        "type": "String"
+      }
+    }
+  },
+  "autoLockNameLabel": "Name",
+  "@autoLockNameLabel": {
+    "description": "Label of the field for an auto-lock profile name"
+  },
+  "autoLockTimeoutLabel": "Timeout (seconds)",
+  "@autoLockTimeoutLabel": {
+    "description": "Label of the field for how long before the app locks"
+  },
+  "autoLockLockOnMinimize": "Lock on minimize",
+  "@autoLockLockOnMinimize": {
+    "description": "Switch that locks the app as soon as it is minimized"
+  },
+  "autoLockNameRequired": "Name is required.",
+  "@autoLockNameRequired": {
+    "description": "Validation message when the profile name is left blank"
+  },
+  "autoLockTimeoutInvalid": "Timeout must be a positive integer.",
+  "@autoLockTimeoutInvalid": {
+    "description": "Validation message when the timeout is not a whole number above zero"
+  },
+  "securityEventsTitle": "Security Events",
+  "@securityEventsTitle": {
+    "description": "Title of the security events screen"
+  },
+  "securityEventsEmpty": "No security events recorded",
+  "@securityEventsEmpty": {
+    "description": "Empty state of the security events screen"
+  },
+  "securityEventDetailsTitle": "Event Details",
+  "@securityEventDetailsTitle": {
+    "description": "Title of the dialog showing the raw detail of one security event"
+  },
+  "syncConflictsTitle": "Sync Conflicts",
+  "@syncConflictsTitle": {
+    "description": "Title of the screen listing sync conflicts"
+  },
+  "syncConflictsLoadFailed": "Failed to load conflicts:\n{error}",
+  "@syncConflictsLoadFailed": {
+    "description": "Shown when the list of conflicts cannot be read",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNoConflicts": "No pending conflicts",
+  "@syncNoConflicts": {
+    "description": "Heading of the empty state when nothing is in conflict"
+  },
+  "syncAllInSync": "All data is in sync.",
+  "@syncAllInSync": {
+    "description": "Subtitle of the empty state when nothing is in conflict"
+  },
+  "syncDetectedAt": "Detected: {timestamp}",
+  "@syncDetectedAt": {
+    "description": "When a conflict was first noticed",
+    "placeholders": {
+      "timestamp": {
+        "type": "String"
+      }
+    }
+  },
+  "syncChangedFields": "Changed fields:",
+  "@syncChangedFields": {
+    "description": "Heading above the list of fields that differ"
+  },
+  "syncCompare": "Compare",
+  "@syncCompare": {
+    "description": "Button that opens a side-by-side view of the two versions"
+  },
+  "syncKeepRemote": "Keep Remote",
+  "@syncKeepRemote": {
+    "description": "Button that keeps the version from the other device"
+  },
+  "syncKeepLocal": "Keep Local",
+  "@syncKeepLocal": {
+    "description": "Button that keeps the version on this device"
+  },
+  "syncKeepLocalTitle": "Keep local version?",
+  "@syncKeepLocalTitle": {
+    "description": "Title of the dialog confirming that the local version wins"
+  },
+  "syncKeepRemoteTitle": "Keep remote version?",
+  "@syncKeepRemoteTitle": {
+    "description": "Title of the dialog confirming that the remote version wins"
+  },
+  "syncKeepLocalBody": "The remote changes will be discarded. Your local version will be pushed on next sync.",
+  "@syncKeepLocalBody": {
+    "description": "Explains what happens when the local version is kept"
+  },
+  "syncKeepRemoteBody": "Your local changes will be overwritten with the remote version.",
+  "@syncKeepRemoteBody": {
+    "description": "Explains what happens when the remote version is kept"
+  },
+  "commonConfirm": "Confirm",
+  "@commonConfirm": {
+    "description": "Button that agrees to the action described in a dialog"
+  },
+  "syncConflictResolved": "Conflict resolved.",
+  "@syncConflictResolved": {
+    "description": "Confirmation shown after a conflict is settled"
+  },
+  "syncResolutionFailed": "Resolution failed: {error}",
+  "@syncResolutionFailed": {
+    "description": "Shown when settling a conflict does not work",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "syncConflictDetailsTitle": "Conflict Details",
+  "@syncConflictDetailsTitle": {
+    "description": "Title of the dialog comparing the local and remote values"
+  },
+  "syncColumnField": "Field",
+  "@syncColumnField": {
+    "description": "Column heading for the name of the field that differs"
+  },
+  "syncColumnLocal": "Local",
+  "@syncColumnLocal": {
+    "description": "Column heading for the value on this device"
+  },
+  "syncColumnRemote": "Remote",
+  "@syncColumnRemote": {
+    "description": "Column heading for the value on the other device"
+  },
+  "syncHealthHeading": "Sync Health",
+  "@syncHealthHeading": {
+    "description": "Heading of the sync health card"
+  },
+  "syncLastSync": "Last sync",
+  "@syncLastSync": {
+    "description": "Row label for when sync last ran"
+  },
+  "syncFailures7d": "Failures (7d)",
+  "@syncFailures7d": {
+    "description": "Row label for how many syncs failed in the last seven days"
+  },
+  "syncPendingConflicts": "Pending conflicts",
+  "@syncPendingConflicts": {
+    "description": "Row label for how many conflicts are waiting"
+  },
+  "commonLoading": "Loading...",
+  "@commonLoading": {
+    "description": "Placeholder shown while a value is being read"
+  },
+  "commonErrorShort": "Error",
+  "@commonErrorShort": {
+    "description": "Short placeholder shown in place of a value that could not be read"
+  },
+  "commonEllipsis": "...",
+  "@commonEllipsis": {
+    "description": "Short placeholder shown while a number is being counted"
+  },
+  "syncNever": "Never",
+  "@syncNever": {
+    "description": "Shown in place of a date when sync has never run"
+  },
+  "syncResolveCount": "Resolve ({count})",
+  "@syncResolveCount": {
+    "description": "Button that opens the conflict list, with how many are waiting",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncNow": "Sync Now",
+  "@syncNow": {
+    "description": "Button that starts a sync straight away"
+  },
+  "syncRecentActivity": "Recent Activity",
+  "@syncRecentActivity": {
+    "description": "Heading above the list of recent sync runs"
+  },
+  "syncLogsLoadFailed": "Failed to load logs: {error}",
+  "@syncLogsLoadFailed": {
+    "description": "Shown when the sync history cannot be read",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "syncNoActivity": "No sync activity yet.",
+  "@syncNoActivity": {
+    "description": "Empty state of the sync history list"
+  },
+  "syncStatusIdle": "Idle",
+  "@syncStatusIdle": {
+    "description": "Sync state: nothing happening"
+  },
+  "syncStatusSyncing": "Syncing",
+  "@syncStatusSyncing": {
+    "description": "Sync state: a sync is running now"
+  },
+  "syncStatusHealthy": "Healthy",
+  "@syncStatusHealthy": {
+    "description": "Sync state: the last sync worked"
+  },
+  "syncStatusFailed": "Failed",
+  "@syncStatusFailed": {
+    "description": "Sync state: the last sync did not work"
+  },
+  "syncStatusConflicts": "Conflicts",
+  "@syncStatusConflicts": {
+    "description": "Sync state: some records disagree and need a choice"
+  },
+  "syncLogFailed": "Sync failed",
+  "@syncLogFailed": {
+    "description": "Fallback summary for a sync run that failed with no reason given"
+  },
+  "syncLogPushed": "{count} pushed",
+  "@syncLogPushed": {
+    "description": "How many records were sent to the other device",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncLogPulled": "{count} pulled",
+  "@syncLogPulled": {
+    "description": "How many records were received from the other device",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncLogConflicts": "{count} conflicts",
+  "@syncLogConflicts": {
+    "description": "How many conflicts one sync run found",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "syncLogNoChanges": "No changes",
+  "@syncLogNoChanges": {
+    "description": "Summary for a sync run that moved nothing"
+  },
+  "commonRefresh": "Refresh",
+  "@commonRefresh": {
+    "description": "Tooltip on the button that reloads the screen"
+  },
+  "backupTitle": "Backup Health",
+  "@backupTitle": {
+    "description": "Title of the backup health screen"
+  },
+  "backupNow": "Backup Now",
+  "@backupNow": {
+    "description": "Button that starts a backup straight away"
+  },
+  "backupInProgressLabel": "Backing up...",
+  "@backupInProgressLabel": {
+    "description": "Button label while a backup is running"
+  },
+  "backupHistoryHeading": "Backup History",
+  "@backupHistoryHeading": {
+    "description": "Heading above the list of past backups"
+  },
+  "backupStatusHeading": "Backup Status",
+  "@backupStatusHeading": {
+    "description": "Heading of the card showing how healthy backups are"
+  },
+  "backupNoneYet": "No successful backups yet",
+  "@backupNoneYet": {
+    "description": "Shown when no backup has ever finished"
+  },
+  "backupLastBackup": "Last backup",
+  "@backupLastBackup": {
+    "description": "Row label for when the last backup finished"
+  },
+  "backupEntries": "Entries",
+  "@backupEntries": {
+    "description": "Row label for how many entries a backup holds"
+  },
+  "backupAttachments": "Attachments",
+  "@backupAttachments": {
+    "description": "Row label for how many attachments a backup holds"
+  },
+  "backupSize": "Size",
+  "@backupSize": {
+    "description": "Row label for how large a backup file is"
+  },
+  "backupRecentFailures": "{count, plural, =1{1 failed backup in the last 7 days} other{{count} failed backups in the last 7 days}}",
+  "@backupRecentFailures": {
+    "description": "Warning about recent backup failures",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "backupScheduleHeading": "Auto-Backup Schedule",
+  "@backupScheduleHeading": {
+    "description": "Heading of the card that controls automatic backups"
+  },
+  "backupScheduled": "Scheduled: {interval}",
+  "@backupScheduled": {
+    "description": "Shows how often automatic backups run",
+    "placeholders": {
+      "interval": {
+        "type": "String"
+      }
+    }
+  },
+  "backupNotScheduled": "Not scheduled",
+  "@backupNotScheduled": {
+    "description": "Shown when automatic backups are off"
+  },
+  "backupTimerActive": "Active",
+  "@backupTimerActive": {
+    "description": "Chip meaning the backup timer is running"
+  },
+  "backupTimerInactive": "Inactive",
+  "@backupTimerInactive": {
+    "description": "Chip meaning the backup timer is not running"
+  },
+  "backupLastScheduledRun": "Last scheduled run",
+  "@backupLastScheduledRun": {
+    "description": "Row label for when the last automatic backup ran"
+  },
+  "backupDisable": "Disable",
+  "@backupDisable": {
+    "description": "Button that turns automatic backups off"
+  },
+  "backupConfigure": "Configure",
+  "@backupConfigure": {
+    "description": "Button that opens the automatic backup settings"
+  },
+  "backupChange": "Change",
+  "@backupChange": {
+    "description": "Button that changes the existing backup schedule"
+  },
+  "backupConfigureHeading": "Configure Schedule",
+  "@backupConfigureHeading": {
+    "description": "Heading of the schedule settings form"
+  },
+  "backupIntervalLabel": "Interval",
+  "@backupIntervalLabel": {
+    "description": "Label of the field choosing how often to back up"
+  },
+  "backupIntervalDaily": "Daily",
+  "@backupIntervalDaily": {
+    "description": "Backup interval: once a day"
+  },
+  "backupIntervalWeekly": "Weekly",
+  "@backupIntervalWeekly": {
+    "description": "Backup interval: once a week"
+  },
+  "backupIntervalMonthly": "Monthly",
+  "@backupIntervalMonthly": {
+    "description": "Backup interval: once a month"
+  },
+  "backupPasswordLabel": "Backup encryption password",
+  "@backupPasswordLabel": {
+    "description": "Label of the field for the password that encrypts a backup"
+  },
+  "backupPasswordHelper": "Required for encrypted backups",
+  "@backupPasswordHelper": {
+    "description": "Helper text under the backup password field"
+  },
+  "backupNoHistory": "No backup history",
+  "@backupNoHistory": {
+    "description": "Empty state of the backup history list"
+  },
+  "backupHistoryLoadFailed": "Error loading history: {error}",
+  "@backupHistoryLoadFailed": {
+    "description": "Shown when the backup history cannot be read",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "backupLogTitle": "{trigger} backup — {status}",
+  "@backupLogTitle": {
+    "description": "Title of one row in the backup history",
+    "placeholders": {
+      "trigger": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "backupTriggerManual": "Manual",
+  "@backupTriggerManual": {
+    "description": "A backup the user started by hand"
+  },
+  "backupTriggerScheduled": "Scheduled",
+  "@backupTriggerScheduled": {
+    "description": "A backup the app started on a timer"
+  },
+  "backupStatusSuccess": "Success",
+  "@backupStatusSuccess": {
+    "description": "A backup that finished"
+  },
+  "backupStatusFailed": "Failed",
+  "@backupStatusFailed": {
+    "description": "A backup that did not finish"
+  },
+  "backupStatusInProgress": "In progress",
+  "@backupStatusInProgress": {
+    "description": "A backup that is still running"
+  },
+  "backupLogCounts": "{entries} entries, {attachments} attachments, {size}",
+  "@backupLogCounts": {
+    "description": "Summary of what one backup holds",
+    "placeholders": {
+      "entries": {
+        "type": "int"
+      },
+      "attachments": {
+        "type": "int"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "backupInProgressNote": "In progress...",
+  "@backupInProgressNote": {
+    "description": "Shown under a backup row that has not finished"
+  },
+  "backupSucceeded": "Backup completed successfully",
+  "@backupSucceeded": {
+    "description": "Confirmation after a backup finishes"
+  },
+  "backupFailed": "Backup failed: {error}",
+  "@backupFailed": {
+    "description": "Shown when a backup does not finish",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "backupPasswordTitle": "Backup Password",
+  "@backupPasswordTitle": {
+    "description": "Title of the dialog asking for the backup password"
+  },
+  "backupPasswordEnter": "Enter encryption password",
+  "@backupPasswordEnter": {
+    "description": "Label of the password field in the backup dialog"
+  },
+  "backupAction": "Backup",
+  "@backupAction": {
+    "description": "Button that starts the backup after the password is typed"
+  },
+  "backupPasswordRequired": "Password is required",
+  "@backupPasswordRequired": {
+    "description": "Shown when the backup password is left blank"
+  },
+  "backupScheduleSaved": "Backup schedule saved",
+  "@backupScheduleSaved": {
+    "description": "Confirmation after the backup schedule is saved"
+  },
+  "backupScheduleDisabled": "Backup schedule disabled",
+  "@backupScheduleDisabled": {
+    "description": "Confirmation after automatic backups are turned off"
+  },
+  "backupBytes": "{bytes} B",
+  "@backupBytes": {
+    "description": "A file size in bytes",
+    "placeholders": {
+      "bytes": {
+        "type": "int"
+      }
+    }
+  },
+  "backupKilobytes": "{size} KB",
+  "@backupKilobytes": {
+    "description": "A file size in kilobytes",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "backupMegabytes": "{size} MB",
+  "@backupMegabytes": {
+    "description": "A file size in megabytes",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "commonRestore": "Restore",
+  "@commonRestore": {
+    "description": "Button that brings back an earlier version"
+  },
+  "commonInsert": "Insert",
+  "@commonInsert": {
+    "description": "Button that adds the thing just described into the entry"
+  },
+  "commonContinue": "Continue",
+  "@commonContinue": {
+    "description": "Button that goes on to the next step"
+  },
+  "commonOpenSystemSettings": "Open system settings",
+  "@commonOpenSystemSettings": {
+    "description": "Button that opens the phone settings page for this app"
+  },
+  "editorCalloutHint": "Enter callout text...",
+  "@editorCalloutHint": {
+    "description": "Placeholder inside an empty callout block"
+  },
+  "editorInsertTable": "Insert table",
+  "@editorInsertTable": {
+    "description": "Tooltip, and dialog title, for adding a table"
+  },
+  "editorInsertCallout": "Insert callout",
+  "@editorInsertCallout": {
+    "description": "Tooltip for adding a callout block"
+  },
+  "editorInsertImage": "Insert image",
+  "@editorInsertImage": {
+    "description": "Tooltip for adding a picture"
+  },
+  "editorImageSize": "Image size",
+  "@editorImageSize": {
+    "description": "Tooltip on the menu that changes how wide a picture is"
+  },
+  "editorImageSizeSmall": "Small",
+  "@editorImageSizeSmall": {
+    "description": "Picture size: small"
+  },
+  "editorImageSizeMedium": "Medium",
+  "@editorImageSizeMedium": {
+    "description": "Picture size: medium"
+  },
+  "editorImageSizeFull": "Full width",
+  "@editorImageSizeFull": {
+    "description": "Picture size: as wide as the page"
+  },
+  "editorRemoveImage": "Remove image from the entry",
+  "@editorRemoveImage": {
+    "description": "Tooltip on the button that deletes a picture"
+  },
+  "editorImageUnavailable": "Image unavailable",
+  "@editorImageUnavailable": {
+    "description": "Shown in place of a picture that cannot be loaded"
+  },
+  "editorMicPermissionDenied": "Microphone permission denied",
+  "@editorMicPermissionDenied": {
+    "description": "Shown when recording is refused because the microphone is blocked"
+  },
+  "editorDiscard": "Discard",
+  "@editorDiscard": {
+    "description": "Button that throws away the recording just made"
+  },
+  "editorDone": "Done",
+  "@editorDone": {
+    "description": "Button that keeps the recording just made"
+  },
+  "versionHistoryTitle": "Version history",
+  "@versionHistoryTitle": {
+    "description": "Title of the version history screen"
+  },
+  "versionHistoryLoadFailed": "Error loading revisions: {error}",
+  "@versionHistoryLoadFailed": {
+    "description": "Shown when the list of earlier versions cannot be read",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "versionRestoreTitle": "Restore this version?",
+  "@versionRestoreTitle": {
+    "description": "Title of the dialog confirming a restore"
+  },
+  "versionRestored": "Version restored",
+  "@versionRestored": {
+    "description": "Confirmation after an earlier version is brought back"
+  },
+  "versionPreview": "Preview",
+  "@versionPreview": {
+    "description": "Tooltip on the button that shows an earlier version without restoring it"
+  },
+  "versionRestoreTooltip": "Restore this version",
+  "@versionRestoreTooltip": {
+    "description": "Tooltip on the button that brings back an earlier version"
+  },
+  "versionPreviewTitle": "Preview: {title}",
+  "@versionPreviewTitle": {
+    "description": "Title of the screen previewing an earlier version",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "entrySaved": "Entry saved",
+  "@entrySaved": {
+    "description": "Confirmation after an entry is saved"
+  },
+  "entryDeleteTitle": "Delete entry?",
+  "@entryDeleteTitle": {
+    "description": "Title of the dialog confirming an entry is deleted"
+  },
+  "entryDeleteBody": "This will permanently remove the entry.",
+  "@entryDeleteBody": {
+    "description": "Body of the dialog confirming an entry is deleted"
+  },
+  "entryTableRows": "Rows",
+  "@entryTableRows": {
+    "description": "Label of the field for how many rows a new table has"
+  },
+  "entryTableColumns": "Columns",
+  "@entryTableColumns": {
+    "description": "Label of the field for how many columns a new table has"
+  },
+  "entryTableDimensionHelp": "1–20",
+  "@entryTableDimensionHelp": {
+    "description": "Helper text saying the allowed range for table rows and columns"
+  },
+  "entryCalloutTypeTitle": "Callout type",
+  "@entryCalloutTypeTitle": {
+    "description": "Title of the dialog choosing which kind of callout to add"
+  },
+  "entryCalloutInfo": "Info",
+  "@entryCalloutInfo": {
+    "description": "Callout kind: a neutral note"
+  },
+  "entryCalloutTip": "Tip",
+  "@entryCalloutTip": {
+    "description": "Callout kind: a helpful suggestion"
+  },
+  "entryCalloutWarning": "Warning",
+  "@entryCalloutWarning": {
+    "description": "Callout kind: something to be careful about"
+  },
+  "entryCalloutImportant": "Important",
+  "@entryCalloutImportant": {
+    "description": "Callout kind: something that must not be missed"
+  },
+  "entryVoiceNoteSaved": "Voice note saved ({seconds}s)",
+  "@entryVoiceNoteSaved": {
+    "description": "Confirmation after a voice note is stored, with its length",
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "entryEditTitle": "Edit entry",
+  "@entryEditTitle": {
+    "description": "Title of the entry editor"
+  },
+  "entryEditTitleDirty": "Edit entry •",
+  "@entryEditTitleDirty": {
+    "description": "Title of the entry editor when there are unsaved changes"
+  },
+  "entryVersionHistoryTooltip": "Version history",
+  "@entryVersionHistoryTooltip": {
+    "description": "Tooltip on the button that opens earlier versions of the entry"
+  },
+  "entryDeleteTooltip": "Delete entry",
+  "@entryDeleteTooltip": {
+    "description": "Tooltip on the button that deletes the entry"
+  },
+  "entrySaveTooltip": "Save",
+  "@entrySaveTooltip": {
+    "description": "Tooltip on the save button when there is something to save"
+  },
+  "entryNoUnsavedChanges": "No unsaved changes",
+  "@entryNoUnsavedChanges": {
+    "description": "Tooltip on the save button when nothing has changed"
+  },
+  "entryTitleLabel": "Title",
+  "@entryTitleLabel": {
+    "description": "Label of the entry title field"
+  },
+  "entryPermissionTitle": "Allow attachment import?",
+  "@entryPermissionTitle": {
+    "description": "Title of the dialog asking for file access"
+  },
+  "entryPermissionBody": "This app needs permission to access your files.",
+  "@entryPermissionBody": {
+    "description": "Body of the dialog asking for file access"
+  },
+  "entryPermissionBlockedTitle": "Attachment access blocked",
+  "@entryPermissionBlockedTitle": {
+    "description": "Title shown when file access was refused for good"
+  },
+  "entryPermissionBlockedBody": "Permission was permanently denied. Please enable it in system settings.",
+  "@entryPermissionBlockedBody": {
+    "description": "Body shown when file access was refused for good"
+  },
+  "entryNotAnImage": "That file is not an image. Add it as an attachment instead.",
+  "@entryNotAnImage": {
+    "description": "Shown when a non-image file is chosen for an inline picture"
+  },
+  "entryImageAddFailed": "Could not add that image.",
+  "@entryImageAddFailed": {
+    "description": "Shown when adding an inline picture does not work"
+  },
+  "entryAddAttachment": "Add attachment",
+  "@entryAddAttachment": {
+    "description": "Tooltip on the button that attaches a file"
+  },
+  "entryRecordVoiceNote": "Record voice note",
+  "@entryRecordVoiceNote": {
+    "description": "Tooltip on the button that records a voice note"
+  },
+  "entryLinkedFrom": "Linked from",
+  "@entryLinkedFrom": {
+    "description": "Heading above the entries that link to this one"
+  },
+  "entryMood": "Mood",
+  "@entryMood": {
+    "description": "Heading of the mood picker"
+  },
+  "entryMoodChip": "{face} {level}",
+  "@entryMoodChip": {
+    "description": "One mood choice: a face and its number",
+    "placeholders": {
+      "face": {
+        "type": "String"
+      },
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "entryAuthRequired": "Authentication required.",
+  "@entryAuthRequired": {
+    "description": "Shown when an action needs the user to unlock first"
+  },
+  "attachmentOpenNoApp": "No compatible app found",
+  "@attachmentOpenNoApp": {
+    "description": "Shown when no installed app can open the attachment"
+  },
+  "attachmentOpenDecryptFailed": "Could not decrypt attachment",
+  "@attachmentOpenDecryptFailed": {
+    "description": "Shown when the attachment cannot be decrypted"
+  },
+  "attachmentOpenFileMissing": "Attachment file is missing",
+  "@attachmentOpenFileMissing": {
+    "description": "Shown when the stored attachment file cannot be found"
+  },
+  "attachmentOpenPermissionDenied": "Permission required to open attachment",
+  "@attachmentOpenPermissionDenied": {
+    "description": "Shown when opening the attachment needs a permission that was refused"
+  },
+  "entryAttachments": "Attachments",
+  "@entryAttachments": {
+    "description": "Heading above the entry attachment list"
+  },
+  "entryRemoveAttachmentLock": "Remove attachment lock",
+  "@entryRemoveAttachmentLock": {
+    "description": "Tooltip on the button that unlocks one attachment"
+  },
+  "entryLockAttachment": "Lock attachment",
+  "@entryLockAttachment": {
+    "description": "Tooltip on the button that locks one attachment"
+  },
+  "entryOpenAttachment": "Open attachment",
+  "@entryOpenAttachment": {
+    "description": "Tooltip on the button that opens one attachment"
+  },
+  "versionRestoreBody": "Your current content will be saved as a new version before restoring.",
+  "@versionRestoreBody": {
+    "description": "Body of the dialog confirming a restore"
+  },
+  "commonUnlock": "Unlock",
+  "@commonUnlock": {
+    "description": "Button that unlocks something after the secret is entered"
+  },
+  "commonPassword": "Password",
+  "@commonPassword": {
+    "description": "Label of a password field"
+  },
+  "commonSaving": "Saving...",
+  "@commonSaving": {
+    "description": "Button label while a save is running"
+  },
+  "lockSetupTitle": "Set up app lock",
+  "@lockSetupTitle": {
+    "description": "Title of the first-launch lock setup screen"
+  },
+  "lockSetupBody": "Choose how SreerajP Journal Vault should lock when it is sent to the background.",
+  "@lockSetupBody": {
+    "description": "Explains the lock choice on first launch"
+  },
+  "lockModePhone": "Phone Lock",
+  "@lockModePhone": {
+    "description": "Lock mode that reuses the device unlock"
+  },
+  "lockModePhoneHint": "Use the device biometric or PIN/pattern/password.",
+  "@lockModePhoneHint": {
+    "description": "Explains the phone lock mode"
+  },
+  "lockModeApp": "Separate App Lock",
+  "@lockModeApp": {
+    "description": "Lock mode with its own PIN inside the app"
+  },
+  "lockModeAppHint": "Use a dedicated PIN that is verified inside the app.",
+  "@lockModeAppHint": {
+    "description": "Explains the separate app lock mode"
+  },
+  "lockPinLabel": "PIN",
+  "@lockPinLabel": {
+    "description": "Label of the PIN field"
+  },
+  "lockConfirmPinLabel": "Confirm PIN",
+  "@lockConfirmPinLabel": {
+    "description": "Label of the field where the PIN is typed a second time"
+  },
+  "lockSettingUp": "Setting up...",
+  "@lockSettingUp": {
+    "description": "Button label while the lock is being set up"
+  },
+  "lockPinTooShort": "PIN must be at least 4 characters.",
+  "@lockPinTooShort": {
+    "description": "Validation message for a PIN that is too short"
+  },
+  "lockPinsDoNotMatch": "PINs do not match.",
+  "@lockPinsDoNotMatch": {
+    "description": "Validation message when the two PIN fields differ"
+  },
+  "lockSetupSaveFailed": "Could not save lock setup: {error}",
+  "@lockSetupSaveFailed": {
+    "description": "Shown when the lock setup cannot be stored",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "lockPinSaveFailed": "Could not save PIN: {error}",
+  "@lockPinSaveFailed": {
+    "description": "Shown when the PIN cannot be stored",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "lockPinSetupTitle": "Set app-lock PIN",
+  "@lockPinSetupTitle": {
+    "description": "Title of the screen and dialog that set the app-lock PIN"
+  },
+  "lockPinSetupBody": "Separate App Lock requires a PIN. Set one to continue.",
+  "@lockPinSetupBody": {
+    "description": "Explains why a PIN is needed"
+  },
+  "lockGateTitle": "App Lock Gate",
+  "@lockGateTitle": {
+    "description": "Title of the screen shown while the app is locked"
+  },
+  "lockUnlockWithPhone": "Unlock with Phone Lock",
+  "@lockUnlockWithPhone": {
+    "description": "Button that unlocks using the device credential"
+  },
+  "lockAuthFailed": "Authentication failed. Please try again.",
+  "@lockAuthFailed": {
+    "description": "Shown when the device unlock did not succeed"
+  },
+  "lockAuthUnavailable": "Device authentication is not available. Configure a PIN/biometric in system settings.",
+  "@lockAuthUnavailable": {
+    "description": "Shown when the device has no unlock method set up"
+  },
+  "lockEnterPin": "Enter your PIN.",
+  "@lockEnterPin": {
+    "description": "Shown when the PIN field is left blank"
+  },
+  "lockIncorrectPin": "Incorrect PIN.",
+  "@lockIncorrectPin": {
+    "description": "Shown when the typed PIN is wrong"
+  },
+  "lockedAttachmentsTitle": "Attachment-Level Lock",
+  "@lockedAttachmentsTitle": {
+    "description": "Title of the screen listing locked attachments"
+  },
+  "lockedAttachmentsEmpty": "No attachments are locked yet. Open an entry and use the lock button on an attachment to require re-authentication before opening it.",
+  "@lockedAttachmentsEmpty": {
+    "description": "Empty state of the locked attachments screen"
+  },
+  "lockedAttachmentSince": "Locked {date}",
+  "@lockedAttachmentSince": {
+    "description": "Says when an attachment was locked",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "lockedAttachmentRemove": "Remove lock",
+  "@lockedAttachmentRemove": {
+    "description": "Button that unlocks one attachment"
+  },
+  "navHome": "Home",
+  "@navHome": {
+    "description": "Navigation label, and title, for the home tab"
+  },
+  "navSearch": "Search",
+  "@navSearch": {
+    "description": "Navigation label for the search tab"
+  },
+  "navTimeline": "Timeline",
+  "@navTimeline": {
+    "description": "Navigation label for the timeline tab"
+  },
+  "navInsights": "Insights",
+  "@navInsights": {
+    "description": "Navigation label for the insights tab"
+  },
+  "navSettings": "Settings",
+  "@navSettings": {
+    "description": "Navigation label, and title, for the settings tab"
+  },
+  "journalDeleteTitle": "Delete journal?",
+  "@journalDeleteTitle": {
+    "description": "Title of the dialog confirming a journal is deleted"
+  },
+  "journalDeleteBody": "Delete \"{title}\"?",
+  "@journalDeleteBody": {
+    "description": "Body of the dialog confirming a journal is deleted",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "journalManageTags": "Manage tags",
+  "@journalManageTags": {
+    "description": "Tooltip on the button that opens the tag manager"
+  },
+  "journalNew": "New journal",
+  "@journalNew": {
+    "description": "Button, tooltip, and dialog title for creating a journal"
+  },
+  "journalEdit": "Edit journal",
+  "@journalEdit": {
+    "description": "Dialog title, and tooltip, for changing a journal"
+  },
+  "journalDelete": "Delete journal",
+  "@journalDelete": {
+    "description": "Tooltip on the button that deletes a journal"
+  },
+  "journalEmptyTitle": "No journals yet",
+  "@journalEmptyTitle": {
+    "description": "Heading of the empty state on the home screen"
+  },
+  "journalEmptyBody": "Tap “New journal” to start writing.",
+  "@journalEmptyBody": {
+    "description": "Body of the empty state on the home screen"
+  },
+  "journalTitleLabel": "Title",
+  "@journalTitleLabel": {
+    "description": "Label of the journal title field"
+  },
+  "journalDescriptionLabel": "Description",
+  "@journalDescriptionLabel": {
+    "description": "Label of the journal description field"
+  },
+  "journalTagsLabel": "Tags (comma separated)",
+  "@journalTagsLabel": {
+    "description": "Label of the journal tags field"
+  },
+  "journalLockSwitch": "Lock journal",
+  "@journalLockSwitch": {
+    "description": "Switch that puts a password on a new journal"
+  },
+  "journalConfirmPasswordLabel": "Confirm password",
+  "@journalConfirmPasswordLabel": {
+    "description": "Label of the field where the journal password is typed again"
+  },
+  "journalAddEntry": "Add entry",
+  "@journalAddEntry": {
+    "description": "Button that creates a new entry in this journal"
+  },
+  "journalIsLocked": "Journal is locked",
+  "@journalIsLocked": {
+    "description": "Shown in place of the entries of a locked journal"
+  },
+  "journalUnlocked": "Unlocked",
+  "@journalUnlocked": {
+    "description": "Shown above the entries of a journal that has just been unlocked"
+  },
+  "journalIncorrectPassword": "Incorrect password.",
+  "@journalIncorrectPassword": {
+    "description": "Shown when the journal password is wrong"
+  },
+  "settingsSectionSecurity": "Security",
+  "@settingsSectionSecurity": {
+    "description": "Settings section heading"
+  },
+  "settingsSectionAppearance": "Appearance",
+  "@settingsSectionAppearance": {
+    "description": "Settings section heading"
+  },
+  "settingsSectionStorage": "Storage",
+  "@settingsSectionStorage": {
+    "description": "Settings section heading"
+  },
+  "settingsSectionPermissions": "Permissions",
+  "@settingsSectionPermissions": {
+    "description": "Settings section heading"
+  },
+  "settingsSectionAbout": "About",
+  "@settingsSectionAbout": {
+    "description": "Settings section heading"
+  },
+  "settingsAppLockMode": "App Lock Mode",
+  "@settingsAppLockMode": {
+    "description": "Settings row introducing the two lock modes"
+  },
+  "settingsAutoLockTimeout": "Auto-Lock Timeout",
+  "@settingsAutoLockTimeout": {
+    "description": "Settings row that opens the auto-lock profiles"
+  },
+  "settingsTamperAlerts": "Tamper Alerts",
+  "@settingsTamperAlerts": {
+    "description": "Settings row for tamper alerts, not built yet"
+  },
+  "settingsSyncConflicts": "Sync Conflicts",
+  "@settingsSyncConflicts": {
+    "description": "Settings row that opens the sync conflict list"
+  },
+  "settingsSecurityEvents": "Security Events",
+  "@settingsSecurityEvents": {
+    "description": "Settings row that opens the security event log"
+  },
+  "settingsTheme": "Theme",
+  "@settingsTheme": {
+    "description": "Settings row introducing the theme choice"
+  },
+  "settingsThemeSubtitle": "Choose how SreerajP_Journal_Vault looks.",
+  "@settingsThemeSubtitle": {
+    "description": "Explains the theme choice"
+  },
+  "settingsThemeLight": "Light",
+  "@settingsThemeLight": {
+    "description": "Theme choice: light colours"
+  },
+  "settingsThemeDark": "Dark",
+  "@settingsThemeDark": {
+    "description": "Theme choice: dark colours"
+  },
+  "settingsThemeSystem": "System",
+  "@settingsThemeSystem": {
+    "description": "Theme choice: follow the device setting"
+  },
+  "settingsAbout": "About this app",
+  "@settingsAbout": {
+    "description": "Settings row that opens the About screen"
+  },
+  "settingsComingSoon": "Coming soon",
+  "@settingsComingSoon": {
+    "description": "Marker on a settings row that is not built yet"
+  },
+  "settingsSwitchLockTitle": "Switch lock mode?",
+  "@settingsSwitchLockTitle": {
+    "description": "Title of the dialog confirming a lock mode change"
+  },
+  "settingsSwitchLockBody": "This will switch app protection to {enabled} and disable {disabled}. Continue?",
+  "@settingsSwitchLockBody": {
+    "description": "Explains what changing the lock mode does",
+    "placeholders": {
+      "enabled": {
+        "type": "String"
+      },
+      "disabled": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSwitchAction": "Switch",
+  "@settingsSwitchAction": {
+    "description": "Button that confirms the lock mode change"
+  },
+  "settingsLockModeUpdated": "Lock mode updated: {mode} is now active.",
+  "@settingsLockModeUpdated": {
+    "description": "Confirmation after the lock mode changes",
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsThemeSaveFailed": "Could not save theme setting. Please try again.",
+  "@settingsThemeSaveFailed": {
+    "description": "Shown when the theme choice cannot be stored"
+  },
+  "settingsThemeUpdated": "Theme updated: {mode} mode is now active.",
+  "@settingsThemeUpdated": {
+    "description": "Confirmation after the theme changes",
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      }
+    }
+  },
+  "storageMigrateTitle": "Migrate attachments?",
+  "@storageMigrateTitle": {
+    "description": "Title of the dialog confirming an attachment move"
+  },
+  "storageMigrateBody": "All attachments will be moved to {target}.",
+  "@storageMigrateBody": {
+    "description": "Explains where attachments will be moved to",
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
+  "storageMigrateAction": "Migrate",
+  "@storageMigrateAction": {
+    "description": "Button that starts moving the attachments"
+  },
+  "storageMigrationCancelled": "Migration cancelled.",
+  "@storageMigrationCancelled": {
+    "description": "Shown when the user stops the move"
+  },
+  "storageMigrationFailed": "Migration failed: {error}",
+  "@storageMigrationFailed": {
+    "description": "Shown when the move does not finish",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "storageMigrationComplete": "Migration complete.",
+  "@storageMigrationComplete": {
+    "description": "Shown when the move finishes"
+  },
+  "storageLocationTitle": "Attachment Storage Location",
+  "@storageLocationTitle": {
+    "description": "Settings row showing where attachments are kept"
+  },
+  "storageLocationDialogTitle": "Storage location",
+  "@storageLocationDialogTitle": {
+    "description": "Title of the dialog choosing where attachments are kept"
+  },
+  "storageAppPrivate": "App Private",
+  "@storageAppPrivate": {
+    "description": "Storage choice: the app private folder"
+  },
+  "storageSdCard": "SD Card",
+  "@storageSdCard": {
+    "description": "Storage choice: the SD card"
+  },
+  "storageSdCardNamed": "SD Card ({label})",
+  "@storageSdCardNamed": {
+    "description": "The SD card choice, with the chosen folder name",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "storageMigrateRow": "Migrate Storage",
+  "@storageMigrateRow": {
+    "description": "Settings row that moves attachments between locations"
+  },
+  "storageMigrationIdle": "Idle",
+  "@storageMigrationIdle": {
+    "description": "Migration state: nothing is happening"
+  },
+  "storageMigrationRunning": "Migrating {processed} of {total}…",
+  "@storageMigrationRunning": {
+    "description": "Migration state: how far it has got",
+    "placeholders": {
+      "processed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "storageMigrationFailedShort": "Migration failed.",
+  "@storageMigrationFailedShort": {
+    "description": "Migration state: the last attempt did not finish"
+  },
+  "storageUsage": "Storage Usage",
+  "@storageUsage": {
+    "description": "Settings row showing how much space attachments use"
+  },
+  "storageUnknown": "—",
+  "@storageUnknown": {
+    "description": "Placeholder shown when a value is not known yet"
+  },
+  "storageBackupHealth": "Backup Health",
+  "@storageBackupHealth": {
+    "description": "Settings row that opens the backup health screen"
+  },
+  "storageImportData": "Import Data",
+  "@storageImportData": {
+    "description": "Settings row that opens the import screen"
+  },
+  "storageSyncHealth": "Sync Health",
+  "@storageSyncHealth": {
+    "description": "Settings row, and screen title, for the sync health dashboard"
+  },
+  "storageImportNeedsJournal": "Create a journal first to import into.",
+  "@storageImportNeedsJournal": {
+    "description": "Shown when there is nothing to import into"
+  },
+  "storageImportChooseJournal": "Import into journal",
+  "@storageImportChooseJournal": {
+    "description": "Title of the dialog choosing where to import"
+  },
+  "storageBytes": "{bytes} B",
+  "@storageBytes": {
+    "description": "A size in bytes",
+    "placeholders": {
+      "bytes": {
+        "type": "int"
+      }
+    }
+  },
+  "storageKilobytes": "{size} KB",
+  "@storageKilobytes": {
+    "description": "A size in kilobytes",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "storageMegabytes": "{size} MB",
+  "@storageMegabytes": {
+    "description": "A size in megabytes",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "storageGigabytes": "{size} GB",
+  "@storageGigabytes": {
+    "description": "A size in gigabytes",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "migrationDialogTitle": "Migrating attachments",
+  "@migrationDialogTitle": {
+    "description": "Title of the dialog shown while attachments are being moved"
+  },
+  "migrationCancelling": "Cancelling…",
+  "@migrationCancelling": {
+    "description": "Shown while the move is being stopped"
+  },
+  "migrationProgress": "{processed} of {total}",
+  "@migrationProgress": {
+    "description": "How many attachments have been moved so far",
+    "placeholders": {
+      "processed": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "migrationUnknownTotal": "?",
+  "@migrationUnknownTotal": {
+    "description": "Placeholder used when the total is not known yet"
+  },
+  "permissionStatusRow": "Permission Status",
+  "@permissionStatusRow": {
+    "description": "Settings row summarising the permissions"
+  },
+  "permissionsManage": "Manage Permissions",
+  "@permissionsManage": {
+    "description": "Settings row that opens the permissions screen"
+  },
+  "permissionsOpenSystem": "Open System Settings",
+  "@permissionsOpenSystem": {
+    "description": "Settings row that opens the phone settings page"
+  },
+  "permissionsGrantedSummary": "{granted} of {total} granted",
+  "@permissionsGrantedSummary": {
+    "description": "How many permissions are granted",
+    "placeholders": {
+      "granted": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "searchHint": "Search journals & entries...",
+  "@searchHint": {
+    "description": "Placeholder in the search field"
+  },
+  "searchTypeToSearch": "Type to search",
+  "@searchTypeToSearch": {
+    "description": "Shown before anything has been typed"
+  },
+  "searchNoFilterMatches": "No matches found for this filter.",
+  "@searchNoFilterMatches": {
+    "description": "Shown when the entry filter finds nothing"
+  },
+  "searchNoResults": "No results found",
+  "@searchNoResults": {
+    "description": "Shown when the search finds nothing"
+  },
+  "searchSectionJournals": "Journals",
+  "@searchSectionJournals": {
+    "description": "Heading above matching journals"
+  },
+  "searchSectionEntries": "Entries",
+  "@searchSectionEntries": {
+    "description": "Heading above matching entries"
+  },
+  "searchSavePresetTitle": "Save search preset",
+  "@searchSavePresetTitle": {
+    "description": "Title of the dialog that names a saved search"
+  },
+  "searchPresetNameLabel": "Preset name",
+  "@searchPresetNameLabel": {
+    "description": "Label of the field naming a saved search"
+  },
+  "restoreTitle": "Restore from backup",
+  "@restoreTitle": {
+    "description": "Title of the restore screen"
+  },
+  "restoreOpenAction": "Restore from backup",
+  "@restoreOpenAction": {
+    "description": "Row in Backup Health that opens the restore screen"
+  },
+  "restoreLockedTitle": "Unlock to continue",
+  "@restoreLockedTitle": {
+    "description": "Heading shown while the restore screen is locked"
+  },
+  "restoreLockedBody": "Restoring changes your journal, so it is protected the same way the app is.",
+  "@restoreLockedBody": {
+    "description": "Explains why the restore screen asks to unlock first"
+  },
+  "restoreUnlockAction": "Unlock",
+  "@restoreUnlockAction": {
+    "description": "Button that starts the unlock check on the restore screen"
+  },
+  "restoreUnlockReason": "Unlock to restore a backup",
+  "@restoreUnlockReason": {
+    "description": "Reason shown in the system fingerprint or PIN prompt"
+  },
+  "restoreUnlockFailed": "Could not unlock. Nothing was changed.",
+  "@restoreUnlockFailed": {
+    "description": "Message after a failed unlock on the restore screen"
+  },
+  "restoreEnterPin": "Enter your app PIN",
+  "@restoreEnterPin": {
+    "description": "Label of the PIN field on the restore screen"
+  },
+  "restorePinWrong": "That PIN is not right.",
+  "@restorePinWrong": {
+    "description": "Message shown when the entered PIN does not match"
+  },
+  "restorePickHeading": "Choose a backup",
+  "@restorePickHeading": {
+    "description": "Heading above the list of backup files"
+  },
+  "restorePickFromDevice": "Choose a file",
+  "@restorePickFromDevice": {
+    "description": "Button that opens the file picker to find a backup"
+  },
+  "restoreNoBackupsFound": "No backups made by this app were found. You can still choose a file.",
+  "@restoreNoBackupsFound": {
+    "description": "Shown when the app has no backup files of its own"
+  },
+  "restoreSelectedFile": "Selected: {fileName}",
+  "@restoreSelectedFile": {
+    "description": "Shows which backup file the user picked",
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "restorePasswordLabel": "Backup password",
+  "@restorePasswordLabel": {
+    "description": "Label of the field asking for the backup password"
+  },
+  "restorePasswordHelper": "The password used when this backup was made.",
+  "@restorePasswordHelper": {
+    "description": "Helper text under the backup password field"
+  },
+  "restoreOpenBackupAction": "Open backup",
+  "@restoreOpenBackupAction": {
+    "description": "Button that decrypts the chosen backup and shows a preview"
+  },
+  "restorePreviewHeading": "What this backup holds",
+  "@restorePreviewHeading": {
+    "description": "Heading of the preview card"
+  },
+  "restorePreviewCreated": "Made on {date}",
+  "@restorePreviewCreated": {
+    "description": "When the backup was created",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "restorePreviewCounts": "{journals} journals, {entries} entries, {attachments} attachments",
+  "@restorePreviewCounts": {
+    "description": "Row counts held in the backup",
+    "placeholders": {
+      "journals": {
+        "type": "int"
+      },
+      "entries": {
+        "type": "int"
+      },
+      "attachments": {
+        "type": "int"
+      }
+    }
+  },
+  "restoreLegacyAttachmentsWarning": "This is an older backup. Its attachments only open on the device that made it.",
+  "@restoreLegacyAttachmentsWarning": {
+    "description": "Warning shown for a format version 1 backup"
+  },
+  "restoreModeHeading": "How should it be restored?",
+  "@restoreModeHeading": {
+    "description": "Heading above the replace and merge choice"
+  },
+  "restoreModeMerge": "Merge",
+  "@restoreModeMerge": {
+    "description": "Name of the merge restore mode"
+  },
+  "restoreModeMergeDetail": "Add what is missing and keep everything you have now.",
+  "@restoreModeMergeDetail": {
+    "description": "Explains the merge restore mode"
+  },
+  "restoreModeReplace": "Replace",
+  "@restoreModeReplace": {
+    "description": "Name of the replace restore mode"
+  },
+  "restoreModeReplaceDetail": "Delete what is here now and use the backup instead. A safety backup is taken first.",
+  "@restoreModeReplaceDetail": {
+    "description": "Explains the replace restore mode"
+  },
+  "restoreDryRunAction": "Try it first",
+  "@restoreDryRunAction": {
+    "description": "Button that runs the restore without writing anything"
+  },
+  "restoreDryRunHelper": "Shows what would change without changing anything.",
+  "@restoreDryRunHelper": {
+    "description": "Helper text under the dry run button"
+  },
+  "restoreAction": "Restore",
+  "@restoreAction": {
+    "description": "Button that performs the restore"
+  },
+  "restoreConfirmReplaceTitle": "Replace everything?",
+  "@restoreConfirmReplaceTitle": {
+    "description": "Title of the dialog confirming a replace"
+  },
+  "restoreConfirmReplaceBody": "Every journal, entry and attachment on this device will be deleted and replaced by the backup. A safety backup of what is here now is taken first.",
+  "@restoreConfirmReplaceBody": {
+    "description": "Body of the dialog confirming a replace"
+  },
+  "restoreConfirmMergeTitle": "Merge this backup?",
+  "@restoreConfirmMergeTitle": {
+    "description": "Title of the dialog confirming a merge"
+  },
+  "restoreConfirmMergeBody": "Anything the backup holds that is missing here will be added. Nothing is deleted.",
+  "@restoreConfirmMergeBody": {
+    "description": "Body of the dialog confirming a merge"
+  },
+  "restoreDryRunResultTitle": "What would happen",
+  "@restoreDryRunResultTitle": {
+    "description": "Title of the dialog reporting a dry run"
+  },
+  "restoreResultTitle": "Restore finished",
+  "@restoreResultTitle": {
+    "description": "Title of the dialog reporting a finished restore"
+  },
+  "restoreResultAdded": "Added: {count} rows",
+  "@restoreResultAdded": {
+    "description": "How many rows were added",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "restoreResultSkipped": "Already here: {count} rows",
+  "@restoreResultSkipped": {
+    "description": "How many rows were skipped as already present",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "restoreResultFiles": "Attachment files restored: {count}",
+  "@restoreResultFiles": {
+    "description": "How many attachment files were restored",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "restoreResultFilesFailed": "Attachment files that could not be restored: {count}",
+  "@restoreResultFilesFailed": {
+    "description": "How many attachment files failed",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "restoreResultSafetyBackup": "A safety backup of your previous data was saved first.",
+  "@restoreResultSafetyBackup": {
+    "description": "Tells the user a pre-restore backup exists"
+  },
+  "restoreErrorWrongPassword": "Wrong password, or the backup file is damaged.",
+  "@restoreErrorWrongPassword": {
+    "description": "Message when the backup cannot be decrypted"
+  },
+  "restoreErrorDamaged": "This file is not a backup, or it is damaged.",
+  "@restoreErrorDamaged": {
+    "description": "Message when the archive cannot be read"
+  },
+  "restoreErrorTooNew": "This backup was made by a newer version of the app. Update the app and try again.",
+  "@restoreErrorTooNew": {
+    "description": "Message when the backup comes from a newer build"
+  },
+  "restoreErrorPasswordTooShort": "The backup password must be at least 8 characters.",
+  "@restoreErrorPasswordTooShort": {
+    "description": "Message when the entered password is too short"
+  },
+  "restoreErrorFailed": "The restore failed and nothing was changed: {error}",
+  "@restoreErrorFailed": {
+    "description": "Message when a restore fails and rolls back",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "restoreWorking": "Working...",
+  "@restoreWorking": {
+    "description": "Shown while a restore or preview is running"
+  },
+  "exportProtectTitle": "Protect with a password",
+  "@exportProtectTitle": {
+    "description": "Switch that encrypts the exported file"
+  },
+  "exportProtectHint": "The file is encrypted with your password. It can be opened again in this app, on any device.",
+  "@exportProtectHint": {
+    "description": "Explains what the export password switch does"
+  },
+  "exportPasswordLabel": "Password",
+  "@exportPasswordLabel": {
+    "description": "Label of the export password field"
+  },
+  "exportPasswordConfirmLabel": "Repeat the password",
+  "@exportPasswordConfirmLabel": {
+    "description": "Label of the second export password field"
+  },
+  "exportPasswordTooShort": "Use at least {count} characters.",
+  "@exportPasswordTooShort": {
+    "description": "Error when the export password is too short",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "exportPasswordMismatch": "The two passwords do not match.",
+  "@exportPasswordMismatch": {
+    "description": "Error when the two export password fields differ"
+  },
+  "exportEncryptedNotice": "Keep this password somewhere safe. Without it the exported file cannot be opened again, by anyone, including you.",
+  "@exportEncryptedNotice": {
+    "description": "Warning shown when an export will be encrypted"
+  },
+  "openEncryptedTitle": "Open an encrypted export",
+  "@openEncryptedTitle": {
+    "description": "Title of the screen that decrypts an exported file"
+  },
+  "openEncryptedIntro": "Choose an encrypted export file, enter its password, and save the file inside it.",
+  "@openEncryptedIntro": {
+    "description": "Explains what the open-encrypted-export screen does"
+  },
+  "openEncryptedPickFile": "Choose file",
+  "@openEncryptedPickFile": {
+    "description": "Button that opens the file picker"
+  },
+  "openEncryptedChosenFile": "Chosen: {fileName}",
+  "@openEncryptedChosenFile": {
+    "description": "Shows which file was chosen",
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "openEncryptedPasswordLabel": "File password",
+  "@openEncryptedPasswordLabel": {
+    "description": "Label of the password field on the open-encrypted screen"
+  },
+  "openEncryptedAction": "Open and save",
+  "@openEncryptedAction": {
+    "description": "Button that decrypts the file and saves the result"
+  },
+  "openEncryptedWorking": "Opening...",
+  "@openEncryptedWorking": {
+    "description": "Shown while the file is being decrypted"
+  },
+  "openEncryptedSaveDialogTitle": "Save the opened file",
+  "@openEncryptedSaveDialogTitle": {
+    "description": "Title of the system save dialog for a decrypted export"
+  },
+  "openEncryptedSaved": "Saved. The file is no longer encrypted, so keep it somewhere safe.",
+  "@openEncryptedSaved": {
+    "description": "Confirmation after a decrypted export is written out"
+  },
+  "openEncryptedCancelled": "Nothing was saved.",
+  "@openEncryptedCancelled": {
+    "description": "Shown when the user backs out of the save dialog"
+  },
+  "openEncryptedErrorWrongPassword": "Wrong password, or the file is damaged.",
+  "@openEncryptedErrorWrongPassword": {
+    "description": "Error when the password does not open the file"
+  },
+  "openEncryptedErrorNotSealed": "This is not an encrypted export made by this app.",
+  "@openEncryptedErrorNotSealed": {
+    "description": "Error when the chosen file has no envelope"
+  },
+  "openEncryptedErrorTooNew": "This file was made by a newer version of the app. Update the app and try again.",
+  "@openEncryptedErrorTooNew": {
+    "description": "Error when the file uses a newer envelope"
+  },
+  "openEncryptedErrorFailed": "The file could not be opened.",
+  "@openEncryptedErrorFailed": {
+    "description": "Error when decrypting fails for any other reason"
+  },
+  "settingsOpenEncryptedExport": "Open an encrypted export",
+  "@settingsOpenEncryptedExport": {
+    "description": "Settings tile that opens the decrypt screen"
+  },
+  "templateChooserTitle": "Choose a template",
+  "@templateChooserTitle": {
+    "description": "Title of the dialog that picks a starter template"
+  }
+}

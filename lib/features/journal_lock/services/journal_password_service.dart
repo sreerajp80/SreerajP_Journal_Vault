@@ -30,8 +30,7 @@ class JournalCredential {
 /// The raw password is never stored. A random journal DEK is created via
 /// [JournalSecretStore] alongside the verifier.
 class JournalPasswordService {
-  JournalPasswordService({required JournalSecretStore secretStore})
-      : _secretStore = secretStore;
+  JournalPasswordService({required this._secretStore});
 
   final JournalSecretStore _secretStore;
   static const int _defaultIterations = 100000;
@@ -53,7 +52,11 @@ class JournalPasswordService {
     final salt = _generateSalt();
     final saltBase64 = base64.encode(salt);
 
-    final verifierBytes = await _deriveVerifier(password, salt, _defaultIterations);
+    final verifierBytes = await _deriveVerifier(
+      password,
+      salt,
+      _defaultIterations,
+    );
     final verifierBase64 = base64.encode(verifierBytes);
 
     // Create and store the journal DEK in the secret store.

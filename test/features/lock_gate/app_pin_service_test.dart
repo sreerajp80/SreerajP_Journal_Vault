@@ -17,8 +17,7 @@ void main() {
     expect(await service.hasPin(), isFalse);
   });
 
-  test('setPin stores derived salt + verifier and never the raw PIN',
-      () async {
+  test('setPin stores derived salt + verifier and never the raw PIN', () async {
     await service.setPin('1234');
 
     final stored = keystore.lastStored!;
@@ -49,26 +48,30 @@ void main() {
     expect(await service.verifyPin('1234'), isFalse);
   });
 
-  test('setPin twice rotates the verifier so the old PIN no longer works',
-      () async {
-    await service.setPin('first');
-    await service.setPin('second');
-    expect(await service.verifyPin('first'), isFalse);
-    expect(await service.verifyPin('second'), isTrue);
-  });
+  test(
+    'setPin twice rotates the verifier so the old PIN no longer works',
+    () async {
+      await service.setPin('first');
+      await service.setPin('second');
+      expect(await service.verifyPin('first'), isFalse);
+      expect(await service.verifyPin('second'), isTrue);
+    },
+  );
 
   test('setPin rejects an empty PIN', () async {
     expect(() => service.setPin(''), throwsArgumentError);
   });
 
-  test('two services backed by the same keystore agree on verification',
-      () async {
-    await service.setPin('shared');
+  test(
+    'two services backed by the same keystore agree on verification',
+    () async {
+      await service.setPin('shared');
 
-    final reopened = AppPinService(keystore: keystore);
-    expect(await reopened.verifyPin('shared'), isTrue);
-    expect(await reopened.verifyPin('wrong'), isFalse);
-  });
+      final reopened = AppPinService(keystore: keystore);
+      expect(await reopened.verifyPin('shared'), isTrue);
+      expect(await reopened.verifyPin('wrong'), isFalse);
+    },
+  );
 }
 
 class _InMemoryAppPinKeystore implements AppPinKeystore {

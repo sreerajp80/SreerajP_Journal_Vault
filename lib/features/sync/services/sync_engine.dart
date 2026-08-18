@@ -8,13 +8,7 @@ import 'package:sreerajp_journal_vault/features/sync/services/sync_id_generator.
 import 'package:sreerajp_journal_vault/features/sync/services/sync_protocol.dart';
 
 /// Sync status reported to UI listeners.
-enum SyncStatus {
-  idle,
-  syncing,
-  success,
-  failed,
-  conflict,
-}
+enum SyncStatus { idle, syncing, success, failed, conflict }
 
 /// Orchestrates the full sync lifecycle: track → push → pull → resolve.
 ///
@@ -50,14 +44,11 @@ class SyncEngine {
   ];
 
   SyncEngine({
-    required AppDatabase db,
-    required SyncProtocol protocol,
-    required SyncEncryptionService encryption,
-    required String deviceId,
-  })  : _db = db,
-        _protocol = protocol,
-        _encryption = encryption,
-        _deviceId = deviceId;
+    required this._db,
+    required this._protocol,
+    required this._encryption,
+    required this._deviceId,
+  });
 
   /// Runs a full bidirectional sync cycle with retry support.
   ///
@@ -105,15 +96,14 @@ class SyncEngine {
         }
 
         _consecutiveFailures = 0;
-        _status =
-            totalConflicts > 0 ? SyncStatus.conflict : SyncStatus.success;
+        _status = totalConflicts > 0 ? SyncStatus.conflict : SyncStatus.success;
 
         await _db.syncLogsDao.updateLog(
           logId,
           SyncLogsCompanion(
-            status: Value(_status == SyncStatus.conflict
-                ? 'partial'
-                : 'success'),
+            status: Value(
+              _status == SyncStatus.conflict ? 'partial' : 'success',
+            ),
             recordsPushed: Value(totalPushed),
             recordsPulled: Value(totalPulled),
             conflictsDetected: Value(totalConflicts),
@@ -126,9 +116,7 @@ class SyncEngine {
         _consecutiveFailures++;
         if (attempt < maxRetries) {
           // Exponential back-off: 1s, 2s, 4s
-          await Future.delayed(
-            Duration(seconds: 1 << attempt),
-          );
+          await Future.delayed(Duration(seconds: 1 << attempt));
           continue;
         }
 
@@ -189,8 +177,7 @@ class SyncEngine {
   ) async {
     final unsynced = await _db.syncMetadataDao.getUnsyncedRecords();
     if (unsynced.isEmpty) {
-      return const SyncPushResult(
-          accepted: 0, rejected: 0, conflicts: 0);
+      return const SyncPushResult(accepted: 0, rejected: 0, conflicts: 0);
     }
 
     final syncRecords = <SyncRecord>[];
@@ -199,19 +186,22 @@ class SyncEngine {
       if (data == null) continue;
 
       final encrypted = await _encryption.encryptRecord(data, key);
-      syncRecords.add(SyncRecord(
-        syncId: meta.syncId,
-        recordTable: meta.recordTable,
-        version: meta.version,
-        deviceId: meta.deviceId,
-        isDeleted: meta.isDeleted,
-        lastModifiedAt: meta.lastModifiedAt,
-        encryptedData: encrypted,
-      ));
+      syncRecords.add(
+        SyncRecord(
+          syncId: meta.syncId,
+          recordTable: meta.recordTable,
+          version: meta.version,
+          deviceId: meta.deviceId,
+          isDeleted: meta.isDeleted,
+          lastModifiedAt: meta.lastModifiedAt,
+          encryptedData: encrypted,
+        ),
+      );
     }
 
-    final checksum = await _encryption
-        .computeChecksum(syncRecords.map((r) => r.encryptedData).toList());
+    final checksum = await _encryption.computeChecksum(
+      syncRecords.map((r) => r.encryptedData).toList(),
+    );
 
     final payload = SyncPayload(
       deviceId: _deviceId,
@@ -224,12 +214,15 @@ class SyncEngine {
 
     // Store conflicts for user resolution
     for (final conflictRecord in result.conflictRecords) {
-      final localMeta =
-          await _db.syncMetadataDao.getBySyncId(conflictRecord.syncId);
+      final localMeta = await _db.syncMetadataDao.getBySyncId(
+        conflictRecord.syncId,
+      );
       if (localMeta == null) continue;
 
-      final localData =
-          await _getRecordData(localMeta.recordTable, localMeta.localId);
+      final localData = await _getRecordData(
+        localMeta.recordTable,
+        localMeta.localId,
+      );
 
       await _db.syncConflictsDao.createConflict(
         SyncConflictsCompanion.insert(
@@ -256,24 +249,33 @@ class SyncEngine {
     final result = await _protocol.pull(lastTimestamp, _deviceId);
 
     for (final remoteRecord in result.records) {
-      final localMeta =
-          await _db.syncMetadataDao.getBySyncId(remoteRecord.syncId);
+      final localMeta = await _db.syncMetadataDao.getBySyncId(
+        remoteRecord.syncId,
+      );
 
       if (localMeta == null) {
         // New record from another device — decrypt and insert
-        final decrypted =
-            await _encryption.decryptRecord(remoteRecord.encryptedData, key);
+        final decrypted = await _encryption.decryptRecord(
+          remoteRecord.encryptedData,
+          key,
+        );
         await _insertRemoteRecord(
-            remoteRecord.recordTable, decrypted, remoteRecord);
+          remoteRecord.recordTable,
+          decrypted,
+          remoteRecord,
+        );
       } else if (remoteRecord.version > localMeta.version) {
         // Remote is newer — check for local modifications
-        final isLocallyModified = localMeta.lastSyncedAt != null &&
+        final isLocallyModified =
+            localMeta.lastSyncedAt != null &&
             localMeta.lastModifiedAt.isAfter(localMeta.lastSyncedAt!);
 
         if (isLocallyModified) {
           // Conflict: both sides modified
           final localData = await _getRecordData(
-              localMeta.recordTable, localMeta.localId);
+            localMeta.recordTable,
+            localMeta.localId,
+          );
           await _db.syncConflictsDao.createConflict(
             SyncConflictsCompanion.insert(
               syncId: remoteRecord.syncId,
@@ -287,11 +289,18 @@ class SyncEngine {
         } else {
           // No local conflict — apply remote version
           final decrypted = await _encryption.decryptRecord(
-              remoteRecord.encryptedData, key);
+            remoteRecord.encryptedData,
+            key,
+          );
           await _updateLocalRecord(
-              localMeta.recordTable, localMeta.localId, decrypted);
+            localMeta.recordTable,
+            localMeta.localId,
+            decrypted,
+          );
           await _db.syncMetadataDao.markSynced(
-              remoteRecord.syncId, DateTime.now());
+            remoteRecord.syncId,
+            DateTime.now(),
+          );
         }
       }
       // If local version >= remote version, skip (local wins or already up-to-date)
@@ -305,17 +314,22 @@ class SyncEngine {
   /// Returns all local IDs for a given syncable table.
   Future<List<int>> _getLocalIdsForTable(String table) async {
     final result = await _db
-        .customSelect('SELECT id FROM $table', variables: []).get();
+        .customSelect('SELECT id FROM $table', variables: [])
+        .get();
     return result.map((row) => row.read<int>('id')).toList();
   }
 
   /// Reads the full record data for a given table and local ID.
   Future<Map<String, dynamic>?> _getRecordData(
-      String table, int localId) async {
-    final results = await _db.customSelect(
-      'SELECT * FROM $table WHERE id = ?',
-      variables: [Variable.withInt(localId)],
-    ).get();
+    String table,
+    int localId,
+  ) async {
+    final results = await _db
+        .customSelect(
+          'SELECT * FROM $table WHERE id = ?',
+          variables: [Variable.withInt(localId)],
+        )
+        .get();
     if (results.isEmpty) return null;
 
     // Convert QueryRow to Map
@@ -333,8 +347,7 @@ class SyncEngine {
     final insertData = Map<String, dynamic>.from(data)..remove('id');
     final columns = insertData.keys.join(', ');
     final placeholders = insertData.keys.map((_) => '?').join(', ');
-    final values =
-        insertData.values.map((v) => Variable(v)).toList();
+    final values = insertData.values.map((v) => Variable(v)).toList();
 
     await _db.customInsert(
       'INSERT INTO $table ($columns) VALUES ($placeholders)',
@@ -365,8 +378,7 @@ class SyncEngine {
     Map<String, dynamic> data,
   ) async {
     final updateData = Map<String, dynamic>.from(data)..remove('id');
-    final setClause =
-        updateData.keys.map((k) => '$k = ?').join(', ');
+    final setClause = updateData.keys.map((k) => '$k = ?').join(', ');
     final values = [
       ...updateData.values.map((v) => Variable(v)),
       Variable.withInt(localId),
@@ -388,5 +400,6 @@ class SyncException implements Exception {
   const SyncException(this.message, [this.cause]);
 
   @override
-  String toString() => 'SyncException: $message${cause != null ? ' ($cause)' : ''}';
+  String toString() =>
+      'SyncException: $message${cause != null ? ' ($cause)' : ''}';
 }

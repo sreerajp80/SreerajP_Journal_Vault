@@ -5,12 +5,11 @@ import 'package:sreerajp_journal_vault/features/attachments/services/attachment_
 /// Migrates attachment files between storage locations (app-private ↔ SD card).
 class AttachmentStorageMigrationService {
   AttachmentStorageMigrationService({
-    required AppDatabase database,
-    required AttachmentCryptoStorage storage,
-  })  : _db = database,
-        _storage = storage;
+    required this._database,
+    required this._storage,
+  });
 
-  final AppDatabase _db;
+  final AppDatabase _database;
   final AttachmentCryptoStorage _storage;
 
   /// Migrates all attachments to [targetLocation] and updates settings on success.
@@ -30,19 +29,23 @@ class AttachmentStorageMigrationService {
     bool Function()? isCancelled,
   }) async {
     final targetValue = targetLocation.toSettingsValue();
-    await _db.appSettingsDao.updateSettings(AppSettingsCompanion(
-      attachmentMigrationStatus: const Value('running'),
-      attachmentMigrationTarget: Value(targetValue),
-      attachmentMigrationFailure: const Value(null),
-    ));
+    await _database.appSettingsDao.updateSettings(
+      AppSettingsCompanion(
+        attachmentMigrationStatus: const Value('running'),
+        attachmentMigrationTarget: Value(targetValue),
+        attachmentMigrationFailure: const Value(null),
+      ),
+    );
 
     try {
-      final all = await _db.attachmentsDao.getAllAttachments();
+      final all = await _database.attachmentsDao.getAllAttachments();
       final pending = all
-          .where((a) => !_storage.isStoredInLocation(
-                encryptedPath: a.encryptedPath,
-                location: targetLocation,
-              ))
+          .where(
+            (a) => !_storage.isStoredInLocation(
+              encryptedPath: a.encryptedPath,
+              location: targetLocation,
+            ),
+          )
           .toList();
       final total = pending.length;
 
@@ -58,34 +61,42 @@ class AttachmentStorageMigrationService {
           targetLocation: targetLocation,
           targetTreeUri: targetTreeUri,
         );
-        await _db.attachmentsDao.updateAttachment(AttachmentsCompanion(
-          id: Value(attachment.id),
-          encryptedPath: Value(newPath),
-        ));
+        await _database.attachmentsDao.updateAttachment(
+          AttachmentsCompanion(
+            id: Value(attachment.id),
+            encryptedPath: Value(newPath),
+          ),
+        );
         await _storage.deleteStoredFile(attachment.encryptedPath);
         onProgress?.call(i + 1, total);
       }
 
-      await _db.appSettingsDao.updateSettings(AppSettingsCompanion(
-        attachmentStorageLocation: Value(targetValue),
-        attachmentStorageTreeUri: Value(targetTreeUri),
-        attachmentStorageTreeLabel: Value(targetTreeLabel),
-        attachmentMigrationStatus: const Value('idle'),
-        attachmentMigrationTarget: const Value(null),
-        attachmentMigrationFailure: const Value(null),
-      ));
+      await _database.appSettingsDao.updateSettings(
+        AppSettingsCompanion(
+          attachmentStorageLocation: Value(targetValue),
+          attachmentStorageTreeUri: Value(targetTreeUri),
+          attachmentStorageTreeLabel: Value(targetTreeLabel),
+          attachmentMigrationStatus: const Value('idle'),
+          attachmentMigrationTarget: const Value(null),
+          attachmentMigrationFailure: const Value(null),
+        ),
+      );
     } on _MigrationCancelledException {
-      await _db.appSettingsDao.updateSettings(const AppSettingsCompanion(
-        attachmentMigrationStatus: Value('failed'),
-        attachmentMigrationFailure: Value('Migration cancelled by user.'),
-      ));
+      await _database.appSettingsDao.updateSettings(
+        const AppSettingsCompanion(
+          attachmentMigrationStatus: Value('failed'),
+          attachmentMigrationFailure: Value('Migration cancelled by user.'),
+        ),
+      );
       rethrow;
     } catch (e) {
-      await _db.appSettingsDao.updateSettings(AppSettingsCompanion(
-        attachmentMigrationStatus: const Value('failed'),
-        attachmentMigrationTarget: Value(targetValue),
-        attachmentMigrationFailure: Value(e.toString()),
-      ));
+      await _database.appSettingsDao.updateSettings(
+        AppSettingsCompanion(
+          attachmentMigrationStatus: const Value('failed'),
+          attachmentMigrationTarget: Value(targetValue),
+          attachmentMigrationFailure: Value(e.toString()),
+        ),
+      );
       rethrow;
     }
   }
@@ -94,15 +105,17 @@ class AttachmentStorageMigrationService {
   ///
   /// Call this on app startup to recover from crashes mid-migration.
   Future<AppSetting> recoverInterruptedMigrationIfNeeded() async {
-    var settings = await _db.appSettingsDao.getSettings();
+    var settings = await _database.appSettingsDao.getSettings();
     if (settings.attachmentMigrationStatus == 'running') {
-      await _db.appSettingsDao.updateSettings(const AppSettingsCompanion(
-        attachmentMigrationStatus: Value('failed'),
-        attachmentMigrationFailure: Value(
-          'Attachment migration was interrupted. Retry to continue.',
+      await _database.appSettingsDao.updateSettings(
+        const AppSettingsCompanion(
+          attachmentMigrationStatus: Value('failed'),
+          attachmentMigrationFailure: Value(
+            'Attachment migration was interrupted. Retry to continue.',
+          ),
         ),
-      ));
-      settings = await _db.appSettingsDao.getSettings();
+      );
+      settings = await _database.appSettingsDao.getSettings();
     }
     return settings;
   }

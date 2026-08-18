@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 /// Rich formatting toolbar for the Quill editor.
 ///
@@ -12,11 +13,13 @@ class EditorToolbar extends StatelessWidget {
     required this.controller,
     this.onInsertTable,
     this.onInsertCallout,
+    this.onInsertImage,
   });
 
   final QuillController controller;
   final VoidCallback? onInsertTable;
   final VoidCallback? onInsertCallout;
+  final VoidCallback? onInsertImage;
 
   @override
   Widget build(BuildContext context) {
@@ -24,9 +27,7 @@ class EditorToolbar extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerLow,
         border: Border(
-          top: BorderSide(
-            color: Theme.of(context).colorScheme.outlineVariant,
-          ),
+          top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
         ),
       ),
       child: SingleChildScrollView(
@@ -35,9 +36,7 @@ class EditorToolbar extends StatelessWidget {
         child: Row(
           children: [
             // Heading dropdown
-            QuillToolbarSelectHeaderStyleDropdownButton(
-              controller: controller,
-            ),
+            QuillToolbarSelectHeaderStyleDropdownButton(controller: controller),
             _divider(),
             // Font family / size
             QuillToolbarFontFamilyButton(controller: controller),
@@ -75,10 +74,7 @@ class EditorToolbar extends StatelessWidget {
               controller: controller,
               isBackground: false,
             ),
-            QuillToolbarColorButton(
-              controller: controller,
-              isBackground: true,
-            ),
+            QuillToolbarColorButton(controller: controller, isBackground: true),
             // Clear formatting
             QuillToolbarClearFormatButton(controller: controller),
             _divider(),
@@ -94,14 +90,8 @@ class EditorToolbar extends StatelessWidget {
             // Checklist
             QuillToolbarToggleCheckListButton(controller: controller),
             // Indent / Outdent
-            QuillToolbarIndentButton(
-              controller: controller,
-              isIncrease: false,
-            ),
-            QuillToolbarIndentButton(
-              controller: controller,
-              isIncrease: true,
-            ),
+            QuillToolbarIndentButton(controller: controller, isIncrease: false),
+            QuillToolbarIndentButton(controller: controller, isIncrease: true),
             _divider(),
             // Alignment (left / center / right / justify)
             QuillToolbarToggleStyleButton(
@@ -145,7 +135,7 @@ class EditorToolbar extends StatelessWidget {
                 key: const Key('editor-insert-table'),
                 icon: const Icon(Icons.table_chart_outlined, size: 20),
                 onPressed: onInsertTable,
-                tooltip: 'Insert table',
+                tooltip: AppLocalizations.of(context).editorInsertTable,
                 visualDensity: VisualDensity.compact,
               ),
             // Callout insert
@@ -154,19 +144,22 @@ class EditorToolbar extends StatelessWidget {
                 key: const Key('editor-insert-callout'),
                 icon: const Icon(Icons.info_outline, size: 20),
                 onPressed: onInsertCallout,
-                tooltip: 'Insert callout',
+                tooltip: AppLocalizations.of(context).editorInsertCallout,
+                visualDensity: VisualDensity.compact,
+              ),
+            // Inline image insert
+            if (onInsertImage != null)
+              IconButton(
+                key: const Key('editor-insert-image'),
+                icon: const Icon(Icons.image_outlined, size: 20),
+                onPressed: onInsertImage,
+                tooltip: AppLocalizations.of(context).editorInsertImage,
                 visualDensity: VisualDensity.compact,
               ),
             _divider(),
             // Undo / Redo
-            QuillToolbarHistoryButton(
-              controller: controller,
-              isUndo: true,
-            ),
-            QuillToolbarHistoryButton(
-              controller: controller,
-              isUndo: false,
-            ),
+            QuillToolbarHistoryButton(controller: controller, isUndo: true),
+            QuillToolbarHistoryButton(controller: controller, isUndo: false),
           ],
         ),
       ),
@@ -174,7 +167,7 @@ class EditorToolbar extends StatelessWidget {
   }
 
   Widget _divider() => const SizedBox(
-        height: 24,
-        child: VerticalDivider(width: 8, thickness: 1),
-      );
+    height: 24,
+    child: VerticalDivider(width: 8, thickness: 1),
+  );
 }

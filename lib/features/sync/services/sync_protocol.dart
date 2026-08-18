@@ -40,20 +40,20 @@ class SyncPayload {
   });
 
   Map<String, dynamic> toJson() => {
-        'deviceId': deviceId,
-        'timestamp': timestamp.toIso8601String(),
-        'records': records.map((r) => r.toJson()).toList(),
-        'encryptedChecksum': encryptedChecksum,
-      };
+    'deviceId': deviceId,
+    'timestamp': timestamp.toIso8601String(),
+    'records': records.map((r) => r.toJson()).toList(),
+    'encryptedChecksum': encryptedChecksum,
+  };
 
   factory SyncPayload.fromJson(Map<String, dynamic> json) => SyncPayload(
-        deviceId: json['deviceId'] as String,
-        timestamp: DateTime.parse(json['timestamp'] as String),
-        records: (json['records'] as List)
-            .map((r) => SyncRecord.fromJson(r as Map<String, dynamic>))
-            .toList(),
-        encryptedChecksum: json['encryptedChecksum'] as String,
-      );
+    deviceId: json['deviceId'] as String,
+    timestamp: DateTime.parse(json['timestamp'] as String),
+    records: (json['records'] as List)
+        .map((r) => SyncRecord.fromJson(r as Map<String, dynamic>))
+        .toList(),
+    encryptedChecksum: json['encryptedChecksum'] as String,
+  );
 }
 
 /// A single record within a sync payload.
@@ -79,24 +79,24 @@ class SyncRecord {
   });
 
   Map<String, dynamic> toJson() => {
-        'syncId': syncId,
-        'recordTable': recordTable,
-        'version': version,
-        'deviceId': deviceId,
-        'isDeleted': isDeleted,
-        'lastModifiedAt': lastModifiedAt.toIso8601String(),
-        'encryptedData': encryptedData,
-      };
+    'syncId': syncId,
+    'recordTable': recordTable,
+    'version': version,
+    'deviceId': deviceId,
+    'isDeleted': isDeleted,
+    'lastModifiedAt': lastModifiedAt.toIso8601String(),
+    'encryptedData': encryptedData,
+  };
 
   factory SyncRecord.fromJson(Map<String, dynamic> json) => SyncRecord(
-        syncId: json['syncId'] as String,
-        recordTable: json['recordTable'] as String,
-        version: json['version'] as int,
-        deviceId: json['deviceId'] as String,
-        isDeleted: json['isDeleted'] as bool,
-        lastModifiedAt: DateTime.parse(json['lastModifiedAt'] as String),
-        encryptedData: json['encryptedData'] as String,
-      );
+    syncId: json['syncId'] as String,
+    recordTable: json['recordTable'] as String,
+    version: json['version'] as int,
+    deviceId: json['deviceId'] as String,
+    isDeleted: json['isDeleted'] as bool,
+    lastModifiedAt: DateTime.parse(json['lastModifiedAt'] as String),
+    encryptedData: json['encryptedData'] as String,
+  );
 }
 
 /// Result of pushing local changes to the remote.

@@ -53,60 +53,65 @@ void main() {
     return (journalId: journalId, syncId: syncId, conflictId: conflictId);
   }
 
-  test('keep_local marks the conflict resolved and bumps the local version',
-      () async {
-    final seeded = await seedConflict(
-      local: {'title': 'Local'},
-      remote: {'title': 'Remote'},
-    );
+  test(
+    'keep_local marks the conflict resolved and bumps the local version',
+    () async {
+      final seeded = await seedConflict(
+        local: {'title': 'Local'},
+        remote: {'title': 'Remote'},
+      );
 
-    expect(
-      (await database.syncConflictsDao.getPendingConflicts()),
-      hasLength(1),
-    );
+      expect(
+        (await database.syncConflictsDao.getPendingConflicts()),
+        hasLength(1),
+      );
 
-    await service.resolveConflict(
-      conflictId: seeded.conflictId,
-      resolution: ConflictResolution.keepLocal,
-    );
+      await service.resolveConflict(
+        conflictId: seeded.conflictId,
+        resolution: ConflictResolution.keepLocal,
+      );
 
-    expect(
-      await database.syncConflictsDao.getPendingConflicts(),
-      isEmpty,
-    );
-    final updated =
-        await database.syncConflictsDao.getConflictById(seeded.conflictId);
-    expect(updated.status, 'resolved');
+      expect(await database.syncConflictsDao.getPendingConflicts(), isEmpty);
+      final updated = await database.syncConflictsDao.getConflictById(
+        seeded.conflictId,
+      );
+      expect(updated.status, 'resolved');
 
-    // Local journal title is unchanged.
-    final journal =
-        await database.journalsDao.getJournalById(seeded.journalId);
-    expect(journal.title, 'Local');
+      // Local journal title is unchanged.
+      final journal = await database.journalsDao.getJournalById(
+        seeded.journalId,
+      );
+      expect(journal.title, 'Local');
 
-    // Sync metadata version bumped.
-    final meta = await database.syncMetadataDao.getBySyncId(seeded.syncId);
-    expect(meta?.version, greaterThan(1));
-  });
+      // Sync metadata version bumped.
+      final meta = await database.syncMetadataDao.getBySyncId(seeded.syncId);
+      expect(meta?.version, greaterThan(1));
+    },
+  );
 
-  test('keep_remote applies the remote payload to the local journal record',
-      () async {
-    final seeded = await seedConflict(
-      local: {'title': 'Local'},
-      remote: {'title': 'RemoteWins'},
-    );
+  test(
+    'keep_remote applies the remote payload to the local journal record',
+    () async {
+      final seeded = await seedConflict(
+        local: {'title': 'Local'},
+        remote: {'title': 'RemoteWins'},
+      );
 
-    await service.resolveConflict(
-      conflictId: seeded.conflictId,
-      resolution: ConflictResolution.keepRemote,
-    );
+      await service.resolveConflict(
+        conflictId: seeded.conflictId,
+        resolution: ConflictResolution.keepRemote,
+      );
 
-    final journal =
-        await database.journalsDao.getJournalById(seeded.journalId);
-    expect(journal.title, 'RemoteWins');
-    final updated =
-        await database.syncConflictsDao.getConflictById(seeded.conflictId);
-    expect(updated.status, 'resolved');
-  });
+      final journal = await database.journalsDao.getJournalById(
+        seeded.journalId,
+      );
+      expect(journal.title, 'RemoteWins');
+      final updated = await database.syncConflictsDao.getConflictById(
+        seeded.conflictId,
+      );
+      expect(updated.status, 'resolved');
+    },
+  );
 
   test('merged resolution requires explicit merged data', () async {
     final seeded = await seedConflict(
@@ -135,11 +140,11 @@ void main() {
       mergedData: {'title': 'Merged'},
     );
 
-    final journal =
-        await database.journalsDao.getJournalById(seeded.journalId);
+    final journal = await database.journalsDao.getJournalById(seeded.journalId);
     expect(journal.title, 'Merged');
-    final updated =
-        await database.syncConflictsDao.getConflictById(seeded.conflictId);
+    final updated = await database.syncConflictsDao.getConflictById(
+      seeded.conflictId,
+    );
     expect(updated.status, 'resolved');
   });
 }

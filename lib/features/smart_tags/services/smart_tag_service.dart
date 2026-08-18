@@ -17,7 +17,10 @@ class SmartTagService {
   ///
   /// Each suggestion is a [Tag] that was found as a substring in the entry
   /// content. Multi-word tags are matched as full phrases.
-  Future<List<TagSuggestion>> suggest(String? plainText, {int limit = 10}) async {
+  Future<List<TagSuggestion>> suggest(
+    String? plainText, {
+    int limit = 10,
+  }) async {
     if (plainText == null || plainText.trim().isEmpty) return [];
 
     final allTags = await _db.tagsDao.getAllTags();
@@ -52,7 +55,10 @@ class SmartTagService {
     final existing = await _db.tagsDao.getTagsForEntry(entryId);
     final existingIds = existing.map((t) => t.id).toSet();
 
-    return all.where((s) => !existingIds.contains(s.tag.id)).take(limit).toList();
+    return all
+        .where((s) => !existingIds.contains(s.tag.id))
+        .take(limit)
+        .toList();
   }
 
   static String _normalise(String input) =>

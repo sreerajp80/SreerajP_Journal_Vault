@@ -25,12 +25,9 @@ void main() {
   });
 
   test('activating a profile deactivates all others', () async {
-    final aId =
-        await service.createProfile(name: 'A', timeoutSeconds: 60);
-    final bId =
-        await service.createProfile(name: 'B', timeoutSeconds: 120);
-    final cId =
-        await service.createProfile(name: 'C', timeoutSeconds: 300);
+    final aId = await service.createProfile(name: 'A', timeoutSeconds: 60);
+    final bId = await service.createProfile(name: 'B', timeoutSeconds: 120);
+    final cId = await service.createProfile(name: 'C', timeoutSeconds: 300);
 
     await service.activateProfile(aId);
     var profiles = await service.getAllProfiles();
@@ -79,16 +76,18 @@ void main() {
     expect(await service.getAllProfiles(), isEmpty);
   });
 
-  test('onAppMinimized triggers lock when active profile requires it',
-      () async {
-    final id = await service.createProfile(
-      name: 'Strict',
-      timeoutSeconds: 60,
-    );
-    await service.activateProfile(id);
+  test(
+    'onAppMinimized triggers lock when active profile requires it',
+    () async {
+      final id = await service.createProfile(
+        name: 'Strict',
+        timeoutSeconds: 60,
+      );
+      await service.activateProfile(id);
 
-    expect(await service.onAppMinimized(), isTrue);
-  });
+      expect(await service.onAppMinimized(), isTrue);
+    },
+  );
 
   test('onAppMinimized is a no-op without an active profile', () async {
     expect(await service.onAppMinimized(), isFalse);
@@ -106,31 +105,30 @@ void main() {
     expect(last.isAfter(before) || last.isAtSameMomentAs(before), isTrue);
   });
 
-  test('lock_triggered event is logged when the inactivity timer fires',
-      () async {
-    // _triggerLock only logs when a lock mode is configured.
-    await database.appSecurityDao.updateLockState(
-      const AppSecurityCompanion(lockMode: Value('phone_lock')),
-    );
+  test(
+    'lock_triggered event is logged when the inactivity timer fires',
+    () async {
+      // _triggerLock only logs when a lock mode is configured.
+      await database.appSecurityDao.updateLockState(
+        const AppSecurityCompanion(lockMode: Value('phone_lock')),
+      );
 
-    final id = await service.createProfile(
-      name: 'Quick',
-      timeoutSeconds: 1,
-    );
-    await service.activateProfile(id);
+      final id = await service.createProfile(name: 'Quick', timeoutSeconds: 1);
+      await service.activateProfile(id);
 
-    // The Timer fires after 1s (real time); poll briefly with a check loop
-    // rather than fakeAsync because AutoLockService uses real Timers.
-    var elapsed = 0;
-    while (elapsed < 3000) {
-      await Future<void>.delayed(const Duration(milliseconds: 200));
-      elapsed += 200;
-      final events =
-          await database.securityEventsDao.getRecentEvents();
-      if (events.any((e) => e.eventType == 'lock_triggered')) {
-        return; // success
+      // The Timer fires after 1s (real time); poll briefly with a check loop
+      // rather than fakeAsync because AutoLockService uses real Timers.
+      var elapsed = 0;
+      while (elapsed < 3000) {
+        await Future<void>.delayed(const Duration(milliseconds: 200));
+        elapsed += 200;
+        final events = await database.securityEventsDao.getRecentEvents();
+        if (events.any((e) => e.eventType == 'lock_triggered')) {
+          return; // success
+        }
       }
-    }
-    fail('Inactivity Timer did not log a lock_triggered event in 3 seconds');
-  }, timeout: const Timeout(Duration(seconds: 10)));
+      fail('Inactivity Timer did not log a lock_triggered event in 3 seconds');
+    },
+    timeout: const Timeout(Duration(seconds: 10)),
+  );
 }

@@ -12,8 +12,9 @@ final syncEncryptionServiceProvider = Provider<SyncEncryptionService>((ref) {
   return SyncEncryptionService();
 });
 
-final conflictResolutionServiceProvider =
-    Provider<ConflictResolutionService>((ref) {
+final conflictResolutionServiceProvider = Provider<ConflictResolutionService>((
+  ref,
+) {
   final db = ref.read(appDatabaseProvider);
   final encryption = ref.read(syncEncryptionServiceProvider);
   return ConflictResolutionService(db: db, encryption: encryption);
@@ -29,8 +30,9 @@ class SyncStatusNotifier extends Notifier<SyncStatus> {
 }
 
 /// Current sync status for UI binding.
-final syncStatusProvider =
-    NotifierProvider<SyncStatusNotifier, SyncStatus>(SyncStatusNotifier.new);
+final syncStatusProvider = NotifierProvider<SyncStatusNotifier, SyncStatus>(
+  SyncStatusNotifier.new,
+);
 
 /// Whether a sync operation is currently in progress.
 final isSyncingProvider = Provider<bool>((ref) {
@@ -40,8 +42,7 @@ final isSyncingProvider = Provider<bool>((ref) {
 // ─────────────── Data providers ───────────────
 
 /// Pending conflicts that need user resolution.
-final pendingConflictsProvider =
-    StreamProvider<List<SyncConflict>>((ref) {
+final pendingConflictsProvider = StreamProvider<List<SyncConflict>>((ref) {
   final db = ref.read(appDatabaseProvider);
   return db.syncConflictsDao.watchPendingConflicts();
 });
@@ -58,15 +59,13 @@ final pendingConflictCountProvider = FutureProvider<int>((ref) async {
 });
 
 /// Recent sync logs for the health dashboard.
-final recentSyncLogsProvider =
-    FutureProvider<List<SyncLog>>((ref) async {
+final recentSyncLogsProvider = FutureProvider<List<SyncLog>>((ref) async {
   final db = ref.read(appDatabaseProvider);
   return db.syncLogsDao.getRecentLogs();
 });
 
 /// Latest successful sync for "last synced" display.
-final latestSuccessfulSyncProvider =
-    FutureProvider<SyncLog?>((ref) async {
+final latestSuccessfulSyncProvider = FutureProvider<SyncLog?>((ref) async {
   final db = ref.read(appDatabaseProvider);
   return db.syncLogsDao.getLatestSuccessful();
 });
@@ -79,8 +78,9 @@ final recentSyncFailureCountProvider = FutureProvider<int>((ref) async {
 });
 
 /// Pending conflict details with field-level diffs.
-final conflictDetailsProvider =
-    FutureProvider<List<ConflictDetail>>((ref) async {
+final conflictDetailsProvider = FutureProvider<List<ConflictDetail>>((
+  ref,
+) async {
   final service = ref.read(conflictResolutionServiceProvider);
   return service.getPendingConflicts();
 });

@@ -21,48 +21,45 @@ class SecurityEventService {
     String severity = 'info',
     required String description,
     String? metadata,
-  }) =>
-      _db.securityEventsDao.logEvent(
-        SecurityEventsCompanion.insert(
-          eventType: eventType,
-          severity: Value(severity),
-          description: description,
-          metadata: Value(metadata),
-        ),
-      );
+  }) => _db.securityEventsDao.logEvent(
+    SecurityEventsCompanion.insert(
+      eventType: eventType,
+      severity: Value(severity),
+      description: description,
+      metadata: Value(metadata),
+    ),
+  );
 
   /// Logs a failed authentication attempt.
   Future<void> logFailedAuth({String? context}) => logEvent(
-        eventType: 'failed_auth',
-        severity: 'warning',
-        description: 'Authentication failed',
-        metadata: context != null ? '{"context": "$context"}' : null,
-      );
+    eventType: 'failed_auth',
+    severity: 'warning',
+    description: 'Authentication failed',
+    metadata: context != null ? '{"context": "$context"}' : null,
+  );
 
   /// Logs a tamper detection alert.
   Future<void> logTamperDetected({
     required String description,
     Map<String, dynamic>? details,
-  }) =>
-      logEvent(
-        eventType: 'tamper_detected',
-        severity: 'critical',
-        description: description,
-        metadata: details != null ? jsonEncode(details) : null,
-      );
+  }) => logEvent(
+    eventType: 'tamper_detected',
+    severity: 'critical',
+    description: description,
+    metadata: details != null ? jsonEncode(details) : null,
+  );
 
   /// Logs an export attempt.
   Future<void> logExportAttempt({
     required String exportType,
     bool success = true,
-  }) =>
-      logEvent(
-        eventType: 'export_attempt',
-        severity: success ? 'info' : 'warning',
-        description:
-            'Export attempt ($exportType): ${success ? "succeeded" : "failed"}',
-        metadata: '{"exportType": "$exportType", "success": $success}',
-      );
+  }) => logEvent(
+    eventType: 'export_attempt',
+    severity: success ? 'info' : 'warning',
+    description:
+        'Export attempt ($exportType): ${success ? "succeeded" : "failed"}',
+    metadata: '{"exportType": "$exportType", "success": $success}',
+  );
 
   /// Performs tamper check on an entry by verifying content consistency.
   ///
@@ -125,9 +122,10 @@ class SecurityEventService {
       _db.securityEventsDao.getCriticalEvents(limit: limit);
 
   /// Returns events of a specific type.
-  Future<List<SecurityEvent>> getEventsByType(String eventType,
-          {int limit = 20}) =>
-      _db.securityEventsDao.getEventsByType(eventType, limit: limit);
+  Future<List<SecurityEvent>> getEventsByType(
+    String eventType, {
+    int limit = 20,
+  }) => _db.securityEventsDao.getEventsByType(eventType, limit: limit);
 
   /// Watches recent events for reactive UI.
   Stream<List<SecurityEvent>> watchRecentEvents({int limit = 50}) =>

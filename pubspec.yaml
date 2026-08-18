@@ -1,5 +1,5 @@
 name: sreerajp_journal_vault
-description: "A new Flutter project."
+description: "A private, encrypted journal with attachments, search, and insights."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -19,7 +19,8 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.1+1
 
 environment:
-  sdk: ^3.11.1
+  sdk: ^3.12.2
+  flutter: ">=3.44.8"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -33,33 +34,57 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
+  # Required by the generated AppLocalizations, and used for date and number
+  # formatting. See l10n.yaml and lib/l10n/.
+  intl: ^0.20.2
+
   cupertino_icons: ^1.0.8
   flutter_riverpod: ^3.3.1
   riverpod: ^3.2.1
   drift: ^2.29.0
-  drift_flutter: ^0.3.0
   path: ^1.9.1
   path_provider: ^2.1.5
-  sqlite3_flutter_libs: ^0.6.0+eol
+  # SQLCipher, not plain SQLite. The vault is encrypted at rest with a key held
+  # in the Android Keystore — see lib/core/database/encrypted_database_opener.dart.
+  # The native library is chosen by the `hooks:` block at the bottom of this file.
+  #
+  # sqlite3_flutter_libs and drift_flutter must NOT come back: they bundle a
+  # second copy of libsqlite3, and the vault could end up written in plain form
+  # with no error at all. See docs/dependencies.md.
+  sqlite3: ^3.5.0
   flutter_quill: ^11.5.0
-  file_picker: ^10.3.2
+  file_picker: ^11.0.2
   cryptography: ^2.7.0
   mime: ^2.0.0
   open_filex: ^4.7.0
   archive: ^4.0.7
   shared_preferences: ^2.5.3
-  syncfusion_flutter_pdfviewer: ^33.1.45
+  # Held at 33.x: 34.x requires device_info_plus ^13.1.0, which pulls win32 ^6
+  # and collides with file_picker (win32 ^5). See the note on the plus packages.
+  syncfusion_flutter_pdfviewer: ^33.2.13
   just_audio: ^0.10.5
   permission_handler: ^12.0.1
+  # Held at 9.x / 12.x on purpose — win32 conflict, 2026-07-25.
+  #
+  # package_info_plus 10, device_info_plus 13 and syncfusion_flutter_pdfviewer
+  # 34 all require win32 ^6 (syncfusion via device_info_plus). Every stable
+  # file_picker (<= 11.x) requires win32 ^5, so the two groups cannot resolve
+  # together. win32 only affects the Windows target, which this app does not
+  # support, but pub resolves for all platforms regardless.
+  #
+  # file_picker won the tie: 11.0.2 fixes an Android path-traversal issue
+  # (CWE-22) on the attachment import path, which matters to this app; the held
+  # packages only supply version strings, an SDK-int check, and PDF rendering.
+  # Revisit when file_picker 12 leaves beta — it moves to win32 ^6 and the
+  # conflict disappears.
   package_info_plus: ^9.0.0
   device_info_plus: ^12.1.0
   table_calendar: ^3.2.0
-  record: ^6.2.0
+  record: ^7.1.1
   speech_to_text: ^7.0.0
-  flutter_quill_extensions: ^11.0.0
   uuid: ^4.5.1
-  local_auth: ^2.3.0
-  local_auth_android: ^1.0.41
+  local_auth: ^3.0.2
+  local_auth_android: ^2.0.9
   logger: ^2.4.0
 
 dev_dependencies:
@@ -75,6 +100,9 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
   build_runner: ^2.10.3
+  # Test-only. `local_auth` does not re-export LocalAuthPlatform, which
+  # biometric_authenticator_test.dart swaps out to fake the device.
+  local_auth_platform_interface: ^1.1.0
   drift_dev: ^2.29.0
   flutter_launcher_icons: ^0.14.4
 
@@ -104,10 +132,26 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  # Turns on the localization generator. It reads l10n.yaml and writes
+  # AppLocalizations into lib/l10n/. Required by the engineering standard
+  # section 8.1 for every app, including single-language ones.
+  generate: true
+
   # About-screen config, required by guideline.md section 1.3. Without this
   # line the JSON is not bundled and the app silently falls back to defaults.
   assets:
     - assets/config/
+    # Malayalam fonts for HTML and PDF export. Loaded with rootBundle and
+    # embedded into the exported page as base64 @font-face data URIs, so the
+    # page stays self-contained and offline — see export_html_builder.dart.
+    #
+    # Listed under `assets`, NOT under `fonts`, on purpose: Flutter itself
+    # never renders with them. Only the export WebView does, and it needs the
+    # raw bytes.
+    #
+    # Noto Sans Malayalam, SIL Open Font Licence 1.1. The licence text ships
+    # beside the fonts in OFL-Noto.txt, which the licence requires.
+    - assets/fonts/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -134,3 +178,14 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# Build hooks. `package:sqlite3` compiles or downloads the native library
+# itself; this picks the SQLCipher build over plain SQLite, on every platform
+# including the test runner. It is what makes the vault encrypted at rest.
+#
+# Changing `source` here silently changes whether journal text is encrypted.
+# Do not touch it without reading docs/security.md.
+hooks:
+  user_defines:
+    sqlite3:
+      source: sqlcipher

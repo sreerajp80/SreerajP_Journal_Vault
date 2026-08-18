@@ -136,12 +136,12 @@ class MarkdownImportAdapter extends ImportAdapter {
   /// Parses inline bold/italic/code formatting within a line.
   void _addInlineFormatted(List<Map<String, dynamic>> ops, String text) {
     final pattern = RegExp(
-      r'(\*\*\*(.+?)\*\*\*'   // bold+italic
-      r'|\*\*(.+?)\*\*'        // bold
-      r'|__(.+?)__'            // bold (underscore)
-      r'|\*(.+?)\*'            // italic
-      r'|_(.+?)_'              // italic (underscore)
-      r'|`(.+?)`)',            // inline code
+      r'(\*\*\*(.+?)\*\*\*' // bold+italic
+      r'|\*\*(.+?)\*\*' // bold
+      r'|__(.+?)__' // bold (underscore)
+      r'|\*(.+?)\*' // italic
+      r'|_(.+?)_' // italic (underscore)
+      r'|`(.+?)`)', // inline code
     );
 
     var lastEnd = 0;

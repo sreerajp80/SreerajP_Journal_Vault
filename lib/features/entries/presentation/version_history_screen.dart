@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -5,7 +6,12 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/editor/callout_embed.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/editor/image_embed.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/editor/inline_image_store.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/editor/table_embed.dart';
 import 'package:sreerajp_journal_vault/features/entries/providers/entry_providers.dart';
+import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 /// Screen that displays version history for an entry and allows restoring
 /// any previous revision.
@@ -26,13 +32,15 @@ class VersionHistoryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final revisionsAsync = ref.watch(entryRevisionsProvider(entryId));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Version history')),
+      appBar: AppBar(title: Text(l10n.versionHistoryTitle)),
       body: revisionsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error loading revisions: $e')),
+        error: (e, _) =>
+            Center(child: Text(l10n.versionHistoryLoadFailed(e.toString()))),
         data: (revisions) {
           if (revisions.isEmpty) {
             return const Center(
@@ -77,38 +85,36 @@ class VersionHistoryScreen extends ConsumerWidget {
   ) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Restore this version?'),
-        content: const Text(
-          'Your current content will be saved as a new version before restoring.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Restore'),
-          ),
-        ],
-      ),
+      builder: (dialogContext) {
+        final l10n = AppLocalizations.of(dialogContext);
+        return AlertDialog(
+          title: Text(l10n.versionRestoreTitle),
+          content: Text(l10n.versionRestoreBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(l10n.commonCancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: Text(l10n.commonRestore),
+            ),
+          ],
+        );
+      },
     );
 
     if (confirmed != true) return;
     if (!context.mounted) return;
 
     final service = ref.read(entryRevisionServiceProvider);
-    await service.restoreRevision(
-      entryId: entryId,
-      revisionId: revision.id,
-    );
+    await service.restoreRevision(entryId: entryId, revisionId: revision.id);
 
     onRevisionRestored();
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Version restored')),
+        SnackBar(content: Text(AppLocalizations.of(context).versionRestored)),
       );
       Navigator.pop(context);
     }
@@ -138,10 +144,7 @@ class _RevisionTile extends StatelessWidget {
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: theme.colorScheme.primaryContainer,
-        child: Icon(
-          Icons.history,
-          color: theme.colorScheme.onPrimaryContainer,
-        ),
+        child: Icon(Icons.history, color: theme.colorScheme.onPrimaryContainer),
       ),
       title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis),
       subtitle: Column(
@@ -166,12 +169,12 @@ class _RevisionTile extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.visibility_outlined),
             onPressed: onPreview,
-            tooltip: 'Preview',
+            tooltip: AppLocalizations.of(context).versionPreview,
           ),
           IconButton(
             icon: const Icon(Icons.restore),
             onPressed: onRestore,
-            tooltip: 'Restore this version',
+            tooltip: AppLocalizations.of(context).versionRestoreTooltip,
           ),
         ],
       ),
@@ -186,28 +189,43 @@ class _RevisionTile extends StatelessWidget {
 
   String _extractPreview(String? plainText) {
     if (plainText == null || plainText.isEmpty) return '';
-    return plainText.length > 120 ? '${plainText.substring(0, 120)}...' : plainText;
+    return plainText.length > 120
+        ? '${plainText.substring(0, 120)}...'
+        : plainText;
   }
 }
 
 /// Read-only preview of a specific revision's content.
-class _RevisionPreviewScreen extends StatefulWidget {
+class _RevisionPreviewScreen extends ConsumerStatefulWidget {
   const _RevisionPreviewScreen({required this.revision});
 
   final EntryRevision revision;
 
   @override
-  State<_RevisionPreviewScreen> createState() =>
+  ConsumerState<_RevisionPreviewScreen> createState() =>
       _RevisionPreviewScreenState();
 }
 
-class _RevisionPreviewScreenState extends State<_RevisionPreviewScreen> {
+class _RevisionPreviewScreenState
+    extends ConsumerState<_RevisionPreviewScreen> {
   late final QuillController _controller;
+  late final InlineImageStore _imageStore;
+
+  /// The same builders the editor uses. Without them a revision holding a
+  /// table, a callout or an image renders as a failed embed instead of the
+  /// content the user is trying to compare against.
+  late final List<EmbedBuilder> _embedBuilders;
 
   @override
   void initState() {
     super.initState();
     _controller = _buildController();
+    _imageStore = buildInlineImageStore(ref);
+    _embedBuilders = [
+      TableEmbedBuilder(),
+      CalloutEmbedBuilder(),
+      VaultImageEmbedBuilder(store: _imageStore),
+    ];
   }
 
   QuillController _buildController() {
@@ -229,6 +247,7 @@ class _RevisionPreviewScreenState extends State<_RevisionPreviewScreen> {
 
   @override
   void dispose() {
+    unawaited(_imageStore.dispose());
     _controller.dispose();
     super.dispose();
   }
@@ -240,10 +259,15 @@ class _RevisionPreviewScreenState extends State<_RevisionPreviewScreen> {
         : 'Untitled';
 
     return Scaffold(
-      appBar: AppBar(title: Text('Preview: $title')),
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context).versionPreviewTitle(title)),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: QuillEditor.basic(controller: _controller),
+        child: QuillEditor.basic(
+          controller: _controller,
+          config: QuillEditorConfig(embedBuilders: _embedBuilders),
+        ),
       ),
     );
   }

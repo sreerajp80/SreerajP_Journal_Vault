@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sreerajp_journal_vault/features/sync/providers/sync_providers.dart';
 import 'package:sreerajp_journal_vault/features/sync/services/conflict_resolution_service.dart';
+import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 /// Screen that lists all pending sync conflicts and lets the user resolve each
 /// one by choosing Keep Local, Keep Remote, or viewing a side-by-side diff.
@@ -11,12 +12,11 @@ class ConflictResolutionScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final conflictsAsync = ref.watch(conflictDetailsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Sync Conflicts'),
-      ),
+      appBar: AppBar(title: Text(l10n.syncConflictsTitle)),
       body: conflictsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
@@ -25,30 +25,39 @@ class ConflictResolutionScreen extends ConsumerWidget {
             children: [
               const Icon(Icons.error_outline, size: 48),
               const SizedBox(height: 16),
-              Text('Failed to load conflicts:\n$error',
-                  textAlign: TextAlign.center),
+              Text(
+                l10n.syncConflictsLoadFailed(error.toString()),
+                textAlign: TextAlign.center,
+              ),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => ref.invalidate(conflictDetailsProvider),
-                child: const Text('Retry'),
+                child: Text(l10n.commonRetry),
               ),
             ],
           ),
         ),
         data: (conflicts) {
           if (conflicts.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.check_circle_outline,
-                      size: 64, color: Colors.green),
-                  SizedBox(height: 16),
-                  Text('No pending conflicts',
-                      style: TextStyle(fontSize: 18)),
-                  SizedBox(height: 8),
-                  Text('All data is in sync.',
-                      style: TextStyle(color: Colors.grey)),
+                  const Icon(
+                    Icons.check_circle_outline,
+                    size: 64,
+                    color: Colors.green,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.syncNoConflicts,
+                    style: const TextStyle(fontSize: 18),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.syncAllInSync,
+                    style: const TextStyle(color: Colors.grey),
+                  ),
                 ],
               ),
             );
@@ -75,6 +84,7 @@ class _ConflictCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return Card(
@@ -87,20 +97,24 @@ class _ConflictCard extends ConsumerWidget {
             // Header
             Row(
               children: [
-                Icon(Icons.warning_amber_rounded,
-                    color: theme.colorScheme.error),
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: theme.colorScheme.error,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     _tableDisplayName(conflict.recordTable),
-                    style: theme.textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 Text(
                   'v${conflict.localVersion} vs v${conflict.remoteVersion}',
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: Colors.grey),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.grey,
+                  ),
                 ),
               ],
             ),
@@ -108,15 +122,14 @@ class _ConflictCard extends ConsumerWidget {
 
             // Detected timestamp
             Text(
-              'Detected: ${_formatDateTime(conflict.detectedAt)}',
+              l10n.syncDetectedAt(_formatDateTime(conflict.detectedAt)),
               style: theme.textTheme.bodySmall,
             ),
             const SizedBox(height: 12),
 
             // Field diffs
             if (conflict.diffs.isNotEmpty) ...[
-              Text('Changed fields:',
-                  style: theme.textTheme.labelMedium),
+              Text(l10n.syncChangedFields, style: theme.textTheme.labelMedium),
               const SizedBox(height: 8),
               ...conflict.diffs.map((diff) => _FieldDiffRow(diff: diff)),
               const SizedBox(height: 12),
@@ -129,19 +142,19 @@ class _ConflictCard extends ConsumerWidget {
                 OutlinedButton.icon(
                   onPressed: () => _showDetailDialog(context, ref),
                   icon: const Icon(Icons.compare_arrows, size: 18),
-                  label: const Text('Compare'),
+                  label: Text(l10n.syncCompare),
                 ),
                 const SizedBox(width: 8),
                 OutlinedButton(
-                  onPressed: () => _resolve(
-                      ref, ConflictResolution.keepRemote, context),
-                  child: const Text('Keep Remote'),
+                  onPressed: () =>
+                      _resolve(ref, ConflictResolution.keepRemote, context),
+                  child: Text(l10n.syncKeepRemote),
                 ),
                 const SizedBox(width: 8),
                 FilledButton(
-                  onPressed: () => _resolve(
-                      ref, ConflictResolution.keepLocal, context),
-                  child: const Text('Keep Local'),
+                  onPressed: () =>
+                      _resolve(ref, ConflictResolution.keepLocal, context),
+                  child: Text(l10n.syncKeepLocal),
                 ),
               ],
             ),
@@ -158,24 +171,28 @@ class _ConflictCard extends ConsumerWidget {
   ) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(resolution == ConflictResolution.keepLocal
-            ? 'Keep local version?'
-            : 'Keep remote version?'),
-        content: Text(resolution == ConflictResolution.keepLocal
-            ? 'The remote changes will be discarded. Your local version will be pushed on next sync.'
-            : 'Your local changes will be overwritten with the remote version.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+      builder: (ctx) {
+        final l10n = AppLocalizations.of(ctx);
+        final keepLocal = resolution == ConflictResolution.keepLocal;
+        return AlertDialog(
+          title: Text(
+            keepLocal ? l10n.syncKeepLocalTitle : l10n.syncKeepRemoteTitle,
           ),
-          FilledButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Confirm'),
+          content: Text(
+            keepLocal ? l10n.syncKeepLocalBody : l10n.syncKeepRemoteBody,
           ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l10n.commonCancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(l10n.commonConfirm),
+            ),
+          ],
+        );
+      },
     );
 
     if (confirmed != true) return;
@@ -190,13 +207,19 @@ class _ConflictCard extends ConsumerWidget {
       ref.invalidate(pendingConflictsProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Conflict resolved.')),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).syncConflictResolved),
+          ),
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Resolution failed: $e')),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context).syncResolutionFailed(e.toString()),
+            ),
+          ),
         );
       }
     }
@@ -213,9 +236,7 @@ class _ConflictCard extends ConsumerWidget {
     return table
         .replaceAll('_', ' ')
         .split(' ')
-        .map((w) => w.isEmpty
-            ? w
-            : '${w[0].toUpperCase()}${w.substring(1)}')
+        .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}')
         .join(' ');
   }
 
@@ -242,8 +263,9 @@ class _FieldDiffRow extends StatelessWidget {
             width: 120,
             child: Text(
               _formatFieldName(diff.fieldName),
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(fontWeight: FontWeight.w600),
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           Expanded(
@@ -263,9 +285,7 @@ class _FieldDiffRow extends StatelessWidget {
     return name
         .replaceAll('_', ' ')
         .split(' ')
-        .map((w) => w.isEmpty
-            ? w
-            : '${w[0].toUpperCase()}${w.substring(1)}')
+        .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}')
         .join(' ');
   }
 
@@ -283,6 +303,7 @@ class _ConflictDetailDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return Dialog(
@@ -293,14 +314,18 @@ class _ConflictDetailDialog extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Conflict Details',
-                  style: theme.textTheme.headlineSmall),
+              Text(
+                l10n.syncConflictDetailsTitle,
+                style: theme.textTheme.headlineSmall,
+              ),
               const SizedBox(height: 16),
               Expanded(
                 child: SingleChildScrollView(
                   child: Table(
                     border: TableBorder.all(
-                        color: theme.dividerColor, width: 0.5),
+                      color: theme.dividerColor,
+                      width: 0.5,
+                    ),
                     columnWidths: const {
                       0: FlexColumnWidth(),
                       1: FlexColumnWidth(2),
@@ -309,22 +334,23 @@ class _ConflictDetailDialog extends StatelessWidget {
                     children: [
                       TableRow(
                         decoration: BoxDecoration(
-                            color: theme.colorScheme.surfaceContainerHighest),
-                        children: const [
-                          _TableHeader('Field'),
-                          _TableHeader('Local'),
-                          _TableHeader('Remote'),
+                          color: theme.colorScheme.surfaceContainerHighest,
+                        ),
+                        children: [
+                          _TableHeader(l10n.syncColumnField),
+                          _TableHeader(l10n.syncColumnLocal),
+                          _TableHeader(l10n.syncColumnRemote),
                         ],
                       ),
-                      ...conflict.diffs.map((diff) => TableRow(
-                            children: [
-                              _TableCell(diff.fieldName, bold: true),
-                              _TableCell(
-                                  diff.localValue?.toString() ?? 'null'),
-                              _TableCell(
-                                  diff.remoteValue?.toString() ?? 'null'),
-                            ],
-                          )),
+                      ...conflict.diffs.map(
+                        (diff) => TableRow(
+                          children: [
+                            _TableCell(diff.fieldName, bold: true),
+                            _TableCell(diff.localValue?.toString() ?? 'null'),
+                            _TableCell(diff.remoteValue?.toString() ?? 'null'),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -334,7 +360,7 @@ class _ConflictDetailDialog extends StatelessWidget {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text('Close'),
+                  child: Text(l10n.commonClose),
                 ),
               ),
             ],
@@ -353,11 +379,12 @@ class _TableHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(8),
-      child: Text(text,
-          style: Theme.of(context)
-              .textTheme
-              .labelMedium
-              ?.copyWith(fontWeight: FontWeight.bold)),
+      child: Text(
+        text,
+        style: Theme.of(
+          context,
+        ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.bold),
+      ),
     );
   }
 }
@@ -374,10 +401,9 @@ class _TableCell extends StatelessWidget {
       child: Text(
         text.length > 200 ? '${text.substring(0, 197)}...' : text,
         style: bold
-            ? Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(fontWeight: FontWeight.w600)
+            ? Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)
             : Theme.of(context).textTheme.bodySmall,
       ),
     );

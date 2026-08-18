@@ -44,7 +44,10 @@ android {
         applicationId = "in.sreerajp.sreerajp_journal_vault"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        // AGENTS.md requires Android minimum API 28. Do not fall back to
+        // flutter.minSdkVersion (currently 24) — Remediation_Plan.md slice A2
+        // chose Keystore-backed secret storage on the assumption of API 28+.
+        minSdk = 28
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -86,11 +89,11 @@ android {
     productFlavors {
         create("dev") {
             dimension = "env"
-            manifestPlaceholders["appLabel"] = "sreerajp_journal_vault (dev)"
+            manifestPlaceholders["appLabel"] = "SreerajP Journal Vault(dev)"
         }
         create("prod") {
             dimension = "env"
-            manifestPlaceholders["appLabel"] = "sreerajp_journal_vault"
+            manifestPlaceholders["appLabel"] = "SreerajP Journal Vault"
         }
     }
 }

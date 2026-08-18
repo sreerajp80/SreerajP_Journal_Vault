@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sreerajp_journal_vault/features/about/application/about_metadata.dart';
+import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 /// Displays app metadata: name, description, version, build timestamp, and the
 /// attribution rows from `assets/config/app_config.json`.
@@ -14,21 +15,22 @@ class AboutScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final metadataAsync = ref.watch(aboutMetadataProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('About')),
+      appBar: AppBar(title: Text(l10n.aboutTitle)),
       body: metadataAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('Unable to load app metadata'),
+              Text(l10n.aboutLoadError),
               const SizedBox(height: 12),
               ElevatedButton(
                 onPressed: () => ref.invalidate(aboutMetadataProvider),
-                child: const Text('Retry'),
+                child: Text(l10n.commonRetry),
               ),
             ],
           ),
@@ -54,11 +56,11 @@ class AboutScreen extends ConsumerWidget {
                 _InfoRow(label: entry.key, value: entry.value),
             // Runtime values, not config: these stay explicit.
             _InfoRow(
-              label: 'App Version / Build',
+              label: l10n.aboutVersionBuildLabel,
               value: metadata.versionBuild,
             ),
             _InfoRow(
-              label: 'Last Build Timestamp',
+              label: l10n.aboutLastBuildLabel,
               value: metadata.lastBuildTimestamp,
             ),
           ],

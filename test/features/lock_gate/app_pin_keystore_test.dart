@@ -17,9 +17,9 @@ void main() {
     handler = null;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (call) async {
-      calls.add(call);
-      return handler?.call(call);
-    });
+          calls.add(call);
+          return handler?.call(call);
+        });
   });
 
   tearDown(() {
@@ -27,42 +27,43 @@ void main() {
         .setMockMethodCallHandler(channel, null);
   });
 
-  test('setCredential forwards salt, verifier, and iterations to the channel',
-      () async {
-    handler = (_) => null;
+  test(
+    'setCredential forwards salt, verifier, and iterations to the channel',
+    () async {
+      handler = (_) => null;
 
-    await keystore.setCredential(
-      saltBase64: 'AAAA',
-      verifierBase64: 'BBBB',
-      iterations: 1234,
-    );
+      await keystore.setCredential(
+        saltBase64: 'AAAA',
+        verifierBase64: 'BBBB',
+        iterations: 1234,
+      );
 
-    expect(calls, hasLength(1));
-    expect(calls.single.method, 'setAppPinCredential');
-    expect(
-      calls.single.arguments,
-      <String, Object?>{
+      expect(calls, hasLength(1));
+      expect(calls.single.method, 'setAppPinCredential');
+      expect(calls.single.arguments, <String, Object?>{
         'saltBase64': 'AAAA',
         'verifierBase64': 'BBBB',
         'iterations': 1234,
-      },
-    );
-  });
+      });
+    },
+  );
 
-  test('getCredential returns null when the platform reports no credential',
-      () async {
-    handler = (_) => null;
+  test(
+    'getCredential returns null when the platform reports no credential',
+    () async {
+      handler = (_) => null;
 
-    expect(await keystore.getCredential(), isNull);
-    expect(calls.single.method, 'getAppPinCredential');
-  });
+      expect(await keystore.getCredential(), isNull);
+      expect(calls.single.method, 'getAppPinCredential');
+    },
+  );
 
   test('getCredential parses the platform map into a payload', () async {
     handler = (_) => <String, Object?>{
-          'saltBase64': 'salt',
-          'verifierBase64': 'verifier',
-          'iterations': 99,
-        };
+      'saltBase64': 'salt',
+      'verifierBase64': 'verifier',
+      'iterations': 99,
+    };
 
     final payload = await keystore.getCredential();
 
@@ -72,15 +73,17 @@ void main() {
     expect(payload.iterations, 99);
   });
 
-  test('getCredential returns null when the platform map is malformed',
-      () async {
-    handler = (_) => <String, Object?>{
-          'saltBase64': 'salt',
-          // Missing verifierBase64 + iterations.
-        };
+  test(
+    'getCredential returns null when the platform map is malformed',
+    () async {
+      handler = (_) => <String, Object?>{
+        'saltBase64': 'salt',
+        // Missing verifierBase64 + iterations.
+      };
 
-    expect(await keystore.getCredential(), isNull);
-  });
+      expect(await keystore.getCredential(), isNull);
+    },
+  );
 
   test('clearCredential invokes clearAppPinCredential', () async {
     handler = (_) => null;
@@ -91,10 +94,8 @@ void main() {
   });
 
   test('platform errors propagate so callers can surface them', () async {
-    handler = (_) => throw PlatformException(
-          code: 'keystore_failure',
-          message: 'boom',
-        );
+    handler = (_) =>
+        throw PlatformException(code: 'keystore_failure', message: 'boom');
 
     expect(
       keystore.setCredential(

@@ -35,6 +35,7 @@ mixin _$TagsDaoMixin on DatabaseAccessor<AppDatabase> {
   $JournalsTable get journals => attachedDatabase.journals;
   $EntriesTable get entries => attachedDatabase.entries;
   $EntryTagsTable get entryTags => attachedDatabase.entryTags;
+  $JournalTagsTable get journalTags => attachedDatabase.journalTags;
   TagsDaoManager get managers => TagsDaoManager(this);
 }
 
@@ -49,6 +50,8 @@ class TagsDaoManager {
       $$EntriesTableTableManager(_db.attachedDatabase, _db.entries);
   $$EntryTagsTableTableManager get entryTags =>
       $$EntryTagsTableTableManager(_db.attachedDatabase, _db.entryTags);
+  $$JournalTagsTableTableManager get journalTags =>
+      $$JournalTagsTableTableManager(_db.attachedDatabase, _db.journalTags);
 }
 
 mixin _$AttachmentTextsDaoMixin on DatabaseAccessor<AppDatabase> {
@@ -1504,6 +1507,17 @@ class $TagsTable extends Tags with TableInfo<$TagsTable, Tag> {
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _colorArgbMeta = const VerificationMeta(
+    'colorArgb',
+  );
+  @override
+  late final GeneratedColumn<int> colorArgb = GeneratedColumn<int>(
+    'color_argb',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -1529,7 +1543,13 @@ class $TagsTable extends Tags with TableInfo<$TagsTable, Tag> {
     defaultValue: currentDateAndTime,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, name, createdAt, updatedAt];
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    colorArgb,
+    createdAt,
+    updatedAt,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1552,6 +1572,12 @@ class $TagsTable extends Tags with TableInfo<$TagsTable, Tag> {
       );
     } else if (isInserting) {
       context.missing(_nameMeta);
+    }
+    if (data.containsKey('color_argb')) {
+      context.handle(
+        _colorArgbMeta,
+        colorArgb.isAcceptableOrUnknown(data['color_argb']!, _colorArgbMeta),
+      );
     }
     if (data.containsKey('created_at')) {
       context.handle(
@@ -1582,6 +1608,10 @@ class $TagsTable extends Tags with TableInfo<$TagsTable, Tag> {
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
+      colorArgb: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}color_argb'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -1602,11 +1632,18 @@ class $TagsTable extends Tags with TableInfo<$TagsTable, Tag> {
 class Tag extends DataClass implements Insertable<Tag> {
   final int id;
   final String name;
+
+  /// Display colour as a packed ARGB value.
+  ///
+  /// Null means "no colour chosen" — the UI falls back to a palette entry
+  /// derived from the tag name. See `features/tags/domain/tag_colors.dart`.
+  final int? colorArgb;
   final DateTime createdAt;
   final DateTime updatedAt;
   const Tag({
     required this.id,
     required this.name,
+    this.colorArgb,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -1615,6 +1652,9 @@ class Tag extends DataClass implements Insertable<Tag> {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
+    if (!nullToAbsent || colorArgb != null) {
+      map['color_argb'] = Variable<int>(colorArgb);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     return map;
@@ -1624,6 +1664,9 @@ class Tag extends DataClass implements Insertable<Tag> {
     return TagsCompanion(
       id: Value(id),
       name: Value(name),
+      colorArgb: colorArgb == null && nullToAbsent
+          ? const Value.absent()
+          : Value(colorArgb),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -1637,6 +1680,7 @@ class Tag extends DataClass implements Insertable<Tag> {
     return Tag(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
+      colorArgb: serializer.fromJson<int?>(json['colorArgb']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -1647,6 +1691,7 @@ class Tag extends DataClass implements Insertable<Tag> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
+      'colorArgb': serializer.toJson<int?>(colorArgb),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -1655,11 +1700,13 @@ class Tag extends DataClass implements Insertable<Tag> {
   Tag copyWith({
     int? id,
     String? name,
+    Value<int?> colorArgb = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => Tag(
     id: id ?? this.id,
     name: name ?? this.name,
+    colorArgb: colorArgb.present ? colorArgb.value : this.colorArgb,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -1667,6 +1714,7 @@ class Tag extends DataClass implements Insertable<Tag> {
     return Tag(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
+      colorArgb: data.colorArgb.present ? data.colorArgb.value : this.colorArgb,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -1677,6 +1725,7 @@ class Tag extends DataClass implements Insertable<Tag> {
     return (StringBuffer('Tag(')
           ..write('id: $id, ')
           ..write('name: $name, ')
+          ..write('colorArgb: $colorArgb, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -1684,13 +1733,14 @@ class Tag extends DataClass implements Insertable<Tag> {
   }
 
   @override
-  int get hashCode => Object.hash(id, name, createdAt, updatedAt);
+  int get hashCode => Object.hash(id, name, colorArgb, createdAt, updatedAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Tag &&
           other.id == this.id &&
           other.name == this.name &&
+          other.colorArgb == this.colorArgb &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -1698,29 +1748,34 @@ class Tag extends DataClass implements Insertable<Tag> {
 class TagsCompanion extends UpdateCompanion<Tag> {
   final Value<int> id;
   final Value<String> name;
+  final Value<int?> colorArgb;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   const TagsCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
+    this.colorArgb = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
   TagsCompanion.insert({
     this.id = const Value.absent(),
     required String name,
+    this.colorArgb = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   }) : name = Value(name);
   static Insertable<Tag> custom({
     Expression<int>? id,
     Expression<String>? name,
+    Expression<int>? colorArgb,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
+      if (colorArgb != null) 'color_argb': colorArgb,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
@@ -1729,12 +1784,14 @@ class TagsCompanion extends UpdateCompanion<Tag> {
   TagsCompanion copyWith({
     Value<int>? id,
     Value<String>? name,
+    Value<int?>? colorArgb,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
   }) {
     return TagsCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
+      colorArgb: colorArgb ?? this.colorArgb,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -1748,6 +1805,9 @@ class TagsCompanion extends UpdateCompanion<Tag> {
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
+    }
+    if (colorArgb.present) {
+      map['color_argb'] = Variable<int>(colorArgb.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -1763,6 +1823,7 @@ class TagsCompanion extends UpdateCompanion<Tag> {
     return (StringBuffer('TagsCompanion(')
           ..write('id: $id, ')
           ..write('name: $name, ')
+          ..write('colorArgb: $colorArgb, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -10208,7 +10269,7 @@ final class $$JournalsTableReferences
     _$AppDatabase db,
   ) => MultiTypedResultKey.fromTable(
     db.entries,
-    aliasName: $_aliasNameGenerator(db.journals.id, db.entries.journalId),
+    aliasName: 'journals__id__entries__journal_id',
   );
 
   $$EntriesTableProcessedTableManager get entriesRefs {
@@ -10226,7 +10287,7 @@ final class $$JournalsTableReferences
   static MultiTypedResultKey<$JournalTagsTable, List<JournalTag>>
   _journalTagsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.journalTags,
-    aliasName: $_aliasNameGenerator(db.journals.id, db.journalTags.journalId),
+    aliasName: 'journals__id__journal_tags__journal_id',
   );
 
   $$JournalTagsTableProcessedTableManager get journalTagsRefs {
@@ -10696,8 +10757,8 @@ final class $$EntriesTableReferences
     extends BaseReferences<_$AppDatabase, $EntriesTable, Entry> {
   $$EntriesTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static $JournalsTable _journalIdTable(_$AppDatabase db) => db.journals
-      .createAlias($_aliasNameGenerator(db.entries.journalId, db.journals.id));
+  static $JournalsTable _journalIdTable(_$AppDatabase db) =>
+      db.journals.createAlias('entries__journal_id__journals__id');
 
   $$JournalsTableProcessedTableManager get journalId {
     final $_column = $_itemColumn<int>('journal_id')!;
@@ -10716,7 +10777,7 @@ final class $$EntriesTableReferences
   static MultiTypedResultKey<$EntryTagsTable, List<EntryTag>>
   _entryTagsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.entryTags,
-    aliasName: $_aliasNameGenerator(db.entries.id, db.entryTags.entryId),
+    aliasName: 'entries__id__entry_tags__entry_id',
   );
 
   $$EntryTagsTableProcessedTableManager get entryTagsRefs {
@@ -10734,7 +10795,7 @@ final class $$EntriesTableReferences
   static MultiTypedResultKey<$AttachmentsTable, List<Attachment>>
   _attachmentsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.attachments,
-    aliasName: $_aliasNameGenerator(db.entries.id, db.attachments.entryId),
+    aliasName: 'entries__id__attachments__entry_id',
   );
 
   $$AttachmentsTableProcessedTableManager get attachmentsRefs {
@@ -10752,7 +10813,7 @@ final class $$EntriesTableReferences
   static MultiTypedResultKey<$BacklinksTable, List<Backlink>>
   _backlinksRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.backlinks,
-    aliasName: $_aliasNameGenerator(db.entries.id, db.backlinks.sourceEntryId),
+    aliasName: 'entries__id__backlinks__source_entry_id',
   );
 
   $$BacklinksTableProcessedTableManager get backlinksRefs {
@@ -10770,7 +10831,7 @@ final class $$EntriesTableReferences
   static MultiTypedResultKey<$EntryRevisionsTable, List<EntryRevision>>
   _entryRevisionsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.entryRevisions,
-    aliasName: $_aliasNameGenerator(db.entries.id, db.entryRevisions.entryId),
+    aliasName: 'entries__id__entry_revisions__entry_id',
   );
 
   $$EntryRevisionsTableProcessedTableManager get entryRevisionsRefs {
@@ -10788,7 +10849,7 @@ final class $$EntriesTableReferences
   static MultiTypedResultKey<$VoiceNotesTable, List<VoiceNote>>
   _voiceNotesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.voiceNotes,
-    aliasName: $_aliasNameGenerator(db.entries.id, db.voiceNotes.entryId),
+    aliasName: 'entries__id__voice_notes__entry_id',
   );
 
   $$VoiceNotesTableProcessedTableManager get voiceNotesRefs {
@@ -10806,7 +10867,7 @@ final class $$EntriesTableReferences
   static MultiTypedResultKey<$EntryMoodsTable, List<EntryMood>>
   _entryMoodsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.entryMoods,
-    aliasName: $_aliasNameGenerator(db.entries.id, db.entryMoods.entryId),
+    aliasName: 'entries__id__entry_moods__entry_id',
   );
 
   $$EntryMoodsTableProcessedTableManager get entryMoodsRefs {
@@ -11610,6 +11671,7 @@ typedef $$TagsTableCreateCompanionBuilder =
     TagsCompanion Function({
       Value<int> id,
       required String name,
+      Value<int?> colorArgb,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
     });
@@ -11617,6 +11679,7 @@ typedef $$TagsTableUpdateCompanionBuilder =
     TagsCompanion Function({
       Value<int> id,
       Value<String> name,
+      Value<int?> colorArgb,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
     });
@@ -11628,7 +11691,7 @@ final class $$TagsTableReferences
   static MultiTypedResultKey<$JournalTagsTable, List<JournalTag>>
   _journalTagsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.journalTags,
-    aliasName: $_aliasNameGenerator(db.tags.id, db.journalTags.tagId),
+    aliasName: 'tags__id__journal_tags__tag_id',
   );
 
   $$JournalTagsTableProcessedTableManager get journalTagsRefs {
@@ -11646,7 +11709,7 @@ final class $$TagsTableReferences
   static MultiTypedResultKey<$EntryTagsTable, List<EntryTag>>
   _entryTagsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.entryTags,
-    aliasName: $_aliasNameGenerator(db.tags.id, db.entryTags.tagId),
+    aliasName: 'tags__id__entry_tags__tag_id',
   );
 
   $$EntryTagsTableProcessedTableManager get entryTagsRefs {
@@ -11677,6 +11740,11 @@ class $$TagsTableFilterComposer extends Composer<_$AppDatabase, $TagsTable> {
 
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get colorArgb => $composableBuilder(
+    column: $table.colorArgb,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -11759,6 +11827,11 @@ class $$TagsTableOrderingComposer extends Composer<_$AppDatabase, $TagsTable> {
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get colorArgb => $composableBuilder(
+    column: $table.colorArgb,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -11784,6 +11857,9 @@ class $$TagsTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get colorArgb =>
+      $composableBuilder(column: $table.colorArgb, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -11872,11 +11948,13 @@ class $$TagsTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
+                Value<int?> colorArgb = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => TagsCompanion(
                 id: id,
                 name: name,
+                colorArgb: colorArgb,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),
@@ -11884,11 +11962,13 @@ class $$TagsTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 required String name,
+                Value<int?> colorArgb = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => TagsCompanion.insert(
                 id: id,
                 name: name,
+                colorArgb: colorArgb,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
               ),
@@ -11981,9 +12061,7 @@ final class $$JournalTagsTableReferences
   $$JournalTagsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static $JournalsTable _journalIdTable(_$AppDatabase db) =>
-      db.journals.createAlias(
-        $_aliasNameGenerator(db.journalTags.journalId, db.journals.id),
-      );
+      db.journals.createAlias('journal_tags__journal_id__journals__id');
 
   $$JournalsTableProcessedTableManager get journalId {
     final $_column = $_itemColumn<int>('journal_id')!;
@@ -11999,9 +12077,8 @@ final class $$JournalTagsTableReferences
     );
   }
 
-  static $TagsTable _tagIdTable(_$AppDatabase db) => db.tags.createAlias(
-    $_aliasNameGenerator(db.journalTags.tagId, db.tags.id),
-  );
+  static $TagsTable _tagIdTable(_$AppDatabase db) =>
+      db.tags.createAlias('journal_tags__tag_id__tags__id');
 
   $$TagsTableProcessedTableManager get tagId {
     final $_column = $_itemColumn<int>('tag_id')!;
@@ -12342,8 +12419,8 @@ final class $$EntryTagsTableReferences
     extends BaseReferences<_$AppDatabase, $EntryTagsTable, EntryTag> {
   $$EntryTagsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static $EntriesTable _entryIdTable(_$AppDatabase db) => db.entries
-      .createAlias($_aliasNameGenerator(db.entryTags.entryId, db.entries.id));
+  static $EntriesTable _entryIdTable(_$AppDatabase db) =>
+      db.entries.createAlias('entry_tags__entry_id__entries__id');
 
   $$EntriesTableProcessedTableManager get entryId {
     final $_column = $_itemColumn<int>('entry_id')!;
@@ -12360,7 +12437,7 @@ final class $$EntryTagsTableReferences
   }
 
   static $TagsTable _tagIdTable(_$AppDatabase db) =>
-      db.tags.createAlias($_aliasNameGenerator(db.entryTags.tagId, db.tags.id));
+      db.tags.createAlias('entry_tags__tag_id__tags__id');
 
   $$TagsTableProcessedTableManager get tagId {
     final $_column = $_itemColumn<int>('tag_id')!;
@@ -12709,8 +12786,8 @@ final class $$AttachmentsTableReferences
     extends BaseReferences<_$AppDatabase, $AttachmentsTable, Attachment> {
   $$AttachmentsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static $EntriesTable _entryIdTable(_$AppDatabase db) => db.entries
-      .createAlias($_aliasNameGenerator(db.attachments.entryId, db.entries.id));
+  static $EntriesTable _entryIdTable(_$AppDatabase db) =>
+      db.entries.createAlias('attachments__entry_id__entries__id');
 
   $$EntriesTableProcessedTableManager get entryId {
     final $_column = $_itemColumn<int>('entry_id')!;
@@ -12729,10 +12806,7 @@ final class $$AttachmentsTableReferences
   static MultiTypedResultKey<$AttachmentTextsTable, List<AttachmentText>>
   _attachmentTextsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.attachmentTexts,
-    aliasName: $_aliasNameGenerator(
-      db.attachments.id,
-      db.attachmentTexts.attachmentId,
-    ),
+    aliasName: 'attachments__id__attachment_texts__attachment_id',
   );
 
   $$AttachmentTextsTableProcessedTableManager get attachmentTextsRefs {
@@ -12752,10 +12826,7 @@ final class $$AttachmentsTableReferences
   static MultiTypedResultKey<$AttachmentLocksTable, List<AttachmentLock>>
   _attachmentLocksRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.attachmentLocks,
-    aliasName: $_aliasNameGenerator(
-      db.attachments.id,
-      db.attachmentLocks.attachmentId,
-    ),
+    aliasName: 'attachments__id__attachment_locks__attachment_id',
   );
 
   $$AttachmentLocksTableProcessedTableManager get attachmentLocksRefs {
@@ -13304,13 +13375,9 @@ final class $$AttachmentTextsTableReferences
     super.$_typedResult,
   );
 
-  static $AttachmentsTable _attachmentIdTable(_$AppDatabase db) =>
-      db.attachments.createAlias(
-        $_aliasNameGenerator(
-          db.attachmentTexts.attachmentId,
-          db.attachments.id,
-        ),
-      );
+  static $AttachmentsTable _attachmentIdTable(_$AppDatabase db) => db
+      .attachments
+      .createAlias('attachment_texts__attachment_id__attachments__id');
 
   $$AttachmentsTableProcessedTableManager get attachmentId {
     final $_column = $_itemColumn<int>('attachment_id')!;
@@ -13608,9 +13675,7 @@ final class $$BacklinksTableReferences
   $$BacklinksTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static $EntriesTable _sourceEntryIdTable(_$AppDatabase db) =>
-      db.entries.createAlias(
-        $_aliasNameGenerator(db.backlinks.sourceEntryId, db.entries.id),
-      );
+      db.entries.createAlias('backlinks__source_entry_id__entries__id');
 
   $$EntriesTableProcessedTableManager get sourceEntryId {
     final $_column = $_itemColumn<int>('source_entry_id')!;
@@ -14599,9 +14664,7 @@ final class $$EntryRevisionsTableReferences
   );
 
   static $EntriesTable _entryIdTable(_$AppDatabase db) =>
-      db.entries.createAlias(
-        $_aliasNameGenerator(db.entryRevisions.entryId, db.entries.id),
-      );
+      db.entries.createAlias('entry_revisions__entry_id__entries__id');
 
   $$EntriesTableProcessedTableManager get entryId {
     final $_column = $_itemColumn<int>('entry_id')!;
@@ -14941,8 +15004,8 @@ final class $$VoiceNotesTableReferences
     extends BaseReferences<_$AppDatabase, $VoiceNotesTable, VoiceNote> {
   $$VoiceNotesTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static $EntriesTable _entryIdTable(_$AppDatabase db) => db.entries
-      .createAlias($_aliasNameGenerator(db.voiceNotes.entryId, db.entries.id));
+  static $EntriesTable _entryIdTable(_$AppDatabase db) =>
+      db.entries.createAlias('voice_notes__entry_id__entries__id');
 
   $$EntriesTableProcessedTableManager get entryId {
     final $_column = $_itemColumn<int>('entry_id')!;
@@ -16770,13 +16833,9 @@ final class $$AttachmentLocksTableReferences
     super.$_typedResult,
   );
 
-  static $AttachmentsTable _attachmentIdTable(_$AppDatabase db) =>
-      db.attachments.createAlias(
-        $_aliasNameGenerator(
-          db.attachmentLocks.attachmentId,
-          db.attachments.id,
-        ),
-      );
+  static $AttachmentsTable _attachmentIdTable(_$AppDatabase db) => db
+      .attachments
+      .createAlias('attachment_locks__attachment_id__attachments__id');
 
   $$AttachmentsTableProcessedTableManager get attachmentId {
     final $_column = $_itemColumn<int>('attachment_id')!;
@@ -17330,8 +17389,8 @@ final class $$EntryMoodsTableReferences
     extends BaseReferences<_$AppDatabase, $EntryMoodsTable, EntryMood> {
   $$EntryMoodsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static $EntriesTable _entryIdTable(_$AppDatabase db) => db.entries
-      .createAlias($_aliasNameGenerator(db.entryMoods.entryId, db.entries.id));
+  static $EntriesTable _entryIdTable(_$AppDatabase db) =>
+      db.entries.createAlias('entry_moods__entry_id__entries__id');
 
   $$EntriesTableProcessedTableManager get entryId {
     final $_column = $_itemColumn<int>('entry_id')!;

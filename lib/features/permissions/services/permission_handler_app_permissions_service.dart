@@ -10,7 +10,7 @@ import 'package:sreerajp_journal_vault/features/permissions/services/app_permiss
 /// the `permission_handler` package.
 class PermissionHandlerAppPermissionsService implements AppPermissionsService {
   PermissionHandlerAppPermissionsService({DeviceInfoPlugin? deviceInfo})
-      : _deviceInfo = deviceInfo ?? DeviceInfoPlugin();
+    : _deviceInfo = deviceInfo ?? DeviceInfoPlugin();
 
   final DeviceInfoPlugin _deviceInfo;
   int? _cachedAndroidSdkInt;
@@ -90,7 +90,8 @@ class PermissionHandlerAppPermissionsService implements AppPermissionsService {
           'attaching them to journal entries.',
       status: state,
       canRequestAgain: state == AppPermissionState.denied,
-      canOpenSystemSettings: state == AppPermissionState.denied ||
+      canOpenSystemSettings:
+          state == AppPermissionState.denied ||
           state == AppPermissionState.permanentlyDenied,
     );
   }
@@ -122,9 +123,9 @@ class PermissionHandlerAppPermissionsService implements AppPermissionsService {
     return switch (status) {
       PermissionStatus.granted ||
       PermissionStatus.limited ||
-      PermissionStatus.provisional =>
-        AppPermissionState.granted,
-      PermissionStatus.permanentlyDenied => AppPermissionState.permanentlyDenied,
+      PermissionStatus.provisional => AppPermissionState.granted,
+      PermissionStatus.permanentlyDenied =>
+        AppPermissionState.permanentlyDenied,
       _ => AppPermissionState.denied,
     };
   }

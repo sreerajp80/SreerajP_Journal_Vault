@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 
 import 'package:sreerajp_journal_vault/features/import/providers/import_providers.dart';
 import 'package:sreerajp_journal_vault/features/import/services/import_service.dart';
+import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 /// Screen for importing files into a journal.
 ///
@@ -29,13 +30,12 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final importService = ref.read(importServiceProvider);
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Import Files'),
-      ),
+      appBar: AppBar(title: Text(l10n.importTitle)),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -69,7 +69,9 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
             ),
             const SizedBox(height: 24),
             FilledButton.icon(
-              onPressed: _isImporting ? null : () => _pickAndImport(importService),
+              onPressed: _isImporting
+                  ? null
+                  : () => _pickAndImport(importService),
               icon: _isImporting
                   ? const SizedBox(
                       width: 18,
@@ -77,11 +79,16 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.file_open),
-              label: Text(_isImporting ? 'Importing...' : 'Select Files to Import'),
+              label: Text(
+                _isImporting ? l10n.importSelecting : l10n.importSelectFiles,
+              ),
             ),
             const SizedBox(height: 24),
             if (_results != null) ...[
-              Text('Import Results', style: theme.textTheme.titleSmall),
+              Text(
+                l10n.importResultsHeading,
+                style: theme.textTheme.titleSmall,
+              ),
               const SizedBox(height: 8),
               Expanded(
                 child: ListView.builder(
@@ -98,9 +105,9 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
                       ),
                       title: Text(entry.key),
                       subtitle: result.isSuccess
-                          ? const Text('Imported successfully')
+                          ? Text(l10n.importFileSucceeded)
                           : Text(
-                              result.error ?? 'Unknown error',
+                              result.error ?? l10n.commonUnknownError,
                               style: TextStyle(color: theme.colorScheme.error),
                             ),
                     );
@@ -116,7 +123,9 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
                       Icon(
                         Icons.upload_file,
                         size: 64,
-                        color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                        color: theme.colorScheme.onSurfaceVariant.withValues(
+                          alpha: 0.5,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -136,7 +145,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
   }
 
   Future<void> _pickAndImport(ImportService importService) async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       allowMultiple: true,
       type: FileType.custom,
       allowedExtensions: ['txt', 'md', 'markdown', 'docx'],
@@ -153,10 +162,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
     final inputs = <ImportFileInput>[];
     for (final file in result.files) {
       if (file.bytes != null) {
-        inputs.add(ImportFileInput(
-          fileName: file.name,
-          bytes: file.bytes!,
-        ));
+        inputs.add(ImportFileInput(fileName: file.name, bytes: file.bytes!));
       }
     }
 
@@ -171,12 +177,15 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
         _results = importResults;
       });
 
-      final successCount =
-          importResults.values.where((r) => r.isSuccess).length;
+      final successCount = importResults.values
+          .where((r) => r.isSuccess)
+          .length;
       if (successCount > 0) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('$successCount file(s) imported successfully'),
+            content: Text(
+              AppLocalizations.of(context).importCountSucceeded(successCount),
+            ),
           ),
         );
       }

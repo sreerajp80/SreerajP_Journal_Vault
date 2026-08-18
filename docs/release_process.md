@@ -171,19 +171,22 @@ build/app/intermediates/merged_manifests/prodRelease/processProdReleaseManifest/
 - [ ] `dart format --output=none --set-exit-if-changed lib test integration_test` passes.
 - [ ] `flutter analyze` reports no issues.
 - [ ] `flutter test` — **all** tests pass.
+- [ ] The built APK carries `lib/<abi>/libsqlcipher.so` and **no** `libsqlite3.so`.
+      Two copies of sqlite can leave the vault written in plain form. Unzip the APK and
+      look, or run `flutter test integration_test/encrypted_database_test.dart -d <device>`.
 
 > **Do not run `dart format .`** — it walks into `build/` and crashes on stale Gradle transform
 > paths (`PathNotFoundException`). Always name the source directories.
 
-> **Two blockers today (2026-07-25), both pre-existing:**
+> **Both former blockers are now cleared (2026-07-25):**
 >
-> 1. `test/widget_test.dart` → "Journal detail groups entries and reacts to entry CRUD" fails.
->    It failed before the security work began and still does. Fix it or consciously accept it;
->    do not let it quietly become normal.
-> 2. **95 of 132 source files do not match `dart format`.** Dart 3.11 shipped a new formatter
->    style, and the codebase predates it. Reformatting is a mechanical but enormous diff, so it
->    was deliberately not bundled with security work. Do it as its own commit, before this
->    checklist item can honestly be ticked.
+> 1. The `test/widget_test.dart` failure — "Journal detail groups entries and reacts to entry
+>    CRUD" — was a test bug, not an app bug, and was fixed in the last-mile integration pass.
+> 2. The formatting gap — the whole codebase was reformatted with the Dart 3.12 formatter during
+>    the Flutter 3.44.8 upgrade. The `dart format` checklist item above now passes honestly.
+>
+> Current state on Flutter `3.44.8` / Dart `3.12.2`: `flutter analyze` clean, 257 tests passing,
+> `dart format` clean. Keep all three green.
 
 ### Security
 

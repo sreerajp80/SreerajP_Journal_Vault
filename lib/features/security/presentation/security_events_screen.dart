@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/features/security/providers/security_providers.dart';
+import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 /// Displays a chronological log of security events with severity indicators.
 ///
@@ -14,24 +15,27 @@ class SecurityEventsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final eventsAsync = ref.watch(recentSecurityEventsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Security Events'),
-      ),
+      appBar: AppBar(title: Text(l10n.securityEventsTitle)),
       body: eventsAsync.when(
         data: (events) {
           if (events.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.shield_outlined, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
+                  const Icon(
+                    Icons.shield_outlined,
+                    size: 64,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(height: 16),
                   Text(
-                    'No security events recorded',
-                    style: TextStyle(color: Colors.grey, fontSize: 16),
+                    l10n.securityEventsEmpty,
+                    style: const TextStyle(color: Colors.grey, fontSize: 16),
                   ),
                 ],
               ),
@@ -45,7 +49,7 @@ class SecurityEventsScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        error: (e, _) => Center(child: Text(l10n.commonError(e.toString()))),
       ),
     );
   }
@@ -63,10 +67,7 @@ class _SecurityEventTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: _severityIcon(event.severity),
-        title: Text(
-          event.description,
-          style: theme.textTheme.bodyMedium,
-        ),
+        title: Text(event.description, style: theme.textTheme.bodyMedium),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -86,9 +87,7 @@ class _SecurityEventTile extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               _formatDateTime(event.createdAt),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: Colors.grey,
-              ),
+              style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
             ),
           ],
         ),
@@ -154,7 +153,7 @@ class _SecurityEventTile extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Event Details'),
+        title: Text(AppLocalizations.of(context).securityEventDetailsTitle),
         content: SingleChildScrollView(
           child: SelectableText(
             formatted,
@@ -164,7 +163,7 @@ class _SecurityEventTile extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
+            child: Text(AppLocalizations.of(context).commonClose),
           ),
         ],
       ),

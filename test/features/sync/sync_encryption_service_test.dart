@@ -25,17 +25,19 @@ void main() {
       expect(decrypted, original);
     });
 
-    test('produces different ciphertext for the same plaintext (random nonce)',
-        () async {
-      final salt = List<int>.generate(16, (i) => i);
-      final key = await service.deriveKey('p', salt);
-      final data = {'a': 1};
+    test(
+      'produces different ciphertext for the same plaintext (random nonce)',
+      () async {
+        final salt = List<int>.generate(16, (i) => i);
+        final key = await service.deriveKey('p', salt);
+        final data = {'a': 1};
 
-      final first = await service.encryptRecord(data, key);
-      final second = await service.encryptRecord(data, key);
+        final first = await service.encryptRecord(data, key);
+        final second = await service.encryptRecord(data, key);
 
-      expect(first, isNot(second));
-    });
+        expect(first, isNot(second));
+      },
+    );
 
     test('decryption with the wrong key fails', () async {
       final salt = List<int>.generate(16, (i) => i);
@@ -55,12 +57,8 @@ void main() {
       final encrypted = await service.encryptRecord({'a': 1}, key);
 
       // Flip the last character to corrupt the ciphertext.
-      final tampered =
-          '${encrypted.substring(0, encrypted.length - 2)}AA';
-      expect(
-        () => service.decryptRecord(tampered, key),
-        throwsA(anything),
-      );
+      final tampered = '${encrypted.substring(0, encrypted.length - 2)}AA';
+      expect(() => service.decryptRecord(tampered, key), throwsA(anything));
     });
   });
 

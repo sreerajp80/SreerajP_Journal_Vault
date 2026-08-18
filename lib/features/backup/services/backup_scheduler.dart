@@ -63,8 +63,7 @@ class BackupScheduler {
     final enabled = prefs.getBool(_keyEnabled) ?? false;
     final interval = prefs.getString(_keyInterval) ?? 'daily';
     final lastRunStr = prefs.getString(_keyLastRun);
-    final lastRun =
-        lastRunStr != null ? DateTime.tryParse(lastRunStr) : null;
+    final lastRun = lastRunStr != null ? DateTime.tryParse(lastRunStr) : null;
     final hasPassword = (prefs.getString(_keyPassword) ?? '').isNotEmpty;
 
     return BackupScheduleSettings(
@@ -143,9 +142,7 @@ class BackupScheduler {
     final password = prefs.getString(_keyPassword);
     if (password == null || password.isEmpty) return null;
 
-    return _backupService.createBackup(
-      password: password,
-    );
+    return _backupService.createBackup(password: password);
   }
 
   void dispose() {
@@ -169,16 +166,7 @@ class BackupScheduleSettings {
     required this.isTimerActive,
   });
 
-  String get intervalDisplayName {
-    switch (interval) {
-      case 'daily':
-        return 'Daily';
-      case 'weekly':
-        return 'Weekly';
-      case 'monthly':
-        return 'Monthly';
-      default:
-        return interval;
-    }
-  }
+  // The interval is stored as a database code ('daily', 'weekly', 'monthly').
+  // Its display name is looked up in the UI layer, where AppLocalizations is
+  // reachable — a service must not build text for the user.
 }

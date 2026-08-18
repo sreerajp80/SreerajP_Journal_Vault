@@ -35,48 +35,53 @@ final attachmentLockServiceProvider = Provider<AttachmentLockService>((ref) {
 
 // ──────────────── Auto-lock profiles ────────────────
 
-final autoLockProfilesProvider =
-    FutureProvider<List<AutoLockProfile>>((ref) async {
+final autoLockProfilesProvider = FutureProvider<List<AutoLockProfile>>((
+  ref,
+) async {
   final service = ref.read(autoLockServiceProvider);
   return service.getAllProfiles();
 });
 
-final activeAutoLockProfileProvider =
-    StreamProvider<AutoLockProfile?>((ref) {
+final activeAutoLockProfileProvider = StreamProvider<AutoLockProfile?>((ref) {
   final service = ref.read(autoLockServiceProvider);
   return service.watchActiveProfile();
 });
 
 // ──────────────── Security events ────────────────
 
-final recentSecurityEventsProvider =
-    StreamProvider<List<SecurityEvent>>((ref) {
+final recentSecurityEventsProvider = StreamProvider<List<SecurityEvent>>((ref) {
   final service = ref.read(securityEventServiceProvider);
   return service.watchRecentEvents();
 });
 
-final criticalSecurityEventsProvider =
-    FutureProvider<List<SecurityEvent>>((ref) async {
+final criticalSecurityEventsProvider = FutureProvider<List<SecurityEvent>>((
+  ref,
+) async {
   final service = ref.read(securityEventServiceProvider);
   return service.getCriticalEvents();
 });
 
-final securityEventCountProvider =
-    FutureProvider.family<int, DateTime>((ref, since) async {
+final securityEventCountProvider = FutureProvider.family<int, DateTime>((
+  ref,
+  since,
+) async {
   final service = ref.read(securityEventServiceProvider);
   return service.getEventCountSince(since);
 });
 
 // ──────────────── Attachment locks ────────────────
 
-final attachmentLockStatusProvider =
-    FutureProvider.family<bool, int>((ref, attachmentId) async {
+final attachmentLockStatusProvider = FutureProvider.family<bool, int>((
+  ref,
+  attachmentId,
+) async {
   final service = ref.read(attachmentLockServiceProvider);
   return service.isLocked(attachmentId);
 });
 
-final lockedAttachmentsProvider =
-    FutureProvider<List<AttachmentLock>>((ref) async {
+final lockedAttachmentsProvider = FutureProvider<List<AttachmentLock>>((
+  ref,
+) async {
   final service = ref.read(attachmentLockServiceProvider);
   return service.getLockedAttachments();
 });

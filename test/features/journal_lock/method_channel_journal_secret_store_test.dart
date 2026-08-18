@@ -20,9 +20,9 @@ void main() {
     handler = null;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (call) async {
-      calls.add(call);
-      return handler?.call(call);
-    });
+          calls.add(call);
+          return handler?.call(call);
+        });
   });
 
   tearDown(() {
@@ -30,37 +30,38 @@ void main() {
         .setMockMethodCallHandler(channel, null);
   });
 
-  test('createSecret returns 32 random bytes and stores them base64-encoded',
-      () async {
-    handler = (_) => null;
+  test(
+    'createSecret returns 32 random bytes and stores them base64-encoded',
+    () async {
+      handler = (_) => null;
 
-    final bytes = await store.createSecret('cred-1');
+      final bytes = await store.createSecret('cred-1');
 
-    expect(bytes, hasLength(32));
-    expect(calls.single.method, 'storeJournalSecret');
-    final args = calls.single.arguments as Map;
-    expect(args['credentialReference'], 'cred-1');
-    expect(args['secretBase64'], base64.encode(bytes));
-  });
+      expect(bytes, hasLength(32));
+      expect(calls.single.method, 'storeJournalSecret');
+      final args = calls.single.arguments as Map;
+      expect(args['credentialReference'], 'cred-1');
+      expect(args['secretBase64'], base64.encode(bytes));
+    },
+  );
 
-  test('createSecret produces independent random bytes per invocation',
-      () async {
-    handler = (_) => null;
+  test(
+    'createSecret produces independent random bytes per invocation',
+    () async {
+      handler = (_) => null;
 
-    final a = await store.createSecret('cred-a');
-    final b = await store.createSecret('cred-b');
+      final a = await store.createSecret('cred-a');
+      final b = await store.createSecret('cred-b');
 
-    expect(a, isNot(equals(b)));
-  });
+      expect(a, isNot(equals(b)));
+    },
+  );
 
   test('loadSecret decodes the platform-returned base64 string', () async {
     final bytes = List<int>.generate(32, (i) => i);
     handler = (call) {
       expect(call.method, 'loadJournalSecret');
-      expect(
-        (call.arguments as Map)['credentialReference'],
-        'cred-load',
-      );
+      expect((call.arguments as Map)['credentialReference'], 'cred-load');
       return base64.encode(bytes);
     };
 
@@ -93,22 +94,21 @@ void main() {
     handler = (_) =>
         throw PlatformException(code: 'keystore_failure', message: 'boom');
 
-    expect(
-      store.loadSecret('cred-broken'),
-      throwsA(isA<PlatformException>()),
-    );
+    expect(store.loadSecret('cred-broken'), throwsA(isA<PlatformException>()));
   });
 
-  test('deleteSecret invokes deleteJournalSecret with the credential ref',
-      () async {
-    handler = (_) => null;
+  test(
+    'deleteSecret invokes deleteJournalSecret with the credential ref',
+    () async {
+      handler = (_) => null;
 
-    await store.deleteSecret('cred-del');
+      await store.deleteSecret('cred-del');
 
-    expect(calls.single.method, 'deleteJournalSecret');
-    expect(
-      (calls.single.arguments as Map)['credentialReference'],
-      'cred-del',
-    );
-  });
+      expect(calls.single.method, 'deleteJournalSecret');
+      expect(
+        (calls.single.arguments as Map)['credentialReference'],
+        'cred-del',
+      );
+    },
+  );
 }

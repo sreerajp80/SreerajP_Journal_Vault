@@ -54,11 +54,13 @@ void main() {
 
     test('only counts entries with non-null entry_date', () async {
       // No entryDate
-      await db.entriesDao.createEntry(EntriesCompanion.insert(
-        journalId: journalId,
-        title: const Value('untimed'),
-        contentJson: const Value('[]'),
-      ));
+      await db.entriesDao.createEntry(
+        EntriesCompanion.insert(
+          journalId: journalId,
+          title: const Value('untimed'),
+          contentJson: const Value('[]'),
+        ),
+      );
       await insertEntry(DateTime.utc(2026, 5, 9, 12));
 
       final counts = await db.getEntryCountsForMonth(2026, 5);
@@ -119,30 +121,29 @@ void main() {
       expect(entries.map((e) => e.title), ['early', 'noon', 'late']);
     });
 
-    test('uses local-day boundaries (start and end of day are inclusive)',
-        () async {
-      final target = DateTime(2026, 5, 9);
-      // Boundary case: midnight at start of day must be included.
-      await insertEntry(
-        DateTime(target.year, target.month, target.day),
-        title: 'midnight',
-      );
-      // Just before next day midnight: included.
-      await insertEntry(
-        DateTime(target.year, target.month, target.day, 23, 59, 59),
-        title: 'almost-midnight',
-      );
-      // Next day midnight: excluded.
-      await insertEntry(
-        DateTime(target.year, target.month, target.day + 1),
-        title: 'next-day',
-      );
+    test(
+      'uses local-day boundaries (start and end of day are inclusive)',
+      () async {
+        final target = DateTime(2026, 5, 9);
+        // Boundary case: midnight at start of day must be included.
+        await insertEntry(
+          DateTime(target.year, target.month, target.day),
+          title: 'midnight',
+        );
+        // Just before next day midnight: included.
+        await insertEntry(
+          DateTime(target.year, target.month, target.day, 23, 59, 59),
+          title: 'almost-midnight',
+        );
+        // Next day midnight: excluded.
+        await insertEntry(
+          DateTime(target.year, target.month, target.day + 1),
+          title: 'next-day',
+        );
 
-      final entries = await db.getEntriesForDate(target);
-      expect(
-        entries.map((e) => e.title),
-        ['midnight', 'almost-midnight'],
-      );
-    });
+        final entries = await db.getEntriesForDate(target);
+        expect(entries.map((e) => e.title), ['midnight', 'almost-midnight']);
+      },
+    );
   });
 }

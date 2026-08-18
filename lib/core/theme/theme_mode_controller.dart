@@ -68,7 +68,7 @@ class ThemeModeController {
   ThemeModeState get state => _state;
 
   ThemeModeController(this._store)
-      : _state = ThemeModeState(mode: _store.read(), isUpdating: false);
+    : _state = ThemeModeState(mode: _store.read(), isUpdating: false);
 
   Future<ThemeModeUpdateResult> updateTheme(ThemeMode mode) async {
     if (_isSaving) {

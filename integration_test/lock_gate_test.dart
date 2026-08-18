@@ -63,20 +63,14 @@ void main() {
     expect(find.byKey(const Key('app-lock-pin-field')), findsOneWidget);
 
     // ── Wrong PIN is denied ───────────────────────────────────────────
-    await tester.enterText(
-      find.byKey(const Key('app-lock-pin-field')),
-      '0000',
-    );
+    await tester.enterText(find.byKey(const Key('app-lock-pin-field')), '0000');
     await tester.tap(find.byKey(const Key('app-lock-unlock-button')));
     await tester.pumpAndSettle();
     expect(find.text('Incorrect PIN.'), findsOneWidget);
     expect(find.text('App Lock Gate'), findsOneWidget);
 
     // ── Right PIN unlocks ─────────────────────────────────────────────
-    await tester.enterText(
-      find.byKey(const Key('app-lock-pin-field')),
-      '1234',
-    );
+    await tester.enterText(find.byKey(const Key('app-lock-pin-field')), '1234');
     await tester.tap(find.byKey(const Key('app-lock-unlock-button')));
     await tester.pumpAndSettle();
     expect(find.text('Home'), findsWidgets);
@@ -95,8 +89,8 @@ void main() {
     expect(find.text('App Lock Gate'), findsOneWidget);
 
     // Confirm DB persisted isLocked=true on pause.
-    final settingsAfterPause =
-        await database.appSecurityDao.getSecuritySettings();
+    final settingsAfterPause = await database.appSecurityDao
+        .getSecuritySettings();
     expect(settingsAfterPause.isLocked, isTrue);
 
     // ── Simulated restart — still locked ─────────────────────────────
@@ -108,10 +102,7 @@ void main() {
     expect(find.byKey(const Key('app-lock-pin-field')), findsOneWidget);
 
     // Right PIN still unlocks after restart.
-    await tester.enterText(
-      find.byKey(const Key('app-lock-pin-field')),
-      '1234',
-    );
+    await tester.enterText(find.byKey(const Key('app-lock-pin-field')), '1234');
     await tester.tap(find.byKey(const Key('app-lock-unlock-button')));
     await tester.pumpAndSettle();
     expect(find.text('Home'), findsWidgets);
@@ -119,8 +110,9 @@ void main() {
     await database.close();
   });
 
-  testWidgets('Phone-lock mode requires biometric success to unlock',
-      (tester) async {
+  testWidgets('Phone-lock mode requires biometric success to unlock', (
+    tester,
+  ) async {
     final database = AppDatabase.forExecutor(NativeDatabase.memory());
     final keystore = _InMemoryAppPinKeystore();
     final biometric = _FakeBiometricAuthenticator();
@@ -150,7 +142,10 @@ void main() {
     await tester.tap(find.byKey(const Key('phone-lock-unlock-button')));
     await tester.pumpAndSettle();
     expect(find.text('App Lock Gate'), findsOneWidget);
-    expect(find.text('Authentication failed. Please try again.'), findsOneWidget);
+    expect(
+      find.text('Authentication failed. Please try again.'),
+      findsOneWidget,
+    );
 
     // Success path: biometric returns success → unlocks.
     biometric.nextResult = BiometricAuthResult.success;
@@ -200,8 +195,7 @@ void main() {
 
       // Create the locked journal directly through the password service so we
       // do not depend on the journal-form dialog UI.
-      final passwordService =
-          JournalPasswordService(secretStore: secretStore);
+      final passwordService = JournalPasswordService(secretStore: secretStore);
       final journalId = await database.journalsDao.createJournal(
         JournalsCompanion.insert(title: 'Vault'),
       );
@@ -259,8 +253,9 @@ void main() {
 
       // The DEK must be loadable from the store — proving persistence beyond
       // the in-memory default.
-      final reloaded =
-          await secretStore.loadSecret(credential.credentialReference);
+      final reloaded = await secretStore.loadSecret(
+        credential.credentialReference,
+      );
       expect(reloaded, hasLength(32));
 
       await database.close();
@@ -279,8 +274,7 @@ class _PersistentJournalSecretStore implements JournalSecretStore {
 
   @override
   Future<List<int>> createSecret(String credentialReference) async {
-    final bytes =
-        List<int>.generate(32, (i) => (i * 7 + 11) % 256);
+    final bytes = List<int>.generate(32, (i) => (i * 7 + 11) % 256);
     _secrets[credentialReference] = bytes;
     return bytes;
   }

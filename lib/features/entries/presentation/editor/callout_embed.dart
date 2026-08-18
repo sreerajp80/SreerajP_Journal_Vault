@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 /// Custom embeddable block type for callout/admonition blocks.
 ///
@@ -24,10 +25,7 @@ class CalloutEmbed extends CustomBlockEmbed {
     return map['text'] as String? ?? '';
   }
 
-  factory CalloutEmbed.create({
-    String style = 'info',
-    String text = '',
-  }) {
+  factory CalloutEmbed.create({String style = 'info', String text = ''}) {
     return CalloutEmbed(jsonEncode({'style': style, 'text': text}));
   }
 }
@@ -40,7 +38,8 @@ class CalloutEmbedBuilder extends EmbedBuilder {
   @override
   Widget build(BuildContext context, EmbedContext embedContext) {
     final data =
-        jsonDecode(embedContext.node.value.data as String) as Map<String, dynamic>;
+        jsonDecode(embedContext.node.value.data as String)
+            as Map<String, dynamic>;
     final style = data['style'] as String? ?? 'info';
     final text = data['text'] as String? ?? '';
 
@@ -171,11 +170,11 @@ class _CalloutBlockState extends State<_CalloutBlock> {
                 : TextField(
                     controller: _controller,
                     focusNode: _focusNode,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       border: InputBorder.none,
                       isDense: true,
                       contentPadding: EdgeInsets.zero,
-                      hintText: 'Enter callout text...',
+                      hintText: AppLocalizations.of(context).editorCalloutHint,
                     ),
                     maxLines: null,
                     style: theme.textTheme.bodyMedium,
@@ -218,10 +217,7 @@ class _CalloutBlockState extends State<_CalloutBlock> {
     // inner field is focused, and the editor keeps its caret blinking — the
     // double cursor users were seeing.
     return TextFieldTapRegion(
-      child: Focus(
-        parentNode: FocusManager.instance.rootScope,
-        child: body,
-      ),
+      child: Focus(parentNode: FocusManager.instance.rootScope, child: body),
     );
   }
 

@@ -12,19 +12,20 @@ import 'package:sreerajp_journal_vault/features/attachments/services/attachment_
 /// cached in SharedPreferences on the platform side. The Dart layer only
 /// ever sees the raw key bytes for the duration of an encrypt/decrypt call.
 class PlatformAttachmentKeyManager implements AttachmentKeyManager {
-  static const _channel = MethodChannel('sreerajp.journal_vault/attachment_keys');
+  static const _channel = MethodChannel(
+    'sreerajp.journal_vault/attachment_keys',
+  );
 
   @override
   Future<AttachmentKeyMaterial> getOrCreateActiveKey() async {
-    final encoded = await _channel.invokeMethod<String>(
-      'getAttachmentKey',
-      {
-        'keyReference': activeAttachmentKeyReference,
-        'createIfMissing': true,
-      },
-    );
+    final encoded = await _channel.invokeMethod<String>('getAttachmentKey', {
+      'keyReference': activeAttachmentKeyReference,
+      'createIfMissing': true,
+    });
     if (encoded == null) {
-      throw const AttachmentKeyUnavailableException(activeAttachmentKeyReference);
+      throw const AttachmentKeyUnavailableException(
+        activeAttachmentKeyReference,
+      );
     }
     final keyBytes = base64.decode(encoded);
     return AttachmentKeyMaterial(
@@ -35,13 +36,10 @@ class PlatformAttachmentKeyManager implements AttachmentKeyManager {
 
   @override
   Future<SecretKey> loadKey(String keyReference) async {
-    final encoded = await _channel.invokeMethod<String>(
-      'getAttachmentKey',
-      {
-        'keyReference': keyReference,
-        'createIfMissing': false,
-      },
-    );
+    final encoded = await _channel.invokeMethod<String>('getAttachmentKey', {
+      'keyReference': keyReference,
+      'createIfMissing': false,
+    });
     if (encoded == null) {
       throw AttachmentKeyUnavailableException(keyReference);
     }

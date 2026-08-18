@@ -27,14 +27,22 @@ migrate_working_dir/
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
+.flutter-plugins
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
 /build/
 /coverage/
 
+# Build artifacts — never commit (standard section 20.4)
+*.apk
+*.aab
+*.ipa
+*.msix
+
 # Symbolication related
 app.*.symbols
+*.symbols/
 
 # Obfuscation related
 app.*.map.json

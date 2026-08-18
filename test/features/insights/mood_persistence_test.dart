@@ -48,20 +48,22 @@ void main() {
     expect(all, hasLength(1));
   });
 
-  test('getAllMoods returns one row per entry after multiple setMood calls',
-      () async {
-    final journalId = await database.journalsDao.createJournal(
-      JournalsCompanion.insert(title: 'J'),
-    );
-    final e1 = await createEntry(DateTime.now(), journalId: journalId);
-    final e2 = await createEntry(DateTime.now(), journalId: journalId);
-    await service.setMood(entryId: e1, mood: 2);
-    await service.setMood(entryId: e2, mood: 4);
+  test(
+    'getAllMoods returns one row per entry after multiple setMood calls',
+    () async {
+      final journalId = await database.journalsDao.createJournal(
+        JournalsCompanion.insert(title: 'J'),
+      );
+      final e1 = await createEntry(DateTime.now(), journalId: journalId);
+      final e2 = await createEntry(DateTime.now(), journalId: journalId);
+      await service.setMood(entryId: e1, mood: 2);
+      await service.setMood(entryId: e2, mood: 4);
 
-    final moods = await database.entryMoodsDao.getAllMoods();
-    expect(moods, hasLength(2));
-    expect(moods.map((m) => m.mood).toSet(), {2, 4});
-  });
+      final moods = await database.entryMoodsDao.getAllMoods();
+      expect(moods, hasLength(2));
+      expect(moods.map((m) => m.mood).toSet(), {2, 4});
+    },
+  );
 
   test('deleteMood removes the mood row', () async {
     final journalId = await database.journalsDao.createJournal(
@@ -75,28 +77,30 @@ void main() {
     expect(await service.getMoodForEntry(entryId), isNull);
   });
 
-  test('getMoodTrends returns a data point for entries inside the range',
-      () async {
-    final journalId = await database.journalsDao.createJournal(
-      JournalsCompanion.insert(title: 'J'),
-    );
-    final today = DateTime.utc(2026, 5, 9, 12);
-    final yesterday = today.subtract(const Duration(days: 1));
+  test(
+    'getMoodTrends returns a data point for entries inside the range',
+    () async {
+      final journalId = await database.journalsDao.createJournal(
+        JournalsCompanion.insert(title: 'J'),
+      );
+      final today = DateTime.utc(2026, 5, 9, 12);
+      final yesterday = today.subtract(const Duration(days: 1));
 
-    final e1 = await createEntry(yesterday, journalId: journalId);
-    final e2 = await createEntry(today, journalId: journalId);
-    await service.setMood(entryId: e1, mood: 2);
-    await service.setMood(entryId: e2, mood: 4);
+      final e1 = await createEntry(yesterday, journalId: journalId);
+      final e2 = await createEntry(today, journalId: journalId);
+      await service.setMood(entryId: e1, mood: 2);
+      await service.setMood(entryId: e2, mood: 4);
 
-    final trends = await service.getMoodTrends(
-      from: today.subtract(const Duration(days: 7)),
-      to: today.add(const Duration(days: 1)),
-    );
+      final trends = await service.getMoodTrends(
+        from: today.subtract(const Duration(days: 7)),
+        to: today.add(const Duration(days: 1)),
+      );
 
-    expect(trends, isNotEmpty);
-    final values = trends.map((d) => d.averageMood).toSet();
-    expect(values, containsAll([2.0, 4.0]));
-  });
+      expect(trends, isNotEmpty);
+      final values = trends.map((d) => d.averageMood).toSet();
+      expect(values, containsAll([2.0, 4.0]));
+    },
+  );
 
   test('asserts mood is between 1 and 5', () async {
     final journalId = await database.journalsDao.createJournal(

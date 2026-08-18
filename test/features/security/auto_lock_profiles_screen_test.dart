@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
 import 'package:sreerajp_journal_vault/features/security/presentation/auto_lock_profiles_screen.dart';
+import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 void main() {
   late AppDatabase database;
@@ -20,10 +21,12 @@ void main() {
   Future<void> pumpScreen(WidgetTester tester) async {
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [
-          appDatabaseProvider.overrideWithValue(database),
-        ],
-        child: const MaterialApp(home: AutoLockProfilesScreen()),
+        overrides: [appDatabaseProvider.overrideWithValue(database)],
+        child: const MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: AutoLockProfilesScreen(),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -31,10 +34,7 @@ void main() {
 
   testWidgets('initial empty state shows the placeholder copy', (tester) async {
     await pumpScreen(tester);
-    expect(
-      find.textContaining('No auto-lock profiles yet'),
-      findsOneWidget,
-    );
+    expect(find.textContaining('No auto-lock profiles yet'), findsOneWidget);
   });
 
   testWidgets('user can create a profile via the form', (tester) async {
@@ -62,8 +62,9 @@ void main() {
     expect(find.text('Strict'), findsOneWidget);
   });
 
-  testWidgets('activating one profile deactivates the others on screen',
-      (tester) async {
+  testWidgets('activating one profile deactivates the others on screen', (
+    tester,
+  ) async {
     await pumpScreen(tester);
 
     Future<void> create(String name, String seconds) async {
@@ -77,9 +78,7 @@ void main() {
         find.byKey(const Key('auto-lock-profile-timeout-field')),
         seconds,
       );
-      await tester.tap(
-        find.byKey(const Key('auto-lock-profile-save-button')),
-      );
+      await tester.tap(find.byKey(const Key('auto-lock-profile-save-button')));
       await tester.pumpAndSettle();
     }
 

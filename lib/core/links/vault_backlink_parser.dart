@@ -6,8 +6,7 @@ import 'package:sreerajp_journal_vault/core/links/vault_backlinks.dart';
 /// must be a non-negative integer. Duplicates are deduplicated so each
 /// `(type, id)` pair appears at most once in the returned list.
 class VaultBacklinkParser {
-  static final RegExp _pattern =
-      RegExp(r'\[\[(journal|entry):(\d+)\]\]');
+  static final RegExp _pattern = RegExp(r'\[\[(journal|entry):(\d+)\]\]');
 
   static List<VaultBacklinkTarget> parse(String? text) {
     if (text == null || text.isEmpty) return const [];

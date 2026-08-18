@@ -28,8 +28,9 @@ final selectedDateProvider = NotifierProvider<SelectedDateNotifier, DateTime?>(
 );
 
 /// Entry counts per date for the currently focused month.
-final monthEntryCountsProvider =
-    FutureProvider<Map<DateTime, int>>((ref) async {
+final monthEntryCountsProvider = FutureProvider<Map<DateTime, int>>((
+  ref,
+) async {
   final focused = ref.watch(focusedMonthProvider);
   final db = ref.read(appDatabaseProvider);
   final counts = await db.getEntryCountsForMonth(focused.year, focused.month);

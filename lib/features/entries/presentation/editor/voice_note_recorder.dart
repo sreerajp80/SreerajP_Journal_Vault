@@ -5,13 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sreerajp_journal_vault/features/entries/providers/entry_providers.dart';
 import 'package:sreerajp_journal_vault/features/entries/services/voice_note_service.dart';
+import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 /// Bottom-sheet UI for recording voice notes with live transcription.
 class VoiceNoteRecorder extends ConsumerStatefulWidget {
   const VoiceNoteRecorder({super.key, required this.onRecordingComplete});
 
   final void Function(VoiceNoteRecordingResult result, String transcript)
-      onRecordingComplete;
+  onRecordingComplete;
 
   @override
   ConsumerState<VoiceNoteRecorder> createState() => _VoiceNoteRecorderState();
@@ -35,7 +36,11 @@ class _VoiceNoteRecorderState extends ConsumerState<VoiceNoteRecorder> {
     if (!started) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Microphone permission denied')),
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context).editorMicPermissionDenied,
+            ),
+          ),
         );
       }
       return;
@@ -135,7 +140,7 @@ class _VoiceNoteRecorderState extends ConsumerState<VoiceNoteRecorder> {
                 TextButton.icon(
                   onPressed: _cancelRecording,
                   icon: const Icon(Icons.delete_outline),
-                  label: const Text('Discard'),
+                  label: Text(AppLocalizations.of(context).editorDiscard),
                   style: TextButton.styleFrom(
                     foregroundColor: theme.colorScheme.error,
                   ),
@@ -157,7 +162,7 @@ class _VoiceNoteRecorderState extends ConsumerState<VoiceNoteRecorder> {
                 TextButton.icon(
                   onPressed: _stopRecording,
                   icon: const Icon(Icons.check),
-                  label: const Text('Done'),
+                  label: Text(AppLocalizations.of(context).editorDone),
                 ),
             ],
           ),

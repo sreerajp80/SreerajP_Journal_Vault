@@ -41,8 +41,10 @@ void main() {
       final revisions = await service.getRevisions(entryId);
       expect(revisions, hasLength(1));
       expect(revisions.single.title, 'Original Title');
-      expect(revisions.single.contentJson,
-          '[{"insert":"Original content\\n"}]');
+      expect(
+        revisions.single.contentJson,
+        '[{"insert":"Original content\\n"}]',
+      );
       expect(revisions.single.plainText, 'Original content');
     });
 

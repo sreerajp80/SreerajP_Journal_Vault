@@ -10,16 +10,13 @@ class Journals extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get title => text()();
   TextColumn get description => text().nullable()();
-  BoolColumn get isLocked =>
-      boolean().withDefault(const Constant(false))();
+  BoolColumn get isLocked => boolean().withDefault(const Constant(false))();
   TextColumn get credentialReference => text().nullable()();
   TextColumn get passwordSaltBase64 => text().nullable()();
   TextColumn get passwordVerifierBase64 => text().nullable()();
   IntColumn get passwordIterations => integer().nullable()();
-  DateTimeColumn get createdAt =>
-      dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
 class Entries extends Table {
@@ -29,19 +26,21 @@ class Entries extends Table {
   TextColumn get contentJson => text().nullable()();
   TextColumn get plainText => text().nullable()();
   DateTimeColumn get entryDate => dateTime().nullable()();
-  DateTimeColumn get createdAt =>
-      dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
 class Tags extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text()();
-  DateTimeColumn get createdAt =>
-      dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt =>
-      dateTime().withDefault(currentDateAndTime)();
+
+  /// Display colour as a packed ARGB value.
+  ///
+  /// Null means "no colour chosen" — the UI falls back to a palette entry
+  /// derived from the tag name. See `features/tags/domain/tag_colors.dart`.
+  IntColumn get colorArgb => integer().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
 class JournalTags extends Table {
@@ -60,8 +59,8 @@ class EntryTags extends Table {
 
   @override
   List<Set<Column>> get uniqueKeys => [
-        {entryId, tagId},
-      ];
+    {entryId, tagId},
+  ];
 }
 
 class Attachments extends Table {
@@ -73,8 +72,7 @@ class Attachments extends Table {
   TextColumn get nonceBase64 => text()();
   TextColumn get keyReference => text()();
   IntColumn get sizeBytes => integer()();
-  DateTimeColumn get createdAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
 /// Stores extracted plain text from attachment files for FTS indexing.
@@ -91,14 +89,13 @@ class AttachmentTexts extends Table {
   IntColumn get attachmentId =>
       integer().references(Attachments, #id, onDelete: KeyAction.cascade)();
   TextColumn get extractedText => text()();
-  DateTimeColumn get createdAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
 class Backlinks extends Table {
   IntColumn get id => integer().autoIncrement()();
-  IntColumn get sourceEntryId => integer()
-      .references(Entries, #id, onDelete: KeyAction.cascade)();
+  IntColumn get sourceEntryId =>
+      integer().references(Entries, #id, onDelete: KeyAction.cascade)();
   TextColumn get targetType => text()();
   IntColumn get targetId => integer()();
 }
@@ -108,10 +105,8 @@ class SearchPresets extends Table {
   TextColumn get name => text()();
   TextColumn get query => text()();
   TextColumn get resultType => text().nullable()();
-  DateTimeColumn get createdAt =>
-      dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
 class AppSettings extends Table {
@@ -128,15 +123,13 @@ class AppSettings extends Table {
       integer().withDefault(const Constant(0))();
   IntColumn get attachmentMigrationTotalCount =>
       integer().withDefault(const Constant(0))();
-  DateTimeColumn get updatedAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
 class AppSecurity extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get lockMode => text().nullable()();
-  BoolColumn get isLocked =>
-      boolean().withDefault(const Constant(false))();
+  BoolColumn get isLocked => boolean().withDefault(const Constant(false))();
 }
 
 /// Stores snapshot revisions of entry content for version history.
@@ -152,8 +145,7 @@ class EntryRevisions extends Table {
   TextColumn get title => text().nullable()();
   TextColumn get contentJson => text().nullable()();
   TextColumn get plainText => text().nullable()();
-  DateTimeColumn get createdAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
 /// Tracks backup execution history for the backup health dashboard.
@@ -168,9 +160,9 @@ class BackupLogs extends Table {
   IntColumn get entryCount => integer().withDefault(const Constant(0))();
   IntColumn get attachmentCount => integer().withDefault(const Constant(0))();
   TextColumn get errorMessage => text().nullable()();
-  TextColumn get trigger => text().withDefault(const Constant('manual'))(); // 'manual', 'scheduled'
-  DateTimeColumn get startedAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  TextColumn get trigger =>
+      text().withDefault(const Constant('manual'))(); // 'manual', 'scheduled'
+  DateTimeColumn get startedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get completedAt => dateTime().nullable()();
 }
 
@@ -187,17 +179,16 @@ class SyncMetadata extends Table {
   TextColumn get syncId => text()(); // deterministic UUID v5
   IntColumn get version => integer().withDefault(const Constant(1))();
   TextColumn get deviceId => text()();
-  BoolColumn get isDeleted =>
-      boolean().withDefault(const Constant(false))();
+  BoolColumn get isDeleted => boolean().withDefault(const Constant(false))();
   DateTimeColumn get lastSyncedAt => dateTime().nullable()();
   DateTimeColumn get lastModifiedAt =>
       dateTime().withDefault(currentDateAndTime)();
 
   @override
   List<Set<Column>> get uniqueKeys => [
-        {recordTable, localId},
-        {syncId},
-      ];
+    {recordTable, localId},
+    {syncId},
+  ];
 }
 
 /// Stores detected conflicts during sync that require user resolution.
@@ -213,11 +204,12 @@ class SyncConflicts extends Table {
   IntColumn get remoteVersion => integer()();
   TextColumn get localDataJson => text()(); // full record snapshot
   TextColumn get remoteDataJson => text()(); // full record snapshot
-  TextColumn get status =>
-      text().withDefault(const Constant('pending'))(); // pending, resolved, dismissed
-  TextColumn get resolution => text().nullable()(); // keep_local, keep_remote, merged
-  DateTimeColumn get detectedAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  TextColumn get status => text().withDefault(
+    const Constant('pending'),
+  )(); // pending, resolved, dismissed
+  TextColumn get resolution =>
+      text().nullable()(); // keep_local, keep_remote, merged
+  DateTimeColumn get detectedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get resolvedAt => dateTime().nullable()();
 }
 
@@ -230,15 +222,13 @@ class AutoLockProfiles extends Table {
   TextColumn get name => text()();
   IntColumn get timeoutSeconds =>
       integer().withDefault(const Constant(300))(); // 5 min default
-  BoolColumn get isActive =>
-      boolean().withDefault(const Constant(false))();
+  BoolColumn get isActive => boolean().withDefault(const Constant(false))();
   BoolColumn get lockOnMinimize =>
       boolean().withDefault(const Constant(true))();
-  TextColumn get scheduleCron => text().nullable()(); // optional cron expression
-  DateTimeColumn get createdAt =>
-      dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  TextColumn get scheduleCron =>
+      text().nullable()(); // optional cron expression
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
 /// Per-attachment lock enabling fine-grained access control.
@@ -249,17 +239,15 @@ class AttachmentLocks extends Table {
   IntColumn get id => integer().autoIncrement()();
   IntColumn get attachmentId =>
       integer().references(Attachments, #id, onDelete: KeyAction.cascade)();
-  BoolColumn get isLocked =>
-      boolean().withDefault(const Constant(true))();
+  BoolColumn get isLocked => boolean().withDefault(const Constant(true))();
   TextColumn get credentialReference => text().nullable()();
-  DateTimeColumn get lockedAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get lockedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get unlockedAt => dateTime().nullable()();
 
   @override
   List<Set<Column>> get uniqueKeys => [
-        {attachmentId},
-      ];
+    {attachmentId},
+  ];
 }
 
 /// Logs security-relevant events for audit and tamper detection.
@@ -273,8 +261,7 @@ class SecurityEvents extends Table {
       text().withDefault(const Constant('info'))(); // info, warning, critical
   TextColumn get description => text()();
   TextColumn get metadata => text().nullable()(); // JSON details
-  DateTimeColumn get createdAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
 /// Stores mood ratings for journal entries to power mood trend insights.
@@ -287,30 +274,28 @@ class EntryMoods extends Table {
       integer().references(Entries, #id, onDelete: KeyAction.cascade)();
   IntColumn get mood => integer()(); // 1-5
   TextColumn get note => text().nullable()();
-  DateTimeColumn get createdAt =>
-      dateTime().withDefault(currentDateAndTime)();
-  DateTimeColumn get updatedAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
   List<Set<Column>> get uniqueKeys => [
-        {entryId},
-      ];
+    {entryId},
+  ];
 }
 
 /// Tracks sync execution history for the sync health dashboard.
 class SyncLogs extends Table {
   IntColumn get id => integer().autoIncrement()();
-  TextColumn get status => text()(); // 'success', 'failed', 'in_progress', 'partial'
-  TextColumn get direction =>
-      text().withDefault(const Constant('bidirectional'))(); // push, pull, bidirectional
+  TextColumn get status =>
+      text()(); // 'success', 'failed', 'in_progress', 'partial'
+  TextColumn get direction => text().withDefault(
+    const Constant('bidirectional'),
+  )(); // push, pull, bidirectional
   IntColumn get recordsPushed => integer().withDefault(const Constant(0))();
   IntColumn get recordsPulled => integer().withDefault(const Constant(0))();
-  IntColumn get conflictsDetected =>
-      integer().withDefault(const Constant(0))();
+  IntColumn get conflictsDetected => integer().withDefault(const Constant(0))();
   TextColumn get errorMessage => text().nullable()();
-  DateTimeColumn get startedAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get startedAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get completedAt => dateTime().nullable()();
 }
 
@@ -328,8 +313,7 @@ class VoiceNotes extends Table {
   TextColumn get keyReference => text()();
   IntColumn get durationMs => integer()();
   TextColumn get transcript => text().nullable()();
-  DateTimeColumn get createdAt =>
-      dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
 // ──────────────────────────── DAOs ────────────────────────────
@@ -355,8 +339,7 @@ class JournalsDao extends DatabaseAccessor<AppDatabase>
 }
 
 @DriftAccessor(tables: [Entries])
-class EntriesDao extends DatabaseAccessor<AppDatabase>
-    with _$EntriesDaoMixin {
+class EntriesDao extends DatabaseAccessor<AppDatabase> with _$EntriesDaoMixin {
   EntriesDao(super.db);
 
   Future<int> createEntry(EntriesCompanion companion) =>
@@ -378,7 +361,7 @@ class EntriesDao extends DatabaseAccessor<AppDatabase>
       (delete(entries)..where((t) => t.id.equals(id))).go();
 }
 
-@DriftAccessor(tables: [Tags, EntryTags])
+@DriftAccessor(tables: [Tags, EntryTags, JournalTags])
 class TagsDao extends DatabaseAccessor<AppDatabase> with _$TagsDaoMixin {
   TagsDao(super.db);
 
@@ -396,32 +379,70 @@ class TagsDao extends DatabaseAccessor<AppDatabase> with _$TagsDaoMixin {
   Future<List<Tag>> getTagsForEntry(int entryId) async {
     final query = select(tags).join([
       innerJoin(entryTags, entryTags.tagId.equalsExp(tags.id)),
-    ])
-      ..where(entryTags.entryId.equals(entryId));
+    ])..where(entryTags.entryId.equals(entryId));
     final rows = await query.get();
     return rows.map((row) => row.readTable(tags)).toList();
   }
 
-  Future<void> addTagToEntry(int entryId, int tagId) =>
-      into(entryTags).insert(
-        EntryTagsCompanion.insert(entryId: entryId, tagId: tagId),
-        mode: InsertMode.insertOrIgnore,
-      );
+  Future<void> addTagToEntry(int entryId, int tagId) => into(entryTags).insert(
+    EntryTagsCompanion.insert(entryId: entryId, tagId: tagId),
+    mode: InsertMode.insertOrIgnore,
+  );
 
-  Future<void> removeTagFromEntry(int entryId, int tagId) =>
-      (delete(entryTags)
-            ..where(
-                (t) => t.entryId.equals(entryId) & t.tagId.equals(tagId)))
-          .go();
+  Future<void> removeTagFromEntry(int entryId, int tagId) => (delete(
+    entryTags,
+  )..where((t) => t.entryId.equals(entryId) & t.tagId.equals(tagId))).go();
 
   Future<int> getOrCreateTag(String name) async {
     final trimmed = name.trim().toLowerCase();
-    final existing = await (select(tags)
-          ..where((t) => t.name.equals(trimmed)))
-        .getSingleOrNull();
+    final existing = await (select(
+      tags,
+    )..where((t) => t.name.equals(trimmed))).getSingleOrNull();
     if (existing != null) return existing.id;
     return into(tags).insert(TagsCompanion.insert(name: trimmed));
   }
+
+  /// Sets (or clears, with null) the display colour of a tag.
+  Future<void> setTagColor(int id, int? colorArgb) => updateTagById(
+    id,
+    TagsCompanion(
+      colorArgb: Value(colorArgb),
+      updatedAt: Value(DateTime.now()),
+    ),
+  );
+
+  /// Renames a tag, using the same normalisation as [getOrCreateTag].
+  ///
+  /// Returns false without writing if the new name is empty, or if another tag
+  /// already uses it — tag names are the identity users see, so duplicates are
+  /// rejected rather than silently merged.
+  Future<bool> renameTag(int id, String name) async {
+    final trimmed = name.trim().toLowerCase();
+    if (trimmed.isEmpty) return false;
+
+    final clash =
+        await (select(tags)
+              ..where((t) => t.name.equals(trimmed) & t.id.isNotValue(id)))
+            .getSingleOrNull();
+    if (clash != null) return false;
+
+    await updateTagById(
+      id,
+      TagsCompanion(name: Value(trimmed), updatedAt: Value(DateTime.now())),
+    );
+    return true;
+  }
+
+  /// Deletes a tag along with its journal and entry links.
+  ///
+  /// Neither `journal_tags` nor `entry_tags` cascades from the tag side, so the
+  /// link rows must be cleared explicitly or they are left pointing at a tag
+  /// that no longer exists.
+  Future<void> deleteTagWithLinks(int id) => transaction(() async {
+    await (delete(journalTags)..where((t) => t.tagId.equals(id))).go();
+    await (delete(entryTags)..where((t) => t.tagId.equals(id))).go();
+    await deleteTagById(id);
+  });
 }
 
 @DriftAccessor(tables: [AttachmentTexts])
@@ -438,10 +459,9 @@ class AttachmentTextsDao extends DatabaseAccessor<AppDatabase>
         mode: InsertMode.replace,
       );
 
-  Future<void> deleteForAttachment(int attachmentId) =>
-      (delete(attachmentTexts)
-            ..where((t) => t.attachmentId.equals(attachmentId)))
-          .go();
+  Future<void> deleteForAttachment(int attachmentId) => (delete(
+    attachmentTexts,
+  )..where((t) => t.attachmentId.equals(attachmentId))).go();
 }
 
 @DriftAccessor(tables: [Backlinks])
@@ -453,37 +473,36 @@ class BacklinksDao extends DatabaseAccessor<AppDatabase>
     int sourceEntryId,
     List<VaultBacklinkTarget> targets,
   ) async {
-    await (delete(backlinks)
-          ..where((t) => t.sourceEntryId.equals(sourceEntryId)))
-        .go();
+    await (delete(
+      backlinks,
+    )..where((t) => t.sourceEntryId.equals(sourceEntryId))).go();
     for (final target in targets) {
-      await into(backlinks).insert(BacklinksCompanion.insert(
-        sourceEntryId: sourceEntryId,
-        targetType: target.type.name,
-        targetId: target.targetId,
-      ));
+      await into(backlinks).insert(
+        BacklinksCompanion.insert(
+          sourceEntryId: sourceEntryId,
+          targetType: target.type.name,
+          targetId: target.targetId,
+        ),
+      );
     }
   }
 
   Stream<List<Backlink>> watchBacklinksForJournalTarget(int targetId) =>
-      (select(backlinks)
-            ..where((t) =>
-                t.targetType.equals('journal') &
-                t.targetId.equals(targetId)))
+      (select(backlinks)..where(
+            (t) => t.targetType.equals('journal') & t.targetId.equals(targetId),
+          ))
           .watch();
 
   Stream<List<Backlink>> watchBacklinksForEntryTarget(int targetId) =>
-      (select(backlinks)
-            ..where((t) =>
-                t.targetType.equals('entry') &
-                t.targetId.equals(targetId)))
+      (select(backlinks)..where(
+            (t) => t.targetType.equals('entry') & t.targetId.equals(targetId),
+          ))
           .watch();
 
   Future<List<Backlink>> getBacklinksForEntryTarget(int targetId) =>
-      (select(backlinks)
-            ..where((t) =>
-                t.targetType.equals('entry') &
-                t.targetId.equals(targetId)))
+      (select(backlinks)..where(
+            (t) => t.targetType.equals('entry') & t.targetId.equals(targetId),
+          ))
           .get();
 }
 
@@ -538,8 +557,9 @@ class VoiceNotesDao extends DatabaseAccessor<AppDatabase>
           .watch();
 
   Future<void> updateTranscript(int id, String transcript) =>
-      (update(voiceNotes)..where((t) => t.id.equals(id)))
-          .write(VoiceNotesCompanion(transcript: Value(transcript)));
+      (update(voiceNotes)..where((t) => t.id.equals(id))).write(
+        VoiceNotesCompanion(transcript: Value(transcript)),
+      );
 
   Future<void> deleteVoiceNoteById(int id) =>
       (delete(voiceNotes)..where((t) => t.id.equals(id))).go();
@@ -556,9 +576,9 @@ class BackupLogsDao extends DatabaseAccessor<AppDatabase>
   Future<void> updateLog(int id, BackupLogsCompanion companion) =>
       (update(backupLogs)..where((t) => t.id.equals(id))).write(companion);
 
-  Future<List<BackupLog>> getAllLogs() =>
-      (select(backupLogs)..orderBy([(t) => OrderingTerm.desc(t.startedAt)]))
-          .get();
+  Future<List<BackupLog>> getAllLogs() => (select(
+    backupLogs,
+  )..orderBy([(t) => OrderingTerm.desc(t.startedAt)])).get();
 
   Future<List<BackupLog>> getRecentLogs({int limit = 20}) =>
       (select(backupLogs)
@@ -574,10 +594,13 @@ class BackupLogsDao extends DatabaseAccessor<AppDatabase>
           .getSingleOrNull();
 
   Future<int> getFailureCountSince(DateTime since) async {
-    final rows = await (select(backupLogs)
-          ..where(
-              (t) => t.status.equals('failed') & t.startedAt.isBiggerOrEqualValue(since)))
-        .get();
+    final rows =
+        await (select(backupLogs)..where(
+              (t) =>
+                  t.status.equals('failed') &
+                  t.startedAt.isBiggerOrEqualValue(since),
+            ))
+            .get();
     return rows.length;
   }
 
@@ -597,13 +620,10 @@ class SearchPresetsDao extends DatabaseAccessor<AppDatabase>
   Future<int> createPreset(SearchPresetsCompanion companion) =>
       into(searchPresets).insert(companion);
 
-  Future<List<SearchPreset>> getAllPresets() =>
-      select(searchPresets).get();
+  Future<List<SearchPreset>> getAllPresets() => select(searchPresets).get();
 
-  Future<void> updatePresetById(
-      int id, SearchPresetsCompanion companion) =>
-      (update(searchPresets)..where((t) => t.id.equals(id)))
-          .write(companion);
+  Future<void> updatePresetById(int id, SearchPresetsCompanion companion) =>
+      (update(searchPresets)..where((t) => t.id.equals(id))).write(companion);
 
   Future<void> deletePresetById(int id) =>
       (delete(searchPresets)..where((t) => t.id.equals(id))).go();
@@ -631,9 +651,9 @@ class AttachmentsDao extends DatabaseAccessor<AppDatabase>
   Future<void> deleteAttachmentById(int id) =>
       (delete(attachments)..where((t) => t.id.equals(id))).go();
 
-  Future<void> updateAttachment(AttachmentsCompanion companion) =>
-      (update(attachments)..where((t) => t.id.equals(companion.id.value)))
-          .write(companion);
+  Future<void> updateAttachment(AttachmentsCompanion companion) => (update(
+    attachments,
+  )..where((t) => t.id.equals(companion.id.value))).write(companion);
 }
 
 @DriftAccessor(tables: [AppSettings])
@@ -644,18 +664,17 @@ class AppSettingsDao extends DatabaseAccessor<AppDatabase>
   Future<AppSetting> getSettings() async {
     final rows = await select(appSettings).get();
     if (rows.isEmpty) {
-      final id =
-          await into(appSettings).insert(AppSettingsCompanion.insert());
-      return (select(appSettings)..where((t) => t.id.equals(id)))
-          .getSingle();
+      final id = await into(appSettings).insert(AppSettingsCompanion.insert());
+      return (select(appSettings)..where((t) => t.id.equals(id))).getSingle();
     }
     return rows.first;
   }
 
   Future<void> updateSettings(AppSettingsCompanion companion) async {
     final settings = await getSettings();
-    await (update(appSettings)..where((t) => t.id.equals(settings.id)))
-        .write(companion);
+    await (update(
+      appSettings,
+    )..where((t) => t.id.equals(settings.id))).write(companion);
   }
 }
 
@@ -667,18 +686,17 @@ class AppSecurityDao extends DatabaseAccessor<AppDatabase>
   Future<AppSecurityData> getSecuritySettings() async {
     final rows = await select(appSecurity).get();
     if (rows.isEmpty) {
-      final id =
-          await into(appSecurity).insert(AppSecurityCompanion.insert());
-      return (select(appSecurity)..where((t) => t.id.equals(id)))
-          .getSingle();
+      final id = await into(appSecurity).insert(AppSecurityCompanion.insert());
+      return (select(appSecurity)..where((t) => t.id.equals(id))).getSingle();
     }
     return rows.first;
   }
 
   Future<void> updateLockState(AppSecurityCompanion companion) async {
     final settings = await getSecuritySettings();
-    await (update(appSecurity)..where((t) => t.id.equals(settings.id)))
-        .write(companion);
+    await (update(
+      appSecurity,
+    )..where((t) => t.id.equals(settings.id))).write(companion);
   }
 }
 
@@ -690,22 +708,18 @@ class JournalTagsDao extends DatabaseAccessor<AppDatabase>
   Future<List<Tag>> getTagsForJournal(int journalId) async {
     final query = select(tags).join([
       innerJoin(journalTags, journalTags.tagId.equalsExp(tags.id)),
-    ])
-      ..where(journalTags.journalId.equals(journalId));
+    ])..where(journalTags.journalId.equals(journalId));
     final rows = await query.get();
     return rows.map((row) => row.readTable(tags)).toList();
   }
 
-  Future<void> addTagToJournal(int journalId, int tagId) =>
-      into(journalTags).insert(
-        JournalTagsCompanion.insert(journalId: journalId, tagId: tagId),
-      );
+  Future<void> addTagToJournal(int journalId, int tagId) => into(
+    journalTags,
+  ).insert(JournalTagsCompanion.insert(journalId: journalId, tagId: tagId));
 
-  Future<void> removeTagFromJournal(int journalId, int tagId) =>
-      (delete(journalTags)
-            ..where(
-                (t) => t.journalId.equals(journalId) & t.tagId.equals(tagId)))
-          .go();
+  Future<void> removeTagFromJournal(int journalId, int tagId) => (delete(
+    journalTags,
+  )..where((t) => t.journalId.equals(journalId) & t.tagId.equals(tagId))).go();
 }
 
 @DriftAccessor(tables: [SyncMetadata])
@@ -714,48 +728,51 @@ class SyncMetadataDao extends DatabaseAccessor<AppDatabase>
   SyncMetadataDao(super.db);
 
   Future<int> upsert(SyncMetadataCompanion companion) =>
-      into(syncMetadata).insert(
-        companion,
-        mode: InsertMode.insertOrReplace,
-      );
+      into(syncMetadata).insert(companion, mode: InsertMode.insertOrReplace);
 
-  Future<SyncMetadataData?> getBySyncId(String syncId) =>
-      (select(syncMetadata)..where((t) => t.syncId.equals(syncId)))
-          .getSingleOrNull();
+  Future<SyncMetadataData?> getBySyncId(String syncId) => (select(
+    syncMetadata,
+  )..where((t) => t.syncId.equals(syncId))).getSingleOrNull();
 
   Future<SyncMetadataData?> getByRecord(String table, int localId) =>
-      (select(syncMetadata)
-            ..where(
-                (t) => t.recordTable.equals(table) & t.localId.equals(localId)))
+      (select(syncMetadata)..where(
+            (t) => t.recordTable.equals(table) & t.localId.equals(localId),
+          ))
           .getSingleOrNull();
 
   Future<List<SyncMetadataData>> getUnsyncedRecords() =>
       (select(syncMetadata)
-            ..where((t) => t.lastSyncedAt.isNull() | t.lastModifiedAt.isBiggerThan(t.lastSyncedAt))
+            ..where(
+              (t) =>
+                  t.lastSyncedAt.isNull() |
+                  t.lastModifiedAt.isBiggerThan(t.lastSyncedAt),
+            )
             ..where((t) => t.isDeleted.equals(false)))
           .get();
 
-  Future<List<SyncMetadataData>> getModifiedSince(DateTime since) =>
-      (select(syncMetadata)
-            ..where((t) => t.lastModifiedAt.isBiggerOrEqualValue(since)))
-          .get();
+  Future<List<SyncMetadataData>> getModifiedSince(DateTime since) => (select(
+    syncMetadata,
+  )..where((t) => t.lastModifiedAt.isBiggerOrEqualValue(since))).get();
 
   Future<void> markSynced(String syncId, DateTime syncedAt) =>
-      (update(syncMetadata)..where((t) => t.syncId.equals(syncId)))
-          .write(SyncMetadataCompanion(lastSyncedAt: Value(syncedAt)));
+      (update(syncMetadata)..where((t) => t.syncId.equals(syncId))).write(
+        SyncMetadataCompanion(lastSyncedAt: Value(syncedAt)),
+      );
 
   Future<void> markDeleted(String syncId) =>
-      (update(syncMetadata)..where((t) => t.syncId.equals(syncId)))
-          .write(const SyncMetadataCompanion(isDeleted: Value(true)));
+      (update(syncMetadata)..where((t) => t.syncId.equals(syncId))).write(
+        const SyncMetadataCompanion(isDeleted: Value(true)),
+      );
 
   Future<void> incrementVersion(String syncId) async {
     final record = await getBySyncId(syncId);
     if (record == null) return;
-    await (update(syncMetadata)..where((t) => t.syncId.equals(syncId)))
-        .write(SyncMetadataCompanion(
-      version: Value(record.version + 1),
-      lastModifiedAt: Value(DateTime.now()),
-    ));
+    await (update(syncMetadata)..where((t) => t.syncId.equals(syncId))).write(
+      SyncMetadataCompanion(
+        version: Value(record.version + 1),
+        lastModifiedAt: Value(DateTime.now()),
+      ),
+    );
   }
 
   Future<List<SyncMetadataData>> getAllForTable(String table) =>
@@ -801,21 +818,19 @@ class SyncConflictsDao extends DatabaseAccessor<AppDatabase>
 
   Future<void> dismissConflict(int id) =>
       (update(syncConflicts)..where((t) => t.id.equals(id))).write(
-        const SyncConflictsCompanion(
-          status: Value('dismissed'),
-        ),
+        const SyncConflictsCompanion(status: Value('dismissed')),
       );
 
-  Future<List<SyncConflict>> getAllConflicts() =>
-      (select(syncConflicts)
-            ..orderBy([(t) => OrderingTerm.desc(t.detectedAt)]))
-          .get();
+  Future<List<SyncConflict>> getAllConflicts() => (select(
+    syncConflicts,
+  )..orderBy([(t) => OrderingTerm.desc(t.detectedAt)])).get();
 
   Future<void> deleteOldResolved({int keepCount = 100}) async {
-    final resolved = await (select(syncConflicts)
-          ..where((t) => t.status.isIn(['resolved', 'dismissed']))
-          ..orderBy([(t) => OrderingTerm.desc(t.resolvedAt)]))
-        .get();
+    final resolved =
+        await (select(syncConflicts)
+              ..where((t) => t.status.isIn(['resolved', 'dismissed']))
+              ..orderBy([(t) => OrderingTerm.desc(t.resolvedAt)]))
+            .get();
     if (resolved.length <= keepCount) return;
     final idsToDelete = resolved.skip(keepCount).map((c) => c.id).toList();
     await (delete(syncConflicts)..where((t) => t.id.isIn(idsToDelete))).go();
@@ -847,17 +862,20 @@ class SyncLogsDao extends DatabaseAccessor<AppDatabase>
           .getSingleOrNull();
 
   Future<int> getFailureCountSince(DateTime since) async {
-    final rows = await (select(syncLogs)
-          ..where(
-              (t) => t.status.equals('failed') & t.startedAt.isBiggerOrEqualValue(since)))
-        .get();
+    final rows =
+        await (select(syncLogs)..where(
+              (t) =>
+                  t.status.equals('failed') &
+                  t.startedAt.isBiggerOrEqualValue(since),
+            ))
+            .get();
     return rows.length;
   }
 
   Future<void> deleteOldLogs({int keepCount = 50}) async {
-    final all = await (select(syncLogs)
-          ..orderBy([(t) => OrderingTerm.desc(t.startedAt)]))
-        .get();
+    final all = await (select(
+      syncLogs,
+    )..orderBy([(t) => OrderingTerm.desc(t.startedAt)])).get();
     if (all.length <= keepCount) return;
     final idsToDelete = all.skip(keepCount).map((l) => l.id).toList();
     await (delete(syncLogs)..where((t) => t.id.isIn(idsToDelete))).go();
@@ -872,10 +890,9 @@ class AutoLockProfilesDao extends DatabaseAccessor<AppDatabase>
   Future<int> createProfile(AutoLockProfilesCompanion companion) =>
       into(autoLockProfiles).insert(companion);
 
-  Future<List<AutoLockProfile>> getAllProfiles() =>
-      (select(autoLockProfiles)
-            ..orderBy([(t) => OrderingTerm.asc(t.name)]))
-          .get();
+  Future<List<AutoLockProfile>> getAllProfiles() => (select(
+    autoLockProfiles,
+  )..orderBy([(t) => OrderingTerm.asc(t.name)])).get();
 
   Future<AutoLockProfile?> getActiveProfile() =>
       (select(autoLockProfiles)
@@ -885,9 +902,9 @@ class AutoLockProfilesDao extends DatabaseAccessor<AppDatabase>
 
   Future<void> activateProfile(int id) async {
     // Deactivate all first
-    await update(autoLockProfiles).write(
-      const AutoLockProfilesCompanion(isActive: Value(false)),
-    );
+    await update(
+      autoLockProfiles,
+    ).write(const AutoLockProfilesCompanion(isActive: Value(false)));
     // Activate the selected one
     await (update(autoLockProfiles)..where((t) => t.id.equals(id))).write(
       AutoLockProfilesCompanion(
@@ -897,13 +914,14 @@ class AutoLockProfilesDao extends DatabaseAccessor<AppDatabase>
     );
   }
 
-  Future<void> deactivateAll() => update(autoLockProfiles).write(
-        const AutoLockProfilesCompanion(isActive: Value(false)),
-      );
+  Future<void> deactivateAll() => update(
+    autoLockProfiles,
+  ).write(const AutoLockProfilesCompanion(isActive: Value(false)));
 
   Future<void> updateProfile(int id, AutoLockProfilesCompanion companion) =>
-      (update(autoLockProfiles)..where((t) => t.id.equals(id)))
-          .write(companion);
+      (update(
+        autoLockProfiles,
+      )..where((t) => t.id.equals(id))).write(companion);
 
   Future<void> deleteProfile(int id) =>
       (delete(autoLockProfiles)..where((t) => t.id.equals(id))).go();
@@ -921,15 +939,11 @@ class AttachmentLocksDao extends DatabaseAccessor<AppDatabase>
   AttachmentLocksDao(super.db);
 
   Future<int> lockAttachment(AttachmentLocksCompanion companion) =>
-      into(attachmentLocks).insert(
-        companion,
-        mode: InsertMode.insertOrReplace,
-      );
+      into(attachmentLocks).insert(companion, mode: InsertMode.insertOrReplace);
 
-  Future<AttachmentLock?> getLockForAttachment(int attachmentId) =>
-      (select(attachmentLocks)
-            ..where((t) => t.attachmentId.equals(attachmentId)))
-          .getSingleOrNull();
+  Future<AttachmentLock?> getLockForAttachment(int attachmentId) => (select(
+    attachmentLocks,
+  )..where((t) => t.attachmentId.equals(attachmentId))).getSingleOrNull();
 
   Future<bool> isAttachmentLocked(int attachmentId) async {
     final lock = await getLockForAttachment(attachmentId);
@@ -937,29 +951,26 @@ class AttachmentLocksDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<void> unlockAttachment(int attachmentId) =>
-      (update(attachmentLocks)
-            ..where((t) => t.attachmentId.equals(attachmentId)))
-          .write(AttachmentLocksCompanion(
-        isLocked: const Value(false),
-        unlockedAt: Value(DateTime.now()),
-      ));
+      (update(
+        attachmentLocks,
+      )..where((t) => t.attachmentId.equals(attachmentId))).write(
+        AttachmentLocksCompanion(
+          isLocked: const Value(false),
+          unlockedAt: Value(DateTime.now()),
+        ),
+      );
 
   Future<void> relockAttachment(int attachmentId) =>
       (update(attachmentLocks)
             ..where((t) => t.attachmentId.equals(attachmentId)))
-          .write(const AttachmentLocksCompanion(
-        isLocked: Value(true),
-      ));
+          .write(const AttachmentLocksCompanion(isLocked: Value(true)));
 
-  Future<void> removeLock(int attachmentId) =>
-      (delete(attachmentLocks)
-            ..where((t) => t.attachmentId.equals(attachmentId)))
-          .go();
+  Future<void> removeLock(int attachmentId) => (delete(
+    attachmentLocks,
+  )..where((t) => t.attachmentId.equals(attachmentId))).go();
 
   Future<List<AttachmentLock>> getLockedAttachments() =>
-      (select(attachmentLocks)
-            ..where((t) => t.isLocked.equals(true)))
-          .get();
+      (select(attachmentLocks)..where((t) => t.isLocked.equals(true))).get();
 }
 
 @DriftAccessor(tables: [SecurityEvents])
@@ -976,8 +987,10 @@ class SecurityEventsDao extends DatabaseAccessor<AppDatabase>
             ..limit(limit))
           .get();
 
-  Future<List<SecurityEvent>> getEventsByType(String eventType,
-          {int limit = 20}) =>
+  Future<List<SecurityEvent>> getEventsByType(
+    String eventType, {
+    int limit = 20,
+  }) =>
       (select(securityEvents)
             ..where((t) => t.eventType.equals(eventType))
             ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
@@ -998,16 +1011,16 @@ class SecurityEventsDao extends DatabaseAccessor<AppDatabase>
           .watch();
 
   Future<int> getEventCountSince(DateTime since) async {
-    final rows = await (select(securityEvents)
-          ..where((t) => t.createdAt.isBiggerOrEqualValue(since)))
-        .get();
+    final rows = await (select(
+      securityEvents,
+    )..where((t) => t.createdAt.isBiggerOrEqualValue(since))).get();
     return rows.length;
   }
 
   Future<void> deleteOldEvents({int keepCount = 500}) async {
-    final all = await (select(securityEvents)
-          ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
-        .get();
+    final all = await (select(
+      securityEvents,
+    )..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).get();
     if (all.length <= keepCount) return;
     final idsToDelete = all.skip(keepCount).map((e) => e.id).toList();
     await (delete(securityEvents)..where((t) => t.id.isIn(idsToDelete))).go();
@@ -1020,26 +1033,22 @@ class EntryMoodsDao extends DatabaseAccessor<AppDatabase>
   EntryMoodsDao(super.db);
 
   Future<int> upsertMood(EntryMoodsCompanion companion) =>
-      into(entryMoods).insert(
-        companion,
-        mode: InsertMode.insertOrReplace,
-      );
+      into(entryMoods).insert(companion, mode: InsertMode.insertOrReplace);
 
-  Future<EntryMood?> getMoodForEntry(int entryId) =>
-      (select(entryMoods)..where((t) => t.entryId.equals(entryId)))
-          .getSingleOrNull();
+  Future<EntryMood?> getMoodForEntry(int entryId) => (select(
+    entryMoods,
+  )..where((t) => t.entryId.equals(entryId))).getSingleOrNull();
 
-  Future<List<EntryMood>> getAllMoods() =>
-      (select(entryMoods)
-            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
-          .get();
+  Future<List<EntryMood>> getAllMoods() => (select(
+    entryMoods,
+  )..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).get();
 
   Future<void> deleteMoodForEntry(int entryId) =>
       (delete(entryMoods)..where((t) => t.entryId.equals(entryId))).go();
 
-  Stream<EntryMood?> watchMoodForEntry(int entryId) =>
-      (select(entryMoods)..where((t) => t.entryId.equals(entryId)))
-          .watchSingleOrNull();
+  Stream<EntryMood?> watchMoodForEntry(int entryId) => (select(
+    entryMoods,
+  )..where((t) => t.entryId.equals(entryId))).watchSingleOrNull();
 }
 
 // ──────────────────────────── Database ────────────────────────────
@@ -1124,54 +1133,57 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forExecutor(super.executor);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        onCreate: (m) async {
-          await m.createAll();
-          await _createFts5Tables();
-        },
-        onUpgrade: (m, from, to) async {
-          if (from < 2) {
-            await m.createTable(entryTags);
-            await m.createTable(attachmentTexts);
-            await _createFts5Tables();
-            await customStatement('''
+    onCreate: (m) async {
+      await m.createAll();
+      await _createFts5Tables();
+    },
+    onUpgrade: (m, from, to) async {
+      if (from < 2) {
+        await m.createTable(entryTags);
+        await m.createTable(attachmentTexts);
+        await _createFts5Tables();
+        await customStatement('''
               INSERT INTO entries_fts (rowid, title, plain_text)
               SELECT id, COALESCE(title, ''), COALESCE(plain_text, '')
               FROM entries
             ''');
-          }
-          if (from < 3) {
-            await m.createTable(entryRevisions);
-            await m.createTable(voiceNotes);
-          }
-          if (from < 4) {
-            await m.createTable(backupLogs);
-          }
-          if (from < 5) {
-            await m.createTable(syncMetadata);
-            await m.createTable(syncConflicts);
-            await m.createTable(syncLogs);
-          }
-          if (from < 6) {
-            await m.createTable(autoLockProfiles);
-            await m.createTable(attachmentLocks);
-            await m.createTable(securityEvents);
-            await m.createTable(entryMoods);
-          }
-          if (from < 7) {
-            await m.addColumn(appSettings, appSettings.attachmentStorageTreeLabel);
-            await m.addColumn(appSettings, appSettings.attachmentMigrationTarget);
-            await m.addColumn(appSettings, appSettings.attachmentMigrationFailure);
-            await m.addColumn(appSettings, appSettings.updatedAt);
-          }
-        },
-        beforeOpen: (details) async {
-          await customStatement('PRAGMA foreign_keys = ON');
-        },
-      );
+      }
+      if (from < 3) {
+        await m.createTable(entryRevisions);
+        await m.createTable(voiceNotes);
+      }
+      if (from < 4) {
+        await m.createTable(backupLogs);
+      }
+      if (from < 5) {
+        await m.createTable(syncMetadata);
+        await m.createTable(syncConflicts);
+        await m.createTable(syncLogs);
+      }
+      if (from < 6) {
+        await m.createTable(autoLockProfiles);
+        await m.createTable(attachmentLocks);
+        await m.createTable(securityEvents);
+        await m.createTable(entryMoods);
+      }
+      if (from < 7) {
+        await m.addColumn(appSettings, appSettings.attachmentStorageTreeLabel);
+        await m.addColumn(appSettings, appSettings.attachmentMigrationTarget);
+        await m.addColumn(appSettings, appSettings.attachmentMigrationFailure);
+        await m.addColumn(appSettings, appSettings.updatedAt);
+      }
+      if (from < 8) {
+        await m.addColumn(tags, tags.colorArgb);
+      }
+    },
+    beforeOpen: (details) async {
+      await customStatement('PRAGMA foreign_keys = ON');
+    },
+  );
 
   /// Creates the FTS5 virtual table and synchronisation triggers.
   ///
@@ -1255,8 +1267,11 @@ class AppDatabase extends _$AppDatabase {
 
     // Sanitise user input for FTS5 — wrap each token in double quotes
     // so special characters are treated as literals.
-    final sanitised =
-        query.trim().split(RegExp(r'\s+')).map((t) => '"$t"').join(' ');
+    final sanitised = query
+        .trim()
+        .split(RegExp(r'\s+'))
+        .map((t) => '"$t"')
+        .join(' ');
 
     // Search entry content.
     final entryResults = await customSelect(
@@ -1355,11 +1370,12 @@ class AppDatabase extends _$AppDatabase {
     final startOfDay = DateTime(date.year, date.month, date.day);
     final endOfDay = startOfDay.add(const Duration(days: 1));
     return (select(entries)
-          ..where((t) =>
-              t.entryDate.isBiggerOrEqualValue(startOfDay) &
-              t.entryDate.isSmallerThanValue(endOfDay))
+          ..where(
+            (t) =>
+                t.entryDate.isBiggerOrEqualValue(startOfDay) &
+                t.entryDate.isSmallerThanValue(endOfDay),
+          )
           ..orderBy([(t) => OrderingTerm.asc(t.entryDate)]))
         .get();
   }
-
 }

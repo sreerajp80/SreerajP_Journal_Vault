@@ -3,10 +3,12 @@ import 'dart:math';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_quill/flutter_quill.dart' show FlutterQuillLocalizations;
+import 'package:flutter_quill/flutter_quill.dart'
+    show FlutterQuillLocalizations;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod/misc.dart' show Override;
 
+import 'package:sreerajp_journal_vault/core/config/app_flavor_config.dart';
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
 import 'package:sreerajp_journal_vault/core/theme/theme_mode_controller.dart';
@@ -14,6 +16,9 @@ import 'package:sreerajp_journal_vault/features/about/presentation/about_screen.
 import 'package:sreerajp_journal_vault/features/attachments/providers/attachment_providers.dart';
 import 'package:sreerajp_journal_vault/features/attachments/services/attachment_crypto_storage.dart';
 import 'package:sreerajp_journal_vault/features/backup/presentation/backup_health_screen.dart';
+import 'package:sreerajp_journal_vault/features/export/export_strings.dart';
+import 'package:sreerajp_journal_vault/features/export/presentation/export_screen.dart';
+import 'package:sreerajp_journal_vault/features/export/presentation/open_encrypted_export_screen.dart';
 import 'package:sreerajp_journal_vault/features/import/presentation/import_screen.dart';
 import 'package:sreerajp_journal_vault/features/insights/presentation/insights_screen.dart';
 import 'package:sreerajp_journal_vault/features/journal_lock/services/journal_password_service.dart';
@@ -32,7 +37,10 @@ import 'package:sreerajp_journal_vault/features/security/providers/security_prov
 import 'package:sreerajp_journal_vault/features/sync/presentation/conflict_resolution_screen.dart';
 import 'package:sreerajp_journal_vault/features/sync/presentation/sync_health_dashboard.dart';
 import 'package:sreerajp_journal_vault/features/sync/presentation/sync_status_widget.dart';
+import 'package:sreerajp_journal_vault/features/tags/domain/tag_colors.dart';
+import 'package:sreerajp_journal_vault/features/tags/presentation/tag_manager_screen.dart';
 import 'package:sreerajp_journal_vault/features/timeline/presentation/timeline_screen.dart';
+import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 // ─── In-memory secret store (default; works in tests without platform Keystore) ──
 
@@ -79,13 +87,16 @@ class _UnlockedJournalIdsNotifier extends Notifier<Set<int>> {
   void set(Set<int> v) => state = v;
 }
 
-final _themeModeProvider =
-    NotifierProvider<_ThemeModeNotifier, ThemeMode>(_ThemeModeNotifier.new);
-final _selectedTabProvider =
-    NotifierProvider<_SelectedTabNotifier, int>(_SelectedTabNotifier.new);
+final _themeModeProvider = NotifierProvider<_ThemeModeNotifier, ThemeMode>(
+  _ThemeModeNotifier.new,
+);
+final _selectedTabProvider = NotifierProvider<_SelectedTabNotifier, int>(
+  _SelectedTabNotifier.new,
+);
 final _unlockedJournalIdsProvider =
     NotifierProvider<_UnlockedJournalIdsNotifier, Set<int>>(
-        _UnlockedJournalIdsNotifier.new);
+      _UnlockedJournalIdsNotifier.new,
+    );
 
 /// Per-journal secret store. The default is an in-memory map suitable only
 /// for tests; production must override this with a Keystore-backed
@@ -274,8 +285,9 @@ class AppLockNotifier extends Notifier<AppLockState> {
   }
 }
 
-final appLockProvider =
-    NotifierProvider<AppLockNotifier, AppLockState>(AppLockNotifier.new);
+final appLockProvider = NotifierProvider<AppLockNotifier, AppLockState>(
+  AppLockNotifier.new,
+);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
@@ -347,9 +359,7 @@ class _JournalVaultAppState extends ConsumerState<JournalVaultApp> {
 
     Widget home;
     if (!lockState.bootstrapped) {
-      home = const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      home = const Scaffold(body: Center(child: CircularProgressIndicator()));
     } else if (lockState.mode == null) {
       home = const _FirstLaunchSetupScreen();
     } else if (lockState.mode == AppLockMode.appLock && !lockState.hasPin) {
@@ -363,17 +373,18 @@ class _JournalVaultAppState extends ConsumerState<JournalVaultApp> {
     }
 
     return MaterialApp(
-      title: 'Journal Vault',
+      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
       theme: _appTheme(Brightness.light),
       darkTheme: _appTheme(Brightness.dark),
       themeMode: themeMode,
       localizationsDelegates: const [
+        AppLocalizations.delegate,
         FlutterQuillLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [Locale('en')],
+      supportedLocales: AppLocalizations.supportedLocales,
       home: home,
     );
   }
@@ -425,10 +436,7 @@ ThemeData _appTheme(Brightness brightness) {
         shape: buttonShape,
         padding: buttonPadding,
         textStyle: buttonTextStyle,
-        side: BorderSide(
-          color: colorScheme.outlineVariant,
-          width: 1.2,
-        ),
+        side: BorderSide(color: colorScheme.outlineVariant, width: 1.2),
         animationDuration: buttonAnimationDuration,
       ),
     ),
@@ -495,25 +503,31 @@ class _FirstLaunchSetupScreenState
 
     if (_selected == AppLockMode.appLock) {
       if (_pin.text.length < 4) {
-        setState(() => _error = 'PIN must be at least 4 characters.');
+        setState(() => _error = AppLocalizations.of(context).lockPinTooShort);
         return;
       }
       if (_pin.text != _confirm.text) {
-        setState(() => _error = 'PINs do not match.');
+        setState(
+          () => _error = AppLocalizations.of(context).lockPinsDoNotMatch,
+        );
         return;
       }
     }
 
     setState(() => _busy = true);
     try {
-      await ref.read(appLockProvider.notifier).completeFirstLaunchSetup(
+      await ref
+          .read(appLockProvider.notifier)
+          .completeFirstLaunchSetup(
             mode: _selected,
             pin: _selected == AppLockMode.appLock ? _pin.text : null,
           );
     } catch (error) {
       if (mounted) {
         setState(() {
-          _error = 'Could not save lock setup: $error';
+          _error = AppLocalizations.of(
+            context,
+          ).lockSetupSaveFailed(error.toString());
           _busy = false;
         });
       }
@@ -523,41 +537,35 @@ class _FirstLaunchSetupScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isAppLock = _selected == AppLockMode.appLock;
     return Scaffold(
-      appBar: AppBar(title: const Text('Set up app lock')),
+      appBar: AppBar(title: Text(l10n.lockSetupTitle)),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Choose how SreerajP Journal Vault should lock when it is sent '
-              'to the background.',
-            ),
+            Text(l10n.lockSetupBody),
             const SizedBox(height: 16),
             RadioGroup<AppLockMode>(
               groupValue: _selected,
               onChanged: (v) {
                 if (v != null) setState(() => _selected = v);
               },
-              child: const Column(
+              child: Column(
                 children: [
                   RadioListTile<AppLockMode>(
-                    key: Key('first-launch-mode-phone'),
+                    key: const Key('first-launch-mode-phone'),
                     value: AppLockMode.phoneLock,
-                    title: Text('Phone Lock'),
-                    subtitle: Text(
-                      'Use the device biometric or PIN/pattern/password.',
-                    ),
+                    title: Text(l10n.lockModePhone),
+                    subtitle: Text(l10n.lockModePhoneHint),
                   ),
                   RadioListTile<AppLockMode>(
-                    key: Key('first-launch-mode-app'),
+                    key: const Key('first-launch-mode-app'),
                     value: AppLockMode.appLock,
-                    title: Text('Separate App Lock'),
-                    subtitle: Text(
-                      'Use a dedicated PIN that is verified inside the app.',
-                    ),
+                    title: Text(l10n.lockModeApp),
+                    subtitle: Text(l10n.lockModeAppHint),
                   ),
                 ],
               ),
@@ -569,14 +577,16 @@ class _FirstLaunchSetupScreenState
                 controller: _pin,
                 obscureText: true,
                 keyboardType: const TextInputType.numberWithOptions(),
-                decoration: const InputDecoration(labelText: 'PIN'),
+                decoration: InputDecoration(labelText: l10n.lockPinLabel),
               ),
               TextField(
                 key: const Key('first-launch-pin-confirm-field'),
                 controller: _confirm,
                 obscureText: true,
                 keyboardType: const TextInputType.numberWithOptions(),
-                decoration: const InputDecoration(labelText: 'Confirm PIN'),
+                decoration: InputDecoration(
+                  labelText: l10n.lockConfirmPinLabel,
+                ),
               ),
             ],
             if (_error != null) ...[
@@ -587,7 +597,7 @@ class _FirstLaunchSetupScreenState
             ElevatedButton(
               key: const Key('first-launch-continue-button'),
               onPressed: _busy ? null : _continue,
-              child: Text(_busy ? 'Setting up...' : 'Continue'),
+              child: Text(_busy ? l10n.lockSettingUp : l10n.commonContinue),
             ),
           ],
         ),
@@ -627,7 +637,9 @@ class _LockedAttachmentsScreenState
       try {
         final a = await db.attachmentsDao.getAttachmentById(l.attachmentId);
         pairs.add((l, a));
-      } catch (_) {/* attachment missing — skip */}
+      } catch (_) {
+        /* attachment missing — skip */
+      }
     }
     if (mounted) setState(() => _entries = pairs);
   }
@@ -640,40 +652,41 @@ class _LockedAttachmentsScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final entries = _entries;
     return Scaffold(
-      appBar: AppBar(title: const Text('Attachment-Level Lock')),
+      appBar: AppBar(title: Text(l10n.lockedAttachmentsTitle)),
       body: entries == null
           ? const Center(child: CircularProgressIndicator())
           : entries.isEmpty
-              ? const Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(24),
-                    child: Text(
-                      'No attachments are locked yet. Open an entry and use '
-                      'the lock button on an attachment to require '
-                      're-authentication before opening it.',
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                )
-              : ListView.builder(
-                  itemCount: entries.length,
-                  itemBuilder: (_, i) {
-                    final (lock, attachment) = entries[i];
-                    return ListTile(
-                      key: Key('locked-attachment-${attachment.id}'),
-                      leading: const Icon(Icons.lock),
-                      title: Text(attachment.fileName),
-                      subtitle: Text('Locked ${_fmtDate(lock.lockedAt)}'),
-                      trailing: TextButton(
-                        key: Key('locked-attachment-remove-${attachment.id}'),
-                        onPressed: () => _remove(attachment.id),
-                        child: const Text('Remove lock'),
-                      ),
-                    );
-                  },
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  l10n.lockedAttachmentsEmpty,
+                  textAlign: TextAlign.center,
                 ),
+              ),
+            )
+          : ListView.builder(
+              itemCount: entries.length,
+              itemBuilder: (_, i) {
+                final (lock, attachment) = entries[i];
+                return ListTile(
+                  key: Key('locked-attachment-${attachment.id}'),
+                  leading: const Icon(Icons.lock),
+                  title: Text(attachment.fileName),
+                  subtitle: Text(
+                    l10n.lockedAttachmentSince(_fmtDate(lock.lockedAt)),
+                  ),
+                  trailing: TextButton(
+                    key: Key('locked-attachment-remove-${attachment.id}'),
+                    onPressed: () => _remove(attachment.id),
+                    child: Text(l10n.lockedAttachmentRemove),
+                  ),
+                );
+              },
+            ),
     );
   }
 }
@@ -703,11 +716,11 @@ class _AppLockPinSetupScreenState
   Future<void> _save() async {
     if (_busy) return;
     if (_pin.text.length < 4) {
-      setState(() => _error = 'PIN must be at least 4 characters.');
+      setState(() => _error = AppLocalizations.of(context).lockPinTooShort);
       return;
     }
     if (_pin.text != _confirm.text) {
-      setState(() => _error = 'PINs do not match.');
+      setState(() => _error = AppLocalizations.of(context).lockPinsDoNotMatch);
       return;
     }
     setState(() {
@@ -719,7 +732,9 @@ class _AppLockPinSetupScreenState
     } catch (error) {
       if (mounted) {
         setState(() {
-          _error = 'Could not save PIN: $error';
+          _error = AppLocalizations.of(
+            context,
+          ).lockPinSaveFailed(error.toString());
           _busy = false;
         });
       }
@@ -728,28 +743,27 @@ class _AppLockPinSetupScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Set app-lock PIN')),
+      appBar: AppBar(title: Text(l10n.lockPinSetupTitle)),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Separate App Lock requires a PIN. Set one to continue.',
-            ),
+            Text(l10n.lockPinSetupBody),
             const SizedBox(height: 16),
             TextField(
               key: const Key('pin-setup-field'),
               controller: _pin,
               obscureText: true,
-              decoration: const InputDecoration(labelText: 'PIN'),
+              decoration: InputDecoration(labelText: l10n.lockPinLabel),
             ),
             TextField(
               key: const Key('pin-setup-confirm-field'),
               controller: _confirm,
               obscureText: true,
-              decoration: const InputDecoration(labelText: 'Confirm PIN'),
+              decoration: InputDecoration(labelText: l10n.lockConfirmPinLabel),
             ),
             if (_error != null) ...[
               const SizedBox(height: 8),
@@ -759,7 +773,7 @@ class _AppLockPinSetupScreenState
             ElevatedButton(
               key: const Key('pin-setup-save-button'),
               onPressed: _busy ? null : _save,
-              child: Text(_busy ? 'Saving...' : 'Save'),
+              child: Text(_busy ? l10n.commonSaving : l10n.commonSave),
             ),
           ],
         ),
@@ -794,8 +808,9 @@ class _LockGateScreenState extends ConsumerState<_LockGateScreen> {
       _busy = true;
       _error = null;
     });
-    final result =
-        await ref.read(appLockProvider.notifier).unlockWithBiometric();
+    final result = await ref
+        .read(appLockProvider.notifier)
+        .unlockWithBiometric();
     if (!mounted) return;
     setState(() {
       _busy = false;
@@ -804,11 +819,10 @@ class _LockGateScreenState extends ConsumerState<_LockGateScreen> {
           _error = null;
           break;
         case BiometricAuthResult.failed:
-          _error = 'Authentication failed. Please try again.';
+          _error = AppLocalizations.of(context).lockAuthFailed;
           break;
         case BiometricAuthResult.unavailable:
-          _error =
-              'Device authentication is not available. Configure a PIN/biometric in system settings.';
+          _error = AppLocalizations.of(context).lockAuthUnavailable;
           break;
       }
     });
@@ -818,7 +832,7 @@ class _LockGateScreenState extends ConsumerState<_LockGateScreen> {
     if (_busy) return;
     final pin = _pinController.text;
     if (pin.isEmpty) {
-      setState(() => _error = 'Enter your PIN.');
+      setState(() => _error = AppLocalizations.of(context).lockEnterPin);
       return;
     }
     setState(() {
@@ -830,19 +844,20 @@ class _LockGateScreenState extends ConsumerState<_LockGateScreen> {
     setState(() {
       _busy = false;
       if (!ok) {
-        _error = 'Incorrect PIN.';
+        _error = AppLocalizations.of(context).lockIncorrectPin;
       }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final lockState = ref.watch(appLockProvider);
     final isAppLock = lockState.mode == AppLockMode.appLock;
-    final modeLabel = isAppLock ? 'Separate App Lock' : 'Phone Lock';
+    final modeLabel = isAppLock ? l10n.lockModeApp : l10n.lockModePhone;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('App Lock Gate')),
+      appBar: AppBar(title: Text(l10n.lockGateTitle)),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -855,9 +870,9 @@ class _LockGateScreenState extends ConsumerState<_LockGateScreen> {
                 key: const Key('app-lock-pin-field'),
                 controller: _pinController,
                 obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'PIN',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.lockPinLabel,
+                  border: const OutlineInputBorder(),
                 ),
                 onSubmitted: (_) => _unlockPin(),
               ),
@@ -865,13 +880,13 @@ class _LockGateScreenState extends ConsumerState<_LockGateScreen> {
               ElevatedButton(
                 key: const Key('app-lock-unlock-button'),
                 onPressed: _busy ? null : _unlockPin,
-                child: const Text('Unlock'),
+                child: Text(l10n.commonUnlock),
               ),
             ] else ...[
               ElevatedButton(
                 key: const Key('phone-lock-unlock-button'),
                 onPressed: _busy ? null : _unlockBiometric,
-                child: const Text('Unlock with Phone Lock'),
+                child: Text(l10n.lockUnlockWithPhone),
               ),
             ],
             if (_error != null) ...[
@@ -892,6 +907,7 @@ class _MainShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final index = ref.watch(_selectedTabProvider);
     const tabs = [
       _HomeTab(),
@@ -906,31 +922,31 @@ class _MainShell extends ConsumerWidget {
         selectedIndex: index,
         onDestinationSelected: (i) =>
             ref.read(_selectedTabProvider.notifier).set(i),
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home_rounded),
-            label: 'Home',
+            icon: const Icon(Icons.home_outlined),
+            selectedIcon: const Icon(Icons.home_rounded),
+            label: l10n.navHome,
           ),
           NavigationDestination(
-            icon: Icon(Icons.search_rounded),
-            selectedIcon: Icon(Icons.saved_search_rounded),
-            label: 'Search',
+            icon: const Icon(Icons.search_rounded),
+            selectedIcon: const Icon(Icons.saved_search_rounded),
+            label: l10n.navSearch,
           ),
           NavigationDestination(
-            icon: Icon(Icons.calendar_month_outlined),
-            selectedIcon: Icon(Icons.calendar_month_rounded),
-            label: 'Timeline',
+            icon: const Icon(Icons.calendar_month_outlined),
+            selectedIcon: const Icon(Icons.calendar_month_rounded),
+            label: l10n.navTimeline,
           ),
           NavigationDestination(
-            icon: Icon(Icons.auto_graph_outlined),
-            selectedIcon: Icon(Icons.auto_graph_rounded),
-            label: 'Insights',
+            icon: const Icon(Icons.auto_graph_outlined),
+            selectedIcon: const Icon(Icons.auto_graph_rounded),
+            label: l10n.navInsights,
           ),
           NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings_rounded),
-            label: 'Settings',
+            icon: const Icon(Icons.settings_outlined),
+            selectedIcon: const Icon(Icons.settings_rounded),
+            label: l10n.navSettings,
           ),
         ],
       ),
@@ -987,30 +1003,36 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
         }
       }
       lastUpdated ??= j.updatedAt;
-      items.add(_JournalSummary(
-        journal: j,
-        tags: tags,
-        entryCount: entries.length,
-        lastUpdatedAt: lastUpdated,
-      ));
+      items.add(
+        _JournalSummary(
+          journal: j,
+          tags: tags,
+          entryCount: entries.length,
+          lastUpdatedAt: lastUpdated,
+        ),
+      );
     }
     if (mounted) setState(() => _journals = items);
   }
 
-  Future<void> _openForm({Journal? journal, List<Tag> initialTags = const []}) async {
-    final result = await showDialog<({
-      String title,
-      String desc,
-      String tags,
-      bool locked,
-      String? password,
-    })>(
-      context: context,
-      builder: (_) => _JournalFormDialog(
-        journal: journal,
-        initialTags: initialTags,
-      ),
-    );
+  Future<void> _openForm({
+    Journal? journal,
+    List<Tag> initialTags = const [],
+  }) async {
+    final result =
+        await showDialog<
+          ({
+            String title,
+            String desc,
+            String tags,
+            bool locked,
+            String? password,
+          })
+        >(
+          context: context,
+          builder: (_) =>
+              _JournalFormDialog(journal: journal, initialTags: initialTags),
+        );
     if (result == null || !mounted) return;
 
     final db = ref.read(appDatabaseProvider);
@@ -1023,17 +1045,11 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
           description: Value(result.desc.isEmpty ? null : result.desc),
         ),
       );
-      // Create tags
-      final tagNames = result.tags
-          .split(',')
-          .map((t) => t.trim())
-          .where((t) => t.isNotEmpty);
-      for (final name in tagNames) {
-        final tagId = await db.tagsDao.getOrCreateTag(name);
-        await db.journalTagsDao.addTagToJournal(journalId, tagId);
-      }
+      await _applyJournalTags(db, journalId, result.tags);
       // Lock if requested
-      if (result.locked && result.password != null && result.password!.isNotEmpty) {
+      if (result.locked &&
+          result.password != null &&
+          result.password!.isNotEmpty) {
         final svc = ref.read(_journalPasswordServiceProvider);
         final cred = await svc.createCredential(
           journalId: journalId,
@@ -1059,25 +1075,63 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
           description: Value(result.desc.isEmpty ? null : result.desc),
         ),
       );
+      await _applyJournalTags(db, journalId, result.tags);
     }
     await _load();
+  }
+
+  /// Makes the journal's tags match [tagsText], a comma separated list.
+  ///
+  /// Only the difference is written: tags already on the journal are left
+  /// alone, names that were removed from the text are unlinked, and new names
+  /// are created if they do not exist yet. Unlinking never deletes the tag
+  /// itself — tags are global and may be in use elsewhere.
+  Future<void> _applyJournalTags(
+    AppDatabase db,
+    int journalId,
+    String tagsText,
+  ) async {
+    final wanted = tagsText
+        .split(',')
+        .map((t) => t.trim().toLowerCase())
+        .where((t) => t.isNotEmpty)
+        .toSet();
+
+    final current = await db.journalTagsDao.getTagsForJournal(journalId);
+    final currentNames = {for (final tag in current) tag.name: tag};
+
+    for (final tag in current) {
+      if (!wanted.contains(tag.name)) {
+        await db.journalTagsDao.removeTagFromJournal(journalId, tag.id);
+      }
+    }
+    for (final name in wanted) {
+      if (currentNames.containsKey(name)) continue;
+      final tagId = await db.tagsDao.getOrCreateTag(name);
+      await db.journalTagsDao.addTagToJournal(journalId, tagId);
+    }
   }
 
   Future<void> _deleteJournal(Journal journal) async {
     final ok = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Delete journal?'),
-        content: Text('Delete "${journal.title}"?'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
-          TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Delete')),
-        ],
-      ),
+      builder: (dialogContext) {
+        final l10n = AppLocalizations.of(dialogContext);
+        return AlertDialog(
+          title: Text(l10n.journalDeleteTitle),
+          content: Text(l10n.journalDeleteBody(journal.title)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(l10n.commonCancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: Text(l10n.commonDelete),
+            ),
+          ],
+        );
+      },
     );
     if (ok != true || !mounted) return;
     final db = ref.read(appDatabaseProvider);
@@ -1097,64 +1151,74 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final journals = _journals;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home'),
+        title: Text(l10n.navHome),
         actions: [
-          SyncStatusWidget(
-            showLabel: false,
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (_) => const ConflictResolutionScreen(),
+          if (AppFlavorConfig.instance.enableSyncUi) ...[
+            SyncStatusWidget(
+              showLabel: false,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (_) => const ConflictResolutionScreen(),
+                ),
               ),
             ),
+            const SizedBox(width: 8),
+          ],
+          IconButton(
+            tooltip: l10n.journalManageTags,
+            icon: const Icon(Icons.sell_outlined),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute<void>(builder: (_) => const TagManagerScreen()),
+            ).then((_) => _load()),
           ),
-          const SizedBox(width: 8),
         ],
       ),
       body: journals == null
           ? const Center(child: CircularProgressIndicator())
           : journals.isEmpty
-              ? const _HomeEmptyState()
-              : RefreshIndicator(
-                  onRefresh: _load,
-                  child: GridView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 14,
-                      crossAxisSpacing: 14,
-                      childAspectRatio: 0.82,
-                    ),
-                    itemCount: journals.length,
-                    itemBuilder: (_, i) {
-                      final summary = journals[i];
-                      return _JournalCard(
-                        summary: summary,
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute<void>(
-                            builder: (_) =>
-                                _JournalDetailScreen(journal: summary.journal),
-                          ),
-                        ).then((_) => _load()),
-                        onEdit: () => _openForm(
-                          journal: summary.journal,
-                          initialTags: summary.tags,
-                        ),
-                        onDelete: () => _deleteJournal(summary.journal),
-                      );
-                    },
-                  ),
+          ? const _HomeEmptyState()
+          : RefreshIndicator(
+              onRefresh: _load,
+              child: GridView.builder(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 14,
+                  crossAxisSpacing: 14,
+                  childAspectRatio: 0.82,
                 ),
+                itemCount: journals.length,
+                itemBuilder: (_, i) {
+                  final summary = journals[i];
+                  return _JournalCard(
+                    summary: summary,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) =>
+                            _JournalDetailScreen(journal: summary.journal),
+                      ),
+                    ).then((_) => _load()),
+                    onEdit: () => _openForm(
+                      journal: summary.journal,
+                      initialTags: summary.tags,
+                    ),
+                    onDelete: () => _deleteJournal(summary.journal),
+                  );
+                },
+              ),
+            ),
       floatingActionButton: FloatingActionButton.extended(
-        tooltip: 'New journal',
+        tooltip: l10n.journalNew,
         onPressed: () => _openForm(),
         icon: const Icon(Icons.add),
-        label: const Text('New journal'),
+        label: Text(l10n.journalNew),
       ),
     );
   }
@@ -1188,13 +1252,13 @@ class _HomeEmptyState extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
-              'No journals yet',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            Text(
+              AppLocalizations.of(context).journalEmptyTitle,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 6),
             Text(
-              'Tap “New journal” to start writing.',
+              AppLocalizations.of(context).journalEmptyBody,
               textAlign: TextAlign.center,
               style: TextStyle(color: scheme.onSurfaceVariant),
             ),
@@ -1359,7 +1423,7 @@ class _JournalCard extends StatelessWidget {
                               '#${tag.name}',
                               style: TextStyle(
                                 fontSize: 11,
-                                color: scheme.primary,
+                                color: colorForTag(tag),
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -1375,7 +1439,7 @@ class _JournalCard extends StatelessWidget {
                           child: IconButton(
                             padding: EdgeInsets.zero,
                             iconSize: 16,
-                            tooltip: 'Edit journal',
+                            tooltip: AppLocalizations.of(context).journalEdit,
                             icon: const Icon(Icons.edit_outlined),
                             onPressed: onEdit,
                           ),
@@ -1386,7 +1450,7 @@ class _JournalCard extends StatelessWidget {
                           child: IconButton(
                             padding: EdgeInsets.zero,
                             iconSize: 16,
-                            tooltip: 'Delete journal',
+                            tooltip: AppLocalizations.of(context).journalDelete,
                             icon: const Icon(Icons.delete_outline),
                             onPressed: onDelete,
                           ),
@@ -1428,10 +1492,10 @@ class _JournalFormDialogState extends State<_JournalFormDialog> {
   void initState() {
     super.initState();
     _title = TextEditingController(text: widget.journal?.title ?? '');
-    _desc = TextEditingController(
-        text: widget.journal?.description ?? '');
+    _desc = TextEditingController(text: widget.journal?.description ?? '');
     _tags = TextEditingController(
-        text: widget.initialTags.map((t) => t.name).join(', '));
+      text: widget.initialTags.map((t) => t.name).join(', '),
+    );
     _password = TextEditingController();
     _confirmPassword = TextEditingController();
   }
@@ -1448,29 +1512,33 @@ class _JournalFormDialogState extends State<_JournalFormDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final isEdit = widget.journal != null;
     return AlertDialog(
-      title: Text(isEdit ? 'Edit journal' : 'New journal'),
+      title: Text(isEdit ? l10n.journalEdit : l10n.journalNew),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextFormField(
               controller: _title,
-              decoration: const InputDecoration(labelText: 'Title'),
+              decoration: InputDecoration(labelText: l10n.journalTitleLabel),
             ),
             TextFormField(
               controller: _desc,
-              decoration: const InputDecoration(labelText: 'Description'),
-            ),
-            if (!isEdit) ...[
-              TextFormField(
-                controller: _tags,
-                decoration: const InputDecoration(
-                    labelText: 'Tags (comma separated)'),
+              decoration: InputDecoration(
+                labelText: l10n.journalDescriptionLabel,
               ),
+            ),
+            TextFormField(
+              controller: _tags,
+              decoration: InputDecoration(labelText: l10n.journalTagsLabel),
+            ),
+            // Locking is only offered at creation time — changing the password
+            // of an existing journal is a separate flow.
+            if (!isEdit) ...[
               SwitchListTile(
-                title: const Text('Lock journal'),
+                title: Text(l10n.journalLockSwitch),
                 value: _lockJournal,
                 onChanged: (v) => setState(() => _lockJournal = v),
               ),
@@ -1479,15 +1547,15 @@ class _JournalFormDialogState extends State<_JournalFormDialog> {
                   key: const Key('journal-password-field'),
                   controller: _password,
                   obscureText: true,
-                  decoration:
-                      const InputDecoration(labelText: 'Password'),
+                  decoration: InputDecoration(labelText: l10n.commonPassword),
                 ),
                 TextFormField(
                   key: const Key('journal-password-confirm-field'),
                   controller: _confirmPassword,
                   obscureText: true,
-                  decoration:
-                      const InputDecoration(labelText: 'Confirm password'),
+                  decoration: InputDecoration(
+                    labelText: l10n.journalConfirmPasswordLabel,
+                  ),
                 ),
               ],
             ],
@@ -1496,20 +1564,18 @@ class _JournalFormDialogState extends State<_JournalFormDialog> {
       ),
       actions: [
         TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel')),
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.commonCancel),
+        ),
         TextButton(
-          onPressed: () => Navigator.pop(
-            context,
-            (
-              title: _title.text,
-              desc: _desc.text,
-              tags: _tags.text,
-              locked: _lockJournal,
-              password: _password.text.isEmpty ? null : _password.text,
-            ),
-          ),
-          child: const Text('Save'),
+          onPressed: () => Navigator.pop(context, (
+            title: _title.text,
+            desc: _desc.text,
+            tags: _tags.text,
+            locked: _lockJournal,
+            password: _password.text.isEmpty ? null : _password.text,
+          )),
+          child: Text(l10n.commonSave),
         ),
       ],
     );
@@ -1528,8 +1594,7 @@ class _JournalDetailScreen extends ConsumerStatefulWidget {
       _JournalDetailScreenState();
 }
 
-class _JournalDetailScreenState
-    extends ConsumerState<_JournalDetailScreen> {
+class _JournalDetailScreenState extends ConsumerState<_JournalDetailScreen> {
   List<Entry>? _entries;
   String? _unlockError;
   final _passwordController = TextEditingController();
@@ -1539,8 +1604,7 @@ class _JournalDetailScreenState
     return ids.contains(widget.journal.id);
   }
 
-  bool get _isAccessible =>
-      !widget.journal.isLocked || _isSessionUnlocked;
+  bool get _isAccessible => !widget.journal.isLocked || _isSessionUnlocked;
 
   @override
   void initState() {
@@ -1557,8 +1621,7 @@ class _JournalDetailScreenState
   Future<void> _loadEntries() async {
     if (!mounted) return;
     final db = ref.read(appDatabaseProvider);
-    final entries =
-        await db.entriesDao.getEntriesForJournal(widget.journal.id);
+    final entries = await db.entriesDao.getEntriesForJournal(widget.journal.id);
     if (mounted) setState(() => _entries = entries);
   }
 
@@ -1566,7 +1629,9 @@ class _JournalDetailScreenState
     final password = _passwordController.text;
     final svc = ref.read(_journalPasswordServiceProvider);
     final ok = await svc.verifyPassword(
-        journal: widget.journal, password: password);
+      journal: widget.journal,
+      password: password,
+    );
     if (!mounted) return;
     if (ok) {
       final current = ref.read(_unlockedJournalIdsProvider);
@@ -1577,7 +1642,11 @@ class _JournalDetailScreenState
       setState(() => _unlockError = null);
       await _loadEntries();
     } else {
-      setState(() => _unlockError = 'Incorrect password.');
+      setState(
+        () => _unlockError = AppLocalizations.of(
+          context,
+        ).journalIncorrectPassword,
+      );
     }
   }
 
@@ -1614,12 +1683,33 @@ class _JournalDetailScreenState
     final accessible = _isAccessible;
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.journal.title)),
+      appBar: AppBar(
+        title: Text(widget.journal.title),
+        actions: [
+          // Only once the journal is open. A locked journal must be unlocked
+          // before any of it can be written out.
+          if (accessible)
+            IconButton(
+              key: const Key('journal-export-button'),
+              icon: const Icon(Icons.ios_share),
+              tooltip: ExportStrings.exportJournalTooltip,
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (_) => ExportScreen(
+                    journalId: widget.journal.id,
+                    journalTitle: widget.journal.title,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
       floatingActionButton: accessible
           ? FloatingActionButton.extended(
               onPressed: () => _openEntryScreen(),
               icon: const Icon(Icons.add),
-              label: const Text('Add entry'),
+              label: Text(AppLocalizations.of(context).journalAddEntry),
             )
           : null,
       body: accessible ? _buildEntries() : _buildLocked(),
@@ -1627,29 +1717,29 @@ class _JournalDetailScreenState
   }
 
   Widget _buildLocked() {
+    final l10n = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Journal is locked'),
+          Text(l10n.journalIsLocked),
           const SizedBox(height: 16),
           TextField(
             key: const Key('journal-unlock-password-field'),
             controller: _passwordController,
             obscureText: true,
-            decoration: const InputDecoration(labelText: 'Password'),
+            decoration: InputDecoration(labelText: l10n.commonPassword),
           ),
           if (_unlockError != null) ...[
             const SizedBox(height: 8),
-            Text(_unlockError!,
-                style: const TextStyle(color: Colors.red)),
+            Text(_unlockError!, style: const TextStyle(color: Colors.red)),
           ],
           const SizedBox(height: 16),
           ElevatedButton(
             key: const Key('journal-unlock-button'),
             onPressed: _tryUnlock,
-            child: const Text('Unlock'),
+            child: Text(l10n.commonUnlock),
           ),
         ],
       ),
@@ -1657,13 +1747,14 @@ class _JournalDetailScreenState
   }
 
   Widget _buildEntries() {
+    final l10n = AppLocalizations.of(context);
     final entries = _entries;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.all(16),
-          child: Text('Unlocked'),
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(l10n.journalUnlocked),
         ),
         Expanded(
           child: entries == null
@@ -1674,7 +1765,7 @@ class _JournalDetailScreenState
                     final entry = entries[i];
                     final date = entry.entryDate ?? entry.createdAt;
                     return ListTile(
-                      title: Text(entry.title ?? 'Untitled'),
+                      title: Text(entry.title ?? l10n.commonUntitled),
                       subtitle: Text(_fmtDate(date)),
                       onTap: () => _openEntryScreen(entry: entry),
                     );
@@ -1684,7 +1775,6 @@ class _JournalDetailScreenState
       ],
     );
   }
-
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1696,27 +1786,28 @@ class _SettingsTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final lockState = ref.watch(appLockProvider);
     final lockMode = lockState.mode;
     final themeMode = ref.watch(_themeModeProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: Text(l10n.navSettings)),
       body: ListView(
         key: const Key('settings-list'),
         children: [
           // ── Section 1: Security ──────────────────────────────────────
-          const _SectionHeader('Security'),
-          const ListTile(title: Text('App Lock Mode')),
+          _SectionHeader(l10n.settingsSectionSecurity),
+          ListTile(title: Text(l10n.settingsAppLockMode)),
           ListTile(
-            title: const Text('Phone Lock'),
+            title: Text(l10n.lockModePhone),
             selected: lockMode != AppLockMode.appLock,
             onTap: lockMode != AppLockMode.appLock
                 ? null
                 : () => _switchLock(context, ref, AppLockMode.phoneLock),
           ),
           ListTile(
-            title: const Text('Separate App Lock'),
+            title: Text(l10n.lockModeApp),
             selected: lockMode == AppLockMode.appLock,
             onTap: lockMode == AppLockMode.appLock
                 ? null
@@ -1724,7 +1815,7 @@ class _SettingsTab extends ConsumerWidget {
           ),
           ListTile(
             key: const Key('settings-auto-lock-timeout'),
-            title: const Text('Auto-Lock Timeout'),
+            title: Text(l10n.settingsAutoLockTimeout),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.push(
               context,
@@ -1735,7 +1826,7 @@ class _SettingsTab extends ConsumerWidget {
           ),
           ListTile(
             key: const Key('settings-attachment-level-lock'),
-            title: const Text('Attachment-Level Lock'),
+            title: Text(l10n.lockedAttachmentsTitle),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.push(
               context,
@@ -1744,21 +1835,25 @@ class _SettingsTab extends ConsumerWidget {
               ),
             ),
           ),
-          const _ComingSoonTile(title: 'Tamper Alerts'),
-          ListTile(
-            key: const Key('settings-sync-conflicts'),
-            title: const Text('Sync Conflicts'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (_) => const ConflictResolutionScreen(),
+          _ComingSoonTile(title: l10n.settingsTamperAlerts),
+          // Sync has no transport yet — see AppFlavorConfig.enableSyncUi.
+          if (AppFlavorConfig.instance.enableSyncUi)
+            ListTile(
+              key: const Key('settings-sync-conflicts'),
+              title: Text(l10n.settingsSyncConflicts),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (_) => const ConflictResolutionScreen(),
+                ),
               ),
-            ),
-          ),
+            )
+          else
+            _ComingSoonTile(title: l10n.settingsSyncConflicts),
           ListTile(
             key: const Key('settings-security-events'),
-            title: const Text('Security Events'),
+            title: Text(l10n.settingsSecurityEvents),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.push(
               context,
@@ -1769,11 +1864,10 @@ class _SettingsTab extends ConsumerWidget {
           ),
 
           // ── Section 2: Appearance ────────────────────────────────────
-          const _SectionHeader('Appearance'),
-          const ListTile(
-            title: Text('Theme'),
-            subtitle:
-                Text('Choose how SreerajP_Journal_Vault looks.'),
+          _SectionHeader(l10n.settingsSectionAppearance),
+          ListTile(
+            title: Text(l10n.settingsTheme),
+            subtitle: Text(l10n.settingsThemeSubtitle),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -1781,37 +1875,34 @@ class _SettingsTab extends ConsumerWidget {
               spacing: 8,
               children: [
                 for (final (label, mode) in [
-                  ('Light', ThemeMode.light),
-                  ('Dark', ThemeMode.dark),
+                  (l10n.settingsThemeLight, ThemeMode.light),
+                  (l10n.settingsThemeDark, ThemeMode.dark),
                 ])
                   ChoiceChip(
                     key: Key('settings-theme-chip-${mode.name}'),
                     label: Text(label),
                     selected: themeMode == mode,
-                    onSelected: (_) =>
-                        _switchTheme(context, ref, mode),
+                    onSelected: (_) => _switchTheme(context, ref, mode),
                   ),
               ],
             ),
           ),
 
           // ── Section 3: Storage ───────────────────────────────────────
-          const _SectionHeader('Storage'),
+          _SectionHeader(l10n.settingsSectionStorage),
           const _StorageSection(),
 
           // ── Section 4: Permissions ───────────────────────────────────
-          const _SectionHeader('Permissions'),
+          _SectionHeader(l10n.settingsSectionPermissions),
           const _PermissionsSection(),
 
           // ── Section 5: About ─────────────────────────────────────────
-          const _SectionHeader('About'),
+          _SectionHeader(l10n.settingsSectionAbout),
           ListTile(
-            title: const Text('About this app'),
+            title: Text(l10n.settingsAbout),
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute<void>(
-                builder: (_) => const AboutScreen(),
-              ),
+              MaterialPageRoute<void>(builder: (_) => const AboutScreen()),
             ),
           ),
         ],
@@ -1820,26 +1911,32 @@ class _SettingsTab extends ConsumerWidget {
   }
 
   Future<void> _switchLock(
-      BuildContext context, WidgetRef ref, AppLockMode mode) async {
-    final modeLabel =
-        mode == AppLockMode.appLock ? 'Separate App Lock' : 'Phone Lock';
-    final disabledLabel =
-        mode == AppLockMode.appLock ? 'Phone Lock' : 'Separate App Lock';
+    BuildContext context,
+    WidgetRef ref,
+    AppLockMode mode,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final modeLabel = mode == AppLockMode.appLock
+        ? l10n.lockModeApp
+        : l10n.lockModePhone;
+    final disabledLabel = mode == AppLockMode.appLock
+        ? l10n.lockModePhone
+        : l10n.lockModeApp;
 
     final ok = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Switch lock mode?'),
-        content: Text(
-          'This will switch app protection to $modeLabel and disable $disabledLabel. Continue?',
-        ),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.settingsSwitchLockTitle),
+        content: Text(l10n.settingsSwitchLockBody(modeLabel, disabledLabel)),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text(l10n.commonCancel),
+          ),
           TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Switch')),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(l10n.settingsSwitchAction),
+          ),
         ],
       ),
     );
@@ -1864,15 +1961,17 @@ class _SettingsTab extends ConsumerWidget {
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content:
-                Text('Lock mode updated: $modeLabel is now active.')),
+        SnackBar(content: Text(l10n.settingsLockModeUpdated(modeLabel))),
       );
     }
   }
 
   Future<void> _switchTheme(
-      BuildContext context, WidgetRef ref, ThemeMode mode) async {
+    BuildContext context,
+    WidgetRef ref,
+    ThemeMode mode,
+  ) async {
+    final l10n = AppLocalizations.of(context);
     final prev = ref.read(_themeModeProvider);
     ref.read(_themeModeProvider.notifier).set(mode);
 
@@ -1882,27 +1981,26 @@ class _SettingsTab extends ConsumerWidget {
       await store.save(mode);
     } on ThemeModePersistenceException {
       failed = true;
-    } catch (_) {/* No store or other error → treat as success */}
+    } catch (_) {
+      /* No store or other error → treat as success */
+    }
 
     if (!context.mounted) return;
 
     if (failed) {
       ref.read(_themeModeProvider.notifier).set(prev);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text(
-                'Could not save theme setting. Please try again.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.settingsThemeSaveFailed)));
     } else {
       final label = switch (mode) {
-        ThemeMode.dark => 'Dark',
-        ThemeMode.light => 'Light',
-        ThemeMode.system => 'System',
+        ThemeMode.dark => l10n.settingsThemeDark,
+        ThemeMode.light => l10n.settingsThemeLight,
+        ThemeMode.system => l10n.settingsThemeSystem,
       };
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text('Theme updated: $label mode is now active.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.settingsThemeUpdated(label))));
     }
   }
 }
@@ -1928,11 +2026,11 @@ class _PinSetupDialogState extends State<_PinSetupDialog> {
 
   void _save() {
     if (_pin.text.length < 4) {
-      setState(() => _error = 'PIN must be at least 4 characters.');
+      setState(() => _error = AppLocalizations.of(context).lockPinTooShort);
       return;
     }
     if (_pin.text != _confirm.text) {
-      setState(() => _error = 'PINs do not match.');
+      setState(() => _error = AppLocalizations.of(context).lockPinsDoNotMatch);
       return;
     }
     Navigator.pop(context, _pin.text);
@@ -1940,8 +2038,9 @@ class _PinSetupDialogState extends State<_PinSetupDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AlertDialog(
-      title: const Text('Set app-lock PIN'),
+      title: Text(l10n.lockPinSetupTitle),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -1949,13 +2048,13 @@ class _PinSetupDialogState extends State<_PinSetupDialog> {
             key: const Key('settings-pin-field'),
             controller: _pin,
             obscureText: true,
-            decoration: const InputDecoration(labelText: 'PIN'),
+            decoration: InputDecoration(labelText: l10n.lockPinLabel),
           ),
           TextField(
             key: const Key('settings-pin-confirm-field'),
             controller: _confirm,
             obscureText: true,
-            decoration: const InputDecoration(labelText: 'Confirm PIN'),
+            decoration: InputDecoration(labelText: l10n.lockConfirmPinLabel),
           ),
           if (_error != null) ...[
             const SizedBox(height: 8),
@@ -1965,12 +2064,13 @@ class _PinSetupDialogState extends State<_PinSetupDialog> {
       ),
       actions: [
         TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel')),
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.commonCancel),
+        ),
         TextButton(
           key: const Key('settings-pin-save-button'),
           onPressed: _save,
-          child: const Text('Save'),
+          child: Text(l10n.commonSave),
         ),
       ],
     );
@@ -1988,10 +2088,9 @@ class _SectionHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
       child: Text(
         title,
-        style: Theme.of(context)
-            .textTheme
-            .titleSmall
-            ?.copyWith(color: Theme.of(context).colorScheme.primary),
+        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+          color: Theme.of(context).colorScheme.primary,
+        ),
       ),
     );
   }
@@ -2006,7 +2105,7 @@ class _ComingSoonTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       title: Text(title),
-      trailing: const Text('Coming soon'),
+      trailing: Text(AppLocalizations.of(context).settingsComingSoon),
       enabled: false,
     );
   }
@@ -2036,8 +2135,7 @@ class _StorageSectionState extends ConsumerState<_StorageSection> {
     final db = ref.read(appDatabaseProvider);
     final settings = await db.appSettingsDao.getSettings();
     final attachments = await db.attachmentsDao.getAllAttachments();
-    final total =
-        attachments.fold<int>(0, (sum, a) => sum + a.sizeBytes);
+    final total = attachments.fold<int>(0, (sum, a) => sum + a.sizeBytes);
     if (!mounted) return;
     setState(() {
       _settings = settings;
@@ -2045,35 +2143,41 @@ class _StorageSectionState extends ConsumerState<_StorageSection> {
     });
   }
 
-  String _locationLabel(AppSetting s) {
+  String _locationLabel(AppLocalizations l10n, AppSetting s) {
     final loc = AttachmentStorageLocation.fromSettingsValue(
       s.attachmentStorageLocation,
     );
-    return loc == AttachmentStorageLocation.sdCard
-        ? 'SD Card${s.attachmentStorageTreeLabel != null ? ' (${s.attachmentStorageTreeLabel})' : ''}'
-        : 'App Private';
+    if (loc != AttachmentStorageLocation.sdCard) return l10n.storageAppPrivate;
+    final label = s.attachmentStorageTreeLabel;
+    return label == null ? l10n.storageSdCard : l10n.storageSdCardNamed(label);
   }
 
-  String _migrationStatusLabel(AppSetting s) {
+  /// `attachmentMigrationStatus` is a database code, not text for the user.
+  String _migrationStatusLabel(AppLocalizations l10n, AppSetting s) {
     switch (s.attachmentMigrationStatus) {
       case 'running':
-        return 'Migrating ${s.attachmentMigrationProcessedCount} of ${s.attachmentMigrationTotalCount}…';
+        return l10n.storageMigrationRunning(
+          s.attachmentMigrationProcessedCount,
+          s.attachmentMigrationTotalCount,
+        );
       case 'failed':
-        return s.attachmentMigrationFailure ?? 'Migration failed.';
+        return s.attachmentMigrationFailure ?? l10n.storageMigrationFailedShort;
       default:
-        return 'Idle';
+        return l10n.storageMigrationIdle;
     }
   }
 
-  String _formatBytes(int bytes) {
-    if (bytes < 1024) return '$bytes B';
+  String _formatBytes(AppLocalizations l10n, int bytes) {
+    if (bytes < 1024) return l10n.storageBytes(bytes);
     if (bytes < 1024 * 1024) {
-      return '${(bytes / 1024).toStringAsFixed(1)} KB';
+      return l10n.storageKilobytes((bytes / 1024).toStringAsFixed(1));
     }
     if (bytes < 1024 * 1024 * 1024) {
-      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+      return l10n.storageMegabytes((bytes / (1024 * 1024)).toStringAsFixed(1));
     }
-    return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
+    return l10n.storageGigabytes(
+      (bytes / (1024 * 1024 * 1024)).toStringAsFixed(2),
+    );
   }
 
   Future<void> _changeLocation(AttachmentStorageLocation target) async {
@@ -2094,22 +2198,29 @@ class _StorageSectionState extends ConsumerState<_StorageSection> {
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Migrate attachments?'),
-        content: Text(
-          'All attachments will be moved to ${target == AttachmentStorageLocation.sdCard ? "SD Card" : "App Private storage"}.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+      builder: (dialogContext) {
+        final l10n = AppLocalizations.of(dialogContext);
+        return AlertDialog(
+          title: Text(l10n.storageMigrateTitle),
+          content: Text(
+            l10n.storageMigrateBody(
+              target == AttachmentStorageLocation.sdCard
+                  ? l10n.storageSdCard
+                  : l10n.storageAppPrivate,
+            ),
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Migrate'),
-          ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(l10n.commonCancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: Text(l10n.storageMigrateAction),
+            ),
+          ],
+        );
+      },
     );
     if (confirmed != true || !mounted) return;
 
@@ -2151,18 +2262,19 @@ class _StorageSectionState extends ConsumerState<_StorageSection> {
     await _load();
 
     if (!mounted) return;
+    final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
     if (cancelled) {
       messenger.showSnackBar(
-        const SnackBar(content: Text('Migration cancelled.')),
+        SnackBar(content: Text(l10n.storageMigrationCancelled)),
       );
     } else if (errorMessage != null) {
       messenger.showSnackBar(
-        SnackBar(content: Text('Migration failed: $errorMessage')),
+        SnackBar(content: Text(l10n.storageMigrationFailed(errorMessage))),
       );
     } else {
       messenger.showSnackBar(
-        const SnackBar(content: Text('Migration complete.')),
+        SnackBar(content: Text(l10n.storageMigrationComplete)),
       );
     }
   }
@@ -2190,92 +2302,121 @@ class _StorageSectionState extends ConsumerState<_StorageSection> {
       );
     }
     final canRetry = settings.attachmentMigrationStatus == 'failed';
+    final l10n = AppLocalizations.of(context);
 
     return Column(
       children: [
         ListTile(
           key: const Key('settings-attachment-storage-location'),
-          title: const Text('Attachment Storage Location'),
-          subtitle: Text(_locationLabel(settings)),
+          title: Text(l10n.storageLocationTitle),
+          subtitle: Text(_locationLabel(l10n, settings)),
           trailing: const Icon(Icons.chevron_right),
           onTap: () async {
             final selection = await showDialog<AttachmentStorageLocation>(
               context: context,
-              builder: (_) => SimpleDialog(
-                title: const Text('Storage location'),
-                children: [
-                  SimpleDialogOption(
-                    key: const Key('storage-location-app-private'),
-                    onPressed: () => Navigator.pop(
-                      context,
-                      AttachmentStorageLocation.appPrivate,
+              builder: (dialogContext) {
+                final l10n = AppLocalizations.of(dialogContext);
+                return SimpleDialog(
+                  title: Text(l10n.storageLocationDialogTitle),
+                  children: [
+                    SimpleDialogOption(
+                      key: const Key('storage-location-app-private'),
+                      onPressed: () => Navigator.pop(
+                        dialogContext,
+                        AttachmentStorageLocation.appPrivate,
+                      ),
+                      child: Text(l10n.storageAppPrivate),
                     ),
-                    child: const Text('App Private'),
-                  ),
-                  SimpleDialogOption(
-                    key: const Key('storage-location-sd-card'),
-                    onPressed: () => Navigator.pop(
-                      context,
-                      AttachmentStorageLocation.sdCard,
+                    SimpleDialogOption(
+                      key: const Key('storage-location-sd-card'),
+                      onPressed: () => Navigator.pop(
+                        dialogContext,
+                        AttachmentStorageLocation.sdCard,
+                      ),
+                      child: Text(l10n.storageSdCard),
                     ),
-                    child: const Text('SD Card'),
-                  ),
-                ],
-              ),
+                  ],
+                );
+              },
             );
             if (selection != null) await _changeLocation(selection);
           },
         ),
         ListTile(
           key: const Key('settings-migrate-storage'),
-          title: const Text('Migrate Storage'),
-          subtitle: Text(_migrationStatusLabel(settings)),
+          title: Text(l10n.storageMigrateRow),
+          subtitle: Text(_migrationStatusLabel(l10n, settings)),
           trailing: canRetry
               ? TextButton(
                   key: const Key('settings-migrate-storage-retry'),
                   onPressed: _retryMigration,
-                  child: const Text('Retry'),
+                  child: Text(l10n.commonRetry),
                 )
               : null,
         ),
         ListTile(
           key: const Key('settings-storage-usage'),
-          title: const Text('Storage Usage'),
+          title: Text(l10n.storageUsage),
           subtitle: Text(
-            _totalBytes == null ? '—' : _formatBytes(_totalBytes!),
+            _totalBytes == null
+                ? l10n.storageUnknown
+                : _formatBytes(l10n, _totalBytes!),
           ),
         ),
         ListTile(
           key: const Key('settings-backup-health'),
-          title: const Text('Backup Health'),
+          title: Text(l10n.storageBackupHealth),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute<void>(
-              builder: (_) => const BackupHealthScreen(),
-            ),
+            MaterialPageRoute<void>(builder: (_) => const BackupHealthScreen()),
           ),
         ),
         ListTile(
           key: const Key('settings-import-data'),
-          title: const Text('Import Data'),
+          title: Text(l10n.storageImportData),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => _pickImportTarget(context, ref),
         ),
         ListTile(
-          key: const Key('settings-sync-health'),
-          title: const Text('Sync Health'),
+          key: const Key('settings-export-data'),
+          title: const Text(ExportStrings.exportDataTile),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => _pickExportTarget(context, ref),
+        ),
+        ListTile(
+          key: const Key('settings-open-encrypted-export'),
+          title: Text(l10n.settingsOpenEncryptedExport),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute<void>(
-              builder: (_) => Scaffold(
-                appBar: AppBar(title: const Text('Sync Health')),
-                body: const SyncHealthDashboard(),
-              ),
+              builder: (_) => const OpenEncryptedExportScreen(),
             ),
           ),
         ),
+        // Sync has no transport yet — see AppFlavorConfig.enableSyncUi.
+        if (AppFlavorConfig.instance.enableSyncUi)
+          ListTile(
+            key: const Key('settings-sync-health'),
+            title: Text(l10n.storageSyncHealth),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute<void>(
+                builder: (routeContext) => Scaffold(
+                  appBar: AppBar(
+                    title: Text(
+                      AppLocalizations.of(routeContext).storageSyncHealth,
+                    ),
+                  ),
+                  body: const SyncHealthDashboard(),
+                ),
+              ),
+            ),
+          )
+        else
+          _ComingSoonTile(title: l10n.storageSyncHealth),
       ],
     );
   }
@@ -2286,8 +2427,8 @@ class _StorageSectionState extends ConsumerState<_StorageSection> {
     if (!context.mounted) return;
     if (journals.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Create a journal first to import into.'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).storageImportNeedsJournal),
         ),
       );
       return;
@@ -2295,12 +2436,70 @@ class _StorageSectionState extends ConsumerState<_StorageSection> {
 
     final selected = await showDialog<Journal>(
       context: context,
-      builder: (_) => SimpleDialog(
-        title: const Text('Import into journal'),
+      builder: (dialogContext) => SimpleDialog(
+        title: Text(
+          AppLocalizations.of(dialogContext).storageImportChooseJournal,
+        ),
         children: [
           for (final j in journals)
             SimpleDialogOption(
               key: Key('import-target-journal-${j.id}'),
+              onPressed: () => Navigator.pop(dialogContext, j),
+              child: Text(j.title),
+            ),
+        ],
+      ),
+    );
+    if (selected == null || !context.mounted) return;
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            ImportScreen(journalId: selected.id, journalTitle: selected.title),
+      ),
+    );
+  }
+
+  /// Asks which journal to export from, then opens the export screen.
+  ///
+  /// **Locked journals are not offered here.** The journal detail screen is
+  /// where a lock is opened; a journal the user has not unlocked this session
+  /// must not be exportable from a settings menu that never asked for the
+  /// password. If every journal is locked, the user is told to open one first
+  /// rather than being shown an empty list.
+  Future<void> _pickExportTarget(BuildContext context, WidgetRef ref) async {
+    final db = ref.read(appDatabaseProvider);
+    final journals = await db.journalsDao.getAllJournals();
+    if (!context.mounted) return;
+
+    if (journals.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text(ExportStrings.noJournalsToExport)),
+      );
+      return;
+    }
+
+    final unlockedIds = ref.read(_unlockedJournalIdsProvider);
+    final available = journals
+        .where((j) => !j.isLocked || unlockedIds.contains(j.id))
+        .toList();
+
+    if (available.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text(ExportStrings.allJournalsLocked)),
+      );
+      return;
+    }
+
+    final selected = await showDialog<Journal>(
+      context: context,
+      builder: (_) => SimpleDialog(
+        title: const Text(ExportStrings.chooseJournalToExport),
+        children: [
+          for (final j in available)
+            SimpleDialogOption(
+              key: Key('export-target-journal-${j.id}'),
               onPressed: () => Navigator.pop(context, j),
               child: Text(j.title),
             ),
@@ -2312,10 +2511,8 @@ class _StorageSectionState extends ConsumerState<_StorageSection> {
     await Navigator.push(
       context,
       MaterialPageRoute<void>(
-        builder: (_) => ImportScreen(
-          journalId: selected.id,
-          journalTitle: selected.title,
-        ),
+        builder: (_) =>
+            ExportScreen(journalId: selected.id, journalTitle: selected.title),
       ),
     );
   }
@@ -2385,10 +2582,11 @@ class _MigrationProgressDialogState extends State<_MigrationProgressDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final c = widget.controller;
     final progress = c.total == 0 ? null : c.processed / c.total;
     return AlertDialog(
-      title: const Text('Migrating attachments'),
+      title: Text(l10n.migrationDialogTitle),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2397,8 +2595,11 @@ class _MigrationProgressDialogState extends State<_MigrationProgressDialog> {
           const SizedBox(height: 12),
           Text(
             c.cancelRequested
-                ? 'Cancelling…'
-                : '${c.processed} of ${c.total == 0 ? '?' : c.total}',
+                ? l10n.migrationCancelling
+                : l10n.migrationProgress(
+                    '${c.processed}',
+                    c.total == 0 ? l10n.migrationUnknownTotal : '${c.total}',
+                  ),
           ),
         ],
       ),
@@ -2406,7 +2607,7 @@ class _MigrationProgressDialogState extends State<_MigrationProgressDialog> {
         TextButton(
           key: const Key('migration-cancel-button'),
           onPressed: c.cancelRequested ? null : c.cancel,
-          child: const Text('Cancel'),
+          child: Text(l10n.commonCancel),
         ),
       ],
     );
@@ -2443,27 +2644,29 @@ class _PermissionsSectionState extends ConsumerState<_PermissionsSection> {
     }
   }
 
-  String _summary() {
+  String _summary(AppLocalizations l10n) {
     final s = _snapshot;
-    if (s == null) return '—';
+    if (s == null) return l10n.storageUnknown;
     final all = [...s.explicitPermissions, ...s.implicitPermissions];
-    final granted =
-        all.where((p) => p.status == AppPermissionState.granted).length;
-    return '$granted of ${all.length} granted';
+    final granted = all
+        .where((p) => p.status == AppPermissionState.granted)
+        .length;
+    return l10n.permissionsGrantedSummary(granted, all.length);
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
         ListTile(
           key: const Key('settings-permissions-status'),
-          title: const Text('Permission Status'),
-          subtitle: Text(_summary()),
+          title: Text(l10n.permissionStatusRow),
+          subtitle: Text(_summary(l10n)),
         ),
         ListTile(
           key: const Key('settings-manage-permissions'),
-          title: const Text('Manage Permissions'),
+          title: Text(l10n.permissionsManage),
           trailing: const Icon(Icons.chevron_right),
           onTap: () async {
             await Navigator.push(
@@ -2477,14 +2680,16 @@ class _PermissionsSectionState extends ConsumerState<_PermissionsSection> {
         ),
         ListTile(
           key: const Key('settings-open-system-settings'),
-          title: const Text('Open System Settings'),
+          title: Text(l10n.permissionsOpenSystem),
           trailing: const Icon(Icons.open_in_new),
           onTap: () async {
             try {
               await ref
                   .read(appPermissionsServiceProvider)
                   .openSystemSettings();
-            } catch (_) {/* permissions service not available */}
+            } catch (_) {
+              /* permissions service not available */
+            }
           },
         ),
       ],
@@ -2550,8 +2755,7 @@ class _SearchTabState extends ConsumerState<_SearchTab> {
     final journalMap = {for (final j in allJournals) j.id: j};
 
     final journalResults = allJournals
-        .where((j) =>
-            j.title.toLowerCase().contains(trimmed.toLowerCase()))
+        .where((j) => j.title.toLowerCase().contains(trimmed.toLowerCase()))
         .toList();
 
     final ftsResults = await db.searchEntries(trimmed);
@@ -2597,13 +2801,14 @@ class _SearchTabState extends ConsumerState<_SearchTab> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
         title: TextField(
           key: const Key('search-query-field'),
           controller: _queryCtrl,
-          decoration: const InputDecoration(
-            hintText: 'Search journals & entries...',
+          decoration: InputDecoration(
+            hintText: l10n.searchHint,
             border: InputBorder.none,
           ),
           onChanged: _runSearch,
@@ -2612,11 +2817,10 @@ class _SearchTabState extends ConsumerState<_SearchTab> {
           if (_query.isNotEmpty) ...[
             IconButton(
               key: const Key('search-filter-entries'),
-              icon: Icon(_filterEntries
-                  ? Icons.filter_alt
-                  : Icons.filter_alt_outlined),
-              onPressed: () =>
-                  setState(() => _filterEntries = !_filterEntries),
+              icon: Icon(
+                _filterEntries ? Icons.filter_alt : Icons.filter_alt_outlined,
+              ),
+              onPressed: () => setState(() => _filterEntries = !_filterEntries),
             ),
             IconButton(
               key: const Key('search-save-preset-button'),
@@ -2635,13 +2839,11 @@ class _SearchTabState extends ConsumerState<_SearchTab> {
               height: 52,
               child: ListView(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 8, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 children: [
                   for (final preset in _presets!)
                     Padding(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: ActionChip(
                         label: Text(preset.name),
                         onPressed: () => _applyPreset(preset),
@@ -2658,8 +2860,9 @@ class _SearchTabState extends ConsumerState<_SearchTab> {
   }
 
   Widget _buildResults() {
+    final l10n = AppLocalizations.of(context);
     if (_query.isEmpty) {
-      return const Center(child: Text('Type to search'));
+      return Center(child: Text(l10n.searchTypeToSearch));
     }
 
     final journals = _journalResults ?? [];
@@ -2667,8 +2870,7 @@ class _SearchTabState extends ConsumerState<_SearchTab> {
 
     if (_filterEntries) {
       if (entries.isEmpty) {
-        return const Center(
-            child: Text('No matches found for this filter.'));
+        return Center(child: Text(l10n.searchNoFilterMatches));
       }
       return ListView(
         children: [
@@ -2677,11 +2879,14 @@ class _SearchTabState extends ConsumerState<_SearchTab> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const ListTile(
-                    title: Text('Entries',
-                        style: TextStyle(fontWeight: FontWeight.bold))),
+                ListTile(
+                  title: Text(
+                    l10n.searchSectionEntries,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
                 for (final e in entries)
-                  ListTile(title: Text(e.title ?? 'Untitled')),
+                  ListTile(title: Text(e.title ?? l10n.commonUntitled)),
               ],
             ),
           ),
@@ -2690,7 +2895,7 @@ class _SearchTabState extends ConsumerState<_SearchTab> {
     }
 
     if (journals.isEmpty && entries.isEmpty) {
-      return const Center(child: Text('No results found'));
+      return Center(child: Text(l10n.searchNoResults));
     }
 
     return ListView(
@@ -2701,11 +2906,13 @@ class _SearchTabState extends ConsumerState<_SearchTab> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const ListTile(
-                    title: Text('Journals',
-                        style: TextStyle(fontWeight: FontWeight.bold))),
-                for (final j in journals)
-                  ListTile(title: Text(j.title)),
+                ListTile(
+                  title: Text(
+                    l10n.searchSectionJournals,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                for (final j in journals) ListTile(title: Text(j.title)),
               ],
             ),
           ),
@@ -2715,11 +2922,14 @@ class _SearchTabState extends ConsumerState<_SearchTab> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const ListTile(
-                    title: Text('Entries',
-                        style: TextStyle(fontWeight: FontWeight.bold))),
+                ListTile(
+                  title: Text(
+                    l10n.searchSectionEntries,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
                 for (final e in entries)
-                  ListTile(title: Text(e.title ?? 'Untitled')),
+                  ListTile(title: Text(e.title ?? l10n.commonUntitled)),
               ],
             ),
           ),
@@ -2739,7 +2949,7 @@ class _EntryTemplateChooserDialog extends StatelessWidget {
     // (now long) list scrolls without any custom sizing.
     return SimpleDialog(
       key: const Key('entry-template-chooser'),
-      title: const Text('Choose a template'),
+      title: Text(AppLocalizations.of(context).templateChooserTitle),
       children: [
         for (final entry in grouped.entries) ...[
           Padding(
@@ -2786,21 +2996,21 @@ class _SavePresetDialogState extends State<_SavePresetDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AlertDialog(
-      title: const Text('Save search preset'),
+      title: Text(l10n.searchSavePresetTitle),
       content: TextField(
         key: const Key('search-preset-name-field'),
         controller: _ctrl,
-        decoration: const InputDecoration(labelText: 'Preset name'),
+        decoration: InputDecoration(labelText: l10n.searchPresetNameLabel),
       ),
       actions: [
         TextButton(
           key: const Key('search-save-preset-confirm-button'),
           onPressed: () => Navigator.pop(context, _ctrl.text),
-          child: const Text('Save'),
+          child: Text(l10n.commonSave),
         ),
       ],
     );
   }
 }
-

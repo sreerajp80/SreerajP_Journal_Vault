@@ -243,10 +243,7 @@ void main() {
 
     // Switching to app_lock now requires setting a PIN.
     expect(find.text('Set app-lock PIN'), findsOneWidget);
-    await tester.enterText(
-      find.byKey(const Key('settings-pin-field')),
-      '1234',
-    );
+    await tester.enterText(find.byKey(const Key('settings-pin-field')), '1234');
     await tester.enterText(
       find.byKey(const Key('settings-pin-confirm-field')),
       '1234',
@@ -274,19 +271,13 @@ void main() {
     expect(find.byKey(const Key('app-lock-pin-field')), findsOneWidget);
 
     // Wrong PIN denied.
-    await tester.enterText(
-      find.byKey(const Key('app-lock-pin-field')),
-      '0000',
-    );
+    await tester.enterText(find.byKey(const Key('app-lock-pin-field')), '0000');
     await tester.tap(find.byKey(const Key('app-lock-unlock-button')));
     await tester.pumpAndSettle();
     expect(find.text('Incorrect PIN.'), findsOneWidget);
 
     // Correct PIN unlocks.
-    await tester.enterText(
-      find.byKey(const Key('app-lock-pin-field')),
-      '1234',
-    );
+    await tester.enterText(find.byKey(const Key('app-lock-pin-field')), '1234');
     await tester.tap(find.byKey(const Key('app-lock-unlock-button')));
     await tester.pumpAndSettle();
 
@@ -452,6 +443,10 @@ void main() {
       find.byKey(const Key('entry-title-field')),
       'Today note',
     );
+    // enterText does not pump, so the setState that flips the dirty flag has
+    // not rebuilt yet. Without this the save button still reads
+    // "No unsaved changes" and byTooltip('Save') matches nothing.
+    await tester.pump();
     // Editor's Save is a tooltip-only IconButton in the AppBar; it persists
     // the entry but does not pop. Use byTooltip and then page back to land
     // on the journal detail with the refreshed entries list.
@@ -469,6 +464,7 @@ void main() {
       find.byKey(const Key('entry-title-field')),
       'Yesterday note updated',
     );
+    await tester.pump();
     await tester.tap(find.byTooltip('Save'));
     await tester.pumpAndSettle();
     await tester.pageBack();
@@ -597,6 +593,63 @@ void main() {
       await _disposeApp(tester);
     },
   );
+
+  // Ported from the removed journal_lock_controller_test, which asserted this
+  // against a JournalLockController that nothing in the app used. The live
+  // path is AppLockNotifier._onLocked clearing the unlocked-journal set.
+  testWidgets('re-locking the app clears session-unlocked journals', (
+    WidgetTester tester,
+  ) async {
+    await pumpApp(tester);
+    await _unlockPhoneLock(tester);
+
+    await tester.tap(find.text('New journal'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Title'),
+      'Vault',
+    );
+    await tester.tap(find.text('Lock journal'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('journal-password-field')),
+      'secret-pass',
+    );
+    await tester.enterText(
+      find.byKey(const Key('journal-password-confirm-field')),
+      'secret-pass',
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    // Unlock it for this session.
+    await tester.tap(find.text('Vault'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('journal-unlock-password-field')),
+      'secret-pass',
+    );
+    await tester.tap(find.byKey(const Key('journal-unlock-button')));
+    await tester.pumpAndSettle();
+    expect(find.text('Add entry'), findsOneWidget);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    // Background the app so it re-locks, then come back through the gate.
+    await _cycleLifecyclePauseResume(tester);
+    await tester.pumpAndSettle();
+    await _unlockPhoneLock(tester);
+
+    // The journal must ask for its password again — the session unlock is gone.
+    await tester.tap(find.text('Vault'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Journal is locked'), findsOneWidget);
+    expect(find.text('Add entry'), findsNothing);
+
+    await _disposeApp(tester);
+  });
 }
 
 Future<void> _unlockPhoneLock(WidgetTester tester) async {

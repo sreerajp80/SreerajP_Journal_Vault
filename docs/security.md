@@ -6,7 +6,11 @@
 > Sections marked `TODO` are not yet decided. They are left open on purpose rather than filled
 > with content that would read as a completed review when no review happened.
 
-Last reviewed: 2026-07-25 · Reviewer: Sreeraj P (with Claude)
+Last reviewed: 2026-08-16 · Reviewer: Sreeraj P (with Claude)
+
+> **2026-08-16 update:** entry and journal export was added (A1.1 / W5). It is the first
+> feature that deliberately writes journal content out of the vault unencrypted. See
+> section 14 for the controls around it and the residual risks accepted.
 
 ## 1. Security Scope
 
@@ -67,7 +71,7 @@ Last reviewed: 2026-07-25 · Reviewer: Sreeraj P (with Claude)
 
 | Data type | Example | Where it exists | Protection |
 |---|---|---|---|
-| Journal entry content | Diary text, titles | Drift/SQLite DB, app-private storage | OS app sandbox; no app-level DB encryption (see section 17) |
+| Journal entry content | Diary text, titles | Drift/SQLCipher DB, app-private storage | AES-256 encrypted at rest, Keystore-held key; plus the OS app sandbox |
 | Attachments | PDFs, audio, archives | Encrypted files, app-private or SD card | AES-256-GCM, Keystore-backed key |
 | Attachment plaintext (transient) | Decrypted PDF being viewed | App cache directory | Deleted on close, background, and startup sweep |
 | App PIN | The user's unlock PIN | Never stored | PBKDF2 verifier only, 100,000 iterations, 16-byte random salt |
@@ -75,13 +79,15 @@ Last reviewed: 2026-07-25 · Reviewer: Sreeraj P (with Claude)
 | Journal secrets | Per-journal lock secrets | SharedPreferences | Keystore-wrapped (AES-GCM) before storage |
 | Attachment encryption keys | AES-256 keys | Android Keystore | Never leave secure hardware |
 | Attachment nonces | Per-file GCM nonce | Drift DB, alongside the attachment row | Not secret; unique per file |
-| Search index | Entry title + plain text | FTS5 tables in the same DB | Same protection as the DB — note this duplicates entry text |
+| Database encryption key | The SQLCipher raw key | Android Keystore, wrapped copy in SharedPreferences | 32 bytes from `SecureRandom`, AES-GCM wrapped under a Keystore key |
+| Search index | Entry title + plain text | FTS5 tables in the same DB | Same protection as the DB — encrypted with it, page for page |
 | Backups | Full export archive | User-chosen location | AES-256-GCM encrypted ZIP |
 | Voice notes | Recorded audio | Same path as attachments | Same as attachments |
 
 > **Note on the FTS index.** `entries_fts` holds a copy of entry titles and plain text. Any
 > control applied to the entries table must be applied to the FTS tables too, or the index
-> becomes a plaintext bypass of it.
+> becomes a plaintext bypass of it. Since 2026-08-18 the index lives inside the encrypted
+> database, so it is covered by the same key — but the rule still stands for anything new.
 
 ---
 
@@ -89,7 +95,20 @@ Last reviewed: 2026-07-25 · Reviewer: Sreeraj P (with Claude)
 
 ### At rest
 
-- Primary local storage: Drift over SQLite, app-private directory.
+- Primary local storage: Drift over **SQLCipher**, app-private directory. Every page of the
+  database file — entry text, titles, revisions, and the whole FTS index — is AES-256 encrypted.
+  Added 2026-08-18 (A5.1); before that the file was plain SQLite.
+- Database key: 32 random bytes from `SecureRandom`, generated on first launch, wrapped by a
+  Keystore key and stored only as `iv:ciphertext`. It is handed to SQLCipher as a **raw key**, so
+  no password derivation is involved and no user password can unlock the file.
+- Which library: chosen at build time by the `hooks:` block in `pubspec.yaml`, which tells
+  `package:sqlite3` to use its SQLCipher build. Changing that line changes whether journal text
+  is encrypted, so the app also checks `PRAGMA cipher_version` on every open and refuses to run
+  if plain SQLite answers.
+- Existing vaults: a database from an older, unencrypted install is converted on first launch —
+  copied out with `sqlcipher_export`, verified, then swapped in. The plain original is deleted
+  only after the encrypted vault has opened. See
+  `lib/core/database/plain_database_converter.dart`.
 - Secure key storage: Android Keystore via a `MethodChannel` in `MainActivity.kt`. Keys are
   generated with `KeyGenParameterSpec`, AES-256, GCM, `setRandomizedEncryptionRequired(true)`,
   and never leave the Keystore.
@@ -119,7 +138,8 @@ Last reviewed: 2026-07-25 · Reviewer: Sreeraj P (with Claude)
 ## 6. Cryptography Design
 
 - Encryption algorithm: **AES-256-GCM** for attachments (Dart `cryptography` package) and for
-  Keystore wrapping (Android `Cipher`, `AES/GCM/NoPadding`, 128-bit tag).
+  Keystore wrapping (Android `Cipher`, `AES/GCM/NoPadding`, 128-bit tag). The database itself is
+  **AES-256-CBC with HMAC-SHA512 per page**, which is SQLCipher 4's default profile.
 - Key derivation: **PBKDF2**, 100,000 iterations, 16-byte cryptographically random salt, for the
   app PIN verifier. The raw PIN is never stored or transmitted.
 - Nonce/IV strategy: fresh random nonce per attachment (`_algorithm.newNonce()`), stored
@@ -132,7 +152,10 @@ Last reviewed: 2026-07-25 · Reviewer: Sreeraj P (with Claude)
 ### Rules
 
 - Keys, IVs, salts, and passwords are not hardcoded anywhere. Verified by inspection.
-- Randomness uses the platform CSPRNG in both the Dart and Kotlin paths.
+- Randomness uses the platform CSPRNG in the Dart paths, in SQLCipher, and in the Kotlin database
+  key path (`SecureRandom`). **One exception:** the *attachment* key in `MainActivity.kt` is
+  generated with `kotlin.random.Random`, which is not a cryptographic generator. Listed in
+  section 17.
 
 ---
 
@@ -276,16 +299,16 @@ Reviewed 2026-07-25. This is an honest snapshot, not a clean bill of health.
 | M6 | Inadequate Privacy Controls | **partial** | No telemetry; backup excluded; logging policy defined. Existing log statements not yet audited against it. |
 | M7 | Insufficient Binary Protections | **verified (build), unverified (runtime)** | `--obfuscate` and R8 both work at build time. Never run on a device. |
 | M8 | Security Misconfiguration | **verified** | `debuggable` false, `allowBackup` false, `FLAG_SECURE` on. Two unused transitive permissions remain (section 11). |
-| M9 | Insecure Data Storage | **risk-accepted** | Attachments are encrypted; the **database itself is not**. See section 17. |
+| M9 | Insecure Data Storage | **verified** | Attachments and the database are both encrypted at rest, keys in the Keystore. Closed 2026-08-18 (A5.1). |
 | M10 | Insufficient Cryptography | **risk-accepted** | Strong primitives and correct nonce handling, but the attachment format is **unversioned**. See section 17. |
 
 ### Risk acceptances
 
-- **M9 — the SQLite database is not encrypted at rest.** Journal text, titles, and the FTS index
-  sit in a plain SQLite file inside the app-private directory. On a non-rooted device the OS
-  sandbox keeps other apps out, which covers the stated threat model. It does **not** cover a
-  rooted device or offline flash extraction — both explicitly out of scope in section 3.
-  Owner: Sreeraj P. Revisit if SQLCipher or `drift`'s encrypted backend is adopted.
+- ~~**M9 — the SQLite database is not encrypted at rest.**~~ **Closed 2026-08-18** with A5.1.
+  The database is now SQLCipher, keyed from the Android Keystore, and an existing plain vault is
+  converted on first launch. What this buys: a flash dump or a stolen, powered-off device no
+  longer gives up journal text. What it does not buy: protection from malware running as this app
+  on an unlocked device, which can ask the Keystore for the key exactly as the app does.
 - **M10 — the attachment encryption format carries no version.** Every stored attachment is
   `ciphertext || mac` with no header. If the algorithm or key derivation ever changes there is no
   in-band way to tell old files from new ones, so a future migration would have to infer format
@@ -328,21 +351,126 @@ to restore from, so uninstall is a genuine wipe. Keystore entries are removed wi
 ## 14. Backup, Import, Export, And Recovery
 
 - Backup supported: yes — `BackupService` produces an AES-256-GCM encrypted ZIP containing
-  `manifest.json` (with a format `version`), `database.json`, and the already-encrypted
-  attachment files copied as-is.
+  `manifest.json` (format version and database schema version), `database.json`, and the
+  attachment and voice-note files.
 - Backup format: **encrypted only.** No plaintext backup path exists.
 - Import supported: yes — Markdown, DOCX, and plain text adapters.
-- Recovery flow: restore from an encrypted backup archive.
-- Plaintext export policy: the plan calls for "one-tap encrypted export per journal". No
-  plaintext export exists, and none should be added without an explicit user confirmation step.
+- Recovery flow: **restore from an encrypted backup archive — built 2026-08-18** (A4.1).
+  `BackupRestoreService` previews an archive, restores it as a replace or a merge, and can
+  dry-run either. The restore screen sits behind the app PIN, or the device credential
+  when no PIN is set. See "Archive format version 2" below.
+- Encrypted export: **yes, since 2026-08-18** (A4.2). The export screen can seal the finished
+  file with the same envelope the backup archive uses. Optional, off by default — see
+  "Encrypted export" below.
+- Plaintext export policy: **a plaintext export now exists** (added 2026-08-16, A1.1 / W5). The
+  earlier wording here said none existed and that none should be added "without an explicit user
+  confirmation step". That condition has been met — see below — and this entry supersedes it.
+
+### Plaintext export (added 2026-08-16)
+
+`lib/features/export/` writes entries out as Markdown, HTML, plain text, or PDF. This is a
+deliberate reduction in confidentiality, accepted because the alternative — a vault a user cannot
+get their own writing out of — is its own kind of harm, and because the app's central promise is
+that the data belongs to the user.
+
+What protects it:
+
+| Control | How |
+|---|---|
+| **Explicit confirmation** | A dialog naming the entry count and format must be accepted before any file is built. Backing out abandons the export. Required by the policy above; covered by `export_screen_test.dart`. |
+| **Passive warning too** | The screen states in plain words, before the user acts, that the file will not be encrypted. |
+| **Journal locks honoured** | A locked journal is not offered in the Settings picker. It has to be unlocked on its own screen, which is the only place that asks for the password. |
+| **Attachment locks honoured** | A locked attachment is **never decrypted**. The lock is checked before the file is touched, and the omission is reported to the user rather than hidden. |
+| **Plaintext lifetime bounded** | Each attachment is decrypted, copied into the bundle, and its temporary decrypted file released immediately — never more than one plaintext file in the cache at a time. The native PDF renderer deletes its temporary PDF as soon as the bytes are read. |
+| **Audited** | Every export writes a `SecurityEvents` row of type `export_attempt` holding scope, format, journal id, entry count, and skipped count — **never entry content, titles, or file names.** |
+| **Offline** | The HTML page embeds its fonts as base64 data URIs and contains no URL; the render WebView additionally sets `blockNetworkLoads` and disables file and content access. No new package dependency, so no new transitive network capability. |
+
+Accepted residual risks, stated plainly:
+
+- **A plain export is unencrypted, by design.** Once saved it is outside every control this app
+  has. Since 2026-08-18 the user can seal it instead (see "Encrypted export" below); when they do
+  not, the confirmation dialog is the whole of the protection.
+- **The user chooses the destination** through the system save dialog. A cloud-backed folder is a
+  legitimate choice and the app cannot tell the difference.
+- **An exported PDF or HTML page carries entry text in plain form** and is indexable by anything
+  that later reads that folder.
+
+### Encrypted export (added 2026-08-18, A4.2)
+
+The export screen has a "Protect with a password" switch, off by default. With it on, the
+finished file is sealed by `VaultEnvelope` — the **same** envelope the backup archive uses, moved
+to `lib/core/security/` so the app has one password-sealed format rather than one per feature.
+
+What it does:
+
+| Point | How |
+|---|---|
+| **Same envelope, same rules** | `JVB` magic, envelope version, KDF id and cost, random 16-byte salt, AES-256-GCM under an Argon2id key. Minimum password length 8, the backup's rule. |
+| **The file name is protected too** | The real name and mime type are written into a `JVP1` payload header **inside** the sealed bytes. The file on disk is offered as `journal_export_<date>.jvenc` — a name like `Leaving my job.md.jvenc` would give away what the password is hiding. |
+| **Sealed before it touches disk** | `ExportService.build` seals the bytes; the save dialog only ever sees ciphertext. No plaintext copy is written and deleted. |
+| **No plaintext confirmation dialog** | The dialog exists for a plaintext export. Turning the switch on is the deliberate act instead, and the warning card changes to say that a forgotten password means a lost file. |
+| **Openable again** | Settings → "Open an encrypted export" picks a sealed file, asks for the password, and saves what was inside under its original name. It never writes anything back into the vault. |
+| **Audited** | The `export_attempt` event gains `encrypted: true|false`. Still no names, no titles, no content. |
+
+**Why Argon2id and not the PBKDF2 the sibling apps use.** The shared idea list recommended the
+`sreerajp_youtube_shortcut` `v1:<salt>:<iv>:<ciphertext>` envelope. What it recommended it *for*
+was being versioned and self-describing. `VaultEnvelope` is both, and it also records the KDF and
+its cost inside the file, so the cost can be raised later without orphaning anything sealed
+today — which the `v1:` string cannot do. Argon2id is memory-hard, PBKDF2 is not, and moving to
+PBKDF2 would break every archive written since A4.1. So the app converges on this envelope, and
+the family target is the *idea* the `v1:` string stood for.
+
+Accepted residual risks:
+
+- **A forgotten password is a lost file.** There is no recovery path and none will be added. The
+  screen says so before the file is written.
+- **A weak password is the whole of the protection**, exactly as for a backup archive.
+- **The file size and the date in its name still leak a little** — roughly how much was exported,
+  and when.
+
+### Archive format version 2 (added 2026-08-18)
+
+Two security-relevant changes came with restore, and both are trade-offs worth stating
+plainly.
+
+**1. The envelope now uses a random salt.** Version 1 derived the archive key with Argon2id
+over a **fixed** salt, so one password produced one key on every device and in every backup —
+exactly the shape a precomputed-table attack wants. Version 2 writes a self-describing
+header (`JVB`, format version, KDF parameters, random 16-byte salt) so each archive has its
+own key and a future build can raise the parameters without orphaning old files. Version 1
+archives still decrypt, by design.
+
+**2. Attachment content now sits inside the archive as plain bytes.** Version 1 copied the
+encrypted files in as they were, which meant the archive was useless on any device that did
+not already hold the Keystore key — that is, in exactly the situation a backup exists for.
+Restore now decrypts each file on the way out and re-encrypts it with the receiving
+device's Keystore key on the way in, the same shape `SreerajPContactSphere` uses for contact
+photos. **The Keystore key itself never leaves the device and is never written to a file.**
+
+The cost: inside the archive file, attachment content is protected by the **backup
+password alone**, not by the Keystore. A weak backup password is therefore worse than it
+was before. Mitigations: the password must be at least 8 characters, the whole container is
+AES-256-GCM under an Argon2id-derived key, and nothing is ever written unencrypted to disk.
+On the device itself nothing changed — attachments are still Keystore-encrypted at rest.
+
+Restore safety, in the order it runs: password → format and schema version check (a newer
+archive is refused with `BackupVersionTooNewException`) → structure check → optional dry run
+→ automatic pre-restore backup before a replace → one database transaction → FTS rebuild →
+`PRAGMA integrity_check`. Files written before a failed transaction are deleted, so a
+failed restore leaves nothing behind.
 
 ### Validation status
 
 - Import adapters have unit tests for well-formed input. **Malformed-input handling is not
   tested** — see section 17.
-- Backup round-trip (export → purge → import → verify) is **not** covered by an integration
-  test. `test/features/backup/` covers logging and the verify contract only. Recovery flows are
-  high-value attack targets and the standard says to test them like authentication flows.
+- Backup round-trip is **covered** since 2026-08-18:
+  `test/features/backup/backup_round_trip_test.dart` backs up one database and restores it
+  into a second one that shares no rows, no files and no keys — the new-phone case — and
+  checks every table, the attachment bytes and the rebuilt search index.
+  `backup_restore_service_test.dart` covers wrong password, newer format, newer schema,
+  version 1 archives, merge and replace counts, id reassignment, the dry run writing
+  nothing, and a file that fails to store.
+  `restore_backup_screen_test.dart` covers the PIN and device-credential gate.
 
 ---
 
@@ -351,6 +479,8 @@ to restore from, so uninstall is a genuine wipe. Keystore entries are removed wi
 | Area | Test type | Status |
 |---|---|---|
 | Crypto round-trip | Unit | **Covered** — `attachment_crypto_storage_test.dart` |
+| Sealed-file envelope (backup and export) | Unit | **Covered** — `test/core/security/vault_envelope_test.dart`, `vault_payload_test.dart` |
+| Encrypted export round-trip | Unit | **Covered** — `test/features/export/export_encryption_test.dart` |
 | Sync encryption round-trip | Unit | **Covered** — `sync_encryption_service_test.dart` |
 | Secret storage (no plaintext written) | Unit | **Covered** — method channel adapter tests |
 | Lock / auth flow | Widget + integration | **Covered** — `lock_gate_test.dart`, controller tests |
@@ -379,45 +509,63 @@ to restore from, so uninstall is a genuine wipe. Keystore entries are removed wi
 
 ## 17. Open Risks And Future Hardening
 
-Ordered by how much damage each could do. None of these are fixed.
+Ordered by how much damage each could do. Items struck through have since been closed; the rest
+are open.
 
 1. **No "Delete all data" action.** Required by the standard's section 15.4. There is no way for
    the user to wipe the app's contents from inside the app.
    *Hardening:* add it to Settings behind a confirmation, clearing DB, cache, temp files, and
    Keystore entries; then add the purge-completeness integration test.
 
-2. **The database is not encrypted at rest** (M9 risk acceptance). Journal text and the FTS index
-   are readable by anyone who can get at the app-private directory — which means root, a custom
-   recovery, or an offline flash dump.
-   *Hardening:* SQLCipher or drift's encrypted backend, keyed from the Keystore.
+2. ~~**The database is not encrypted at rest**~~ **Closed 2026-08-18** with A5.1. The database is
+   SQLCipher, keyed from the Keystore. Two things it leaves behind, both accepted:
+   - **Losing the Keystore key means losing the journal.** There is no password fallback and no
+     recovery path other than a backup file. The app says so plainly instead of starting empty —
+     see `lib/app/vault_unavailable_app.dart`.
+   - **Reads are slower**, FTS5 search most of all, because every page is decrypted on the way in.
 
-3. **The attachment encryption format is unversioned** (M10 risk acceptance). No header, no
+3. **The attachment key is generated with a non-cryptographic RNG.** `getAttachmentKey` in
+   `MainActivity.kt` fills its 32 bytes from `kotlin.random.Random`, not `SecureRandom`. The
+   database key added in A5.1 uses `SecureRandom`; the attachment path was left alone in that
+   change to keep it scoped.
+   *Hardening:* a two-line change. It only affects keys generated afterwards, so existing
+   attachments keep working — worth doing before the installed base grows.
+
+4. **The attachment encryption format is unversioned** (M10 risk acceptance). No header, no
    version byte. Any future crypto change becomes a guessing game.
    *Hardening:* add a magic + version prefix now, while the installed base is one device.
 
-4. **R8 has never been runtime-verified.** The release build compiles, but no obfuscated,
+5. **R8 has never been runtime-verified.** The release build compiles, but no obfuscated,
    shrunk build has run on a device. A missing keep rule surfaces as a crash only at runtime.
    *Hardening:* the smoke-test list in `release_process.md`, before the first real release.
 
-5. **No backup/restore round-trip test.** The recovery path is the one that matters when
-   something has already gone wrong, and it is untested end to end.
+6. ~~**No backup/restore round-trip test.**~~ **Closed 2026-08-18** with A4.1. There was no
+   restore path to test; now there is one, and it is covered end to end — see the
+   validation status in section 14.
 
-6. **Malformed import input is untested.** Import adapters parse third-party file formats —
+7. **Malformed import input is untested.** Import adapters parse third-party file formats —
    the classic place for parser bugs.
 
-7. **Existing log statements have not been audited** against the section 9 policy. The policy
+8. **Existing log statements have not been audited** against the section 9 policy. The policy
    and the logger are new; the codebase predates both.
 
-8. **Two unused permissions** (`ACCESS_NETWORK_STATE`, `WAKE_LOCK`) arrive transitively and are
+9. **Exported files are unencrypted once written** (added 2026-08-16). Export is gated by an
+   explicit confirmation dialog and honours journal and attachment locks, but the file it
+   produces has no protection at all once it leaves the app.
+   *Hardening:* **done 2026-08-18 (A4.2)** — an export can now be sealed with the same
+   `VaultEnvelope` the backup archive uses, so the app has one envelope format rather than two.
+   A plain export is still offered, and still warned about.
+
+10. **Two unused permissions** (`ACCESS_NETWORK_STATE`, `WAKE_LOCK`) arrive transitively and are
    not stripped.
 
-9. **No retention caps** on entry revisions, security events, or sync logs. Unbounded growth in
+11. **No retention caps** on entry revisions, security events, or sync logs. Unbounded growth in
    tables that hold user-derived data.
 
-10. **No formal dependency audit** (M2). 51 packages have newer versions; none has been reviewed
+12. **No formal dependency audit** (M2). 51 packages have newer versions; none has been reviewed
     for licence or transitive network behaviour.
 
-11. **No memory-clearing strategy** for decrypted content or key material. Accepted for the
+13. **No memory-clearing strategy** for decrypted content or key material. Accepted for the
     stated threat model but never formally reviewed.
 
 ---

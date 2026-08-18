@@ -1,19 +1,8 @@
-enum AppPermissionId {
-  attachmentImport,
-  documentPicker,
-}
+enum AppPermissionId { attachmentImport, documentPicker }
 
-enum AppPermissionCategory {
-  explicit,
-  implicit,
-}
+enum AppPermissionCategory { explicit, implicit }
 
-enum AppPermissionState {
-  granted,
-  denied,
-  permanentlyDenied,
-  userSelected,
-}
+enum AppPermissionState { granted, denied, permanentlyDenied, userSelected }
 
 class AppPermissionItem {
   const AppPermissionItem({
@@ -47,7 +36,9 @@ class PermissionsSnapshot {
   final List<AppPermissionItem> implicitPermissions;
 
   AppPermissionItem permissionFor(AppPermissionId id) {
-    return [...explicitPermissions, ...implicitPermissions]
-        .firstWhere((p) => p.id == id);
+    return [
+      ...explicitPermissions,
+      ...implicitPermissions,
+    ].firstWhere((p) => p.id == id);
   }
 }

@@ -4,12 +4,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sreerajp_journal_vault/core/config/config_service.dart';
 import 'package:sreerajp_journal_vault/features/about/application/about_metadata.dart';
 import 'package:sreerajp_journal_vault/features/about/presentation/about_screen.dart';
+import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 void main() {
   Widget wrap(ConfigService service) {
     return ProviderScope(
       overrides: [configServiceProvider.overrideWithValue(service)],
       child: MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
           useMaterial3: true,
@@ -92,7 +95,7 @@ void main() {
       // A missing config must never show the error state — ConfigService
       // degrades to AppConfig.fallback, so the screen still renders.
       expect(find.text('Unable to load app metadata'), findsNothing);
-      expect(find.text('SreerajP_Journal_Vault'), findsOneWidget);
+      expect(find.text('SreerajP Journal Vault'), findsOneWidget);
       expect(find.text('0.0.0 (build 0)'), findsOneWidget);
     },
   );

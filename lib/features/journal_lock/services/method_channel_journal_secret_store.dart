@@ -11,8 +11,8 @@ import 'package:sreerajp_journal_vault/features/journal_lock/services/journal_se
 /// SharedPreferences, so the raw bytes never reach disk in plaintext.
 class MethodChannelJournalSecretStore implements JournalSecretStore {
   MethodChannelJournalSecretStore({MethodChannel? channel})
-      : _channel = channel ??
-            const MethodChannel('sreerajp.journal_vault/journal_lock');
+    : _channel =
+          channel ?? const MethodChannel('sreerajp.journal_vault/journal_lock');
 
   final MethodChannel _channel;
   static const int _secretLength = 32;
@@ -20,8 +20,7 @@ class MethodChannelJournalSecretStore implements JournalSecretStore {
   @override
   Future<List<int>> createSecret(String credentialReference) async {
     final rng = Random.secure();
-    final bytes =
-        List<int>.generate(_secretLength, (_) => rng.nextInt(256));
+    final bytes = List<int>.generate(_secretLength, (_) => rng.nextInt(256));
     await _channel.invokeMethod<void>('storeJournalSecret', <String, Object?>{
       'credentialReference': credentialReference,
       'secretBase64': base64.encode(bytes),
@@ -50,9 +49,8 @@ class MethodChannelJournalSecretStore implements JournalSecretStore {
 
   @override
   Future<void> deleteSecret(String credentialReference) async {
-    await _channel.invokeMethod<void>(
-      'deleteJournalSecret',
-      <String, Object?>{'credentialReference': credentialReference},
-    );
+    await _channel.invokeMethod<void>('deleteJournalSecret', <String, Object?>{
+      'credentialReference': credentialReference,
+    });
   }
 }

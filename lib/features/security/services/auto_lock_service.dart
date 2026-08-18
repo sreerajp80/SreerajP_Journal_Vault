@@ -11,12 +11,11 @@ import 'package:sreerajp_journal_vault/features/security/services/security_event
 /// timeout expires. Only one profile can be active at a time.
 class AutoLockService {
   AutoLockService({
-    required AppDatabase database,
-    required SecurityEventService securityEventService,
-  })  : _db = database,
-        _securityEventService = securityEventService;
+    required this._database,
+    required this._securityEventService,
+  });
 
-  final AppDatabase _db;
+  final AppDatabase _database;
   final SecurityEventService _securityEventService;
   Timer? _inactivityTimer;
   DateTime? _lastActivity;
@@ -28,7 +27,7 @@ class AutoLockService {
     bool lockOnMinimize = true,
     String? scheduleCron,
   }) async {
-    final id = await _db.autoLockProfilesDao.createProfile(
+    final id = await _database.autoLockProfilesDao.createProfile(
       AutoLockProfilesCompanion.insert(
         name: name,
         timeoutSeconds: Value(timeoutSeconds),
@@ -52,7 +51,7 @@ class AutoLockService {
     bool? lockOnMinimize,
     String? scheduleCron,
   }) async {
-    await _db.autoLockProfilesDao.updateProfile(
+    await _database.autoLockProfilesDao.updateProfile(
       id,
       AutoLockProfilesCompanion(
         name: name != null ? Value(name) : const Value.absent(),
@@ -77,8 +76,8 @@ class AutoLockService {
 
   /// Activates a profile and starts the inactivity timer.
   Future<void> activateProfile(int id) async {
-    await _db.autoLockProfilesDao.activateProfile(id);
-    final profile = await _db.autoLockProfilesDao.getActiveProfile();
+    await _database.autoLockProfilesDao.activateProfile(id);
+    final profile = await _database.autoLockProfilesDao.getActiveProfile();
     if (profile != null) {
       _startInactivityTimer(profile.timeoutSeconds);
       await _securityEventService.logEvent(
@@ -92,7 +91,7 @@ class AutoLockService {
 
   /// Deactivates all profiles and stops the inactivity timer.
   Future<void> deactivateAll() async {
-    await _db.autoLockProfilesDao.deactivateAll();
+    await _database.autoLockProfilesDao.deactivateAll();
     _cancelInactivityTimer();
     await _securityEventService.logEvent(
       eventType: 'profile_changed',
@@ -102,7 +101,7 @@ class AutoLockService {
 
   /// Deletes a profile.
   Future<void> deleteProfile(int id) async {
-    await _db.autoLockProfilesDao.deleteProfile(id);
+    await _database.autoLockProfilesDao.deleteProfile(id);
     await _securityEventService.logEvent(
       eventType: 'profile_changed',
       description: 'Auto-lock profile deleted',
@@ -113,7 +112,8 @@ class AutoLockService {
   /// Records user activity and resets the inactivity timer.
   void recordActivity() {
     _lastActivity = DateTime.now();
-    final activeProfileFuture = _db.autoLockProfilesDao.getActiveProfile();
+    final activeProfileFuture = _database.autoLockProfilesDao
+        .getActiveProfile();
     activeProfileFuture.then((profile) {
       if (profile != null) {
         _startInactivityTimer(profile.timeoutSeconds);
@@ -123,7 +123,7 @@ class AutoLockService {
 
   /// Called when app is minimized. Locks immediately if profile requires it.
   Future<bool> onAppMinimized() async {
-    final profile = await _db.autoLockProfilesDao.getActiveProfile();
+    final profile = await _database.autoLockProfilesDao.getActiveProfile();
     if (profile != null && profile.lockOnMinimize) {
       await _triggerLock('app_minimized');
       return true;
@@ -133,15 +133,15 @@ class AutoLockService {
 
   /// Returns the currently active profile, if any.
   Future<AutoLockProfile?> getActiveProfile() =>
-      _db.autoLockProfilesDao.getActiveProfile();
+      _database.autoLockProfilesDao.getActiveProfile();
 
   /// Returns all configured profiles.
   Future<List<AutoLockProfile>> getAllProfiles() =>
-      _db.autoLockProfilesDao.getAllProfiles();
+      _database.autoLockProfilesDao.getAllProfiles();
 
   /// Watches the active profile for reactive UI updates.
   Stream<AutoLockProfile?> watchActiveProfile() =>
-      _db.autoLockProfilesDao.watchActiveProfile();
+      _database.autoLockProfilesDao.watchActiveProfile();
 
   /// Returns the time of last recorded activity.
   DateTime? get lastActivity => _lastActivity;
@@ -160,7 +160,7 @@ class AutoLockService {
   }
 
   Future<void> _triggerLock(String reason) async {
-    final security = await _db.appSecurityDao.getSecuritySettings();
+    final security = await _database.appSecurityDao.getSecuritySettings();
     if (security.lockMode != null) {
       // App has a lock mode configured — mark as locked
       await _securityEventService.logEvent(

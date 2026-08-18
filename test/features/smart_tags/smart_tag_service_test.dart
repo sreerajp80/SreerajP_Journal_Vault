@@ -45,18 +45,15 @@ void main() {
 
     test('orders suggestions by occurrence count (descending)', () async {
       await seedTags(['focus', 'travel', 'idea']);
-      const text =
-          'idea of travel and idea about idea of focus on travel';
+      const text = 'idea of travel and idea about idea of focus on travel';
       // counts: idea=3, travel=2, focus=1
       final suggestions = await service.suggest(text);
-      expect(
-        suggestions.map((s) => s.tag.name).toList(),
-        ['idea', 'travel', 'focus'],
-      );
-      expect(
-        suggestions.map((s) => s.score).toList(),
-        [3, 2, 1],
-      );
+      expect(suggestions.map((s) => s.tag.name).toList(), [
+        'idea',
+        'travel',
+        'focus',
+      ]);
+      expect(suggestions.map((s) => s.score).toList(), [3, 2, 1]);
     });
 
     test('honors the limit parameter', () async {
@@ -75,9 +72,7 @@ void main() {
 
     test('handles multi-word tags as a single phrase', () async {
       await seedTags(['deep work']);
-      final suggestions = await service.suggest(
-        'doing some deep work today',
-      );
+      final suggestions = await service.suggest('doing some deep work today');
       expect(suggestions.single.tag.name, 'deep work');
     });
 
@@ -104,10 +99,7 @@ void main() {
         entryId,
         'alpha and beta both appear',
       );
-      expect(
-        suggestions.map((s) => s.tag.name).toList(),
-        ['beta'],
-      );
+      expect(suggestions.map((s) => s.tag.name).toList(), ['beta']);
     });
 
     test('returns up to limit fresh suggestions', () async {

@@ -102,6 +102,11 @@ class _FailingOpenService extends AttachmentOpenService {
     : super(storage: _NoopStorage(), router: AttachmentOpenRouter());
 
   @override
+  Future<AttachmentOpenSession> prepare(Attachment attachment) async {
+    throw AttachmentOpenException(AttachmentOpenFailure.noCompatibleApp);
+  }
+
+  @override
   Future<AttachmentOpenPrepared> prepareOpen(Attachment attachment) async {
     throw AttachmentOpenException(AttachmentOpenFailure.noCompatibleApp);
   }

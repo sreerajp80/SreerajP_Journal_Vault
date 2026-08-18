@@ -240,20 +240,16 @@ class _TableBlockState extends State<_TableBlock> {
     // while a cell is focused, the editor keeps its caret blinking, and
     // some keystrokes are intercepted before reaching the cell.
     return TextFieldTapRegion(
-      child: Focus(
-        parentNode: FocusManager.instance.rootScope,
-        child: body,
-      ),
+      child: Focus(parentNode: FocusManager.instance.rootScope, child: body),
     );
   }
 
   Widget _buildCell(BuildContext context, int row, int col) {
     final isHeader = row == 0;
     final style = isHeader
-        ? Theme.of(context)
-            .textTheme
-            .bodyMedium
-            ?.copyWith(fontWeight: FontWeight.bold)
+        ? Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)
         : Theme.of(context).textTheme.bodyMedium;
 
     if (widget.readOnly) {

@@ -27,8 +27,14 @@ void main() {
       'A [[entry:1]] then [[journal:2]] and [[entry:3]].',
     );
     expect(targets, hasLength(3));
-    expect(targets[0],
-        const TypeMatcher<VaultBacklinkTarget>().having((t) => t.targetId, 'id', 1));
+    expect(
+      targets[0],
+      const TypeMatcher<VaultBacklinkTarget>().having(
+        (t) => t.targetId,
+        'id',
+        1,
+      ),
+    );
     expect(targets[1].targetId, 2);
     expect(targets[1].type, VaultBacklinkTargetType.journal);
     expect(targets[2].targetId, 3);
@@ -39,10 +45,10 @@ void main() {
       '[[entry:1]] and again [[entry:1]] and [[journal:1]]',
     );
     expect(targets, hasLength(2));
-    expect(
-      targets.map((t) => '${t.type.name}:${t.targetId}').toList(),
-      ['entry:1', 'journal:1'],
-    );
+    expect(targets.map((t) => '${t.type.name}:${t.targetId}').toList(), [
+      'entry:1',
+      'journal:1',
+    ]);
   });
 
   test('ignores malformed link syntax', () {

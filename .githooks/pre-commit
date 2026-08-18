@@ -1,0 +1,92 @@
+#!/bin/sh
+#
+# Runs three checks before a commit:
+#   1. No absolute local path in plans, change logs or docs. See
+#      tool/check_absolute_paths.sh for the rules and the "allow-abs-path"
+#      escape marker.
+#   2. dart format is clean.
+#   3. flutter analyze is clean.
+#
+# Checks 2 and 3 are skipped when the Dart toolchain cannot be run here, so the
+# hook still works in a docs-only environment. CI remains the source of truth
+# (engineering standard section 19.3).
+#
+# Enable in a fresh clone with:
+#   git config core.hooksPath .githooks
+#
+# This is a local reminder, not enforcement: it can be skipped with
+# "git commit --no-verify", and it is off until the config above is set.
+
+set -u
+
+repo_root=$(git rev-parse --show-toplevel) || exit 0
+checker="$repo_root/tool/check_absolute_paths.sh"
+
+[ -f "$checker" ] || exit 0
+
+# Only files being added or changed by this commit. Deleted files are skipped.
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+[ -n "$staged" ] || exit 0
+
+# -z / xargs -0 so filenames containing spaces survive.
+printf '%s\n' "$staged" \
+  | tr '\n' '\0' \
+  | xargs -0 -r sh "$checker"
+
+# The path check must stop the commit on its own. Without this the format and
+# analyze steps below would mask its exit status.
+path_check_status=$?
+[ "$path_check_status" -eq 0 ] || exit "$path_check_status"
+
+# --- Formatting and analysis (engineering standard section 19.3) ------------
+#
+# Skipped when the Dart toolchain cannot be run here, so a docs-only clone can
+# still commit. CI remains the real gate: .github/workflows/ci.yml runs format,
+# analyze and test on every push and pull request.
+
+# Finds a command that actually runs in this shell.
+#
+# On Windows the "dart" and "flutter" files on PATH are POSIX shell scripts
+# beginning with "#!/usr/bin/env bash". Some Git clients (GitHub Desktop, for
+# one) run hooks with a slim PATH that has no bash, so those scripts die with
+# "/usr/bin/env: 'bash': No such file or directory" and the hook would report a
+# failure the developer cannot act on. The .bat wrapper shipped beside them is
+# native and needs no bash, so prefer it when it exists.
+#
+# Prints the command to use, or nothing when the tool cannot be run at all.
+resolve_tool() {
+  found=$(command -v "$1" 2>/dev/null) || return 0
+  [ -n "$found" ] || return 0
+
+  if [ -f "$found.bat" ] && "$found.bat" --version >/dev/null 2>&1; then
+    printf '%s\n' "$found.bat"
+  elif "$found" --version >/dev/null 2>&1; then
+    printf '%s\n' "$found"
+  fi
+}
+
+dart_cmd=$(resolve_tool dart)
+flutter_cmd=$(resolve_tool flutter)
+
+if [ -z "$dart_cmd" ] || [ -z "$flutter_cmd" ]; then
+  echo "pre-commit: no runnable dart/flutter here, skipping format and analyze."
+  echo "  CI still checks both."
+  exit 0
+fi
+
+# Name the source folders. Plain "dart format ." crashes on stale paths under
+# build/.
+echo "pre-commit: checking formatting..."
+if ! "$dart_cmd" format --output=none --set-exit-if-changed lib test integration_test; then
+  echo "pre-commit: formatting check failed."
+  echo "  Fix with: dart format lib test integration_test"
+  exit 1
+fi
+
+echo "pre-commit: running analyzer..."
+if ! "$flutter_cmd" analyze --no-pub; then
+  echo "pre-commit: flutter analyze reported issues."
+  exit 1
+fi
+
+echo "pre-commit: all checks passed."

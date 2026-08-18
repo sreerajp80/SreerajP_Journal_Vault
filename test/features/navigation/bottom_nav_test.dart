@@ -39,11 +39,13 @@ void main() {
       JournalVaultAppHost(
         database: database,
         overrides: <Override>[
-          biometricAuthenticatorProvider
-              .overrideWithValue(_AlwaysSuccessBiometric()),
+          biometricAuthenticatorProvider.overrideWithValue(
+            _AlwaysSuccessBiometric(),
+          ),
           appPinKeystoreProvider.overrideWithValue(_InMemoryPinKeystore()),
-          appPermissionsServiceProvider
-              .overrideWithValue(_FakePermissionsService()),
+          appPermissionsServiceProvider.overrideWithValue(
+            _FakePermissionsService(),
+          ),
         ],
       ),
     );
@@ -56,17 +58,20 @@ void main() {
   testWidgets('renders all 5 tabs in plan order', (tester) async {
     await pumpAndUnlock(tester);
 
-    final nav = tester.widget<NavigationBar>(
-      find.byType(NavigationBar),
-    );
-    expect(nav.destinations.map((d) => (d as NavigationDestination).label),
-        ['Home', 'Search', 'Timeline', 'Insights', 'Settings']);
+    final nav = tester.widget<NavigationBar>(find.byType(NavigationBar));
+    expect(nav.destinations.map((d) => (d as NavigationDestination).label), [
+      'Home',
+      'Search',
+      'Timeline',
+      'Insights',
+      'Settings',
+    ]);
   });
 
   Finder navItem(String label) => find.descendant(
-        of: find.byType(NavigationBar),
-        matching: find.text(label),
-      );
+    of: find.byType(NavigationBar),
+    matching: find.text(label),
+  );
 
   testWidgets('Timeline tab opens TimelineScreen', (tester) async {
     await pumpAndUnlock(tester);
@@ -77,8 +82,9 @@ void main() {
     expect(find.widgetWithText(AppBar, 'Timeline'), findsOneWidget);
   });
 
-  testWidgets('Insights tab opens InsightsScreen without crashing',
-      (tester) async {
+  testWidgets('Insights tab opens InsightsScreen without crashing', (
+    tester,
+  ) async {
     await pumpAndUnlock(tester);
 
     await tester.tap(navItem('Insights'));
@@ -87,8 +93,9 @@ void main() {
     expect(find.widgetWithText(AppBar, 'Insights'), findsOneWidget);
   });
 
-  testWidgets('every tab is reachable in sequence without provider errors',
-      (tester) async {
+  testWidgets('every tab is reachable in sequence without provider errors', (
+    tester,
+  ) async {
     await pumpAndUnlock(tester);
 
     for (final label in const [

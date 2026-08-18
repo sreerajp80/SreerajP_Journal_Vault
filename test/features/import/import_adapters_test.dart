@@ -92,10 +92,12 @@ void main() {
         'fmt.md',
       );
       final ops = jsonDecode(result.contentJson) as List;
-      final boldOps =
-          ops.where((o) => o['attributes']?['bold'] == true).toList();
-      final italicOps =
-          ops.where((o) => o['attributes']?['italic'] == true).toList();
+      final boldOps = ops
+          .where((o) => o['attributes']?['bold'] == true)
+          .toList();
+      final italicOps = ops
+          .where((o) => o['attributes']?['italic'] == true)
+          .toList();
       expect(boldOps.first['insert'], 'bold');
       expect(italicOps.first['insert'], 'italic');
     });
@@ -109,12 +111,8 @@ void main() {
       final blockquotes = ops.where(
         (o) => o['attributes']?['blockquote'] == true,
       );
-      final bullets = ops.where(
-        (o) => o['attributes']?['list'] == 'bullet',
-      );
-      final ordered = ops.where(
-        (o) => o['attributes']?['list'] == 'ordered',
-      );
+      final bullets = ops.where((o) => o['attributes']?['list'] == 'bullet');
+      final ordered = ops.where((o) => o['attributes']?['list'] == 'ordered');
       expect(blockquotes, hasLength(1));
       expect(bullets, hasLength(2));
       expect(ordered, hasLength(1));
@@ -151,9 +149,12 @@ void main() {
     test('declares the .docx format', () {
       expect(adapter.formatName, 'Word Document');
       expect(adapter.supportedExtensions, contains('.docx'));
-      expect(adapter.supportedMimeTypes, contains(
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      ));
+      expect(
+        adapter.supportedMimeTypes,
+        contains(
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ),
+      );
     });
 
     test('parses paragraphs from a minimal docx archive', () async {
@@ -166,11 +167,13 @@ void main() {
   </w:body>
 </w:document>''';
       final archive = Archive()
-        ..addFile(ArchiveFile(
-          'word/document.xml',
-          utf8.encode(docXml).length,
-          utf8.encode(docXml),
-        ));
+        ..addFile(
+          ArchiveFile(
+            'word/document.xml',
+            utf8.encode(docXml).length,
+            utf8.encode(docXml),
+          ),
+        );
       final bytes = ZipEncoder().encode(archive);
 
       final result = await adapter.import(bytes, 'doc.docx');
@@ -179,8 +182,7 @@ void main() {
       expect(result.plainText, contains('World'));
     });
 
-    test('emits an empty Quill delta when document.xml is missing',
-        () async {
+    test('emits an empty Quill delta when document.xml is missing', () async {
       // Build a docx without word/document.xml.
       final archive = Archive()
         ..addFile(ArchiveFile('garbage.txt', 4, utf8.encode('text')));

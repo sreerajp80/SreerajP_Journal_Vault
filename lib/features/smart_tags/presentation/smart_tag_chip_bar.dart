@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
 import 'package:sreerajp_journal_vault/features/smart_tags/providers/smart_tag_providers.dart';
 import 'package:sreerajp_journal_vault/features/smart_tags/services/smart_tag_service.dart';
+import 'package:sreerajp_journal_vault/features/tags/domain/tag_colors.dart';
 
 /// A horizontal chip bar that shows smart tag suggestions for an entry.
 ///
@@ -22,9 +23,7 @@ class SmartTagChipBar extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final suggestionsAsync = ref.watch(
-      smartTagSuggestionsProvider(
-        (entryId: entryId, plainText: plainText),
-      ),
+      smartTagSuggestionsProvider((entryId: entryId, plainText: plainText)),
     );
 
     return suggestionsAsync.when(
@@ -52,37 +51,31 @@ class SmartTagChipBar extends ConsumerWidget {
     );
   }
 
-  Future<void> _acceptSuggestion(WidgetRef ref, TagSuggestion suggestion) async {
+  Future<void> _acceptSuggestion(
+    WidgetRef ref,
+    TagSuggestion suggestion,
+  ) async {
     final db = ref.read(appDatabaseProvider);
     await db.tagsDao.addTagToEntry(entryId, suggestion.tag.id);
     // Invalidate suggestions so the accepted tag disappears.
     ref.invalidate(
-      smartTagSuggestionsProvider(
-        (entryId: entryId, plainText: plainText),
-      ),
+      smartTagSuggestionsProvider((entryId: entryId, plainText: plainText)),
     );
   }
 }
 
 class _SuggestionChip extends StatelessWidget {
-  const _SuggestionChip({
-    required this.suggestion,
-    required this.onAccepted,
-  });
+  const _SuggestionChip({required this.suggestion, required this.onAccepted});
 
   final TagSuggestion suggestion;
   final VoidCallback onAccepted;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final color = colorForTag(suggestion.tag);
     return ActionChip(
-      label: Text(suggestion.tag.name),
-      avatar: Icon(
-        Icons.add,
-        size: 16,
-        color: theme.colorScheme.primary,
-      ),
+      label: Text(suggestion.tag.name, style: TextStyle(color: color)),
+      avatar: Icon(Icons.add, size: 16, color: color),
       onPressed: onAccepted,
     );
   }

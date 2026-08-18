@@ -13,22 +13,27 @@ final insightsServiceProvider = Provider<InsightsService>((ref) {
 
 // ──────────────── Mood ────────────────
 
-final entryMoodProvider =
-    StreamProvider.family<EntryMood?, int>((ref, entryId) {
+final entryMoodProvider = StreamProvider.family<EntryMood?, int>((
+  ref,
+  entryId,
+) {
   final service = ref.read(insightsServiceProvider);
   return service.watchMoodForEntry(entryId);
 });
 
 /// Mood trends for the last 30 days by default.
 final moodTrendsProvider =
-    FutureProvider.family<List<MoodDataPoint>, ({DateTime from, DateTime to})>(
-        (ref, range) async {
-  final service = ref.read(insightsServiceProvider);
-  return service.getMoodTrends(from: range.from, to: range.to);
-});
+    FutureProvider.family<List<MoodDataPoint>, ({DateTime from, DateTime to})>((
+      ref,
+      range,
+    ) async {
+      final service = ref.read(insightsServiceProvider);
+      return service.getMoodTrends(from: range.from, to: range.to);
+    });
 
-final defaultMoodTrendsProvider =
-    FutureProvider<List<MoodDataPoint>>((ref) async {
+final defaultMoodTrendsProvider = FutureProvider<List<MoodDataPoint>>((
+  ref,
+) async {
   final service = ref.read(insightsServiceProvider);
   final now = DateTime.now();
   return service.getMoodTrends(
@@ -46,38 +51,33 @@ final streakInfoProvider = FutureProvider<StreakInfo>((ref) async {
 
 // ──────────────── Tag Heatmap ────────────────
 
-final tagHeatmapProvider =
-    FutureProvider<List<TagFrequency>>((ref) async {
+final tagHeatmapProvider = FutureProvider<List<TagFrequency>>((ref) async {
   final service = ref.read(insightsServiceProvider);
   return service.getTagHeatmap();
 });
 
 // ──────────────── Memories ────────────────
 
-final memoriesProvider =
-    FutureProvider<List<MemoryEntry>>((ref) async {
+final memoriesProvider = FutureProvider<List<MemoryEntry>>((ref) async {
   final service = ref.read(insightsServiceProvider);
   return service.getMemories();
 });
 
 final memoriesForDateProvider =
-    FutureProvider.family<List<MemoryEntry>, DateTime>(
-        (ref, date) async {
-  final service = ref.read(insightsServiceProvider);
-  return service.getMemories(date: date);
-});
+    FutureProvider.family<List<MemoryEntry>, DateTime>((ref, date) async {
+      final service = ref.read(insightsServiceProvider);
+      return service.getMemories(date: date);
+    });
 
 // ──────────────── Weekly Reflection ────────────────
 
-final weeklyReflectionProvider =
-    FutureProvider<WeeklyReflection>((ref) async {
+final weeklyReflectionProvider = FutureProvider<WeeklyReflection>((ref) async {
   final service = ref.read(insightsServiceProvider);
   return service.generateWeeklyReflection();
 });
 
 final weeklyReflectionForDateProvider =
-    FutureProvider.family<WeeklyReflection, DateTime>(
-        (ref, weekStart) async {
-  final service = ref.read(insightsServiceProvider);
-  return service.generateWeeklyReflection(weekStart: weekStart);
-});
+    FutureProvider.family<WeeklyReflection, DateTime>((ref, weekStart) async {
+      final service = ref.read(insightsServiceProvider);
+      return service.generateWeeklyReflection(weekStart: weekStart);
+    });

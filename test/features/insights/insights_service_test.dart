@@ -53,7 +53,9 @@ void main() {
 
     test('returns currentStreak=1 for a single entry today', () async {
       final today = DateTime.now();
-      await createEntry(entryDate: DateTime(today.year, today.month, today.day));
+      await createEntry(
+        entryDate: DateTime(today.year, today.month, today.day),
+      );
 
       final info = await service.getStreakInfo();
       expect(info.currentStreak, 1);
@@ -86,16 +88,18 @@ void main() {
       expect(info.longestStreak, 2);
     });
 
-    test('current streak is 0 when most recent entry is older than yesterday',
-        () async {
-      final today = DateTime.now();
-      final t = DateTime(today.year, today.month, today.day);
-      await createEntry(entryDate: t.subtract(const Duration(days: 5)));
+    test(
+      'current streak is 0 when most recent entry is older than yesterday',
+      () async {
+        final today = DateTime.now();
+        final t = DateTime(today.year, today.month, today.day);
+        await createEntry(entryDate: t.subtract(const Duration(days: 5)));
 
-      final info = await service.getStreakInfo();
-      expect(info.currentStreak, 0);
-      expect(info.longestStreak, 1);
-    });
+        final info = await service.getStreakInfo();
+        expect(info.currentStreak, 0);
+        expect(info.longestStreak, 1);
+      },
+    );
   });
 
   // ──────────────── Tag heatmap ────────────────
@@ -123,8 +127,11 @@ void main() {
       await db.tagsDao.addTagToEntry(eGamma, tagGamma);
 
       final heatmap = await service.getTagHeatmap();
-      expect(heatmap.map((t) => t.tagName).toList(),
-          ['alpha', 'beta', 'gamma']);
+      expect(heatmap.map((t) => t.tagName).toList(), [
+        'alpha',
+        'beta',
+        'gamma',
+      ]);
       expect(heatmap.map((t) => t.count).toList(), [3, 2, 1]);
     });
 
@@ -142,34 +149,36 @@ void main() {
   // ──────────────── Memories ────────────────
 
   group('getMemories', () {
-    test('returns prior-year entries that match the target month/day',
-        () async {
-      // Use a fixed UTC noon date so timezone offsets cannot push the entry
-      // into a different day in the SQL strftime() comparison.
-      final target = DateTime.utc(2026, 5, 9, 12);
-      await createEntry(
-        title: 'one year ago',
-        entryDate: DateTime.utc(2025, 5, 9, 12),
-        plainText: 'a memory',
-      );
-      await createEntry(
-        title: 'two years ago',
-        entryDate: DateTime.utc(2024, 5, 9, 12),
-        plainText: 'older memory',
-      );
-      await createEntry(
-        title: 'last week, last year',
-        entryDate: DateTime.utc(2025, 5, 2, 12),
-        plainText: 'unrelated',
-      );
+    test(
+      'returns prior-year entries that match the target month/day',
+      () async {
+        // Use a fixed UTC noon date so timezone offsets cannot push the entry
+        // into a different day in the SQL strftime() comparison.
+        final target = DateTime.utc(2026, 5, 9, 12);
+        await createEntry(
+          title: 'one year ago',
+          entryDate: DateTime.utc(2025, 5, 9, 12),
+          plainText: 'a memory',
+        );
+        await createEntry(
+          title: 'two years ago',
+          entryDate: DateTime.utc(2024, 5, 9, 12),
+          plainText: 'older memory',
+        );
+        await createEntry(
+          title: 'last week, last year',
+          entryDate: DateTime.utc(2025, 5, 2, 12),
+          plainText: 'unrelated',
+        );
 
-      final memories = await service.getMemories(date: target);
-      expect(
-        memories.map((m) => m.title).toList(),
-        ['one year ago', 'two years ago'],
-      );
-      expect(memories.map((m) => m.yearsAgo).toList(), [1, 2]);
-    });
+        final memories = await service.getMemories(date: target);
+        expect(memories.map((m) => m.title).toList(), [
+          'one year ago',
+          'two years ago',
+        ]);
+        expect(memories.map((m) => m.yearsAgo).toList(), [1, 2]);
+      },
+    );
 
     test('does not include entries from the current year', () async {
       final target = DateTime.utc(2026, 5, 9, 12);

@@ -5,7 +5,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 
-/// Migration tests for the v1 -> v7 upgrade path.
+/// Migration tests for the v1 -> v8 upgrade path.
 ///
 /// The engineering standard names this a critical test area: a migration bug
 /// destroys journal entries with no recovery path.
@@ -21,7 +21,7 @@ import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 /// That proves: every onUpgrade branch executes without error, recreates the
 /// tables and columns it is supposed to, and does not destroy existing rows.
 ///
-/// That does NOT prove: the historical v1..v6 table definitions were shaped
+/// That does NOT prove: the historical v1..v7 table definitions were shaped
 /// exactly like the stripped-down ones used here. If an old column differed
 /// from today's, this test would not catch it.
 void main() {
@@ -62,6 +62,8 @@ void main() {
     'updated_at',
   ];
 
+  const v8Columns = ['color_argb'];
+
   const ftsObjects = ['entries_fts', 'attachment_text_fts'];
 
   Future<bool> tableExists(AppDatabase db, String name) async {
@@ -79,7 +81,7 @@ void main() {
     return rows.map((r) => r.read<String>('name')).toSet();
   }
 
-  /// Rewinds a freshly created v7 database to look like [version].
+  /// Rewinds a freshly created v8 database to look like [version].
   Future<void> rewindTo(int version) async {
     final db = openDb();
 
@@ -120,6 +122,12 @@ void main() {
       }
     }
 
+    if (version < 8) {
+      for (final column in v8Columns) {
+        await db.customStatement('ALTER TABLE tags DROP COLUMN $column');
+      }
+    }
+
     // Self-check, done here while the connection is already open. Reopening to
     // inspect would run onUpgrade and recreate everything before we could look.
     //
@@ -156,12 +164,23 @@ void main() {
       }
     }
 
+    if (version < 8) {
+      final columns = await columnsOf(db, 'tags');
+      for (final column in v8Columns) {
+        expect(
+          columns,
+          isNot(contains(column)),
+          reason: 'rewindTo($version) failed to drop tags.$column',
+        );
+      }
+    }
+
     await db.customStatement('PRAGMA user_version = $version');
     await db.close();
   }
 
   group('schema upgrade', () {
-    test('v1 -> v7 creates every table added along the way', () async {
+    test('v1 -> v8 creates every table added along the way', () async {
       await rewindTo(1);
 
       final db = openDb();
@@ -187,7 +206,7 @@ void main() {
       await db.close();
     });
 
-    test('v1 -> v7 adds the v7 app_settings columns', () async {
+    test('v1 -> v8 adds the v7 app_settings columns', () async {
       await rewindTo(1);
 
       final db = openDb();
@@ -213,20 +232,46 @@ void main() {
       await db.close();
     });
 
-    test('reports schema version 7 after upgrading', () async {
+    test('v1 -> v8 adds tags.color_argb', () async {
+      await rewindTo(1);
+
+      final db = openDb();
+      final columns = await columnsOf(db, 'tags');
+
+      for (final column in v8Columns) {
+        expect(columns, contains(column));
+      }
+
+      await db.close();
+    });
+
+    test('v7 -> v8 adds only the v8 columns', () async {
+      await rewindTo(7);
+
+      final db = openDb();
+      final columns = await columnsOf(db, 'tags');
+
+      for (final column in v8Columns) {
+        expect(columns, contains(column));
+      }
+
+      await db.close();
+    });
+
+    test('reports schema version 8 after upgrading', () async {
       await rewindTo(1);
 
       final db = openDb();
       final rows = await db.customSelect('PRAGMA user_version').get();
 
-      expect(rows.single.read<int>('user_version'), 7);
+      expect(rows.single.read<int>('user_version'), 8);
 
       await db.close();
     });
   });
 
   group('data survival', () {
-    test('journal and entry rows survive a v1 -> v7 upgrade', () async {
+    test('journal and entry rows survive a v1 -> v8 upgrade', () async {
       // Write data while the database looks like v1.
       final seed = openDb();
       await seed.customSelect('SELECT 1').get();
@@ -247,6 +292,30 @@ void main() {
       expect(journals.single.id, journalId);
       expect(journals.single.title, 'Pre-migration journal');
       expect(journals.single.description, 'Written before the upgrade');
+
+      await db.close();
+    });
+
+    test('tags written before v8 survive and start with no colour', () async {
+      final seed = openDb();
+      await seed.customSelect('SELECT 1').get();
+      final tagId = await seed.tagsDao.getOrCreateTag('Pre-migration');
+      await seed.close();
+
+      await rewindTo(7);
+
+      final db = openDb();
+      final tags = await db.tagsDao.getAllTags();
+
+      expect(tags, hasLength(1));
+      expect(tags.single.id, tagId);
+      expect(tags.single.name, 'pre-migration');
+      expect(tags.single.colorArgb, isNull);
+
+      // The new column must be writable straight after the upgrade.
+      await db.tagsDao.setTagColor(tagId, 0xFF4A7FD4);
+      final updated = await db.tagsDao.getAllTags();
+      expect(updated.single.colorArgb, 0xFF4A7FD4);
 
       await db.close();
     });

@@ -1,0 +1,21 @@
+# Localization generator configuration.
+#
+# Required at the project root by the engineering standard section 8.1. Without
+# it `flutter gen-l10n` falls back to defaults that do not match this layout.
+#
+# output-dir writes AppLocalizations into lib/l10n/ instead of the synthetic
+# flutter_gen package, so imports read like any other file in the app.
+#
+# The standard (section 8.1) also lists `synthetic-package: false`. Flutter
+# 3.44 has removed that option — it warns on every `pub get` and has no effect,
+# because writing into lib/ is now the only behaviour. Setting `output-dir` is
+# the current way to say the same thing.
+#
+# Like the Drift output, the generated files are committed. Run `flutter gen-l10n`
+# after editing any .arb file and commit the result.
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-dir: lib/l10n
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+nullable-getter: false

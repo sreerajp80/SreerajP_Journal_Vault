@@ -18,11 +18,7 @@ enum AppLockMode {
 /// When [observeLifecycle] is true the controller registers with [WidgetsBinding]
 /// and relocks automatically when the app is paused.
 class AppLockController with WidgetsBindingObserver {
-  AppLockController({
-    required AppDatabase database,
-    bool observeLifecycle = true,
-  })  : _database = database,
-        _observeLifecycle = observeLifecycle {
+  AppLockController({required this._database, this._observeLifecycle = true}) {
     if (_observeLifecycle) {
       WidgetsBinding.instance.addObserver(this);
     }
@@ -119,13 +115,13 @@ class AppLockController with WidgetsBindingObserver {
   }
 
   static AppLockMode? _parseLockMode(String? raw) => switch (raw) {
-        'app_lock' => AppLockMode.appLock,
-        'phone_lock' => AppLockMode.phoneLock,
-        _ => null,
-      };
+    'app_lock' => AppLockMode.appLock,
+    'phone_lock' => AppLockMode.phoneLock,
+    _ => null,
+  };
 
   static String _lockModeString(AppLockMode mode) => switch (mode) {
-        AppLockMode.appLock => 'app_lock',
-        AppLockMode.phoneLock => 'phone_lock',
-      };
+    AppLockMode.appLock => 'app_lock',
+    AppLockMode.phoneLock => 'phone_lock',
+  };
 }

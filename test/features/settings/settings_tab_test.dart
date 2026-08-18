@@ -73,10 +73,15 @@ void main() {
   ) async {
     await pumpApp(tester);
 
-    const headers = ['Security', 'Appearance', 'Storage', 'Permissions', 'About'];
+    const headers = [
+      'Security',
+      'Appearance',
+      'Storage',
+      'Permissions',
+      'About',
+    ];
     for (final h in headers) {
-      expect(find.text(h), findsOneWidget,
-          reason: '$h section header missing');
+      expect(find.text(h), findsOneWidget, reason: '$h section header missing');
     }
 
     // Verify ordering by Y position so we catch out-of-order rebuilds.
@@ -95,31 +100,47 @@ void main() {
     expect(find.text('Auto-Lock Timeout'), findsOneWidget);
     expect(find.text('Attachment-Level Lock'), findsOneWidget);
     expect(find.text('Tamper Alerts'), findsOneWidget);
-    expect(find.text('Coming soon'), findsOneWidget);
+    // Three stubs now: Tamper Alerts, plus the two sync rows. Sync has no
+    // transport, so AppFlavorConfig.enableSyncUi hides its real screens
+    // rather than showing health for a sync that cannot run.
+    expect(find.text('Coming soon'), findsNWidgets(3));
+    expect(find.text('Sync Health'), findsOneWidget);
+    expect(find.text('Sync Conflicts'), findsOneWidget);
 
     // Storage rows (C2 Backup Health, Import Data + D1 Sync Health).
-    expect(find.byKey(const Key('settings-attachment-storage-location')),
-        findsOneWidget);
+    expect(
+      find.byKey(const Key('settings-attachment-storage-location')),
+      findsOneWidget,
+    );
     expect(find.byKey(const Key('settings-migrate-storage')), findsOneWidget);
     expect(find.byKey(const Key('settings-storage-usage')), findsOneWidget);
     expect(find.byKey(const Key('settings-backup-health')), findsOneWidget);
     expect(find.byKey(const Key('settings-import-data')), findsOneWidget);
-    expect(find.byKey(const Key('settings-sync-health')), findsOneWidget);
+    // Gated off: the row renders as a disabled stub, not a tappable screen.
+    expect(find.byKey(const Key('settings-sync-health')), findsNothing);
 
     // Slice D Security rows.
     expect(find.byKey(const Key('settings-auto-lock-timeout')), findsOneWidget);
-    expect(find.byKey(const Key('settings-attachment-level-lock')),
-        findsOneWidget);
-    expect(find.byKey(const Key('settings-sync-conflicts')), findsOneWidget);
+    expect(
+      find.byKey(const Key('settings-attachment-level-lock')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('settings-sync-conflicts')), findsNothing);
     expect(find.byKey(const Key('settings-security-events')), findsOneWidget);
 
     // Permissions rows.
-    expect(find.byKey(const Key('settings-permissions-status')),
-        findsOneWidget);
-    expect(find.byKey(const Key('settings-manage-permissions')),
-        findsOneWidget);
-    expect(find.byKey(const Key('settings-open-system-settings')),
-        findsOneWidget);
+    expect(
+      find.byKey(const Key('settings-permissions-status')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('settings-manage-permissions')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('settings-open-system-settings')),
+      findsOneWidget,
+    );
 
     // System theme chip must NOT exist; only Light + Dark.
     expect(find.text('System'), findsNothing);
@@ -151,30 +172,35 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
 
     expect(find.byType(AppBar), findsOneWidget);
-    expect(find.text('Settings').evaluate().isEmpty, isTrue,
-        reason: 'BackupHealthScreen replaced the Settings AppBar');
+    expect(
+      find.text('Settings').evaluate().isEmpty,
+      isTrue,
+      reason: 'BackupHealthScreen replaced the Settings AppBar',
+    );
   });
 
   testWidgets(
-      'Import Data tile asks user to pick a journal then pushes ImportScreen',
-      (tester) async {
-    await database.journalsDao.createJournal(
-      JournalsCompanion.insert(title: 'Inbox'),
-    );
-    await pumpApp(tester);
+    'Import Data tile asks user to pick a journal then pushes ImportScreen',
+    (tester) async {
+      await database.journalsDao.createJournal(
+        JournalsCompanion.insert(title: 'Inbox'),
+      );
+      await pumpApp(tester);
 
-    await tester.tap(find.byKey(const Key('settings-import-data')));
-    await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('settings-import-data')));
+      await tester.pumpAndSettle();
 
-    expect(find.text('Import into journal'), findsOneWidget);
-    await tester.tap(find.text('Inbox'));
-    await tester.pumpAndSettle();
+      expect(find.text('Import into journal'), findsOneWidget);
+      await tester.tap(find.text('Inbox'));
+      await tester.pumpAndSettle();
 
-    expect(find.text('Import into "Inbox"'), findsOneWidget);
-  });
+      expect(find.text('Import into "Inbox"'), findsOneWidget);
+    },
+  );
 
-  testWidgets('Import Data with no journals prompts the user to create one',
-      (tester) async {
+  testWidgets('Import Data with no journals prompts the user to create one', (
+    tester,
+  ) async {
     await pumpApp(tester);
 
     await tester.tap(find.byKey(const Key('settings-import-data')));
@@ -183,85 +209,85 @@ void main() {
     expect(find.text('Create a journal first to import into.'), findsOneWidget);
   });
 
-  testWidgets(
-    'Migrate Storage flow renders progress and supports cancel',
-    (tester) async {
-      // Seed 3 attachments so the migration loop has work to do.
-      final journalId = await database.journalsDao.createJournal(
-        JournalsCompanion.insert(title: 'Journal'),
-      );
-      final entryId = await database.entriesDao.createEntry(
-        EntriesCompanion.insert(
-          journalId: journalId,
-          title: const Value('Entry'),
-          contentJson: const Value('[{"insert":"hi\\n"}]'),
+  testWidgets('Migrate Storage flow renders progress and supports cancel', (
+    tester,
+  ) async {
+    // Seed 3 attachments so the migration loop has work to do.
+    final journalId = await database.journalsDao.createJournal(
+      JournalsCompanion.insert(title: 'Journal'),
+    );
+    final entryId = await database.entriesDao.createEntry(
+      EntriesCompanion.insert(
+        journalId: journalId,
+        title: const Value('Entry'),
+        contentJson: const Value('[{"insert":"hi\\n"}]'),
+      ),
+    );
+    for (var i = 0; i < 3; i++) {
+      await database.attachmentsDao.createAttachment(
+        AttachmentsCompanion.insert(
+          entryId: entryId,
+          fileName: 'file-$i.bin',
+          mimeType: const Value('application/octet-stream'),
+          encryptedPath: 'app_private/file-$i.enc',
+          nonceBase64: 'nonce',
+          keyReference: 'key',
+          sizeBytes: 1024 * (i + 1),
         ),
       );
-      for (var i = 0; i < 3; i++) {
-        await database.attachmentsDao.createAttachment(
-          AttachmentsCompanion.insert(
-            entryId: entryId,
-            fileName: 'file-$i.bin',
-            mimeType: const Value('application/octet-stream'),
-            encryptedPath: 'app_private/file-$i.enc',
-            nonceBase64: 'nonce',
-            keyReference: 'key',
-            sizeBytes: 1024 * (i + 1),
-          ),
-        );
-      }
+    }
 
-      final cryptoStorage = _SlowCryptoStorage();
-      await pumpApp(tester, cryptoStorage: cryptoStorage);
+    final cryptoStorage = _SlowCryptoStorage();
+    await pumpApp(tester, cryptoStorage: cryptoStorage);
 
-      // Open the storage location dialog and choose SD Card. The picker
-      // override returns null (user cancel) by default — wire a fake picker
-      // first.
-      // Instead of going through the location dialog, retry-style we trigger
-      // by switching to App Private (no picker). Use SD Card via tree picker
-      // would need a platform channel; here we just invoke "Migrate Storage"
-      // directly by faking a failed migration target.
-      //
-      // Force a failed migration target so the Retry button appears.
-      await database.appSettingsDao.updateSettings(const AppSettingsCompanion(
+    // Open the storage location dialog and choose SD Card. The picker
+    // override returns null (user cancel) by default — wire a fake picker
+    // first.
+    // Instead of going through the location dialog, retry-style we trigger
+    // by switching to App Private (no picker). Use SD Card via tree picker
+    // would need a platform channel; here we just invoke "Migrate Storage"
+    // directly by faking a failed migration target.
+    //
+    // Force a failed migration target so the Retry button appears.
+    await database.appSettingsDao.updateSettings(
+      const AppSettingsCompanion(
         attachmentMigrationStatus: Value('failed'),
         attachmentMigrationTarget: Value('app_private'),
         attachmentMigrationFailure: Value('Earlier run interrupted.'),
-      ));
-      // Force the Storage section to reload by reopening Settings.
-      await tester.tap(find.text('Home'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Settings'));
-      await tester.pumpAndSettle();
+      ),
+    );
+    // Force the Storage section to reload by reopening Settings.
+    await tester.tap(find.text('Home'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Settings'));
+    await tester.pumpAndSettle();
 
-      // Tap Retry → progress dialog opens, blocked on cryptoStorage.
-      cryptoStorage.holdMigration = true;
-      await tester.tap(find.byKey(const Key('settings-migrate-storage-retry')));
-      await tester.pump();
+    // Tap Retry → progress dialog opens, blocked on cryptoStorage.
+    cryptoStorage.holdMigration = true;
+    await tester.tap(find.byKey(const Key('settings-migrate-storage-retry')));
+    await tester.pump();
 
-      expect(find.text('Migrating attachments'), findsOneWidget);
-      expect(find.byKey(const Key('migration-cancel-button')), findsOneWidget);
+    expect(find.text('Migrating attachments'), findsOneWidget);
+    expect(find.byKey(const Key('migration-cancel-button')), findsOneWidget);
 
-      // Cancel mid-flight.
-      await tester.tap(find.byKey(const Key('migration-cancel-button')));
-      await tester.pump();
-      expect(find.text('Cancelling…'), findsOneWidget);
+    // Cancel mid-flight.
+    await tester.tap(find.byKey(const Key('migration-cancel-button')));
+    await tester.pump();
+    expect(find.text('Cancelling…'), findsOneWidget);
 
-      // Release the held migration so the loop resumes and observes cancel.
-      cryptoStorage.holdMigration = false;
-      cryptoStorage.releaseAll();
-      await tester.pumpAndSettle();
+    // Release the held migration so the loop resumes and observes cancel.
+    cryptoStorage.holdMigration = false;
+    cryptoStorage.releaseAll();
+    await tester.pumpAndSettle();
 
-      // Snackbar acknowledges the cancellation; dialog has closed.
-      expect(find.text('Migration cancelled.'), findsOneWidget);
-      expect(find.text('Migrating attachments'), findsNothing);
+    // Snackbar acknowledges the cancellation; dialog has closed.
+    expect(find.text('Migration cancelled.'), findsOneWidget);
+    expect(find.text('Migrating attachments'), findsNothing);
 
-      final settings = await database.appSettingsDao.getSettings();
-      expect(settings.attachmentMigrationStatus, 'failed');
-      expect(settings.attachmentMigrationFailure,
-          contains('cancelled'));
-    },
-  );
+    final settings = await database.appSettingsDao.getSettings();
+    expect(settings.attachmentMigrationStatus, 'failed');
+    expect(settings.attachmentMigrationFailure, contains('cancelled'));
+  });
 }
 
 class _FakeBiometric implements BiometricAuthenticator {

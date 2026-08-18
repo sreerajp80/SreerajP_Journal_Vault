@@ -11,9 +11,10 @@ final smartTagServiceProvider = Provider<SmartTagService>((ref) {
 ///
 /// The family parameter is a record of (entryId, plainText).
 final smartTagSuggestionsProvider =
-    FutureProvider.family<List<TagSuggestion>, ({int entryId, String? plainText})>(
-  (ref, params) {
-    final service = ref.read(smartTagServiceProvider);
-    return service.suggestNew(params.entryId, params.plainText);
-  },
-);
+    FutureProvider.family<
+      List<TagSuggestion>,
+      ({int entryId, String? plainText})
+    >((ref, params) {
+      final service = ref.read(smartTagServiceProvider);
+      return service.suggestNew(params.entryId, params.plainText);
+    });

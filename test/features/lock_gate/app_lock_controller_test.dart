@@ -55,55 +55,73 @@ void main() {
     controller.dispose();
   });
 
-  test('lock() persists isLocked=true so a crash cannot reopen unlocked',
-      () async {
-    final first = AppLockController(database: database, observeLifecycle: false);
-    await first.ready();
-    await first.switchLockMode(AppLockMode.appLock);
-    await first.unlock();
-    await first.lock();
-    first.dispose();
+  test(
+    'lock() persists isLocked=true so a crash cannot reopen unlocked',
+    () async {
+      final first = AppLockController(
+        database: database,
+        observeLifecycle: false,
+      );
+      await first.ready();
+      await first.switchLockMode(AppLockMode.appLock);
+      await first.unlock();
+      await first.lock();
+      first.dispose();
 
-    final settings = await database.appSecurityDao.getSecuritySettings();
-    expect(settings.isLocked, isTrue);
+      final settings = await database.appSecurityDao.getSecuritySettings();
+      expect(settings.isLocked, isTrue);
 
-    final second = AppLockController(database: database, observeLifecycle: false);
-    await second.ready();
-    expect(second.isLocked, isTrue);
-    second.dispose();
-  });
+      final second = AppLockController(
+        database: database,
+        observeLifecycle: false,
+      );
+      await second.ready();
+      expect(second.isLocked, isTrue);
+      second.dispose();
+    },
+  );
 
-  test('cold launch always starts locked when a lock mode is configured',
-      () async {
-    final first = AppLockController(database: database, observeLifecycle: false);
-    await first.ready();
-    await first.switchLockMode(AppLockMode.phoneLock);
-    await first.unlock();
-    first.dispose();
+  test(
+    'cold launch always starts locked when a lock mode is configured',
+    () async {
+      final first = AppLockController(
+        database: database,
+        observeLifecycle: false,
+      );
+      await first.ready();
+      await first.switchLockMode(AppLockMode.phoneLock);
+      await first.unlock();
+      first.dispose();
 
-    // Even with persisted isLocked=false, ready() must reset to locked because
-    // a process kill is not a lifecycle event and we cannot distinguish it
-    // from a normal cold start.
-    final second = AppLockController(database: database, observeLifecycle: false);
-    await second.ready();
-    expect(second.lockMode, AppLockMode.phoneLock);
-    expect(second.isLocked, isTrue);
-    second.dispose();
-  });
+      // Even with persisted isLocked=false, ready() must reset to locked because
+      // a process kill is not a lifecycle event and we cannot distinguish it
+      // from a normal cold start.
+      final second = AppLockController(
+        database: database,
+        observeLifecycle: false,
+      );
+      await second.ready();
+      expect(second.lockMode, AppLockMode.phoneLock);
+      expect(second.isLocked, isTrue);
+      second.dispose();
+    },
+  );
 
-  test('cold launch leaves isLocked=false when no lock mode is configured',
-      () async {
-    final controller = AppLockController(
-      database: database,
-      observeLifecycle: false,
-    );
-    await controller.ready();
+  test(
+    'cold launch leaves isLocked=false when no lock mode is configured',
+    () async {
+      final controller = AppLockController(
+        database: database,
+        observeLifecycle: false,
+      );
+      await controller.ready();
 
-    expect(controller.lockMode, isNull);
-    expect(controller.isLocked, isFalse);
+      expect(controller.lockMode, isNull);
+      expect(controller.isLocked, isFalse);
 
-    controller.dispose();
-  });
+      controller.dispose();
+    },
+  );
 
   test('unlock() persists isLocked=false', () async {
     final controller = AppLockController(

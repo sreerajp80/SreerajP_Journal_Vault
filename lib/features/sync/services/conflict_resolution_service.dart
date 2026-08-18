@@ -6,11 +6,7 @@ import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/features/sync/services/sync_encryption_service.dart';
 
 /// Conflict resolution strategy chosen by the user.
-enum ConflictResolution {
-  keepLocal,
-  keepRemote,
-  merged,
-}
+enum ConflictResolution { keepLocal, keepRemote, merged }
 
 /// A conflict presented to the user for resolution.
 class ConflictDetail {
@@ -59,11 +55,7 @@ class ConflictResolutionService {
   final AppDatabase _db;
   final SyncEncryptionService _encryption;
 
-  ConflictResolutionService({
-    required AppDatabase db,
-    required SyncEncryptionService encryption,
-  })  : _db = db,
-        _encryption = encryption;
+  ConflictResolutionService({required this._db, required this._encryption});
 
   /// Returns all pending conflicts with field-level diffs computed.
   Future<List<ConflictDetail>> getPendingConflicts({
@@ -87,7 +79,9 @@ class ConflictResolutionService {
           final salt = List.generate(16, (i) => i);
           final key = await _encryption.deriveKey(syncPassword, salt);
           remoteData = await _encryption.decryptRecord(
-              conflict.remoteDataJson, key);
+            conflict.remoteDataJson,
+            key,
+          );
         } else {
           remoteData = {'_encrypted': true, '_raw': conflict.remoteDataJson};
         }
@@ -95,17 +89,19 @@ class ConflictResolutionService {
 
       final diffs = _computeDiffs(localData, remoteData);
 
-      details.add(ConflictDetail(
-        conflictId: conflict.id,
-        syncId: conflict.syncId,
-        recordTable: conflict.recordTable,
-        localVersion: conflict.localVersion,
-        remoteVersion: conflict.remoteVersion,
-        localData: localData,
-        remoteData: remoteData,
-        detectedAt: conflict.detectedAt,
-        diffs: diffs,
-      ));
+      details.add(
+        ConflictDetail(
+          conflictId: conflict.id,
+          syncId: conflict.syncId,
+          recordTable: conflict.recordTable,
+          localVersion: conflict.localVersion,
+          remoteVersion: conflict.remoteVersion,
+          localData: localData,
+          remoteData: remoteData,
+          detectedAt: conflict.detectedAt,
+          diffs: diffs,
+        ),
+      );
     }
 
     return details;
@@ -124,8 +120,7 @@ class ConflictResolutionService {
         // No data changes needed — local version is already in the DB.
         // Just bump version so next sync pushes our version.
         await _db.syncMetadataDao.incrementVersion(conflict.syncId);
-        await _db.syncConflictsDao
-            .resolveConflict(conflictId, 'keep_local');
+        await _db.syncConflictsDao.resolveConflict(conflictId, 'keep_local');
         break;
 
       case ConflictResolution.keepRemote:
@@ -143,11 +138,9 @@ class ConflictResolutionService {
         final meta = await _db.syncMetadataDao.getBySyncId(conflict.syncId);
         if (meta != null) {
           await _applyDataToRecord(meta.recordTable, meta.localId, remoteData);
-          await _db.syncMetadataDao.markSynced(
-              conflict.syncId, DateTime.now());
+          await _db.syncMetadataDao.markSynced(conflict.syncId, DateTime.now());
         }
-        await _db.syncConflictsDao
-            .resolveConflict(conflictId, 'keep_remote');
+        await _db.syncConflictsDao.resolveConflict(conflictId, 'keep_remote');
         break;
 
       case ConflictResolution.merged:
@@ -158,12 +151,10 @@ class ConflictResolutionService {
         }
         final meta = await _db.syncMetadataDao.getBySyncId(conflict.syncId);
         if (meta != null) {
-          await _applyDataToRecord(
-              meta.recordTable, meta.localId, mergedData);
+          await _applyDataToRecord(meta.recordTable, meta.localId, mergedData);
           await _db.syncMetadataDao.incrementVersion(conflict.syncId);
         }
-        await _db.syncConflictsDao
-            .resolveConflict(conflictId, 'merged');
+        await _db.syncConflictsDao.resolveConflict(conflictId, 'merged');
         break;
     }
   }
@@ -182,11 +173,13 @@ class ConflictResolutionService {
     final allKeys = {...local.keys, ...remote.keys};
     return allKeys
         .where((key) => key != 'id' && key != 'created_at')
-        .map((key) => FieldDiff(
-              fieldName: key,
-              localValue: local[key],
-              remoteValue: remote[key],
-            ))
+        .map(
+          (key) => FieldDiff(
+            fieldName: key,
+            localValue: local[key],
+            remoteValue: remote[key],
+          ),
+        )
         .where((diff) => diff.hasChanged)
         .toList();
   }

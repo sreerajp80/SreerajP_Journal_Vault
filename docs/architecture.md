@@ -6,7 +6,7 @@
 > Sections marked `TODO` are not yet decided. They are left empty on purpose rather than filled
 > with invented content, as the template instructs.
 
-Last reviewed: 2026-07-25
+Last reviewed: 2026-08-18
 
 ## 1. Scope
 
@@ -17,11 +17,34 @@ Last reviewed: 2026-07-25
 | Profile | In force | Why |
 |---|---|---|
 | `Core Baseline` | **Yes** | Mandatory for every Flutter application repository. |
-| `Production App Extension` | **Yes** | The project is planned and built to a release standard — `SreerajP_Journal_Vault_Plan.md` sets "production-ready" V1 goals, a release delivery sequence, and release-candidate sign-off gates. Android `dev`/`prod` flavors already exist. Distribution today is sideload-to-self only, but the release discipline still applies: a bad build loses real journal content. |
+| `Production App Extension` | **Yes** | The project is planned and built to a release standard — `journal_vault_plan.md` sets "production-ready" V1 goals, a release delivery sequence, and release-candidate sign-off gates. Android `dev`/`prod` flavors already exist. Distribution today is sideload-to-self only, but the release discipline still applies: a bad build loses real journal content. |
 | `Sensitive Data Extension` | **Yes** | Locally encrypted content (AES-256-GCM attachments), auth secrets (PIN verifier and journal secrets in the Android Keystore), encrypted sync payloads, and personal diary content that is PII by definition. |
 
 - Platforms: `Android` (primary, minimum API 28). Flutter scaffolding for `iOS`, `Web`, `Windows`,
   `Linux`, `macOS` exists in the repository but is not a supported target.
+
+### Toolchain in force
+
+Pinned 2026-07-25. `pubspec.yaml` enforces the Flutter and Dart floors; the rest are set in
+`android/`.
+
+| Tool | Version | Where it is set |
+|---|---|---|
+| Flutter | `3.44.8` (stable, revision `058e0af2c2`) | `pubspec.yaml` → `environment.flutter` |
+| Dart | `3.12.2` | `pubspec.yaml` → `environment.sdk` |
+| JDK (Android) | Java 17 | `android/app/build.gradle.kts` |
+| Gradle | 8.14 | `android/gradle/wrapper/gradle-wrapper.properties` |
+| AGP | 8.11.1 | `android/settings.gradle.kts` |
+| Kotlin | 2.2.20 | `android/settings.gradle.kts` |
+| Android SDK | `minSdk 28`, `compileSdk`/`targetSdk` from Flutter (36) | `android/app/build.gradle.kts` |
+
+**On Gradle/AGP/Kotlin being behind the template.** The Flutter 3.44 app template now defaults to
+Gradle 9.1.0, AGP 9.0.1 and Kotlin 2.3.20 — AGP 9 is no longer paused as older guideline copies
+say. The versions above are still well inside the range Flutter 3.44.8 supports
+(`maxKnownAndSupportedAgpVersion` is `9.1`), and the build works, so the move to AGP 9 is a
+deliberate **later** item: it is a breaking-change migration with no benefit to this app today.
+It needs its own plan. Note `docs/guidelines/flutter_build_flavors_guide.md` still states
+"AGP 8.x — NOT 9.x"; that file lives in the read-only submodule and cannot be corrected here.
 
 ### What being in all three profiles means
 
@@ -31,15 +54,15 @@ These documents are binding for this app, not optional:
 - `docs/guidelines/flutter_project_engineering_standard.md` — Core Baseline **plus** the
   Production and Sensitive Data sections, including the OWASP Mobile Top 10 checklist (15.3) and
   the data retention/purge policy (15.4)
-- `docs/guidelines/release_process.md` — not yet filled in for this app
+- `docs/guidelines/release_process.md` — filled in locally as [`release_process.md`](release_process.md)
 - `docs/guidelines/flutter_build_flavors_guide.md` — flavors are already in use
-- `docs/guidelines/security.md` — not yet filled in for this app
+- `docs/guidelines/security.md` — filled in locally as [`security.md`](security.md)
 
 ---
 
 ## 2. Goals And Non-Goals
 
-TODO — not yet written down. `SreerajP_Journal_Vault_Plan.md` has per-milestone goals but no
+TODO — not yet written down. `journal_vault_plan.md` has per-milestone goals but no
 stated product-level non-goals.
 
 ---
@@ -48,8 +71,10 @@ stated product-level non-goals.
 
 The app uses a Tier 2 feature-first structure with Riverpod for state management. Screens live
 under `lib/features/<feature>/presentation/`, business logic under `.../services/`, and Riverpod
-providers under `.../providers/`. Persistence is a Drift (SQLite) database at
-`lib/core/database/app_database.dart` with FTS5 virtual tables for full-text search. Attachments
+providers under `.../providers/`. Persistence is a Drift database over **SQLCipher** at
+`lib/core/database/app_database.dart` with FTS5 virtual tables for full-text search; the whole
+file is encrypted at rest with a key from the Android Keystore, opened by
+`lib/core/database/encrypted_database_opener.dart`. Attachments
 are stored as AES-256-GCM encrypted files outside the database, with keys held by the Android
 Keystore and reached through a platform method channel. The app is single-device today; a
 multi-device encrypted sync module exists under `lib/features/sync/` but its transport is
@@ -75,13 +100,18 @@ lib/
 |-- app/          # app shell, routing, bottom nav, settings UI (app.dart)
 |-- core/         # cross-cutting: config, logging, database, security, theme,
 |                 # errors, links, utils, constants
-|-- features/     # 15 feature modules (see below)
+|-- features/     # 16 feature modules (see below)
+|-- l10n/         # app_en.arb plus the generated AppLocalizations
 `-- main.dart     # composition root and provider overrides
 ```
 
-Feature modules under `lib/features/`: `about`, `attachments`, `backup`, `entries`, `home`,
+Feature modules under `lib/features/`: `about`, `attachments`, `backup`, `entries`, `export`,
 `import`, `insights`, `journal_lock`, `lock_gate`, `permissions`, `search`, `security`,
-`smart_tags`, `sync`, `timeline`.
+`smart_tags`, `sync`, `tags`, `timeline`.
+
+> `home` is not a feature folder. Home and Search are `_HomeTab` / `_SearchTab` inside
+> `lib/app/app.dart`; the standalone screens were deleted on 2026-07-25 as dead code.
+> Full tree and folder responsibilities: [`project_structure.md`](project_structure.md).
 
 ### Ownership Rules
 
@@ -91,7 +121,7 @@ Feature modules under `lib/features/`: `about`, `attachments`, `backup`, `entrie
 | `lib/core/config/` | `AppConfig` + `ConfigService` (About, fixed paths per `guideline.md` §1) and `AppFlavorConfig` |
 | `lib/core/logging/` | `AppLogger` — the only logging entry point |
 | `lib/core/database/` | Drift schema, DAOs, migrations, FTS5 tables |
-| `lib/core/security/` | Shared security constants |
+| `lib/core/security/` | Shared security constants, and `VaultEnvelope` / `VaultPayload` — the one password-sealed file format, used by both the backup archive and an encrypted export |
 | `lib/core/theme/` | Theme tokens and the Light/Dark mode controller |
 | `lib/features/*/presentation/` | Widgets and screens only |
 | `lib/features/*/services/` | Business logic; no widget imports |
@@ -129,7 +159,7 @@ data and trigger the app lock.
   `prodRelease` manifest at
   `build/app/intermediates/merged_manifests/prodRelease/processProdReleaseManifest/AndroidManifest.xml`,
   not the source manifest. (It *is* present in debug builds — Flutter injects it for hot reload.)
-- **Offline data source**: Drift / SQLite
+- **Offline data source**: Drift / SQLCipher (encrypted SQLite)
 
 The `lib/features/sync/` module implements encrypted sync protocol and conflict resolution logic,
 but no network client is present in `pubspec.yaml` (no `dio`, no `http`). So sync logic exists
@@ -183,7 +213,7 @@ requires a documented exception hierarchy, a global handler in `main()`, and an 
 
 ### Current Schema Version
 
-SQLite schema version: **7** (`lib/core/database/app_database.dart`)
+SQLite schema version: **8** (`lib/core/database/app_database.dart`)
 
 Migration history, read from the `onUpgrade` strategy:
 
@@ -196,6 +226,7 @@ Migration history, read from the `onUpgrade` strategy:
 | 5 | `syncMetadata`, `syncConflicts`, `syncLogs` |
 | 6 | `autoLockProfiles`, `attachmentLocks`, `securityEvents`, `entryMoods` |
 | 7 | `appSettings` columns: attachment storage tree label, migration target, migration failure, `updatedAt` |
+| 8 | `tags.colorArgb` — optional per-tag display colour |
 
 `PRAGMA foreign_keys = ON` is set in `beforeOpen`.
 
@@ -233,7 +264,15 @@ TODO — not yet audited. FTS5 covers entry title and plain text; other query pa
 
 ### Local Storage
 
-- Database: Drift over `sqlite3_flutter_libs`
+- Database: Drift over **SQLCipher**, encrypted at rest. The native library comes from
+  `package:sqlite3`'s build hook, selected by the `hooks:` block in `pubspec.yaml`
+  (`source: sqlcipher`). `sqlite3_flutter_libs` and `drift_flutter` were removed with A5.1 —
+  a second copy of libsqlite3 in the APK can win the symbol lookup and quietly disable
+  encryption.
+- Database key: 32 bytes from `SecureRandom`, Keystore-wrapped, over the
+  `sreerajp.journal_vault/database_key` channel. Passed to SQLCipher as a raw key.
+- Plain-to-encrypted migration: `lib/core/database/plain_database_converter.dart`, run on every
+  start. It repairs an interrupted conversion before doing anything else.
 - WAL mode: TODO — not verified
 - Key-value storage: `shared_preferences`
 - Secure storage: Android Keystore via a `MethodChannel` implemented in `MainActivity.kt`
@@ -304,7 +343,7 @@ TODO — not yet audited. FTS5 covers entry title and plain text; other query pa
 |-----------|-------|-------|
 | Unit | Services across all 15 feature modules | Backfilled by Slice E of the remediation plan |
 | Widget | Settings sections, navigation, screen states | |
-| Integration | `integration_test/lock_gate_test.dart` | Lock gate only |
+| Integration | `integration_test/lock_gate_test.dart`, `integration_test/encrypted_database_test.dart` | Lock gate, and the Keystore key plus SQLCipher packaging (device only) |
 | Performance | none | TODO |
 
 235 tests pass as of 2026-07-25, with one known failure (see section 21).
@@ -316,7 +355,9 @@ TODO — not yet audited. FTS5 covers entry title and plain text; other query pa
 - Database upgrade path from version 1 to 7 — **covered** since 2026-07-25
   (`test/core/database/migration_test.dart`), including data survival. Its stated limits are
   documented at the top of that file.
-- Backup/restore round-trip — **not covered**, see `security.md` section 17
+- Backup/restore round-trip — **covered** since 2026-08-18
+  (`test/features/backup/backup_round_trip_test.dart`), including a restore onto a database
+  that shares nothing with the source
 - Malformed import input — **not covered**
 - Error boundary behavior for unhandled exceptions — TODO
 
@@ -338,6 +379,7 @@ TODO — not yet audited. FTS5 covers entry title and plain text; other query pa
 | Profile declaration | All three profiles | Encrypted local content plus a release-oriented plan | Binds the app to release and security rules that are not yet met — see section 21 |
 | State management | Riverpod | Mandated by `AGENTS.md`; testable overrides | Learning curve; provider sprawl if unmanaged |
 | Persistence | Drift + FTS5 | Type-safe SQL, migrations, built-in full-text search | Code generation step in the build |
+| Database encryption | SQLCipher, Keystore raw key | Closes the last plaintext store of journal text; no password to forget | Slower reads, FTS5 most of all; losing the Keystore key loses the vault |
 | Attachment storage | Encrypted files outside the DB | Keeps the database small; allows SD-card migration | Two things to keep consistent — DB rows and files on disk |
 | Secure storage | Native Keystore method channel | Avoids a plugin dependency; direct Keystore control | Custom native code to maintain and test |
 
@@ -385,31 +427,253 @@ when the profile was declared; worked through the same day.
 Detailed in [`security.md`](security.md) section 17. Summary:
 
 - **No "Delete all data" action** anywhere in `lib/`. Required by standard §15.4.
-- **The SQLite database is not encrypted at rest** — entry text and the FTS index are plain
-  inside the app-private directory. Risk-accepted (OWASP M9); only defeated by root or an
-  offline flash dump, both out of scope.
+- ~~**The SQLite database is not encrypted at rest**~~ — closed 2026-08-18 with A5.1. The vault
+  is SQLCipher with a Keystore-held key, and an existing plain database is converted on first
+  launch. Two consequences to keep in mind: losing the Keystore key loses the journal, and reads
+  are slower. See [`security.md`](security.md) sections 5 and 17.
 - **The attachment crypto format has no version byte** (M10). Cheap to fix now, expensive later.
-- **No backup/restore round-trip test**, and **no malformed-import test**.
+- ~~**No backup/restore round-trip test**~~ — closed 2026-08-18 with A4.1. **No
+  malformed-import test** still stands.
 - **Existing log statements not yet audited** against the new logging policy.
 - **`ACCESS_NETWORK_STATE` and `WAKE_LOCK`** arrive transitively from plugins and are unused.
 - **No retention caps** on entry revisions, security events, or sync logs.
 
+### Closed on 2026-07-25 — last-mile integration pass
+
+A second audit looked for a different class of gap: features whose data layer, native layer, and
+unit tests all existed and passed, but whose user-facing path was never connected. Five prompts
+marked `[COMPLETED]` stopped one step short. See
+`plans/20260725_113628_close-last-mile-gaps.md`.
+
+| Gap | How it was closed |
+|---|---|
+| `AttachmentOpenRouter.open` threw `UnimplementedError`, so tapping any attachment crashed — the editor catches only `AttachmentOpenException`, so it escaped uncaught | Implemented on `open_filex` (already a dependency, otherwise unused). Every `ResultType` maps to an `AttachmentOpenFailure`. 8 tests added covering `open`; the existing test file only ever exercised `resolve`, which is why the stub survived. |
+| `migrateStoredFile` threw `UnimplementedError` behind a fully wired migration UI | Implemented both directions over the existing native SAF channel. |
+| `encryptAndStore` ignored the storage setting and always wrote app-private — so a migration with zero attachments "succeeded", set `sd_card`, and then silently kept writing app-private | Storage is now location-aware end to end: write, read, delete, and migrate all branch on the `content://` test. The active target is read per write, so a Settings change applies without a restart. |
+| `cleanupMigrationArtifacts` was an empty method | Calls `cleanupPendingTreeDocuments` for tree targets. |
+| `AttachmentStorageUnavailableException` was defined but never thrown | A removed SD card now surfaces as a real message on write, and as `fileNotFound` on open. |
+| Smart Tags unreachable — service, providers, and `SmartTagChipBar` built and tested, imported by no screen | Chip bar mounted in the entry editor, reading the live document text. 4 widget tests added. |
+| `minSdk` resolved to 24 via `flutter.minSdkVersion`, against the API 28 required by `AGENTS.md` | Pinned to `minSdk = 28`. Verified in the merged `prodRelease` manifest. |
+| The long-standing `widget_test.dart` failure | **Was a test bug, not an app bug.** `enterText` does not pump, so the `setState` in `_markDirty` had not rebuilt when the test looked for the save button's `'Save'` tooltip — it still read `'No unsaved changes'`. One `await tester.pump()` in each of the two affected spots. The editor's dirty tracking was correct all along. |
+| Dead code: `search_screen.dart`, `home_screen.dart`, `journal_lock_controller.dart`, `attachment_storage_location_service.dart` | Deleted. Search and Home were reimplemented as `_SearchTab` / `_HomeTab` inside `app.dart`. Before deleting `journal_lock_controller_test`, its one real assertion — unlocked journals clear on re-lock — was ported to a widget test against the live `AppLockNotifier._onLocked` path. |
+
+Test suite went from 235 passing / 1 failing to **257 passing / 0 failing**.
+
+### Closed on 2026-07-25 — in-app attachment viewers
+
+`AttachmentOpenRouter` had computed `inAppPdf` / `inAppAudio` / `inAppArchive` decisions since V1,
+and the tests asserted them, but **no screen ever read those values** — `open()` sent every
+attachment to an external app through `open_filex`. `syncfusion_flutter_pdfviewer` and
+`just_audio` sat in `pubspec.yaml` imported by nothing. V1 attachment slices 3, 4, 5 and 7 were
+unbuilt.
+
+Now delivered:
+
+| Piece | File |
+|---|---|
+| Host screen, shared shell, owns the temp file | `features/attachments/presentation/attachment_viewer_screen.dart` |
+| PDF body (`SfPdfViewer.file`) | `.../pdf_attachment_view.dart` |
+| Audio body (`just_audio` behind `AudioPlaybackHandle`) | `.../audio_attachment_view.dart` |
+| ZIP listing (`archive`, nothing extracted) | `.../archive_attachment_view.dart` |
+
+- `AttachmentOpenService.prepare` decrypts and returns an `AttachmentOpenSession` without
+  launching anything; `openExternally` keeps the old hand-off. The editor picks between them on
+  `session.opensInApp`.
+- **Temp-file rule:** the viewer deletes the decrypted plaintext on dispose. The external path
+  still leaves it in place — the receiving app needs it — and `AttachmentTempFileManager` sweeps
+  it. Plaintext never leaves the app cache on the in-app path.
+- Audio pauses itself when the app is backgrounded, so nothing keeps playing behind the lock gate.
+- 12 widget/unit tests added. Note for future test authors: `testWidgets` runs in a fake-async
+  zone, so **awaited real file I/O inside a widget test never completes** — use the `…Sync`
+  variants, as `attachment_viewer_screen_test.dart` does.
+- `flutter_quill_extensions` was imported by nothing and had no feature behind it, so it was
+  removed.
+
+Still deferred: `7z` listing (external hand-off only, as planned), and image/text in-app viewers
+(V2).
+
+### Closed on 2026-08-18 — backup restore (A4.1)
+
+`BackupService` could write an archive and check that it decrypted, but nothing could read
+one back. A backup that has never been restored is a file, not a backup. Closed by
+`lib/features/backup/`. See `plans/20260818_134141_a4-1-backup-restore.md`.
+
+| Piece | File |
+|---|---|
+| Format versions, manifest, the errors a reader can hit | `features/backup/domain/backup_format.dart` |
+| Restore mode, preview, and result models | `features/backup/domain/restore_models.dart` |
+| The sealed container, old and new envelopes | `core/security/vault_envelope.dart` (moved out of `features/backup/` by A4.2) |
+| Read, plan, dry run, apply, verify | `features/backup/services/backup_restore_service.dart` |
+| What backup needs from attachment storage | `features/backup/services/backup_attachment_cipher.dart` |
+| The screen, behind a PIN or device check | `features/backup/presentation/restore_backup_screen.dart` |
+
+Three problems were found while building it and fixed in the same pass: entry moods and
+saved search presets were never exported, so a "complete" backup silently lost them;
+attachment files went into the archive still encrypted with the device key, so they could
+not be opened after a phone was replaced; and the archive key came from a fixed salt. No
+schema change and no migration were needed — the restore log reuses the free-text `trigger`
+column on `backup_logs` with the values `restore` and `pre_restore`.
+
+### Closed on 2026-08-16 — export (A1.1 / W5)
+
+The app imported but never exported. Nothing in `lib/` wrote an entry back out, so the only way
+data left the vault was a backup archive that cannot yet be restored — the "one-way door" named in
+`docs/enhancement_ideas.md` B2. Closed by `lib/features/export/`. See
+`plans/20260816_135333_a1-1-entry-and-journal-export.md`.
+
+| Piece | File |
+|---|---|
+| Delta → blocks, the shared parser all renderers walk | `features/export/services/delta_document.dart` |
+| Markdown / HTML / plain-text renderers | `.../delta_to_markdown.dart`, `.../delta_to_html.dart`, `.../delta_to_plain_text.dart` |
+| Reads the database for a scope | `.../export_collector.dart` |
+| Self-contained HTML page, fonts embedded | `.../export_html_builder.dart` |
+| Native PDF renderer client | `.../html_pdf_service.dart` + `android/.../android/print/JvHtmlToPdf.kt` |
+| Packing, zipping, attachment decryption | `.../export_service.dart` |
+| The screen | `features/export/presentation/export_screen.dart` |
+
+Decisions worth keeping in mind:
+
+- **PDF goes through a native WebView, not a Dart PDF package.** Malayalam needs real text shaping,
+  and the platform WebView does it while keeping the PDF text selectable. Ported from
+  `SreerajP_lyricchord` §2.9. The WebView must be **attached to the window** or the print callbacks
+  never fire on newer Android — that is the whole reason `JvHtmlToPdf` exists rather than
+  `Printing.convertHtml`.
+- **No new package dependency.** Reuses `archive` and `file_picker`, so the documented
+  `win32` / `file_picker` version knot is untouched.
+- **Offline is enforced twice.** The page embeds its fonts as base64 data URIs so it holds no URL
+  at all, and the WebView sets `blockNetworkLoads`. The first matters most: the `.html` export is
+  opened in the user's own browser, where this app's WebView settings do not apply.
+- **Locks are honoured.** A locked journal is not offered in the Settings picker, and a locked
+  attachment is never decrypted — both are reported to the user rather than quietly dropped.
+- `SecurityEvents` now actually records `export_attempt`, a type the table documented but nothing
+  wrote.
+- ~155 KB of Noto Sans Malayalam (SIL OFL) added under `assets/fonts/`, listed as an **asset** and
+  not a Flutter font: only the export WebView renders with it, and it needs the raw bytes.
+
+**Still deferred:** share-sheet hand-off, exporting across all journals at once, and PDF on
+iOS — the native renderer is Android only, and the other three formats work everywhere.
+Encrypting the exported file was the fourth item here and was closed on 2026-08-18 by A4.2,
+below.
+
+### Closed on 2026-08-18 — one sealed-file format, and encrypted export (A4.2)
+
+A4.1 gave the backup archive a versioned, self-describing envelope. The export file had none,
+and the envelope sat inside the backup feature where nothing else could reach it. Closed by
+`lib/core/security/`. See `plans/20260818_145453_a4-2-encrypted-export-envelope.md`.
+
+| Piece | File |
+|---|---|
+| The envelope, moved to core and renamed `VaultEnvelope` | `core/security/vault_envelope.dart` |
+| The `JVP1` header that travels inside the sealed bytes | `core/security/vault_payload.dart` |
+| Optional `password` on the export build | `features/export/services/export_service.dart` |
+| The switch and its two fields | `features/export/presentation/export_screen.dart` |
+| Unwrapping a sealed export again | `features/export/presentation/open_encrypted_export_screen.dart` |
+
+Decisions worth keeping in mind:
+
+- **The bytes on disk did not change.** Moving the class was a move, not a format change, so
+  every backup written by A4.1 still opens. The A4.1 tests were carried over unchanged apart
+  from the new names.
+- **The envelope version and the archive format version are now separate numbers.**
+  `vaultEnvelopeVersion` says how a file is sealed; `backupFormatVersion` says what the sealed
+  bytes contain. They are both 2 today, which is exactly why the coupling was easy to miss.
+- **The file name is sealed with the payload.** `Leaving my job.md.jvenc` would give away the
+  thing the password hides, so the real name rides inside a `JVP1` header and the file is
+  offered as `journal_export_<date>.jvenc`.
+- **Argon2id was kept over the family's PBKDF2.** Reasoning in `docs/security.md` section 14.
+- `BackupCorruptedException` and `BackupPasswordException` are now type aliases of the core
+  exceptions, so backup code and its tests read as backup code while there is only one class.
+
+### Still open — sync has no transport
+
+`SyncEngine` (392 lines) is constructed by nothing, and `SyncProtocol` has no concrete
+implementation, so nothing can push or pull. `SyncEncryptionService` and
+`ConflictResolutionService` are genuinely implemented and tested; the transport is the gap.
+
+The UI is hidden behind `AppFlavorConfig.enableSyncUi` (currently `false`) rather than left
+showing a health dashboard for a sync that cannot run. Prompt 19 is marked `[PARTIAL]`.
+
+*Action:* choose a transport (REST, WebDAV, folder sync), then write a plan for it. Flip the flag
+to `isDev` when a transport lands, and delete it when sync ships.
+
+### Closed on 2026-08-18 — guidelines conformance audit
+
+A full re-read of `docs/guidelines/` against the repository. Most of the structural rules were
+already met — the Tier 2 `lib/` layout, the About-screen config pattern, the analyzer rule set, the
+mirrored `test/` tree, and the keystore `.gitignore` rules all matched. The gaps were in the
+instruction files and the documentation set. See
+`plans/20260818_100606_guidelines-conformance-audit.md`.
+
+| Gap | How it was closed |
+|---|---|
+| `AGENTS.md` was a short "Global Prompt Constraints" note, missing every "Always" section from `AGENTS_MD_GUIDELINE.md` | Rewritten as a Thin-profile file: identity table, doc references, hard rules, architecture, commands, flavors, signing, security, localization, style, testing, dependencies, tree, workflow and communication rules. The old stack constraints were folded into the identity table and the hard rules, so nothing was lost. |
+| `CLAUDE.md` was missing 11 of the sections `CLAUDE_MD_GUIDELINE.md` marks "Always" | Rewritten to the same Thin-profile shape, carrying the same rules as `AGENTS.md`. The existing profile table, submodule notes and relative-path rule were kept as sections. |
+| `README.md` was still the stock Flutter template | Rewritten against standard §21.3: prerequisites with versions, clean-clone setup, environment values, tests, code generation, adding a migration, release build, and a documentation map. |
+| `pubspec.yaml` still said "A new Flutter project." | Replaced with the real description, matching `app_config.json`. |
+| Five of the eight baseline `docs/` files required by `DOCS_FOLDER_GUIDELINE.md` §6 were missing | Added `workflow_rules.md`, `dependencies.md`, `project_structure.md`, `implementation_plan.md`, `implementation_progress.md`. |
+| Two `docs/` files broke the lowercase `snake_case` rule | `AI_Development_Prompts.md` → `ai_development_prompts.md`; `SreerajP_Journal_Vault_Plan.md` → `journal_vault_plan.md`. Every reference in `docs/`, `plans/` and `change_log/` was updated. |
+| `.gitignore` was missing six entries from standard §20.4 | Added `*.apk`, `*.aab`, `*.ipa`, `*.msix`, `*.symbols/`, `.flutter-plugins`. |
+| No CI at all (standard §19) | `.github/workflows/ci.yml` added — pub get, build_runner, format, analyze, test, and a `dev --debug` build. |
+| No `CHANGELOG.md` (standard §21.2) | Added, seeded at 1.0.1. |
+| The pre-commit hook only checked absolute paths (standard §19.3) | Now also runs the formatter and the analyzer. |
+| Both a `tool/` and a `tools/` folder | The two Python icon scripts moved into `tool/`; `tools/` deleted. |
+| **No localization at all** — the largest gap. No `l10n.yaml`, no `lib/l10n/`, no `generate: true`, nothing importing `AppLocalizations`, and about 270 user-visible string literals across roughly 20 files. Mandatory for every app under standard §8.2 and `guideline.md` §3, single-language included. | Mostly closed. `l10n.yaml`, `lib/l10n/app_en.arb` (372 keys, each with an `@key` description), `intl`, and `flutter: generate: true` added; `AppLocalizations.delegate` wired into `MaterialApp`. Every string rendered directly by a widget now reads through `AppLocalizations` — 20 files, including all 2,950 lines of `lib/app/app.dart`. Two literals remain and are correct: `Text('$conflictCount')` and `Text('#${tag.name}')`, both pure data with no words in them. **Two pockets are still open — see below.** The seven tests that build their own `MaterialApp` now pass `AppLocalizations.localizationsDelegates`. |
+
+> **Note on `synthetic-package`.** Standard §8.1 lists `synthetic-package: false` in `l10n.yaml`.
+> Flutter 3.44 has removed that option — it warns on every `pub get` and does nothing, because
+> writing into `lib/` is now the only behaviour. `output-dir: lib/l10n` says the same thing and is
+> what this app sets. The guideline lives in the read-only submodule and cannot be corrected here.
+
+### Still open — localization (opened 2026-08-18)
+
+Two pockets of user-visible text are still Dart literals. Neither is a find-and-replace.
+
+- **`lib/features/entries/templates/entry_templates.dart`** — the catalogue of 46 entry templates.
+  Each carries a `label`, a `description`, a `defaultTitle`, and a `contentJson` holding a whole
+  prefilled document. That is roughly 190 short strings plus 46 documents, and the catalogue is a
+  `const` structure read by providers, so moving it to ARB means restructuring it into a
+  context-dependent lookup as well as writing the keys. It deserves its own plan.
+  *Action:* decide first whether template bodies are UI text or seeded content. Only the picker's
+  `label` and `description` are read on screen.
+
+- **`lib/features/export/export_strings.dart`** — the export feature's string namespace. Split in
+  two: exported-document content (entry headers, the bundle README) that is written into the file
+  by renderers with no `BuildContext`, and messages produced in `export_service.dart` and
+  `html_pdf_service.dart` that only later reach a snackbar. Closing the second half needs an error
+  model — `ExportOmission` carrying a reason enum instead of a sentence, typed PDF exceptions, and
+  a mapping in `export_screen.dart`. The file's own doc comment records this.
+  *Action:* one plan covering the omission and exception refactor, then the screen mapping.
+
 ### Still open — Core Baseline
 
-- **`lib/app/app.dart` is 2,568 lines**, holding the shell, navigation, and the whole settings UI.
+- **`plans/`, `change_log/`, and four `docs/` files are not tracked by git.** Standard §21.1 lists
+  `plans/` and `change_log/` as required documents, and the §21.1.1 privacy rule exists precisely
+  because they are committed and may become public. Today they exist only on disk, so the record
+  the standard assumes does not exist. Untracked: all of `plans/`, all of `change_log/`, and
+  `docs/ai_development_prompts.md`, `docs/journal_vault_plan.md`, `docs/enhancement_ideas.md`,
+  `docs/features.md`.
+  *Action:* decide deliberately whether these are committed. If yes, `git add` them after a
+  privacy pass with `sh tool/check_absolute_paths.sh --all`.
+
+- **`plans/Remediation_Plan.md` does not follow the plan naming rule.** Plans must be
+  `yyyymmdd_hhMMss_<short-slug>.md`. Left as is because several change logs reference it by name;
+  renaming it is a small task of its own.
+
+- **`lib/app/app.dart` is ~2,830 lines**, holding the shell, navigation, and the whole settings UI.
   Deliberately deferred to its own plan: it is a pure refactor with real regression risk across
   every settings flow, and it fixes no security or correctness problem.
   *Action:* extract settings into `lib/features/settings/`.
 
-- **One pre-existing test failure.** `test/widget_test.dart` → "Journal detail groups entries and
-  reacts to entry CRUD" was already failing before this work began and still is. Everything else
-  passes (235 tests).
+- **The Home tab has no error state.** `_HomeTab` renders a spinner while loading and the list
+  once loaded, but a load failure leaves the spinner up forever. The deleted `HomeScreen` had an
+  "Unable to load journals" + Retry state and a test for it — but that screen was never reachable,
+  so the test was covering a screen no user ever saw. The behaviour is worth adding to `_HomeTab`.
 
-- **95 of 132 source files do not match `dart format`.** Pre-existing: Dart 3.11 changed the
-  formatter style and the codebase predates it. Files added or edited on 2026-07-25 are
-  formatted; the rest are not. Reformatting is mechanical but touches nearly every file, so it
-  was kept out of the security commits. Note `dart format .` crashes on stale paths under
-  `build/` — name the source directories instead.
+- ~~**88 of 132 source files do not match `dart format`.**~~ **Closed 2026-07-25** during the
+  Flutter 3.44.8 upgrade: all 127 source files were reformatted with the Dart 3.12 formatter and
+  `dart format --set-exit-if-changed lib test integration_test` now exits 0. Keep it that way —
+  and note `dart format .` still crashes on stale paths under `build/`, so always name the source
+  directories instead.
 
 - **`dev` and `prod` flavors share one application ID**, so they cannot be installed side by side.
   Installing a dev build over the real one destroys its data. Add an `applicationIdSuffix` to the
@@ -424,7 +688,23 @@ Detailed in [`security.md`](security.md) section 17. Summary:
 - `docs/guidelines/flutter_project_engineering_standard.md`
 - `docs/guidelines/guideline.md` — source of truth for keystore rules
 - `docs/guidelines/flutter_build_flavors_guide.md` — flavors are in use
-- `docs/guidelines/release_process.md` — **required**, not yet filled in for this app
-- `docs/guidelines/security.md` — **required**, not yet filled in for this app
-- `../SreerajP_Journal_Vault_Plan.md` — product and milestone plan
-- `../AGENTS.md` — workspace-wide stack constraints
+- `docs/guidelines/release_process.md` — filled in locally as [`release_process.md`](release_process.md)
+- `docs/guidelines/security.md` — filled in locally as [`security.md`](security.md)
+
+### This app's own documents
+
+- [`../README.md`](../README.md) — setup, run, test, build
+- [`../CLAUDE.md`](../CLAUDE.md) and [`../AGENTS.md`](../AGENTS.md) — project rules for AI tools;
+  same content, one file per ecosystem
+- [`security.md`](security.md) — threat model, crypto design, OWASP checklist
+- [`release_process.md`](release_process.md) — the release runbook
+- [`workflow_rules.md`](workflow_rules.md) — plan → approve → log, and the privacy rule
+- [`dependencies.md`](dependencies.md) — every package, why it is here, and the held versions
+- [`project_structure.md`](project_structure.md) — the file tree and folder responsibilities
+- [`implementation_plan.md`](implementation_plan.md) — the phase-by-phase roadmap
+- [`implementation_progress.md`](implementation_progress.md) — what is done, partial, and open
+- [`journal_vault_plan.md`](journal_vault_plan.md) — product and milestone plan
+- [`ai_development_prompts.md`](ai_development_prompts.md) — the numbered build prompts
+- [`features.md`](features.md) — what the app does, feature by feature
+- [`enhancement_ideas.md`](enhancement_ideas.md) — ideas not yet in a milestone
+- [`../CHANGELOG.md`](../CHANGELOG.md) — user-facing release history

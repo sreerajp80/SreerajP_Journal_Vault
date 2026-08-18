@@ -12,11 +12,7 @@ class SyncStatusWidget extends ConsumerWidget {
   final bool showLabel;
   final VoidCallback? onTap;
 
-  const SyncStatusWidget({
-    super.key,
-    this.showLabel = true,
-    this.onTap,
-  });
+  const SyncStatusWidget({super.key, this.showLabel = true, this.onTap});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -62,34 +58,29 @@ class SyncStatusWidget extends ConsumerWidget {
     );
   }
 
-  (IconData, Color, String) _statusDisplay(
-      SyncStatus status, ThemeData theme) {
+  (IconData, Color, String) _statusDisplay(SyncStatus status, ThemeData theme) {
     return switch (status) {
       SyncStatus.idle => (
-          Icons.cloud_outlined,
-          theme.colorScheme.onSurfaceVariant,
-          'Not synced',
-        ),
+        Icons.cloud_outlined,
+        theme.colorScheme.onSurfaceVariant,
+        'Not synced',
+      ),
       SyncStatus.syncing => (
-          Icons.sync,
-          theme.colorScheme.primary,
-          'Syncing...',
-        ),
-      SyncStatus.success => (
-          Icons.cloud_done_outlined,
-          Colors.green,
-          'Synced',
-        ),
+        Icons.sync,
+        theme.colorScheme.primary,
+        'Syncing...',
+      ),
+      SyncStatus.success => (Icons.cloud_done_outlined, Colors.green, 'Synced'),
       SyncStatus.failed => (
-          Icons.cloud_off_outlined,
-          theme.colorScheme.error,
-          'Sync failed',
-        ),
+        Icons.cloud_off_outlined,
+        theme.colorScheme.error,
+        'Sync failed',
+      ),
       SyncStatus.conflict => (
-          Icons.warning_amber_rounded,
-          Colors.orange,
-          'Conflicts',
-        ),
+        Icons.warning_amber_rounded,
+        Colors.orange,
+        'Conflicts',
+      ),
     };
   }
 }

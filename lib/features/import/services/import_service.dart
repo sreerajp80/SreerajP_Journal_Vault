@@ -59,13 +59,12 @@ class ImportService {
     required List<int> bytes,
     String? mimeType,
   }) async {
-    final adapter = adapterForFile(fileName) ??
+    final adapter =
+        adapterForFile(fileName) ??
         (mimeType != null ? adapterForMimeType(mimeType) : null);
 
     if (adapter == null) {
-      throw UnsupportedError(
-        'Unsupported import format: $fileName',
-      );
+      throw UnsupportedError('Unsupported import format: $fileName');
     }
 
     final result = await adapter.import(bytes, fileName);
@@ -131,10 +130,10 @@ class ImportFileResult {
   final bool isSuccess;
 
   const ImportFileResult.success(int this.entryId)
-      : error = null,
-        isSuccess = true;
+    : error = null,
+      isSuccess = true;
 
   const ImportFileResult.failure(String this.error)
-      : entryId = null,
-        isSuccess = false;
+    : entryId = null,
+      isSuccess = false;
 }

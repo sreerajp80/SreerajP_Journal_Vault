@@ -17,8 +17,8 @@ class DocxImportAdapter extends ImportAdapter {
 
   @override
   List<String> get supportedMimeTypes => [
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      ];
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  ];
 
   @override
   Future<ImportResult> import(List<int> bytes, String fileName) async {
@@ -37,11 +37,13 @@ class DocxImportAdapter extends ImportAdapter {
     final xmlContent = utf8.decode(docXml.content as List<int>);
     final paragraphs = _parseParagraphs(xmlContent);
     final ops = _paragraphsToOps(paragraphs);
-    final plainText =
-        paragraphs.map((p) => p.runs.map((r) => r.text).join()).join('\n');
+    final plainText = paragraphs
+        .map((p) => p.runs.map((r) => r.text).join())
+        .join('\n');
 
     return ImportResult(
-      title: _extractTitle(paragraphs) ??
+      title:
+          _extractTitle(paragraphs) ??
           ImportAdapter.titleFromFileName(fileName),
       contentJson: jsonEncode(ops),
       plainText: plainText,
@@ -78,19 +80,20 @@ class DocxImportAdapter extends ImportAdapter {
       final pContent = pMatch.group(1) ?? '';
 
       // Check for heading style
-      final styleMatch =
-          RegExp(r'<w:pStyle\s+w:val="([^"]*)"').firstMatch(pContent);
+      final styleMatch = RegExp(
+        r'<w:pStyle\s+w:val="([^"]*)"',
+      ).firstMatch(pContent);
       final styleName = styleMatch?.group(1) ?? '';
       final isHeading = styleName.startsWith('Heading');
       int? headingLevel;
       if (isHeading) {
-        headingLevel =
-            int.tryParse(styleName.replaceFirst('Heading', '')) ?? 1;
+        headingLevel = int.tryParse(styleName.replaceFirst('Heading', '')) ?? 1;
       }
 
       // Check for list style
-      final numIdMatch =
-          RegExp(r'<w:numId\s+w:val="(\d+)"').firstMatch(pContent);
+      final numIdMatch = RegExp(
+        r'<w:numId\s+w:val="(\d+)"',
+      ).firstMatch(pContent);
       final isListItem = numIdMatch != null;
 
       // Extract runs
@@ -109,20 +112,22 @@ class DocxImportAdapter extends ImportAdapter {
         if (text.isEmpty) continue;
 
         // Check formatting
-        final isBold = rContent.contains('<w:b/>') ||
-            rContent.contains('<w:b ');
-        final isItalic = rContent.contains('<w:i/>') ||
-            rContent.contains('<w:i ');
+        final isBold =
+            rContent.contains('<w:b/>') || rContent.contains('<w:b ');
+        final isItalic =
+            rContent.contains('<w:i/>') || rContent.contains('<w:i ');
 
         runs.add(_DocxRun(text: text, isBold: isBold, isItalic: isItalic));
       }
 
-      paragraphs.add(_DocxParagraph(
-        runs: runs,
-        isHeading: isHeading,
-        headingLevel: headingLevel,
-        isListItem: isListItem,
-      ));
+      paragraphs.add(
+        _DocxParagraph(
+          runs: runs,
+          isHeading: isHeading,
+          headingLevel: headingLevel,
+          isListItem: isListItem,
+        ),
+      );
     }
 
     return paragraphs;

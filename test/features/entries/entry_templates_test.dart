@@ -35,19 +35,23 @@ void main() {
     expect(entryTemplates.first.id, EntryTemplateId.blank);
   });
 
-  test('grouping covers every template and preserves order within a group',
-      () {
+  test('grouping covers every template and preserves order within a group', () {
     final grouped = entryTemplatesByCategory;
     final flattened = grouped.values.expand((list) => list).toList();
     expect(flattened.length, entryTemplates.length);
-    expect(flattened.map((t) => t.id).toSet(),
-        entryTemplates.map((t) => t.id).toSet());
+    expect(
+      flattened.map((t) => t.id).toSet(),
+      entryTemplates.map((t) => t.id).toSet(),
+    );
   });
 
   test('every template has a parseable Quill delta', () {
     for (final t in entryTemplates) {
-      expect(validateTemplateJson(t), isTrue,
-          reason: '${t.label} delta must parse as JSON list');
+      expect(
+        validateTemplateJson(t),
+        isTrue,
+        reason: '${t.label} delta must parse as JSON list',
+      );
     }
   });
 

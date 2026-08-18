@@ -9,7 +9,7 @@ import 'package:sreerajp_journal_vault/features/lock_gate/services/app_pin_keyst
 /// PBKDF2 salt + verifier. The raw PIN is never stored, only a derived
 /// 256-bit verifier hashed once more with SHA-256.
 class AppPinService {
-  AppPinService({required AppPinKeystore keystore}) : _keystore = keystore;
+  AppPinService({required this._keystore});
 
   final AppPinKeystore _keystore;
   static const int _defaultIterations = 100000;
@@ -26,8 +26,7 @@ class AppPinService {
       throw ArgumentError.value(pin, 'pin', 'PIN must not be empty');
     }
     final salt = _generateSalt();
-    final verifier =
-        await _deriveVerifier(pin, salt, _defaultIterations);
+    final verifier = await _deriveVerifier(pin, salt, _defaultIterations);
     await _keystore.setCredential(
       saltBase64: base64.encode(salt),
       verifierBase64: base64.encode(verifier),
@@ -43,8 +42,7 @@ class AppPinService {
 
     final salt = base64.decode(credential.saltBase64);
     final stored = base64.decode(credential.verifierBase64);
-    final derived =
-        await _deriveVerifier(pin, salt, credential.iterations);
+    final derived = await _deriveVerifier(pin, salt, credential.iterations);
     return _constantTimeEquals(derived, stored);
   }
 

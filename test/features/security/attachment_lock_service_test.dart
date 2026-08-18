@@ -79,12 +79,14 @@ void main() {
     await service.relockAttachment(attachmentId);
     await service.removeLock(attachmentId);
 
-    final events = await database.securityEventsDao.getRecentEvents(
-      limit: 10,
+    final events = await database.securityEventsDao.getRecentEvents(limit: 10);
+    expect(
+      events.where((e) => e.eventType == 'attachment_locked'),
+      hasLength(2),
     );
-    expect(events.where((e) => e.eventType == 'attachment_locked'),
-        hasLength(2));
-    expect(events.where((e) => e.eventType == 'attachment_unlocked'),
-        hasLength(2));
+    expect(
+      events.where((e) => e.eventType == 'attachment_unlocked'),
+      hasLength(2),
+    );
   });
 }
