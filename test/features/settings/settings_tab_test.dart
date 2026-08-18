@@ -44,7 +44,9 @@ void main() {
     AttachmentCryptoStorage? cryptoStorage,
     List<Override> extraOverrides = const [],
   }) async {
-    await tester.binding.setSurfaceSize(const Size(800, 1600));
+    // Tall enough that every section header, including About at the bottom,
+    // is laid out — the Security section grew a screenshot-blocking switch.
+    await tester.binding.setSurfaceSize(const Size(800, 1800));
     addTearDown(() => tester.binding.setSurfaceSize(null));
 
     await tester.pumpWidget(
@@ -68,31 +70,51 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('renders all five sections in the plan-defined order', (
+  /// Opens one Settings section page by tapping its card.
+  Future<void> openSection(WidgetTester tester, String section) async {
+    await tester.tap(find.byKey(Key('settings-card-$section')));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('renders all five section cards in the plan-defined order', (
     tester,
   ) async {
     await pumpApp(tester);
 
-    const headers = [
-      'Security',
-      'Appearance',
-      'Storage',
-      'Permissions',
-      'About',
+    const cards = [
+      ('settings-card-security', 'Security'),
+      ('settings-card-appearance', 'Appearance'),
+      ('settings-card-storage', 'Storage'),
+      ('settings-card-permissions', 'Permissions'),
+      ('settings-card-about', 'About'),
     ];
-    for (final h in headers) {
-      expect(find.text(h), findsOneWidget, reason: '$h section header missing');
-    }
 
     // Verify ordering by Y position so we catch out-of-order rebuilds.
-    final positions = <String, double>{};
-    for (final h in headers) {
-      positions[h] = tester.getTopLeft(find.text(h)).dy;
+    final positions = <double>[];
+    for (final (key, title) in cards) {
+      final finder = find.byKey(Key(key));
+      expect(finder, findsOneWidget, reason: '$title card missing');
+      expect(find.text(title), findsOneWidget, reason: '$title title missing');
+      positions.add(tester.getTopLeft(finder).dy);
     }
-    expect(positions['Security']! < positions['Appearance']!, isTrue);
-    expect(positions['Appearance']! < positions['Storage']!, isTrue);
-    expect(positions['Storage']! < positions['Permissions']!, isTrue);
-    expect(positions['Permissions']! < positions['About']!, isTrue);
+    for (var i = 1; i < positions.length; i++) {
+      expect(
+        positions[i - 1] < positions[i],
+        isTrue,
+        reason: '${cards[i].$2} card is out of order',
+      );
+    }
+
+    // Section content now lives behind its card, not on the home screen.
+    expect(find.byKey(const Key('settings-screen-security')), findsNothing);
+    expect(find.byKey(const Key('settings-theme-chip-dark')), findsNothing);
+  });
+
+  testWidgets('Security card opens a page holding every security row', (
+    tester,
+  ) async {
+    await pumpApp(tester);
+    await openSection(tester, 'security');
 
     // Slice B coming-soon stubs that Slice D wires up — Auto-Lock Timeout
     // and Attachment-Level Lock now have real screens; only Tamper Alerts
@@ -100,12 +122,39 @@ void main() {
     expect(find.text('Auto-Lock Timeout'), findsOneWidget);
     expect(find.text('Attachment-Level Lock'), findsOneWidget);
     expect(find.text('Tamper Alerts'), findsOneWidget);
-    // Three stubs now: Tamper Alerts, plus the two sync rows. Sync has no
-    // transport, so AppFlavorConfig.enableSyncUi hides its real screens
-    // rather than showing health for a sync that cannot run.
-    expect(find.text('Coming soon'), findsNWidgets(3));
-    expect(find.text('Sync Health'), findsOneWidget);
+    // Two stubs on this page: Tamper Alerts and Sync Conflicts. Sync has no
+    // transport, so AppFlavorConfig.enableSyncUi hides its real screen
+    // rather than showing a sync that cannot run.
+    expect(find.text('Coming soon'), findsNWidgets(2));
     expect(find.text('Sync Conflicts'), findsOneWidget);
+
+    // Slice D Security rows.
+    expect(find.byKey(const Key('settings-auto-lock-timeout')), findsOneWidget);
+    expect(
+      find.byKey(const Key('settings-attachment-level-lock')),
+      findsOneWidget,
+    );
+    // Gated off: the row renders as a disabled stub, not a tappable screen.
+    expect(find.byKey(const Key('settings-sync-conflicts')), findsNothing);
+    expect(find.byKey(const Key('settings-security-events')), findsOneWidget);
+    expect(find.byKey(const Key('settings-screen-security')), findsOneWidget);
+  });
+
+  testWidgets('Appearance card opens the theme chooser', (tester) async {
+    await pumpApp(tester);
+    await openSection(tester, 'appearance');
+
+    // System theme chip must NOT exist; only Light + Dark.
+    expect(find.text('System'), findsNothing);
+    expect(find.text('Light'), findsOneWidget);
+    expect(find.text('Dark'), findsOneWidget);
+  });
+
+  testWidgets('Storage card opens a page holding every storage row', (
+    tester,
+  ) async {
+    await pumpApp(tester);
+    await openSection(tester, 'storage');
 
     // Storage rows (C2 Backup Health, Import Data + D1 Sync Health).
     expect(
@@ -118,17 +167,16 @@ void main() {
     expect(find.byKey(const Key('settings-import-data')), findsOneWidget);
     // Gated off: the row renders as a disabled stub, not a tappable screen.
     expect(find.byKey(const Key('settings-sync-health')), findsNothing);
+    expect(find.text('Sync Health'), findsOneWidget);
+    expect(find.text('Coming soon'), findsOneWidget);
+  });
 
-    // Slice D Security rows.
-    expect(find.byKey(const Key('settings-auto-lock-timeout')), findsOneWidget);
-    expect(
-      find.byKey(const Key('settings-attachment-level-lock')),
-      findsOneWidget,
-    );
-    expect(find.byKey(const Key('settings-sync-conflicts')), findsNothing);
-    expect(find.byKey(const Key('settings-security-events')), findsOneWidget);
+  testWidgets('Permissions card opens a page holding every permissions row', (
+    tester,
+  ) async {
+    await pumpApp(tester);
+    await openSection(tester, 'permissions');
 
-    // Permissions rows.
     expect(
       find.byKey(const Key('settings-permissions-status')),
       findsOneWidget,
@@ -141,17 +189,13 @@ void main() {
       find.byKey(const Key('settings-open-system-settings')),
       findsOneWidget,
     );
-
-    // System theme chip must NOT exist; only Light + Dark.
-    expect(find.text('System'), findsNothing);
-    expect(find.text('Light'), findsOneWidget);
-    expect(find.text('Dark'), findsOneWidget);
   });
 
   testWidgets('Manage Permissions tile pushes the PermissionsScreen', (
     tester,
   ) async {
     await pumpApp(tester);
+    await openSection(tester, 'permissions');
 
     await tester.tap(find.byKey(const Key('settings-manage-permissions')));
     await tester.pumpAndSettle();
@@ -164,6 +208,7 @@ void main() {
     tester,
   ) async {
     await pumpApp(tester);
+    await openSection(tester, 'storage');
 
     await tester.tap(find.byKey(const Key('settings-backup-health')));
     // BackupHealthScreen has an animated entry, so pump a few frames rather
@@ -186,6 +231,7 @@ void main() {
         JournalsCompanion.insert(title: 'Inbox'),
       );
       await pumpApp(tester);
+      await openSection(tester, 'storage');
 
       await tester.tap(find.byKey(const Key('settings-import-data')));
       await tester.pumpAndSettle();
@@ -202,6 +248,7 @@ void main() {
     tester,
   ) async {
     await pumpApp(tester);
+    await openSection(tester, 'storage');
 
     await tester.tap(find.byKey(const Key('settings-import-data')));
     await tester.pumpAndSettle();
@@ -239,6 +286,7 @@ void main() {
 
     final cryptoStorage = _SlowCryptoStorage();
     await pumpApp(tester, cryptoStorage: cryptoStorage);
+    await openSection(tester, 'storage');
 
     // Open the storage location dialog and choose SD Card. The picker
     // override returns null (user cancel) by default — wire a fake picker
@@ -256,11 +304,10 @@ void main() {
         attachmentMigrationFailure: Value('Earlier run interrupted.'),
       ),
     );
-    // Force the Storage section to reload by reopening Settings.
-    await tester.tap(find.text('Home'));
+    // Force the Storage section to reload by leaving and reopening its page.
+    await tester.pageBack();
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Settings'));
-    await tester.pumpAndSettle();
+    await openSection(tester, 'storage');
 
     // Tap Retry → progress dialog opens, blocked on cryptoStorage.
     cryptoStorage.holdMigration = true;

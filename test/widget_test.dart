@@ -64,7 +64,7 @@ void main() {
   ) async {
     await pumpApp(tester);
 
-    expect(find.text('App Lock Gate'), findsOneWidget);
+    expect(find.text('Your journal is locked'), findsOneWidget);
     expect(find.text('Unlock with Phone Lock'), findsOneWidget);
 
     await _unlockPhoneLock(tester);
@@ -75,13 +75,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Security'), findsOneWidget);
-    expect(find.text('App Lock Mode'), findsOneWidget);
+    expect(find.text('Appearance'), findsOneWidget);
 
-    await tester.dragUntilVisible(
-      find.text('Appearance'),
-      find.byType(Scrollable).first,
-      const Offset(0, -250),
-    );
+    // Theme now lives on the Appearance section page.
+    await tester.tap(find.byKey(const Key('settings-card-appearance')));
+    await tester.pumpAndSettle();
+
     expect(find.text('Appearance'), findsOneWidget);
     expect(find.text('Theme'), findsOneWidget);
     expect(
@@ -138,16 +137,8 @@ void main() {
     await tester.tap(find.text('Settings'));
     await tester.pumpAndSettle();
 
-    await tester.dragUntilVisible(
-      find.text('Appearance'),
-      find.byType(Scrollable).first,
-      const Offset(0, -250),
-    );
-    await tester.dragUntilVisible(
-      find.text('Dark'),
-      find.byType(Scrollable).first,
-      const Offset(0, -250),
-    );
+    await tester.tap(find.byKey(const Key('settings-card-appearance')));
+    await tester.pumpAndSettle();
 
     await tester.tap(find.text('Dark'));
     await tester.pumpAndSettle();
@@ -191,14 +182,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Security'), findsOneWidget);
-    await tester.dragUntilVisible(
-      find.text('About this app'),
-      find.byType(Scrollable).first,
-      const Offset(0, -250),
-    );
-    expect(find.text('About this app'), findsOneWidget);
+    expect(find.text('About'), findsOneWidget);
 
-    await tester.tap(find.text('About this app'));
+    // The About card opens the About screen directly.
+    await tester.tap(find.byKey(const Key('settings-card-about')));
     await tester.pumpAndSettle();
 
     expect(find.text('SreerajP_Journal_Vault'), findsOneWidget);
@@ -223,6 +210,8 @@ void main() {
 
     await _unlockPhoneLock(tester);
     await tester.tap(find.text('Settings'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('settings-card-security')));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Separate App Lock'));
@@ -262,11 +251,11 @@ void main() {
 
     // switchLockMode immediately locks the app, so the lock gate is already
     // shown. Pause/resume should leave it locked.
-    expect(find.text('App Lock Gate'), findsOneWidget);
+    expect(find.text('Your journal is locked'), findsOneWidget);
 
     await _cycleLifecyclePauseResume(tester);
 
-    expect(find.text('App Lock Gate'), findsOneWidget);
+    expect(find.text('Your journal is locked'), findsOneWidget);
     expect(find.text('Separate App Lock'), findsOneWidget);
     expect(find.byKey(const Key('app-lock-pin-field')), findsOneWidget);
 

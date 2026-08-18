@@ -164,7 +164,8 @@ and defaults to `prod`. Never use `kDebugMode` or `kReleaseMode` as a stand-in f
   written to SharedPreferences.
 - Request only the permissions the app needs. Never add `INTERNET`.
 - `android:allowBackup="false"` and `res/xml/data_extraction_rules.xml` must stay in the
-  manifest. `FLAG_SECURE` must stay set in `MainActivity.onCreate`.
+  manifest. `FLAG_SECURE` must stay applied in `MainActivity.onCreate` by default; the only
+  thing that may clear it is the user's own "Block Screenshots" switch in Settings.
 - Release builds must keep `--obfuscate --split-debug-info` and R8. Symbols are git-ignored and
   archived per release.
 - Full threat model and OWASP checklist: [`docs/security.md`](docs/security.md).

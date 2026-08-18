@@ -974,6 +974,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lockGateTitle => 'App Lock Gate';
 
   @override
+  String get lockGateHeadline => 'Your journal is locked';
+
+  @override
+  String get lockGateSubtitle => 'Unlock to open your entries.';
+
+  @override
+  String get lockGateShowPin => 'Show PIN';
+
+  @override
+  String get lockGateHidePin => 'Hide PIN';
+
+  @override
+  String get lockGateBadgeSemantics => 'Locked';
+
+  @override
   String get lockUnlockWithPhone => 'Unlock with Phone Lock';
 
   @override
@@ -1076,22 +1091,68 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSectionSecurity => 'Security';
 
   @override
+  String get settingsSectionSecuritySubtitle =>
+      'Lock mode, auto-lock, screenshots and security events';
+
+  @override
   String get settingsSectionAppearance => 'Appearance';
+
+  @override
+  String get settingsSectionAppearanceSubtitle => 'Theme and how the app looks';
 
   @override
   String get settingsSectionStorage => 'Storage';
 
   @override
+  String get settingsSectionStorageSubtitle =>
+      'Attachment location, usage, backup and import';
+
+  @override
   String get settingsSectionPermissions => 'Permissions';
 
   @override
+  String get settingsSectionPermissionsSubtitle =>
+      'What the app is allowed to use';
+
+  @override
   String get settingsSectionAbout => 'About';
+
+  @override
+  String get settingsSectionAboutSubtitle =>
+      'Version, licences and app details';
 
   @override
   String get settingsAppLockMode => 'App Lock Mode';
 
   @override
   String get settingsAutoLockTimeout => 'Auto-Lock Timeout';
+
+  @override
+  String get settingsScreenSecurity => 'Block Screenshots';
+
+  @override
+  String get settingsScreenSecuritySubtitle =>
+      'Stops screenshots, screen recording and the preview shown in the recent apps list';
+
+  @override
+  String get settingsScreenSecurityOffTitle => 'Turn off screenshot blocking?';
+
+  @override
+  String get settingsScreenSecurityOffBody =>
+      'Anyone taking a screenshot or recording the screen will be able to capture your journal content. The recent apps list will also show your last screen. You can turn this back on at any time.';
+
+  @override
+  String get settingsScreenSecurityOffAction => 'Turn Off';
+
+  @override
+  String get settingsScreenSecurityUpdatedOn => 'Screenshot blocking is on';
+
+  @override
+  String get settingsScreenSecurityUpdatedOff => 'Screenshot blocking is off';
+
+  @override
+  String get settingsScreenSecuritySaveFailed =>
+      'Could not change screenshot blocking';
 
   @override
   String get settingsTamperAlerts => 'Tamper Alerts';

@@ -58,7 +58,7 @@ void main() {
 
     // ── Cold launch is locked ─────────────────────────────────────────
     await pumpAppLockApp();
-    expect(find.text('App Lock Gate'), findsOneWidget);
+    expect(find.text('Your journal is locked'), findsOneWidget);
     expect(find.text('Separate App Lock'), findsOneWidget);
     expect(find.byKey(const Key('app-lock-pin-field')), findsOneWidget);
 
@@ -67,14 +67,14 @@ void main() {
     await tester.tap(find.byKey(const Key('app-lock-unlock-button')));
     await tester.pumpAndSettle();
     expect(find.text('Incorrect PIN.'), findsOneWidget);
-    expect(find.text('App Lock Gate'), findsOneWidget);
+    expect(find.text('Your journal is locked'), findsOneWidget);
 
     // ── Right PIN unlocks ─────────────────────────────────────────────
     await tester.enterText(find.byKey(const Key('app-lock-pin-field')), '1234');
     await tester.tap(find.byKey(const Key('app-lock-unlock-button')));
     await tester.pumpAndSettle();
     expect(find.text('Home'), findsWidgets);
-    expect(find.text('App Lock Gate'), findsNothing);
+    expect(find.text('Your journal is locked'), findsNothing);
 
     // ── Background pause → relock ────────────────────────────────────
     for (final state in const [
@@ -86,7 +86,7 @@ void main() {
       tester.binding.handleAppLifecycleStateChanged(state);
       await tester.pumpAndSettle();
     }
-    expect(find.text('App Lock Gate'), findsOneWidget);
+    expect(find.text('Your journal is locked'), findsOneWidget);
 
     // Confirm DB persisted isLocked=true on pause.
     final settingsAfterPause = await database.appSecurityDao
@@ -98,7 +98,7 @@ void main() {
     await tester.pumpAndSettle();
     await pumpAppLockApp();
 
-    expect(find.text('App Lock Gate'), findsOneWidget);
+    expect(find.text('Your journal is locked'), findsOneWidget);
     expect(find.byKey(const Key('app-lock-pin-field')), findsOneWidget);
 
     // Right PIN still unlocks after restart.
@@ -141,7 +141,7 @@ void main() {
     biometric.nextResult = BiometricAuthResult.failed;
     await tester.tap(find.byKey(const Key('phone-lock-unlock-button')));
     await tester.pumpAndSettle();
-    expect(find.text('App Lock Gate'), findsOneWidget);
+    expect(find.text('Your journal is locked'), findsOneWidget);
     expect(
       find.text('Authentication failed. Please try again.'),
       findsOneWidget,
@@ -226,7 +226,7 @@ void main() {
       await tester.pumpAndSettle();
       await pumpAppWithSecretStore();
 
-      expect(find.text('App Lock Gate'), findsOneWidget);
+      expect(find.text('Your journal is locked'), findsOneWidget);
       await tester.tap(find.byKey(const Key('phone-lock-unlock-button')));
       await tester.pumpAndSettle();
 

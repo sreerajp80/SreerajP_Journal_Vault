@@ -8,6 +8,7 @@ import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/core/database/database_open_failure.dart';
 import 'package:sreerajp_journal_vault/core/database/encrypted_database_opener.dart';
 import 'package:sreerajp_journal_vault/core/logging/app_logger.dart';
+import 'package:sreerajp_journal_vault/core/security/screen_security_controller.dart';
 import 'package:sreerajp_journal_vault/features/attachments/domain/attachment_open_router.dart';
 import 'package:sreerajp_journal_vault/features/attachments/providers/attachment_providers.dart';
 import 'package:sreerajp_journal_vault/features/attachments/services/attachment_crypto_storage.dart';
@@ -105,6 +106,11 @@ void main() async {
         ),
         journalSecretStoreProvider.overrideWithValue(
           MethodChannelJournalSecretStore(),
+        ),
+        // Screenshot blocking is applied natively at startup; this store lets
+        // Settings read and change the user's choice.
+        screenSecurityStoreProvider.overrideWithValue(
+          MethodChannelScreenSecurityStore(),
         ),
       ],
     ),

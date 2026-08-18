@@ -1786,6 +1786,36 @@ abstract class AppLocalizations {
   /// **'App Lock Gate'**
   String get lockGateTitle;
 
+  /// Headline on the lock screen
+  ///
+  /// In en, this message translates to:
+  /// **'Your journal is locked'**
+  String get lockGateHeadline;
+
+  /// Line under the headline on the lock screen
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock to open your entries.'**
+  String get lockGateSubtitle;
+
+  /// Tooltip on the button that reveals the typed PIN
+  ///
+  /// In en, this message translates to:
+  /// **'Show PIN'**
+  String get lockGateShowPin;
+
+  /// Tooltip on the button that hides the typed PIN
+  ///
+  /// In en, this message translates to:
+  /// **'Hide PIN'**
+  String get lockGateHidePin;
+
+  /// Screen reader label for the lock icon on the lock screen
+  ///
+  /// In en, this message translates to:
+  /// **'Locked'**
+  String get lockGateBadgeSemantics;
+
   /// Button that unlocks using the device credential
   ///
   /// In en, this message translates to:
@@ -1978,11 +2008,23 @@ abstract class AppLocalizations {
   /// **'Security'**
   String get settingsSectionSecurity;
 
+  /// One-line description under the security card on the Settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Lock mode, auto-lock, screenshots and security events'**
+  String get settingsSectionSecuritySubtitle;
+
   /// Settings section heading
   ///
   /// In en, this message translates to:
   /// **'Appearance'**
   String get settingsSectionAppearance;
+
+  /// One-line description under the appearance card on the Settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Theme and how the app looks'**
+  String get settingsSectionAppearanceSubtitle;
 
   /// Settings section heading
   ///
@@ -1990,17 +2032,35 @@ abstract class AppLocalizations {
   /// **'Storage'**
   String get settingsSectionStorage;
 
+  /// One-line description under the storage card on the Settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Attachment location, usage, backup and import'**
+  String get settingsSectionStorageSubtitle;
+
   /// Settings section heading
   ///
   /// In en, this message translates to:
   /// **'Permissions'**
   String get settingsSectionPermissions;
 
+  /// One-line description under the permissions card on the Settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'What the app is allowed to use'**
+  String get settingsSectionPermissionsSubtitle;
+
   /// Settings section heading
   ///
   /// In en, this message translates to:
   /// **'About'**
   String get settingsSectionAbout;
+
+  /// One-line description under the about card on the Settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Version, licences and app details'**
+  String get settingsSectionAboutSubtitle;
 
   /// Settings row introducing the two lock modes
   ///
@@ -2013,6 +2073,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Auto-Lock Timeout'**
   String get settingsAutoLockTimeout;
+
+  /// Settings switch that blocks screenshots and screen recording
+  ///
+  /// In en, this message translates to:
+  /// **'Block Screenshots'**
+  String get settingsScreenSecurity;
+
+  /// Explains what the screenshot blocking switch covers
+  ///
+  /// In en, this message translates to:
+  /// **'Stops screenshots, screen recording and the preview shown in the recent apps list'**
+  String get settingsScreenSecuritySubtitle;
+
+  /// Title of the dialog shown before screenshot blocking is turned off
+  ///
+  /// In en, this message translates to:
+  /// **'Turn off screenshot blocking?'**
+  String get settingsScreenSecurityOffTitle;
+
+  /// Warning text shown before screenshot blocking is turned off
+  ///
+  /// In en, this message translates to:
+  /// **'Anyone taking a screenshot or recording the screen will be able to capture your journal content. The recent apps list will also show your last screen. You can turn this back on at any time.'**
+  String get settingsScreenSecurityOffBody;
+
+  /// Confirm button that turns screenshot blocking off
+  ///
+  /// In en, this message translates to:
+  /// **'Turn Off'**
+  String get settingsScreenSecurityOffAction;
+
+  /// Message shown after screenshot blocking is turned on
+  ///
+  /// In en, this message translates to:
+  /// **'Screenshot blocking is on'**
+  String get settingsScreenSecurityUpdatedOn;
+
+  /// Message shown after screenshot blocking is turned off
+  ///
+  /// In en, this message translates to:
+  /// **'Screenshot blocking is off'**
+  String get settingsScreenSecurityUpdatedOff;
+
+  /// Message shown when the screenshot blocking choice could not be saved
+  ///
+  /// In en, this message translates to:
+  /// **'Could not change screenshot blocking'**
+  String get settingsScreenSecuritySaveFailed;
 
   /// Settings row for tamper alerts, not built yet
   ///

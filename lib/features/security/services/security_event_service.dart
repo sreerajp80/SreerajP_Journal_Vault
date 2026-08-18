@@ -61,6 +61,19 @@ class SecurityEventService {
     metadata: '{"exportType": "$exportType", "success": $success}',
   );
 
+  /// Logs a change to the screenshot / screen-recording protection setting.
+  ///
+  /// Turning protection off weakens a security control, so it is recorded at
+  /// warning severity.
+  Future<void> logScreenSecurityChanged({required bool enabled}) => logEvent(
+    eventType: 'screen_security_changed',
+    severity: enabled ? 'info' : 'warning',
+    description: enabled
+        ? 'Screenshot blocking turned on'
+        : 'Screenshot blocking turned off',
+    metadata: '{"enabled": $enabled}',
+  );
+
   /// Performs tamper check on an entry by verifying content consistency.
   ///
   /// Compares the entry's plainText with the content derived from

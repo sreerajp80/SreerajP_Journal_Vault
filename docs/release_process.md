@@ -192,7 +192,8 @@ build/app/intermediates/merged_manifests/prodRelease/processProdReleaseManifest/
 
 - [ ] Work through the checklist in [`security.md`](security.md) section 18.
 - [ ] Merged release manifest re-checked: no `INTERNET`, `allowBackup="false"`, no `debuggable`.
-- [ ] `FLAG_SECURE` confirmed by trying to take a screenshot in the running app.
+- [ ] `FLAG_SECURE` confirmed: with "Block Screenshots" on (the default) a screenshot of the
+      running app fails, and with it off a screenshot succeeds.
 - [ ] Obfuscation flags present in the command actually used.
 - [ ] Signed with the real release key, not the debug key.
 

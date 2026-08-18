@@ -11,6 +11,7 @@ import 'package:riverpod/misc.dart' show Override;
 import 'package:sreerajp_journal_vault/core/config/app_flavor_config.dart';
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
+import 'package:sreerajp_journal_vault/core/security/screen_security_controller.dart';
 import 'package:sreerajp_journal_vault/core/theme/theme_mode_controller.dart';
 import 'package:sreerajp_journal_vault/features/about/presentation/about_screen.dart';
 import 'package:sreerajp_journal_vault/features/attachments/providers/attachment_providers.dart';
@@ -795,6 +796,7 @@ class _LockGateScreenState extends ConsumerState<_LockGateScreen> {
   final _pinController = TextEditingController();
   String? _error;
   bool _busy = false;
+  bool _pinVisible = false;
 
   @override
   void dispose() {
@@ -852,49 +854,380 @@ class _LockGateScreenState extends ConsumerState<_LockGateScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
     final lockState = ref.watch(appLockProvider);
     final isAppLock = lockState.mode == AppLockMode.appLock;
     final modeLabel = isAppLock ? l10n.lockModeApp : l10n.lockModePhone;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.lockGateTitle)),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(modeLabel, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 24),
-            if (isAppLock) ...[
-              TextField(
-                key: const Key('app-lock-pin-field'),
-                controller: _pinController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: l10n.lockPinLabel,
-                  border: const OutlineInputBorder(),
-                ),
-                onSubmitted: (_) => _unlockPin(),
+      body: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color.alphaBlend(
+                colors.primary.withValues(alpha: 0.10),
+                colors.surface,
               ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                key: const Key('app-lock-unlock-button'),
-                onPressed: _busy ? null : _unlockPin,
-                child: Text(l10n.commonUnlock),
-              ),
-            ] else ...[
-              ElevatedButton(
-                key: const Key('phone-lock-unlock-button'),
-                onPressed: _busy ? null : _unlockBiometric,
-                child: Text(l10n.lockUnlockWithPhone),
+              colors.surface,
+              Color.alphaBlend(
+                colors.primary.withValues(alpha: 0.06),
+                colors.surfaceContainerHighest,
               ),
             ],
-            if (_error != null) ...[
-              const SizedBox(height: 16),
-              Text(_error!, style: const TextStyle(color: Colors.red)),
-            ],
-          ],
+            stops: const [0, 0.55, 1],
+          ),
         ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              child: _LockGateEntrance(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 420),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const _LockBadge(),
+                        const SizedBox(height: 28),
+                        Text(
+                          l10n.lockGateHeadline,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: colors.onSurface,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          l10n.lockGateSubtitle,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: colors.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Align(
+                          child: _LockModeChip(
+                            label: modeLabel,
+                            icon: isAppLock
+                                ? Icons.pin_rounded
+                                : Icons.phonelink_lock_rounded,
+                          ),
+                        ),
+                        const SizedBox(height: 28),
+                        _LockCard(
+                          child: isAppLock
+                              ? _buildAppLockControls(context, l10n)
+                              : _buildPhoneLockControls(context, l10n),
+                        ),
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 200),
+                          child: _error == null
+                              ? const SizedBox(width: double.infinity)
+                              : Padding(
+                                  padding: const EdgeInsets.only(top: 16),
+                                  child: _LockErrorPill(message: _error!),
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPhoneLockControls(BuildContext context, AppLocalizations l10n) {
+    return _LockActionButton(
+      buttonKey: const Key('phone-lock-unlock-button'),
+      icon: Icons.fingerprint_rounded,
+      label: l10n.lockUnlockWithPhone,
+      busy: _busy,
+      onPressed: _unlockBiometric,
+    );
+  }
+
+  Widget _buildAppLockControls(BuildContext context, AppLocalizations l10n) {
+    final colors = Theme.of(context).colorScheme;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TextField(
+          key: const Key('app-lock-pin-field'),
+          controller: _pinController,
+          obscureText: !_pinVisible,
+          textAlign: TextAlign.center,
+          keyboardType: TextInputType.number,
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            letterSpacing: _pinVisible ? 6 : 10,
+            fontWeight: FontWeight.w600,
+          ),
+          decoration: InputDecoration(
+            labelText: l10n.lockPinLabel,
+            filled: true,
+            fillColor: colors.surfaceContainerHighest.withValues(alpha: 0.6),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(
+                color: colors.outlineVariant.withValues(alpha: 0.6),
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: colors.primary, width: 2),
+            ),
+            suffixIcon: IconButton(
+              tooltip: _pinVisible
+                  ? l10n.lockGateHidePin
+                  : l10n.lockGateShowPin,
+              icon: Icon(
+                _pinVisible
+                    ? Icons.visibility_off_rounded
+                    : Icons.visibility_rounded,
+              ),
+              onPressed: () => setState(() => _pinVisible = !_pinVisible),
+            ),
+          ),
+          onSubmitted: (_) => _unlockPin(),
+        ),
+        const SizedBox(height: 16),
+        _LockActionButton(
+          buttonKey: const Key('app-lock-unlock-button'),
+          icon: Icons.lock_open_rounded,
+          label: l10n.commonUnlock,
+          busy: _busy,
+          onPressed: _unlockPin,
+        ),
+      ],
+    );
+  }
+}
+
+/// One-shot fade and rise played when the lock screen appears.
+class _LockGateEntrance extends StatelessWidget {
+  const _LockGateEntrance({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 420),
+      curve: Curves.easeOutCubic,
+      builder: (context, value, child) => Opacity(
+        opacity: value,
+        child: Transform.translate(
+          offset: Offset(0, 24 * (1 - value)),
+          child: child,
+        ),
+      ),
+      child: child,
+    );
+  }
+}
+
+/// Circular lock icon with a soft ring — the focal point of the lock screen.
+class _LockBadge extends StatelessWidget {
+  const _LockBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final colors = Theme.of(context).colorScheme;
+    return Semantics(
+      label: l10n.lockGateBadgeSemantics,
+      child: Center(
+        child: Container(
+          width: 128,
+          height: 128,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: colors.primary.withValues(alpha: 0.08),
+          ),
+          child: Center(
+            child: Container(
+              width: 92,
+              height: 92,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: colors.primaryContainer,
+                boxShadow: [
+                  BoxShadow(
+                    color: colors.primary.withValues(alpha: 0.18),
+                    blurRadius: 24,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.lock_rounded,
+                size: 42,
+                color: colors.onPrimaryContainer,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Small pill naming the active lock mode.
+class _LockModeChip extends StatelessWidget {
+  const _LockModeChip({required this.label, required this.icon});
+
+  final String label;
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: colors.secondaryContainer.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: colors.onSecondaryContainer),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: theme.textTheme.labelLarge?.copyWith(
+              color: colors.onSecondaryContainer,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Rounded surface holding the unlock controls.
+class _LockCard extends StatelessWidget {
+  const _LockCard({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: colors.outlineVariant.withValues(alpha: 0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: colors.shadow.withValues(alpha: 0.06),
+            blurRadius: 24,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
+/// Full-width unlock button that shows progress while an unlock is running.
+class _LockActionButton extends StatelessWidget {
+  const _LockActionButton({
+    required this.buttonKey,
+    required this.icon,
+    required this.label,
+    required this.busy,
+    required this.onPressed,
+  });
+
+  final Key buttonKey;
+  final IconData icon;
+  final String label;
+  final bool busy;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Semantics(
+      button: true,
+      label: label,
+      child: SizedBox(
+        height: 54,
+        child: FilledButton.icon(
+          key: buttonKey,
+          onPressed: busy ? null : onPressed,
+          icon: busy
+              ? SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: colors.onPrimary,
+                  ),
+                )
+              : Icon(icon),
+          label: Text(label),
+        ),
+      ),
+    );
+  }
+}
+
+/// Themed error message shown under the unlock card.
+class _LockErrorPill extends StatelessWidget {
+  const _LockErrorPill({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: colors.errorContainer,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.error_outline_rounded,
+            size: 20,
+            color: colors.onErrorContainer,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colors.onErrorContainer,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1781,38 +2114,163 @@ class _JournalDetailScreenState extends ConsumerState<_JournalDetailScreen> {
 // SETTINGS TAB
 // ═══════════════════════════════════════════════════════════════════════════
 
-class _SettingsTab extends ConsumerWidget {
+/// Settings home — a menu of cards, one per section.
+///
+/// Each card opens a page that holds only that section's rows, so the screen
+/// stays short and related controls stay together.
+class _SettingsTab extends StatelessWidget {
   const _SettingsTab();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final lockState = ref.watch(appLockProvider);
-    final lockMode = lockState.mode;
-    final themeMode = ref.watch(_themeModeProvider);
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.navSettings)),
       body: ListView(
         key: const Key('settings-list'),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         children: [
-          // ── Section 1: Security ──────────────────────────────────────
-          _SectionHeader(l10n.settingsSectionSecurity),
-          ListTile(title: Text(l10n.settingsAppLockMode)),
-          ListTile(
-            title: Text(l10n.lockModePhone),
-            selected: lockMode != AppLockMode.appLock,
-            onTap: lockMode != AppLockMode.appLock
-                ? null
-                : () => _switchLock(context, ref, AppLockMode.phoneLock),
+          _SettingsSectionCard(
+            cardKey: const Key('settings-card-security'),
+            icon: Icons.lock_outline,
+            title: l10n.settingsSectionSecurity,
+            subtitle: l10n.settingsSectionSecuritySubtitle,
+            builder: (_) => const _SecuritySettingsScreen(),
           ),
-          ListTile(
-            title: Text(l10n.lockModeApp),
-            selected: lockMode == AppLockMode.appLock,
-            onTap: lockMode == AppLockMode.appLock
-                ? null
-                : () => _switchLock(context, ref, AppLockMode.appLock),
+          _SettingsSectionCard(
+            cardKey: const Key('settings-card-appearance'),
+            icon: Icons.palette_outlined,
+            title: l10n.settingsSectionAppearance,
+            subtitle: l10n.settingsSectionAppearanceSubtitle,
+            builder: (_) => const _AppearanceSettingsScreen(),
           ),
+          _SettingsSectionCard(
+            cardKey: const Key('settings-card-storage'),
+            icon: Icons.folder_outlined,
+            title: l10n.settingsSectionStorage,
+            subtitle: l10n.settingsSectionStorageSubtitle,
+            builder: (_) => const _StorageSettingsScreen(),
+          ),
+          _SettingsSectionCard(
+            cardKey: const Key('settings-card-permissions'),
+            icon: Icons.verified_user_outlined,
+            title: l10n.settingsSectionPermissions,
+            subtitle: l10n.settingsSectionPermissionsSubtitle,
+            builder: (_) => const _PermissionsSettingsScreen(),
+          ),
+          _SettingsSectionCard(
+            cardKey: const Key('settings-card-about'),
+            icon: Icons.info_outline,
+            title: l10n.settingsSectionAbout,
+            subtitle: l10n.settingsSectionAboutSubtitle,
+            builder: (_) => const AboutScreen(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// One tappable card on the Settings home screen.
+class _SettingsSectionCard extends StatelessWidget {
+  const _SettingsSectionCard({
+    required this.cardKey,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.builder,
+  });
+
+  final Key cardKey;
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final WidgetBuilder builder;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Semantics(
+      button: true,
+      label: title,
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        clipBehavior: Clip.antiAlias,
+        child: ListTile(
+          key: cardKey,
+          leading: CircleAvatar(
+            backgroundColor: theme.colorScheme.primaryContainer,
+            foregroundColor: theme.colorScheme.onPrimaryContainer,
+            child: Icon(icon),
+          ),
+          title: Text(title, style: theme.textTheme.titleMedium),
+          subtitle: Text(subtitle),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute<void>(builder: builder),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Section 1: Security ────────────────────────────────────────────────────
+
+class _SecuritySettingsScreen extends ConsumerWidget {
+  const _SecuritySettingsScreen();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final lockState = ref.watch(appLockProvider);
+    final lockMode = lockState.mode;
+    final selectedMode = lockMode == AppLockMode.appLock
+        ? AppLockMode.appLock
+        : AppLockMode.phoneLock;
+
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.settingsSectionSecurity)),
+      body: ListView(
+        key: const Key('settings-security-list'),
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+            child: Text(
+              l10n.settingsAppLockMode,
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: theme.colorScheme.primary,
+              ),
+            ),
+          ),
+          RadioGroup<AppLockMode>(
+            groupValue: selectedMode,
+            onChanged: (value) {
+              if (value == null || value == selectedMode) return;
+              _switchLock(context, ref, value);
+            },
+            child: Column(
+              children: [
+                RadioListTile<AppLockMode>(
+                  key: const Key('settings-lock-mode-phone'),
+                  value: AppLockMode.phoneLock,
+                  title: Text(l10n.lockModePhone),
+                  subtitle: Text(l10n.lockModePhoneHint),
+                ),
+                RadioListTile<AppLockMode>(
+                  key: const Key('settings-lock-mode-app'),
+                  value: AppLockMode.appLock,
+                  title: Text(l10n.lockModeApp),
+                  subtitle: Text(l10n.lockModeAppHint),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1),
           ListTile(
             key: const Key('settings-auto-lock-timeout'),
             title: Text(l10n.settingsAutoLockTimeout),
@@ -1835,6 +2293,7 @@ class _SettingsTab extends ConsumerWidget {
               ),
             ),
           ),
+          const _ScreenSecurityTile(),
           _ComingSoonTile(title: l10n.settingsTamperAlerts),
           // Sync has no transport yet — see AppFlavorConfig.enableSyncUi.
           if (AppFlavorConfig.instance.enableSyncUi)
@@ -1860,49 +2319,6 @@ class _SettingsTab extends ConsumerWidget {
               MaterialPageRoute<void>(
                 builder: (_) => const SecurityEventsScreen(),
               ),
-            ),
-          ),
-
-          // ── Section 2: Appearance ────────────────────────────────────
-          _SectionHeader(l10n.settingsSectionAppearance),
-          ListTile(
-            title: Text(l10n.settingsTheme),
-            subtitle: Text(l10n.settingsThemeSubtitle),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Wrap(
-              spacing: 8,
-              children: [
-                for (final (label, mode) in [
-                  (l10n.settingsThemeLight, ThemeMode.light),
-                  (l10n.settingsThemeDark, ThemeMode.dark),
-                ])
-                  ChoiceChip(
-                    key: Key('settings-theme-chip-${mode.name}'),
-                    label: Text(label),
-                    selected: themeMode == mode,
-                    onSelected: (_) => _switchTheme(context, ref, mode),
-                  ),
-              ],
-            ),
-          ),
-
-          // ── Section 3: Storage ───────────────────────────────────────
-          _SectionHeader(l10n.settingsSectionStorage),
-          const _StorageSection(),
-
-          // ── Section 4: Permissions ───────────────────────────────────
-          _SectionHeader(l10n.settingsSectionPermissions),
-          const _PermissionsSection(),
-
-          // ── Section 5: About ─────────────────────────────────────────
-          _SectionHeader(l10n.settingsSectionAbout),
-          ListTile(
-            title: Text(l10n.settingsAbout),
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute<void>(builder: (_) => const AboutScreen()),
             ),
           ),
         ],
@@ -1960,10 +2376,58 @@ class _SettingsTab extends ConsumerWidget {
     await ref.read(appLockProvider.notifier).switchLockMode(mode);
 
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      // Switching locks the app straight away. The lock gate replaces the
+      // shell underneath, so this pushed page must close — otherwise it
+      // would keep sitting on top of the gate.
+      final messenger = ScaffoldMessenger.of(context);
+      Navigator.of(context).pop();
+      messenger.showSnackBar(
         SnackBar(content: Text(l10n.settingsLockModeUpdated(modeLabel))),
       );
     }
+  }
+}
+
+// ─── Section 2: Appearance ──────────────────────────────────────────────────
+
+class _AppearanceSettingsScreen extends ConsumerWidget {
+  const _AppearanceSettingsScreen();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final themeMode = ref.watch(_themeModeProvider);
+
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.settingsSectionAppearance)),
+      body: ListView(
+        key: const Key('settings-appearance-list'),
+        children: [
+          ListTile(
+            title: Text(l10n.settingsTheme),
+            subtitle: Text(l10n.settingsThemeSubtitle),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Wrap(
+              spacing: 8,
+              children: [
+                for (final (label, mode) in [
+                  (l10n.settingsThemeLight, ThemeMode.light),
+                  (l10n.settingsThemeDark, ThemeMode.dark),
+                ])
+                  ChoiceChip(
+                    key: Key('settings-theme-chip-${mode.name}'),
+                    label: Text(label),
+                    selected: themeMode == mode,
+                    onSelected: (_) => _switchTheme(context, ref, mode),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _switchTheme(
@@ -2001,6 +2465,136 @@ class _SettingsTab extends ConsumerWidget {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(l10n.settingsThemeUpdated(label))));
+    }
+  }
+}
+
+// ─── Section 3: Storage ─────────────────────────────────────────────────────
+
+class _StorageSettingsScreen extends StatelessWidget {
+  const _StorageSettingsScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.settingsSectionStorage)),
+      body: ListView(
+        key: const Key('settings-storage-list'),
+        children: const [_StorageSection()],
+      ),
+    );
+  }
+}
+
+// ─── Section 4: Permissions ─────────────────────────────────────────────────
+
+class _PermissionsSettingsScreen extends StatelessWidget {
+  const _PermissionsSettingsScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Scaffold(
+      appBar: AppBar(title: Text(l10n.settingsSectionPermissions)),
+      body: ListView(
+        key: const Key('settings-permissions-list'),
+        children: const [_PermissionsSection()],
+      ),
+    );
+  }
+}
+
+/// Switch that turns FLAG_SECURE screenshot blocking on or off.
+///
+/// Protection is the default. Turning it off asks for confirmation first,
+/// because it lets screenshots, screen recorders and the recent apps preview
+/// capture journal content.
+class _ScreenSecurityTile extends ConsumerWidget {
+  const _ScreenSecurityTile();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final state = ref.watch(screenSecurityProvider);
+    // While loading, or if the value could not be read, show it as protected —
+    // that is what the window itself is doing.
+    final enabled = state.value ?? true;
+
+    return Semantics(
+      toggled: enabled,
+      label: l10n.settingsScreenSecurity,
+      child: SwitchListTile(
+        key: const Key('settings-screen-security'),
+        title: Text(l10n.settingsScreenSecurity),
+        subtitle: Text(l10n.settingsScreenSecuritySubtitle),
+        value: enabled,
+        onChanged: state.isLoading
+            ? null
+            : (value) => _setScreenSecurity(context, ref, value),
+      ),
+    );
+  }
+
+  Future<void> _setScreenSecurity(
+    BuildContext context,
+    WidgetRef ref,
+    bool enabled,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+
+    if (!enabled) {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(l10n.settingsScreenSecurityOffTitle),
+          content: Text(l10n.settingsScreenSecurityOffBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(l10n.commonCancel),
+            ),
+            TextButton(
+              key: const Key('settings-screen-security-confirm'),
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: Text(l10n.settingsScreenSecurityOffAction),
+            ),
+          ],
+        ),
+      );
+      if (ok != true) return;
+    }
+
+    try {
+      await ref.read(screenSecurityProvider.notifier).setEnabled(enabled);
+    } on ScreenSecurityPersistenceException {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.settingsScreenSecuritySaveFailed)),
+        );
+      }
+      return;
+    }
+
+    // The audit trail must not block the setting itself.
+    try {
+      await ref
+          .read(securityEventServiceProvider)
+          .logScreenSecurityChanged(enabled: enabled);
+    } catch (_) {
+      /* Logging failure is not worth interrupting the user for. */
+    }
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            enabled
+                ? l10n.settingsScreenSecurityUpdatedOn
+                : l10n.settingsScreenSecurityUpdatedOff,
+          ),
+        ),
+      );
     }
   }
 }
@@ -2073,25 +2667,6 @@ class _PinSetupDialogState extends State<_PinSetupDialog> {
           child: Text(l10n.commonSave),
         ),
       ],
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader(this.title);
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-          color: Theme.of(context).colorScheme.primary,
-        ),
-      ),
     );
   }
 }

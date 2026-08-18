@@ -254,6 +254,9 @@ TODO — not yet audited. FTS5 covers entry title and plain text; other query pa
   `lib/app/app.dart` and imperative `Navigator.push` for secondary routes
 - Route definition location: inline in `lib/app/app.dart`
 - Protected-route strategy: a lock gate wraps the shell; `AppLockController` drives it
+- Settings is a card menu: the Settings tab lists one card per section and pushes that
+  section's own screen (`_SecuritySettingsScreen`, `_AppearanceSettingsScreen`,
+  `_StorageSettingsScreen`, `_PermissionsSettingsScreen`, `AboutScreen`)
 - Deep-link support: no
 
 > `go_router` was removed from `pubspec.yaml` on 2026-07-25 — it was declared but never imported.
@@ -394,7 +397,7 @@ when the profile was declared; worked through the same day.
 
 | Gap | How it was closed |
 |---|---|
-| No screenshot protection | `FLAG_SECURE` set app-wide in `MainActivity.onCreate`. Screenshots and task-switcher previews are now blocked everywhere. |
+| No screenshot protection | `FLAG_SECURE` set app-wide in `MainActivity.onCreate`. Screenshots and task-switcher previews are blocked everywhere by default; since 2026-08-18 the user can switch this off in Settings, and the change is recorded in the security event log. |
 | Android auto-backup enabled | `allowBackup="false"` plus `res/xml/data_extraction_rules.xml` blocking cloud backup **and** device transfer. Verified in the merged release manifest. |
 | Obfuscation not configured | Release builds verified working with `--obfuscate --split-debug-info`. Symbols git-ignored. |
 | No R8 / ProGuard | Enabled with keep rules in `android/app/proguard-rules.pro`. First run failed on 11 Play Core classes; `-dontwarn` added. |

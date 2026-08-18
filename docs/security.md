@@ -45,7 +45,10 @@ Last reviewed: 2026-08-16 · Reviewer: Sreeraj P (with Claude)
 - **Casual local access.** Someone who legitimately has the unlocked phone (family, colleague)
   opens the app. Mitigated by app lock and auto-lock on background.
 - **Shoulder surfing and screen capture.** Mitigated by `FLAG_SECURE` (added 2026-07-25), which
-  also blanks the task-switcher preview.
+  also blanks the task-switcher preview. Since 2026-08-18 the user can switch this off in
+  Settings ("Block Screenshots"). It is on by default, turning it off asks for confirmation
+  first, and every change is written to the security event log. With it off this threat is not
+  mitigated — that is the user's accepted choice.
 - **Accidental cloud disclosure.** Android auto-backup copying the database off-device.
   Mitigated by `allowBackup="false"` and `data_extraction_rules.xml` (added 2026-07-25).
 - **Accidental plaintext leakage.** Decrypted attachments left in the temp cache after viewing.
@@ -248,6 +251,11 @@ Operation name, screen or flow name, error category, non-sensitive counts and id
 - Screenshot protection: `FLAG_SECURE` set on the window in `MainActivity.onCreate`, app-wide.
   Applied once rather than per screen because every screen can show private content. Side effect:
   screenshots are impossible anywhere in the app and the task-switcher preview is blank.
+  The user may turn this off in Settings. The choice is kept in the app's own native
+  SharedPreferences file (`screen_security`, key `enabled`) so `onCreate` can read it before the
+  first frame; a missing or unreadable value means protected. The Settings switch reaches the
+  native side through the `sreerajp.journal_vault/screen_security` MethodChannel, which saves the
+  value and applies or clears the flag on the live window at once.
 - `android:debuggable`: false in release (verified — section 8.3).
 - Root detection: none, and none planned. Rooted devices are out of scope (section 3).
 
@@ -298,7 +306,7 @@ Reviewed 2026-07-25. This is an honest snapshot, not a clean bill of health.
 | M5 | Insecure Communication | **verified** | No network traffic. `INTERNET` absent from the merged release manifest. |
 | M6 | Inadequate Privacy Controls | **partial** | No telemetry; backup excluded; logging policy defined. Existing log statements not yet audited against it. |
 | M7 | Insufficient Binary Protections | **verified (build), unverified (runtime)** | `--obfuscate` and R8 both work at build time. Never run on a device. |
-| M8 | Security Misconfiguration | **verified** | `debuggable` false, `allowBackup` false, `FLAG_SECURE` on. Two unused transitive permissions remain (section 11). |
+| M8 | Security Misconfiguration | **verified** | `debuggable` false, `allowBackup` false, `FLAG_SECURE` on by default (user-switchable in Settings). Two unused transitive permissions remain (section 11). |
 | M9 | Insecure Data Storage | **verified** | Attachments and the database are both encrypted at rest, keys in the Keystore. Closed 2026-08-18 (A5.1). |
 | M10 | Insufficient Cryptography | **risk-accepted** | Strong primitives and correct nonce handling, but the attachment format is **unversioned**. See section 17. |
 
@@ -579,7 +587,9 @@ Complete before every release. Nothing below may be ticked from memory.
 - [ ] No new log statement violates section 9.
 - [ ] `allowBackup="false"` and the data-extraction rules still present in the **merged release**
       manifest.
-- [ ] `FLAG_SECURE` still applied — check by trying to screenshot the running app.
+- [ ] `FLAG_SECURE` still applied by default — with "Block Screenshots" on, a screenshot of the
+      running app must fail; with it off, a screenshot must succeed; the choice must survive a
+      restart.
 - [ ] Permission list re-read from the merged release manifest; nothing new appeared.
 - [ ] `--obfuscate --split-debug-info` present in the build command actually used.
 - [ ] Debug symbols archived against the released version number.

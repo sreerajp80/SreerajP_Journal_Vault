@@ -74,10 +74,23 @@ class MainActivity : FlutterFragmentActivity() {
         // screenshots, screen recording, and the task-switcher preview. Applied once
         // for the whole window rather than per screen, because every screen in this
         // app can show private journal content.
-        window.setFlags(
-            WindowManager.LayoutParams.FLAG_SECURE,
-            WindowManager.LayoutParams.FLAG_SECURE,
-        )
+        //
+        // The user may switch this off in Settings. The choice is kept in this app's
+        // own SharedPreferences so it can be read here, before the first frame is
+        // drawn. A missing or unreadable value means protected.
+        applyScreenSecurity(isScreenSecurityEnabled(applicationContext))
+    }
+
+    /** Sets or clears FLAG_SECURE on this window. Must run on the UI thread. */
+    private fun applyScreenSecurity(enabled: Boolean) {
+        if (enabled) {
+            window.setFlags(
+                WindowManager.LayoutParams.FLAG_SECURE,
+                WindowManager.LayoutParams.FLAG_SECURE,
+            )
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
     }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -390,6 +403,36 @@ class MainActivity : FlutterFragmentActivity() {
         ).setMethodCallHandler { call, result ->
             when (call.method) {
                 "getAndroidSdkInt" -> result.success(android.os.Build.VERSION.SDK_INT)
+                else -> result.notImplemented()
+            }
+        }
+
+        // Screenshot / screen-recording protection. The window flag itself is set in
+        // onCreate; this channel reports the saved choice and applies a new one at
+        // once, so the switch in Settings takes effect without a restart.
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            SCREEN_SECURITY_CHANNEL,
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "isScreenSecurityEnabled" ->
+                    result.success(isScreenSecurityEnabled(applicationContext))
+
+                "setScreenSecurityEnabled" -> {
+                    val enabled = call.argument<Boolean>("enabled")
+                    if (enabled == null) {
+                        result.error("invalid_args", "enabled is required", null)
+                        return@setMethodCallHandler
+                    }
+                    try {
+                        setScreenSecurityEnabled(applicationContext, enabled)
+                        runOnUiThread { applyScreenSecurity(enabled) }
+                        result.success(null)
+                    } catch (error: Exception) {
+                        result.error("screen_security_failure", error.message, null)
+                    }
+                }
+
                 else -> result.notImplemented()
             }
         }
@@ -823,6 +866,27 @@ private fun getOrCreateWrappingKey(alias: String): SecretKey {
 
 private class MissingStorageException(message: String) : IOException(message)
 
+/**
+ * Reads the user's screenshot-protection choice. Defaults to enabled, and stays
+ * enabled if the preference store cannot be read, so a failure never leaves the
+ * window unprotected.
+ */
+private fun isScreenSecurityEnabled(context: Context): Boolean = try {
+    context
+        .getSharedPreferences(SCREEN_SECURITY_PREFS, Context.MODE_PRIVATE)
+        .getBoolean(SCREEN_SECURITY_KEY_ENABLED, true)
+} catch (error: Exception) {
+    true
+}
+
+private fun setScreenSecurityEnabled(context: Context, enabled: Boolean) {
+    context
+        .getSharedPreferences(SCREEN_SECURITY_PREFS, Context.MODE_PRIVATE)
+        .edit()
+        .putBoolean(SCREEN_SECURITY_KEY_ENABLED, enabled)
+        .apply()
+}
+
 private const val ATTACHMENT_KEY_CHANNEL = "sreerajp.journal_vault/attachment_keys"
 private const val DATABASE_KEY_CHANNEL = "sreerajp.journal_vault/database_key"
 private const val ATTACHMENT_STORAGE_CHANNEL = "sreerajp.journal_vault/attachment_storage"
@@ -842,6 +906,9 @@ private const val APP_PIN_WRAPPING_KEY_ALIAS = "sreerajp_journal_vault_app_pin_w
 private const val DATABASE_WRAPPING_KEY_ALIAS = "sreerajp_journal_vault_database_wrap_v1"
 private const val RUNTIME_ENVIRONMENT_CHANNEL = "sreerajp.journal_vault/runtime_environment"
 private const val HTML_PDF_CHANNEL = "sreerajp.journal_vault/html_pdf"
+private const val SCREEN_SECURITY_CHANNEL = "sreerajp.journal_vault/screen_security"
+private const val SCREEN_SECURITY_PREFS = "screen_security"
+private const val SCREEN_SECURITY_KEY_ENABLED = "enabled"
 private const val ANDROID_KEY_STORE = "AndroidKeyStore"
 private const val AES_MODE = "AES/GCM/NoPadding"
 private const val ATTACHMENT_MIGRATION_TEMP_SUFFIX = ".migrating"

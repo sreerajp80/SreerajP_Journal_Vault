@@ -1371,6 +1371,26 @@
   "@lockGateTitle": {
     "description": "Title of the screen shown while the app is locked"
   },
+  "lockGateHeadline": "Your journal is locked",
+  "@lockGateHeadline": {
+    "description": "Headline on the lock screen"
+  },
+  "lockGateSubtitle": "Unlock to open your entries.",
+  "@lockGateSubtitle": {
+    "description": "Line under the headline on the lock screen"
+  },
+  "lockGateShowPin": "Show PIN",
+  "@lockGateShowPin": {
+    "description": "Tooltip on the button that reveals the typed PIN"
+  },
+  "lockGateHidePin": "Hide PIN",
+  "@lockGateHidePin": {
+    "description": "Tooltip on the button that hides the typed PIN"
+  },
+  "lockGateBadgeSemantics": "Locked",
+  "@lockGateBadgeSemantics": {
+    "description": "Screen reader label for the lock icon on the lock screen"
+  },
   "lockUnlockWithPhone": "Unlock with Phone Lock",
   "@lockUnlockWithPhone": {
     "description": "Button that unlocks using the device credential"
@@ -1509,21 +1529,41 @@
   "@settingsSectionSecurity": {
     "description": "Settings section heading"
   },
+  "settingsSectionSecuritySubtitle": "Lock mode, auto-lock, screenshots and security events",
+  "@settingsSectionSecuritySubtitle": {
+    "description": "One-line description under the security card on the Settings screen"
+  },
   "settingsSectionAppearance": "Appearance",
   "@settingsSectionAppearance": {
     "description": "Settings section heading"
+  },
+  "settingsSectionAppearanceSubtitle": "Theme and how the app looks",
+  "@settingsSectionAppearanceSubtitle": {
+    "description": "One-line description under the appearance card on the Settings screen"
   },
   "settingsSectionStorage": "Storage",
   "@settingsSectionStorage": {
     "description": "Settings section heading"
   },
+  "settingsSectionStorageSubtitle": "Attachment location, usage, backup and import",
+  "@settingsSectionStorageSubtitle": {
+    "description": "One-line description under the storage card on the Settings screen"
+  },
   "settingsSectionPermissions": "Permissions",
   "@settingsSectionPermissions": {
     "description": "Settings section heading"
   },
+  "settingsSectionPermissionsSubtitle": "What the app is allowed to use",
+  "@settingsSectionPermissionsSubtitle": {
+    "description": "One-line description under the permissions card on the Settings screen"
+  },
   "settingsSectionAbout": "About",
   "@settingsSectionAbout": {
     "description": "Settings section heading"
+  },
+  "settingsSectionAboutSubtitle": "Version, licences and app details",
+  "@settingsSectionAboutSubtitle": {
+    "description": "One-line description under the about card on the Settings screen"
   },
   "settingsAppLockMode": "App Lock Mode",
   "@settingsAppLockMode": {
@@ -1532,6 +1572,38 @@
   "settingsAutoLockTimeout": "Auto-Lock Timeout",
   "@settingsAutoLockTimeout": {
     "description": "Settings row that opens the auto-lock profiles"
+  },
+  "settingsScreenSecurity": "Block Screenshots",
+  "@settingsScreenSecurity": {
+    "description": "Settings switch that blocks screenshots and screen recording"
+  },
+  "settingsScreenSecuritySubtitle": "Stops screenshots, screen recording and the preview shown in the recent apps list",
+  "@settingsScreenSecuritySubtitle": {
+    "description": "Explains what the screenshot blocking switch covers"
+  },
+  "settingsScreenSecurityOffTitle": "Turn off screenshot blocking?",
+  "@settingsScreenSecurityOffTitle": {
+    "description": "Title of the dialog shown before screenshot blocking is turned off"
+  },
+  "settingsScreenSecurityOffBody": "Anyone taking a screenshot or recording the screen will be able to capture your journal content. The recent apps list will also show your last screen. You can turn this back on at any time.",
+  "@settingsScreenSecurityOffBody": {
+    "description": "Warning text shown before screenshot blocking is turned off"
+  },
+  "settingsScreenSecurityOffAction": "Turn Off",
+  "@settingsScreenSecurityOffAction": {
+    "description": "Confirm button that turns screenshot blocking off"
+  },
+  "settingsScreenSecurityUpdatedOn": "Screenshot blocking is on",
+  "@settingsScreenSecurityUpdatedOn": {
+    "description": "Message shown after screenshot blocking is turned on"
+  },
+  "settingsScreenSecurityUpdatedOff": "Screenshot blocking is off",
+  "@settingsScreenSecurityUpdatedOff": {
+    "description": "Message shown after screenshot blocking is turned off"
+  },
+  "settingsScreenSecuritySaveFailed": "Could not change screenshot blocking",
+  "@settingsScreenSecuritySaveFailed": {
+    "description": "Message shown when the screenshot blocking choice could not be saved"
   },
   "settingsTamperAlerts": "Tamper Alerts",
   "@settingsTamperAlerts": {
