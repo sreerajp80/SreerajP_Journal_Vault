@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/time_capsule_sealed_screen.dart';
+import 'package:sreerajp_journal_vault/features/entries/providers/time_capsule_providers.dart';
 import 'package:sreerajp_journal_vault/features/timeline/providers/timeline_providers.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
@@ -124,36 +126,72 @@ class _Calendar extends StatelessWidget {
   }
 }
 
-class _EntryList extends StatelessWidget {
+class _EntryList extends ConsumerWidget {
   const _EntryList({required this.entries});
 
   final List<Entry> entries;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
     return ListView.separated(
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: entries.length,
       separatorBuilder: (_, _) => const Divider(height: 1),
       itemBuilder: (context, index) {
         final entry = entries[index];
+        final capsuleAsync = ref.watch(timeCapsuleForEntryProvider(entry.id));
+        final capsule = capsuleAsync.asData?.value;
+        final isSealed = capsule != null && !capsule.isOpened;
+
+        Widget? leading;
+        Widget? subtitleWidget;
+        if (isSealed) {
+          final isReady = !DateTime.now().isBefore(capsule.unlockDate);
+          leading = Icon(
+            isReady ? Icons.lock_open_rounded : Icons.hourglass_bottom_rounded,
+            color: isReady
+                ? theme.colorScheme.primary
+                : theme.colorScheme.secondary,
+            size: 20,
+          );
+          subtitleWidget = Text(
+            isReady ? l10n.timeCapsuleReadyToOpen : l10n.timeCapsuleSealedBadge,
+            style: TextStyle(
+              color: isReady
+                  ? theme.colorScheme.primary
+                  : theme.colorScheme.secondary,
+              fontWeight: isReady ? FontWeight.bold : FontWeight.normal,
+            ),
+          );
+        } else if (entry.plainText != null && entry.plainText!.isNotEmpty) {
+          subtitleWidget = Text(
+            entry.plainText!,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          );
+        }
+
         return ListTile(
+          leading: leading,
           title: Text(
             entry.title ?? l10n.commonUntitledEntry,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          subtitle: entry.plainText != null
-              ? Text(
-                  entry.plainText!,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                )
-              : null,
+          subtitle: subtitleWidget,
           onTap: () {
-            // Navigation to the entry editor will be wired via go_router.
-            Navigator.of(context).pop(entry.id);
+            if (isSealed) {
+              Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (_) => TimeCapsuleSealedScreen(entryId: entry.id),
+                ),
+              );
+            } else {
+              Navigator.of(context).pop(entry.id);
+            }
           },
         );
       },

@@ -11,35 +11,34 @@ import 'package:riverpod/misc.dart' show Override;
 import 'package:sreerajp_journal_vault/core/config/app_flavor_config.dart';
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
-import 'package:sreerajp_journal_vault/core/security/screen_security_controller.dart';
+import 'package:sreerajp_journal_vault/core/theme/accent_color_controller.dart';
 import 'package:sreerajp_journal_vault/core/theme/theme_mode_controller.dart';
-import 'package:sreerajp_journal_vault/features/about/presentation/about_screen.dart';
-import 'package:sreerajp_journal_vault/features/attachments/providers/attachment_providers.dart';
-import 'package:sreerajp_journal_vault/features/attachments/services/attachment_crypto_storage.dart';
-import 'package:sreerajp_journal_vault/features/backup/presentation/backup_health_screen.dart';
+import 'package:sreerajp_journal_vault/core/utils/date_formatters.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/entry_editor_screen.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/entry_template_chooser_dialog.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/template_manager_screen.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/time_capsule_sealed_screen.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/time_capsules_list_screen.dart';
+import 'package:sreerajp_journal_vault/features/entries/providers/time_capsule_providers.dart';
+import 'package:sreerajp_journal_vault/features/entries/templates/entry_templates.dart';
 import 'package:sreerajp_journal_vault/features/export/export_strings.dart';
 import 'package:sreerajp_journal_vault/features/export/presentation/export_screen.dart';
-import 'package:sreerajp_journal_vault/features/export/presentation/open_encrypted_export_screen.dart';
-import 'package:sreerajp_journal_vault/features/import/presentation/import_screen.dart';
 import 'package:sreerajp_journal_vault/features/insights/presentation/insights_screen.dart';
+import 'package:sreerajp_journal_vault/features/journal_lock/providers/journal_lock_providers.dart';
 import 'package:sreerajp_journal_vault/features/journal_lock/services/journal_password_service.dart';
 import 'package:sreerajp_journal_vault/features/journal_lock/services/journal_secret_store.dart';
-import 'package:sreerajp_journal_vault/features/entries/presentation/entry_editor_screen.dart';
-import 'package:sreerajp_journal_vault/features/entries/templates/entry_templates.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/app_lock_controller.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/providers/lock_gate_providers.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/services/biometric_authenticator.dart';
-import 'package:sreerajp_journal_vault/features/permissions/domain/app_permission_models.dart';
-import 'package:sreerajp_journal_vault/features/permissions/presentation/permissions_screen.dart';
-import 'package:sreerajp_journal_vault/features/permissions/providers/permissions_providers.dart';
-import 'package:sreerajp_journal_vault/features/security/presentation/auto_lock_profiles_screen.dart';
-import 'package:sreerajp_journal_vault/features/security/presentation/security_events_screen.dart';
-import 'package:sreerajp_journal_vault/features/security/providers/security_providers.dart';
+import 'package:sreerajp_journal_vault/features/ritual/presentation/ritual_screen.dart';
+import 'package:sreerajp_journal_vault/features/settings/presentation/settings_tab.dart';
 import 'package:sreerajp_journal_vault/features/sync/presentation/conflict_resolution_screen.dart';
-import 'package:sreerajp_journal_vault/features/sync/presentation/sync_health_dashboard.dart';
 import 'package:sreerajp_journal_vault/features/sync/presentation/sync_status_widget.dart';
 import 'package:sreerajp_journal_vault/features/tags/domain/tag_colors.dart';
 import 'package:sreerajp_journal_vault/features/tags/presentation/tag_manager_screen.dart';
+import 'package:sreerajp_journal_vault/features/share_receiver/domain/shared_intent_payload.dart';
+import 'package:sreerajp_journal_vault/features/share_receiver/presentation/quick_capture_share_dialog.dart';
+import 'package:sreerajp_journal_vault/features/share_receiver/providers/share_receiver_providers.dart';
 import 'package:sreerajp_journal_vault/features/timeline/presentation/timeline_screen.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
@@ -69,35 +68,15 @@ class _InMemoryJournalSecretStore implements JournalSecretStore {
 
 // ─── Module-level providers ────────────────────────────────────────────────
 
-class _ThemeModeNotifier extends Notifier<ThemeMode> {
-  @override
-  ThemeMode build() => ThemeMode.light;
-  void set(ThemeMode v) => state = v;
-}
-
 class _SelectedTabNotifier extends Notifier<int> {
   @override
   int build() => 0;
   void set(int v) => state = v;
 }
 
-/// Set of journal IDs that have been session-unlocked by the user.
-class _UnlockedJournalIdsNotifier extends Notifier<Set<int>> {
-  @override
-  Set<int> build() => const {};
-  void set(Set<int> v) => state = v;
-}
-
-final _themeModeProvider = NotifierProvider<_ThemeModeNotifier, ThemeMode>(
-  _ThemeModeNotifier.new,
-);
 final _selectedTabProvider = NotifierProvider<_SelectedTabNotifier, int>(
   _SelectedTabNotifier.new,
 );
-final _unlockedJournalIdsProvider =
-    NotifierProvider<_UnlockedJournalIdsNotifier, Set<int>>(
-      _UnlockedJournalIdsNotifier.new,
-    );
 
 /// Per-journal secret store. The default is an in-memory map suitable only
 /// for tests; production must override this with a Keystore-backed
@@ -114,188 +93,9 @@ final _journalPasswordServiceProvider = Provider<JournalPasswordService>((ref) {
   );
 });
 
-// ─── App lock state ───────────────────────────────────────────────────────
-
-class AppLockState {
-  const AppLockState({
-    required this.bootstrapped,
-    required this.mode,
-    required this.isLocked,
-    required this.hasPin,
-  });
-
-  final bool bootstrapped;
-  final AppLockMode? mode;
-  final bool isLocked;
-  final bool hasPin;
-
-  AppLockState copyWith({
-    bool? bootstrapped,
-    AppLockMode? mode,
-    bool clearMode = false,
-    bool? isLocked,
-    bool? hasPin,
-  }) {
-    return AppLockState(
-      bootstrapped: bootstrapped ?? this.bootstrapped,
-      mode: clearMode ? null : (mode ?? this.mode),
-      isLocked: isLocked ?? this.isLocked,
-      hasPin: hasPin ?? this.hasPin,
-    );
-  }
-}
-
-class AppLockNotifier extends Notifier<AppLockState> {
-  AppLockController? _controller;
-  bool _disposed = false;
-
-  @visibleForTesting
-  AppLockController? get controllerForTest => _controller;
-
-  @override
-  AppLockState build() {
-    final db = ref.watch(appDatabaseProvider);
-    final controller = AppLockController(database: db);
-    _controller = controller;
-    controller.addOnLockCallback(_onLocked);
-    ref.onDispose(() {
-      _disposed = true;
-      controller.removeOnLockCallback(_onLocked);
-      controller.dispose();
-    });
-
-    Future.microtask(_bootstrap);
-
-    return const AppLockState(
-      bootstrapped: false,
-      mode: null,
-      isLocked: true,
-      hasPin: false,
-    );
-  }
-
-  Future<void> _bootstrap() async {
-    final controller = _controller;
-    if (controller == null || _disposed) return;
-    await controller.ready();
-    bool hasPin;
-    try {
-      hasPin = await ref.read(appPinServiceProvider).hasPin();
-    } on Exception {
-      hasPin = false;
-    }
-    if (_disposed) return;
-    state = AppLockState(
-      bootstrapped: true,
-      mode: controller.lockMode,
-      isLocked: controller.lockMode != null && controller.isLocked,
-      hasPin: hasPin,
-    );
-  }
-
-  /// Unlocks via the device-credential prompt. Only succeeds if the platform
-  /// authenticator returns success.
-  Future<BiometricAuthResult> unlockWithBiometric() async {
-    final controller = _controller;
-    if (controller == null) return BiometricAuthResult.unavailable;
-    final auth = ref.read(biometricAuthenticatorProvider);
-    final result = await auth.authenticate(
-      reason: 'Unlock SreerajP Journal Vault',
-    );
-    if (result == BiometricAuthResult.success) {
-      await controller.unlock();
-      if (!_disposed) {
-        state = state.copyWith(isLocked: false);
-      }
-    }
-    return result;
-  }
-
-  /// Verifies [pin] against the stored verifier and unlocks on match.
-  Future<bool> unlockWithPin(String pin) async {
-    final controller = _controller;
-    if (controller == null) return false;
-    final ok = await ref.read(appPinServiceProvider).verifyPin(pin);
-    if (ok) {
-      await controller.unlock();
-      if (!_disposed) {
-        state = state.copyWith(isLocked: false);
-      }
-    }
-    return ok;
-  }
-
-  /// Persists [pin] to the keystore and updates [hasPin].
-  Future<void> setPin(String pin) async {
-    await ref.read(appPinServiceProvider).setPin(pin);
-    if (!_disposed) {
-      state = state.copyWith(hasPin: true);
-    }
-  }
-
-  /// Clears the stored PIN credential.
-  Future<void> clearPin() async {
-    await ref.read(appPinServiceProvider).clearPin();
-    if (!_disposed) {
-      state = state.copyWith(hasPin: false);
-    }
-  }
-
-  /// Persists [mode] and immediately locks the app. Caller is responsible for
-  /// setting up a PIN before switching to [AppLockMode.appLock].
-  Future<void> switchLockMode(AppLockMode mode) async {
-    final controller = _controller;
-    if (controller == null) return;
-    await controller.switchLockMode(mode);
-    if (!_disposed) {
-      state = state.copyWith(mode: mode, isLocked: true);
-    }
-  }
-
-  /// Completes initial mode + credential selection on first launch and leaves
-  /// the app unlocked for the current session.
-  Future<void> completeFirstLaunchSetup({
-    required AppLockMode mode,
-    String? pin,
-  }) async {
-    final controller = _controller;
-    if (controller == null) return;
-    if (mode == AppLockMode.appLock) {
-      if (pin == null || pin.isEmpty) {
-        throw ArgumentError('PIN is required when selecting app_lock mode.');
-      }
-      await ref.read(appPinServiceProvider).setPin(pin);
-    }
-    await controller.switchLockMode(mode);
-    await controller.unlock();
-    if (!_disposed) {
-      state = AppLockState(
-        bootstrapped: true,
-        mode: mode,
-        isLocked: false,
-        hasPin: mode == AppLockMode.appLock,
-      );
-    }
-  }
-
-  void _onLocked() {
-    if (_disposed) return;
-    // Clear any session-unlocked journals when the app re-locks.
-    ref.read(_unlockedJournalIdsProvider.notifier).set(const {});
-    state = state.copyWith(isLocked: true);
-  }
-}
-
-final appLockProvider = NotifierProvider<AppLockNotifier, AppLockState>(
-  AppLockNotifier.new,
-);
-
 // ─── Helpers ──────────────────────────────────────────────────────────────
 
-String _fmtDate(DateTime d) {
-  final l = d.toLocal();
-  return '${l.year}-${l.month.toString().padLeft(2, '0')}-${l.day.toString().padLeft(2, '0')}';
-}
+String _fmtDate(DateTime d) => formatShortDate(d);
 
 // ─── JournalVaultAppHost ─────────────────────────────────────────────────
 
@@ -338,25 +138,11 @@ class JournalVaultApp extends ConsumerStatefulWidget {
 }
 
 class _JournalVaultAppState extends ConsumerState<JournalVaultApp> {
-  bool _themeRestored = false;
-
-  void _restoreThemeIfNeeded() {
-    if (_themeRestored) return;
-    _themeRestored = true;
-    try {
-      final store = ref.read(themeModeStoreProvider);
-      final mode = store.read();
-      ref.read(_themeModeProvider.notifier).set(mode);
-    } catch (_) {
-      // No store provided → keep default.
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    _restoreThemeIfNeeded();
     final lockState = ref.watch(appLockProvider);
-    final themeMode = ref.watch(_themeModeProvider);
+    final appThemeMode = ref.watch(appThemeModeProvider);
+    final accentColor = ref.watch(accentColorProvider);
 
     Widget home;
     if (!lockState.bootstrapped) {
@@ -373,11 +159,29 @@ class _JournalVaultAppState extends ConsumerState<JournalVaultApp> {
       home = const _MainShell();
     }
 
+    final lightTheme = switch (appThemeMode) {
+      AppThemeMode.sepia => _appTheme(
+        Brightness.light,
+        accentColor,
+        AppThemeMode.sepia,
+      ),
+      _ => _appTheme(Brightness.light, accentColor),
+    };
+
+    final darkTheme = switch (appThemeMode) {
+      AppThemeMode.oled => _appTheme(
+        Brightness.dark,
+        accentColor,
+        AppThemeMode.oled,
+      ),
+      _ => _appTheme(Brightness.dark, accentColor, AppThemeMode.dark),
+    };
+
     return MaterialApp(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
-      theme: _appTheme(Brightness.light),
-      darkTheme: _appTheme(Brightness.dark),
-      themeMode: themeMode,
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      themeMode: appThemeMode.toFlutterThemeMode(),
       localizationsDelegates: const [
         AppLocalizations.delegate,
         FlutterQuillLocalizations.delegate,
@@ -391,11 +195,50 @@ class _JournalVaultAppState extends ConsumerState<JournalVaultApp> {
   }
 }
 
-ThemeData _appTheme(Brightness brightness) {
-  final colorScheme = ColorScheme.fromSeed(
-    seedColor: const Color(0xFF9C5F2B),
-    brightness: brightness,
-  );
+ThemeData _appTheme(
+  Brightness brightness, [
+  Color seedColor = const Color(0xFF9C5F2B),
+  AppThemeMode mode = AppThemeMode.light,
+]) {
+  ColorScheme colorScheme;
+
+  if (mode == AppThemeMode.sepia) {
+    final baseScheme = ColorScheme.fromSeed(seedColor: seedColor);
+    colorScheme = baseScheme.copyWith(
+      surface: const Color(0xFFF8F3E6),
+      onSurface: const Color(0xFF2C221E),
+      surfaceContainerLowest: const Color(0xFFFAF6EE),
+      surfaceContainerLow: const Color(0xFFF2ECE0),
+      surfaceContainer: const Color(0xFFEBE4D6),
+      surfaceContainerHigh: const Color(0xFFE3DCCB),
+      surfaceContainerHighest: const Color(0xFFDBD3C1),
+      onSurfaceVariant: const Color(0xFF5C4D44),
+      outline: const Color(0xFF8D7B6F),
+      outlineVariant: const Color(0xFFD6CABA),
+    );
+  } else if (mode == AppThemeMode.oled) {
+    final baseScheme = ColorScheme.fromSeed(
+      seedColor: seedColor,
+      brightness: Brightness.dark,
+    );
+    colorScheme = baseScheme.copyWith(
+      surface: const Color(0xFF000000),
+      onSurface: const Color(0xFFF4F4F5),
+      surfaceContainerLowest: const Color(0xFF000000),
+      surfaceContainerLow: const Color(0xFF09090B),
+      surfaceContainer: const Color(0xFF111113),
+      surfaceContainerHigh: const Color(0xFF18181B),
+      surfaceContainerHighest: const Color(0xFF222226),
+      onSurfaceVariant: const Color(0xFFA1A1AA),
+      outline: const Color(0xFF52525B),
+      outlineVariant: const Color(0xFF27272A),
+    );
+  } else {
+    colorScheme = ColorScheme.fromSeed(
+      seedColor: seedColor,
+      brightness: brightness,
+    );
+  }
 
   const buttonShape = RoundedRectangleBorder(
     borderRadius: BorderRadius.all(Radius.circular(14)),
@@ -410,6 +253,7 @@ ThemeData _appTheme(Brightness brightness) {
 
   return ThemeData(
     colorScheme: colorScheme,
+    scaffoldBackgroundColor: colorScheme.surface,
     useMaterial3: true,
     splashFactory: InkSparkle.splashFactory,
     filledButtonTheme: FilledButtonThemeData(
@@ -608,89 +452,6 @@ class _FirstLaunchSetupScreenState
 }
 
 // ─── Force-set PIN when app_lock has no credential ───────────────────────
-
-// ─── Locked attachments overview (Slice D4) ───────────────────────────────
-
-class _LockedAttachmentsScreen extends ConsumerStatefulWidget {
-  const _LockedAttachmentsScreen();
-
-  @override
-  ConsumerState<_LockedAttachmentsScreen> createState() =>
-      _LockedAttachmentsScreenState();
-}
-
-class _LockedAttachmentsScreenState
-    extends ConsumerState<_LockedAttachmentsScreen> {
-  List<(AttachmentLock, Attachment)>? _entries;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    final db = ref.read(appDatabaseProvider);
-    final svc = ref.read(attachmentLockServiceProvider);
-    final locks = await svc.getLockedAttachments();
-    final pairs = <(AttachmentLock, Attachment)>[];
-    for (final l in locks) {
-      try {
-        final a = await db.attachmentsDao.getAttachmentById(l.attachmentId);
-        pairs.add((l, a));
-      } catch (_) {
-        /* attachment missing — skip */
-      }
-    }
-    if (mounted) setState(() => _entries = pairs);
-  }
-
-  Future<void> _remove(int attachmentId) async {
-    final svc = ref.read(attachmentLockServiceProvider);
-    await svc.removeLock(attachmentId);
-    await _load();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final entries = _entries;
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.lockedAttachmentsTitle)),
-      body: entries == null
-          ? const Center(child: CircularProgressIndicator())
-          : entries.isEmpty
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(
-                  l10n.lockedAttachmentsEmpty,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            )
-          : ListView.builder(
-              itemCount: entries.length,
-              itemBuilder: (_, i) {
-                final (lock, attachment) = entries[i];
-                return ListTile(
-                  key: Key('locked-attachment-${attachment.id}'),
-                  leading: const Icon(Icons.lock),
-                  title: Text(attachment.fileName),
-                  subtitle: Text(
-                    l10n.lockedAttachmentSince(_fmtDate(lock.lockedAt)),
-                  ),
-                  trailing: TextButton(
-                    key: Key('locked-attachment-remove-${attachment.id}'),
-                    onPressed: () => _remove(attachment.id),
-                    child: Text(l10n.lockedAttachmentRemove),
-                  ),
-                );
-              },
-            ),
-    );
-  }
-}
 
 class _AppLockPinSetupScreen extends ConsumerStatefulWidget {
   const _AppLockPinSetupScreen();
@@ -1235,11 +996,59 @@ class _LockErrorPill extends StatelessWidget {
 
 // ─── Main shell with bottom navigation ────────────────────────────────────
 
-class _MainShell extends ConsumerWidget {
+class _MainShell extends ConsumerStatefulWidget {
   const _MainShell();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_MainShell> createState() => _MainShellState();
+}
+
+class _MainShellState extends ConsumerState<_MainShell> {
+  bool _dialogShowing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkInitialPendingShare();
+    });
+  }
+
+  void _checkInitialPendingShare() {
+    final payload = ref.read(pendingSharePayloadProvider);
+    if (payload != null && !_dialogShowing && mounted) {
+      _showShareDialog(payload);
+    }
+  }
+
+  void _showShareDialog(SharedIntentPayload payload) {
+    if (_dialogShowing || !mounted) return;
+    _dialogShowing = true;
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogCtx) => QuickCaptureShareDialog(
+        payload: payload,
+        onDismissed: () {
+          _dialogShowing = false;
+          ref.read(pendingSharePayloadProvider.notifier).consumePayload();
+        },
+      ),
+    ).then((_) {
+      _dialogShowing = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen<SharedIntentPayload?>(pendingSharePayloadProvider, (prev, next) {
+      if (next != null && !_dialogShowing && mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _showShareDialog(next);
+        });
+      }
+    });
+
     final l10n = AppLocalizations.of(context);
     final index = ref.watch(_selectedTabProvider);
     const tabs = [
@@ -1247,7 +1056,7 @@ class _MainShell extends ConsumerWidget {
       _SearchTab(),
       TimelineScreen(),
       InsightsScreen(),
-      _SettingsTab(),
+      SettingsTab(),
     ];
     return Scaffold(
       body: tabs[index],
@@ -1510,43 +1319,150 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
               MaterialPageRoute<void>(builder: (_) => const TagManagerScreen()),
             ).then((_) => _load()),
           ),
-        ],
-      ),
-      body: journals == null
-          ? const Center(child: CircularProgressIndicator())
-          : journals.isEmpty
-          ? const _HomeEmptyState()
-          : RefreshIndicator(
-              onRefresh: _load,
-              child: GridView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 14,
-                  crossAxisSpacing: 14,
-                  childAspectRatio: 0.82,
-                ),
-                itemCount: journals.length,
-                itemBuilder: (_, i) {
-                  final summary = journals[i];
-                  return _JournalCard(
-                    summary: summary,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute<void>(
-                        builder: (_) =>
-                            _JournalDetailScreen(journal: summary.journal),
-                      ),
-                    ).then((_) => _load()),
-                    onEdit: () => _openForm(
-                      journal: summary.journal,
-                      initialTags: summary.tags,
-                    ),
-                    onDelete: () => _deleteJournal(summary.journal),
-                  );
-                },
+          IconButton(
+            key: const Key('home-ritual-mode-button'),
+            tooltip: l10n.ritualScreenTitle,
+            icon: const Icon(Icons.self_improvement_rounded),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute<void>(builder: (_) => const RitualScreen()),
+            ).then((_) => _load()),
+          ),
+          IconButton(
+            key: const Key('home-manage-templates-button'),
+            tooltip: l10n.journalManageTemplates,
+            icon: const Icon(Icons.dashboard_customize_outlined),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute<void>(
+                builder: (_) => const TemplateManagerScreen(),
               ),
             ),
+          ),
+          IconButton(
+            key: const Key('home-time-capsules-button'),
+            tooltip: l10n.timeCapsuleTitle,
+            icon: const Icon(Icons.hourglass_bottom_rounded),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute<void>(
+                builder: (_) => const TimeCapsulesListScreen(),
+              ),
+            ).then((_) => _load()),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Consumer(
+            builder: (context, ref, _) {
+              final readyAsync = ref.watch(readyToOpenCapsulesProvider);
+              final readyCount = readyAsync.asData?.value.length ?? 0;
+              if (readyCount == 0) return const SizedBox.shrink();
+              final theme = Theme.of(context);
+              return Container(
+                margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.auto_awesome_rounded,
+                      color: theme.colorScheme.primary,
+                      size: 28,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.timeCapsuleBannerTitle,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.onPrimaryContainer,
+                            ),
+                          ),
+                          Text(
+                            readyCount == 1
+                                ? l10n.timeCapsuleBannerBody(readyCount)
+                                : l10n.timeCapsuleBannerBodyPlural(readyCount),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onPrimaryContainer,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    FilledButton.tonal(
+                      key: const Key('home-ready-capsule-open-button'),
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (_) => const TimeCapsulesListScreen(),
+                        ),
+                      ).then((_) => _load()),
+                      child: Text(l10n.timeCapsuleReadyToOpen),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+          Expanded(
+            child: journals == null
+                ? const Center(child: CircularProgressIndicator())
+                : journals.isEmpty
+                ? const _HomeEmptyState()
+                : RefreshIndicator(
+                    onRefresh: _load,
+                    child: GridView.builder(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 14,
+                            crossAxisSpacing: 14,
+                            childAspectRatio: 0.82,
+                          ),
+                      itemCount: journals.length,
+                      itemBuilder: (_, i) {
+                        final summary = journals[i];
+                        return _JournalCard(
+                          summary: summary,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => _JournalDetailScreen(
+                                journal: summary.journal,
+                              ),
+                            ),
+                          ).then((_) => _load()),
+                          onEdit: () => _openForm(
+                            journal: summary.journal,
+                            initialTags: summary.tags,
+                          ),
+                          onDelete: () => _deleteJournal(summary.journal),
+                        );
+                      },
+                    ),
+                  ),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton.extended(
         tooltip: l10n.journalNew,
         onPressed: () => _openForm(),
@@ -1929,11 +1845,12 @@ class _JournalDetailScreen extends ConsumerStatefulWidget {
 
 class _JournalDetailScreenState extends ConsumerState<_JournalDetailScreen> {
   List<Entry>? _entries;
+  Map<int, TimeCapsule> _capsules = {};
   String? _unlockError;
   final _passwordController = TextEditingController();
 
   bool get _isSessionUnlocked {
-    final ids = ref.read(_unlockedJournalIdsProvider);
+    final ids = ref.read(unlockedJournalIdsProvider);
     return ids.contains(widget.journal.id);
   }
 
@@ -1955,7 +1872,14 @@ class _JournalDetailScreenState extends ConsumerState<_JournalDetailScreen> {
     if (!mounted) return;
     final db = ref.read(appDatabaseProvider);
     final entries = await db.entriesDao.getEntriesForJournal(widget.journal.id);
-    if (mounted) setState(() => _entries = entries);
+    final allCapsules = await db.timeCapsulesDao.getAllCapsules();
+    final capsulesMap = {for (final c in allCapsules) c.entryId: c};
+    if (mounted) {
+      setState(() {
+        _entries = entries;
+        _capsules = capsulesMap;
+      });
+    }
   }
 
   Future<void> _tryUnlock() async {
@@ -1967,8 +1891,8 @@ class _JournalDetailScreenState extends ConsumerState<_JournalDetailScreen> {
     );
     if (!mounted) return;
     if (ok) {
-      final current = ref.read(_unlockedJournalIdsProvider);
-      ref.read(_unlockedJournalIdsProvider.notifier).set({
+      final current = ref.read(unlockedJournalIdsProvider);
+      ref.read(unlockedJournalIdsProvider.notifier).set({
         ...current,
         widget.journal.id,
       });
@@ -1984,17 +1908,17 @@ class _JournalDetailScreenState extends ConsumerState<_JournalDetailScreen> {
   }
 
   Future<void> _openEntryScreen({Entry? entry}) async {
-    EntryTemplateId? templateId;
+    EntryTemplate? template;
     if (entry == null) {
       // For new entries, ask the user to pick a starter template first.
       final selected = await showDialog<EntryTemplate>(
         context: context,
         barrierDismissible: false,
-        builder: (_) => const _EntryTemplateChooserDialog(),
+        builder: (_) => const EntryTemplateChooserDialog(),
       );
       if (!mounted) return;
       if (selected == null) return; // User dismissed somehow.
-      templateId = selected.id;
+      template = selected;
     }
 
     await Navigator.push<void>(
@@ -2003,7 +1927,8 @@ class _JournalDetailScreenState extends ConsumerState<_JournalDetailScreen> {
         builder: (_) => EntryEditorScreen(
           journalId: widget.journal.id,
           entryId: entry?.id,
-          initialTemplateId: templateId,
+          initialTemplateId: template?.id,
+          initialTemplate: template,
         ),
       ),
     );
@@ -2012,7 +1937,7 @@ class _JournalDetailScreenState extends ConsumerState<_JournalDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ref.watch(_unlockedJournalIdsProvider); // Rebuild on unlock change
+    ref.watch(unlockedJournalIdsProvider); // Rebuild on unlock change
     final accessible = _isAccessible;
 
     return Scaffold(
@@ -2097,1175 +2022,65 @@ class _JournalDetailScreenState extends ConsumerState<_JournalDetailScreen> {
                   itemBuilder: (_, i) {
                     final entry = entries[i];
                     final date = entry.entryDate ?? entry.createdAt;
+                    final capsule = _capsules[entry.id];
+                    final isCapsule = capsule != null;
+                    final isSealed = isCapsule && !capsule.isOpened;
+                    final isReady =
+                        isSealed &&
+                        !DateTime.now().isBefore(capsule.unlockDate);
+
+                    Widget? leading;
+                    Widget subtitle;
+                    if (isSealed) {
+                      leading = Icon(
+                        isReady
+                            ? Icons.lock_open_rounded
+                            : Icons.hourglass_bottom_rounded,
+                        color: isReady
+                            ? Theme.of(context).colorScheme.primary
+                            : Theme.of(context).colorScheme.secondary,
+                      );
+                      subtitle = Text(
+                        isReady
+                            ? l10n.timeCapsuleReadyToOpen
+                            : l10n.timeCapsuleSealedUntil(
+                                _fmtDate(capsule.unlockDate),
+                              ),
+                        style: TextStyle(
+                          color: isReady
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.secondary,
+                          fontWeight: isReady
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
+                      );
+                    } else {
+                      subtitle = Text(_fmtDate(date));
+                    }
+
                     return ListTile(
+                      leading: leading,
                       title: Text(entry.title ?? l10n.commonUntitled),
-                      subtitle: Text(_fmtDate(date)),
-                      onTap: () => _openEntryScreen(entry: entry),
+                      subtitle: subtitle,
+                      onTap: () {
+                        if (isSealed) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => TimeCapsuleSealedScreen(
+                                entryId: entry.id,
+                                journalId: widget.journal.id,
+                              ),
+                            ),
+                          ).then((_) => _loadEntries());
+                        } else {
+                          _openEntryScreen(entry: entry);
+                        }
+                      },
                     );
                   },
                 ),
-        ),
-      ],
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// SETTINGS TAB
-// ═══════════════════════════════════════════════════════════════════════════
-
-/// Settings home — a menu of cards, one per section.
-///
-/// Each card opens a page that holds only that section's rows, so the screen
-/// stays short and related controls stay together.
-class _SettingsTab extends StatelessWidget {
-  const _SettingsTab();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.navSettings)),
-      body: ListView(
-        key: const Key('settings-list'),
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        children: [
-          _SettingsSectionCard(
-            cardKey: const Key('settings-card-security'),
-            icon: Icons.lock_outline,
-            title: l10n.settingsSectionSecurity,
-            subtitle: l10n.settingsSectionSecuritySubtitle,
-            builder: (_) => const _SecuritySettingsScreen(),
-          ),
-          _SettingsSectionCard(
-            cardKey: const Key('settings-card-appearance'),
-            icon: Icons.palette_outlined,
-            title: l10n.settingsSectionAppearance,
-            subtitle: l10n.settingsSectionAppearanceSubtitle,
-            builder: (_) => const _AppearanceSettingsScreen(),
-          ),
-          _SettingsSectionCard(
-            cardKey: const Key('settings-card-storage'),
-            icon: Icons.folder_outlined,
-            title: l10n.settingsSectionStorage,
-            subtitle: l10n.settingsSectionStorageSubtitle,
-            builder: (_) => const _StorageSettingsScreen(),
-          ),
-          _SettingsSectionCard(
-            cardKey: const Key('settings-card-permissions'),
-            icon: Icons.verified_user_outlined,
-            title: l10n.settingsSectionPermissions,
-            subtitle: l10n.settingsSectionPermissionsSubtitle,
-            builder: (_) => const _PermissionsSettingsScreen(),
-          ),
-          _SettingsSectionCard(
-            cardKey: const Key('settings-card-about'),
-            icon: Icons.info_outline,
-            title: l10n.settingsSectionAbout,
-            subtitle: l10n.settingsSectionAboutSubtitle,
-            builder: (_) => const AboutScreen(),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// One tappable card on the Settings home screen.
-class _SettingsSectionCard extends StatelessWidget {
-  const _SettingsSectionCard({
-    required this.cardKey,
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.builder,
-  });
-
-  final Key cardKey;
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final WidgetBuilder builder;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Semantics(
-      button: true,
-      label: title,
-      child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        clipBehavior: Clip.antiAlias,
-        child: ListTile(
-          key: cardKey,
-          leading: CircleAvatar(
-            backgroundColor: theme.colorScheme.primaryContainer,
-            foregroundColor: theme.colorScheme.onPrimaryContainer,
-            child: Icon(icon),
-          ),
-          title: Text(title, style: theme.textTheme.titleMedium),
-          subtitle: Text(subtitle),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute<void>(builder: builder),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Section 1: Security ────────────────────────────────────────────────────
-
-class _SecuritySettingsScreen extends ConsumerWidget {
-  const _SecuritySettingsScreen();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context);
-    final lockState = ref.watch(appLockProvider);
-    final lockMode = lockState.mode;
-    final selectedMode = lockMode == AppLockMode.appLock
-        ? AppLockMode.appLock
-        : AppLockMode.phoneLock;
-
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.settingsSectionSecurity)),
-      body: ListView(
-        key: const Key('settings-security-list'),
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-            child: Text(
-              l10n.settingsAppLockMode,
-              style: theme.textTheme.titleSmall?.copyWith(
-                color: theme.colorScheme.primary,
-              ),
-            ),
-          ),
-          RadioGroup<AppLockMode>(
-            groupValue: selectedMode,
-            onChanged: (value) {
-              if (value == null || value == selectedMode) return;
-              _switchLock(context, ref, value);
-            },
-            child: Column(
-              children: [
-                RadioListTile<AppLockMode>(
-                  key: const Key('settings-lock-mode-phone'),
-                  value: AppLockMode.phoneLock,
-                  title: Text(l10n.lockModePhone),
-                  subtitle: Text(l10n.lockModePhoneHint),
-                ),
-                RadioListTile<AppLockMode>(
-                  key: const Key('settings-lock-mode-app'),
-                  value: AppLockMode.appLock,
-                  title: Text(l10n.lockModeApp),
-                  subtitle: Text(l10n.lockModeAppHint),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1),
-          ListTile(
-            key: const Key('settings-auto-lock-timeout'),
-            title: Text(l10n.settingsAutoLockTimeout),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (_) => const AutoLockProfilesScreen(),
-              ),
-            ),
-          ),
-          ListTile(
-            key: const Key('settings-attachment-level-lock'),
-            title: Text(l10n.lockedAttachmentsTitle),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (_) => const _LockedAttachmentsScreen(),
-              ),
-            ),
-          ),
-          const _ScreenSecurityTile(),
-          _ComingSoonTile(title: l10n.settingsTamperAlerts),
-          // Sync has no transport yet — see AppFlavorConfig.enableSyncUi.
-          if (AppFlavorConfig.instance.enableSyncUi)
-            ListTile(
-              key: const Key('settings-sync-conflicts'),
-              title: Text(l10n.settingsSyncConflicts),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute<void>(
-                  builder: (_) => const ConflictResolutionScreen(),
-                ),
-              ),
-            )
-          else
-            _ComingSoonTile(title: l10n.settingsSyncConflicts),
-          ListTile(
-            key: const Key('settings-security-events'),
-            title: Text(l10n.settingsSecurityEvents),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (_) => const SecurityEventsScreen(),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _switchLock(
-    BuildContext context,
-    WidgetRef ref,
-    AppLockMode mode,
-  ) async {
-    final l10n = AppLocalizations.of(context);
-    final modeLabel = mode == AppLockMode.appLock
-        ? l10n.lockModeApp
-        : l10n.lockModePhone;
-    final disabledLabel = mode == AppLockMode.appLock
-        ? l10n.lockModePhone
-        : l10n.lockModeApp;
-
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.settingsSwitchLockTitle),
-        content: Text(l10n.settingsSwitchLockBody(modeLabel, disabledLabel)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: Text(l10n.commonCancel),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(l10n.settingsSwitchAction),
-          ),
-        ],
-      ),
-    );
-    if (ok != true || !context.mounted) return;
-
-    // When switching to app_lock, require setting a PIN before persisting.
-    if (mode == AppLockMode.appLock) {
-      final pin = await showDialog<String>(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => const _PinSetupDialog(),
-      );
-      if (!context.mounted) return;
-      if (pin == null || pin.isEmpty) {
-        // User cancelled — leave mode unchanged.
-        return;
-      }
-      await ref.read(appLockProvider.notifier).setPin(pin);
-    }
-
-    await ref.read(appLockProvider.notifier).switchLockMode(mode);
-
-    if (context.mounted) {
-      // Switching locks the app straight away. The lock gate replaces the
-      // shell underneath, so this pushed page must close — otherwise it
-      // would keep sitting on top of the gate.
-      final messenger = ScaffoldMessenger.of(context);
-      Navigator.of(context).pop();
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.settingsLockModeUpdated(modeLabel))),
-      );
-    }
-  }
-}
-
-// ─── Section 2: Appearance ──────────────────────────────────────────────────
-
-class _AppearanceSettingsScreen extends ConsumerWidget {
-  const _AppearanceSettingsScreen();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final themeMode = ref.watch(_themeModeProvider);
-
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.settingsSectionAppearance)),
-      body: ListView(
-        key: const Key('settings-appearance-list'),
-        children: [
-          ListTile(
-            title: Text(l10n.settingsTheme),
-            subtitle: Text(l10n.settingsThemeSubtitle),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Wrap(
-              spacing: 8,
-              children: [
-                for (final (label, mode) in [
-                  (l10n.settingsThemeLight, ThemeMode.light),
-                  (l10n.settingsThemeDark, ThemeMode.dark),
-                ])
-                  ChoiceChip(
-                    key: Key('settings-theme-chip-${mode.name}'),
-                    label: Text(label),
-                    selected: themeMode == mode,
-                    onSelected: (_) => _switchTheme(context, ref, mode),
-                  ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _switchTheme(
-    BuildContext context,
-    WidgetRef ref,
-    ThemeMode mode,
-  ) async {
-    final l10n = AppLocalizations.of(context);
-    final prev = ref.read(_themeModeProvider);
-    ref.read(_themeModeProvider.notifier).set(mode);
-
-    bool failed = false;
-    try {
-      final store = ref.read(themeModeStoreProvider);
-      await store.save(mode);
-    } on ThemeModePersistenceException {
-      failed = true;
-    } catch (_) {
-      /* No store or other error → treat as success */
-    }
-
-    if (!context.mounted) return;
-
-    if (failed) {
-      ref.read(_themeModeProvider.notifier).set(prev);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.settingsThemeSaveFailed)));
-    } else {
-      final label = switch (mode) {
-        ThemeMode.dark => l10n.settingsThemeDark,
-        ThemeMode.light => l10n.settingsThemeLight,
-        ThemeMode.system => l10n.settingsThemeSystem,
-      };
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.settingsThemeUpdated(label))));
-    }
-  }
-}
-
-// ─── Section 3: Storage ─────────────────────────────────────────────────────
-
-class _StorageSettingsScreen extends StatelessWidget {
-  const _StorageSettingsScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.settingsSectionStorage)),
-      body: ListView(
-        key: const Key('settings-storage-list'),
-        children: const [_StorageSection()],
-      ),
-    );
-  }
-}
-
-// ─── Section 4: Permissions ─────────────────────────────────────────────────
-
-class _PermissionsSettingsScreen extends StatelessWidget {
-  const _PermissionsSettingsScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.settingsSectionPermissions)),
-      body: ListView(
-        key: const Key('settings-permissions-list'),
-        children: const [_PermissionsSection()],
-      ),
-    );
-  }
-}
-
-/// Switch that turns FLAG_SECURE screenshot blocking on or off.
-///
-/// Protection is the default. Turning it off asks for confirmation first,
-/// because it lets screenshots, screen recorders and the recent apps preview
-/// capture journal content.
-class _ScreenSecurityTile extends ConsumerWidget {
-  const _ScreenSecurityTile();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final state = ref.watch(screenSecurityProvider);
-    // While loading, or if the value could not be read, show it as protected —
-    // that is what the window itself is doing.
-    final enabled = state.value ?? true;
-
-    return Semantics(
-      toggled: enabled,
-      label: l10n.settingsScreenSecurity,
-      child: SwitchListTile(
-        key: const Key('settings-screen-security'),
-        title: Text(l10n.settingsScreenSecurity),
-        subtitle: Text(l10n.settingsScreenSecuritySubtitle),
-        value: enabled,
-        onChanged: state.isLoading
-            ? null
-            : (value) => _setScreenSecurity(context, ref, value),
-      ),
-    );
-  }
-
-  Future<void> _setScreenSecurity(
-    BuildContext context,
-    WidgetRef ref,
-    bool enabled,
-  ) async {
-    final l10n = AppLocalizations.of(context);
-
-    if (!enabled) {
-      final ok = await showDialog<bool>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: Text(l10n.settingsScreenSecurityOffTitle),
-          content: Text(l10n.settingsScreenSecurityOffBody),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: Text(l10n.commonCancel),
-            ),
-            TextButton(
-              key: const Key('settings-screen-security-confirm'),
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: Text(l10n.settingsScreenSecurityOffAction),
-            ),
-          ],
-        ),
-      );
-      if (ok != true) return;
-    }
-
-    try {
-      await ref.read(screenSecurityProvider.notifier).setEnabled(enabled);
-    } on ScreenSecurityPersistenceException {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.settingsScreenSecuritySaveFailed)),
-        );
-      }
-      return;
-    }
-
-    // The audit trail must not block the setting itself.
-    try {
-      await ref
-          .read(securityEventServiceProvider)
-          .logScreenSecurityChanged(enabled: enabled);
-    } catch (_) {
-      /* Logging failure is not worth interrupting the user for. */
-    }
-
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            enabled
-                ? l10n.settingsScreenSecurityUpdatedOn
-                : l10n.settingsScreenSecurityUpdatedOff,
-          ),
-        ),
-      );
-    }
-  }
-}
-
-class _PinSetupDialog extends StatefulWidget {
-  const _PinSetupDialog();
-
-  @override
-  State<_PinSetupDialog> createState() => _PinSetupDialogState();
-}
-
-class _PinSetupDialogState extends State<_PinSetupDialog> {
-  final _pin = TextEditingController();
-  final _confirm = TextEditingController();
-  String? _error;
-
-  @override
-  void dispose() {
-    _pin.dispose();
-    _confirm.dispose();
-    super.dispose();
-  }
-
-  void _save() {
-    if (_pin.text.length < 4) {
-      setState(() => _error = AppLocalizations.of(context).lockPinTooShort);
-      return;
-    }
-    if (_pin.text != _confirm.text) {
-      setState(() => _error = AppLocalizations.of(context).lockPinsDoNotMatch);
-      return;
-    }
-    Navigator.pop(context, _pin.text);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return AlertDialog(
-      title: Text(l10n.lockPinSetupTitle),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            key: const Key('settings-pin-field'),
-            controller: _pin,
-            obscureText: true,
-            decoration: InputDecoration(labelText: l10n.lockPinLabel),
-          ),
-          TextField(
-            key: const Key('settings-pin-confirm-field'),
-            controller: _confirm,
-            obscureText: true,
-            decoration: InputDecoration(labelText: l10n.lockConfirmPinLabel),
-          ),
-          if (_error != null) ...[
-            const SizedBox(height: 8),
-            Text(_error!, style: const TextStyle(color: Colors.red)),
-          ],
-        ],
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(l10n.commonCancel),
-        ),
-        TextButton(
-          key: const Key('settings-pin-save-button'),
-          onPressed: _save,
-          child: Text(l10n.commonSave),
-        ),
-      ],
-    );
-  }
-}
-
-class _ComingSoonTile extends StatelessWidget {
-  const _ComingSoonTile({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(title),
-      trailing: Text(AppLocalizations.of(context).settingsComingSoon),
-      enabled: false,
-    );
-  }
-}
-
-// ─── Storage section ──────────────────────────────────────────────────────
-
-class _StorageSection extends ConsumerStatefulWidget {
-  const _StorageSection();
-
-  @override
-  ConsumerState<_StorageSection> createState() => _StorageSectionState();
-}
-
-class _StorageSectionState extends ConsumerState<_StorageSection> {
-  AppSetting? _settings;
-  int? _totalBytes;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    if (!mounted) return;
-    final db = ref.read(appDatabaseProvider);
-    final settings = await db.appSettingsDao.getSettings();
-    final attachments = await db.attachmentsDao.getAllAttachments();
-    final total = attachments.fold<int>(0, (sum, a) => sum + a.sizeBytes);
-    if (!mounted) return;
-    setState(() {
-      _settings = settings;
-      _totalBytes = total;
-    });
-  }
-
-  String _locationLabel(AppLocalizations l10n, AppSetting s) {
-    final loc = AttachmentStorageLocation.fromSettingsValue(
-      s.attachmentStorageLocation,
-    );
-    if (loc != AttachmentStorageLocation.sdCard) return l10n.storageAppPrivate;
-    final label = s.attachmentStorageTreeLabel;
-    return label == null ? l10n.storageSdCard : l10n.storageSdCardNamed(label);
-  }
-
-  /// `attachmentMigrationStatus` is a database code, not text for the user.
-  String _migrationStatusLabel(AppLocalizations l10n, AppSetting s) {
-    switch (s.attachmentMigrationStatus) {
-      case 'running':
-        return l10n.storageMigrationRunning(
-          s.attachmentMigrationProcessedCount,
-          s.attachmentMigrationTotalCount,
-        );
-      case 'failed':
-        return s.attachmentMigrationFailure ?? l10n.storageMigrationFailedShort;
-      default:
-        return l10n.storageMigrationIdle;
-    }
-  }
-
-  String _formatBytes(AppLocalizations l10n, int bytes) {
-    if (bytes < 1024) return l10n.storageBytes(bytes);
-    if (bytes < 1024 * 1024) {
-      return l10n.storageKilobytes((bytes / 1024).toStringAsFixed(1));
-    }
-    if (bytes < 1024 * 1024 * 1024) {
-      return l10n.storageMegabytes((bytes / (1024 * 1024)).toStringAsFixed(1));
-    }
-    return l10n.storageGigabytes(
-      (bytes / (1024 * 1024 * 1024)).toStringAsFixed(2),
-    );
-  }
-
-  Future<void> _changeLocation(AttachmentStorageLocation target) async {
-    final settings = _settings;
-    if (settings == null) return;
-
-    String? treeUri;
-    String? treeLabel;
-    if (target == AttachmentStorageLocation.sdCard) {
-      final picker = ref.read(attachmentStoragePickerProvider);
-      final selection = await picker.pickStorageTree();
-      if (selection == null) return;
-      treeUri = selection.treeUri;
-      treeLabel = selection.displayName;
-    }
-
-    if (!mounted) return;
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) {
-        final l10n = AppLocalizations.of(dialogContext);
-        return AlertDialog(
-          title: Text(l10n.storageMigrateTitle),
-          content: Text(
-            l10n.storageMigrateBody(
-              target == AttachmentStorageLocation.sdCard
-                  ? l10n.storageSdCard
-                  : l10n.storageAppPrivate,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: Text(l10n.commonCancel),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: Text(l10n.storageMigrateAction),
-            ),
-          ],
-        );
-      },
-    );
-    if (confirmed != true || !mounted) return;
-
-    await _runMigration(target: target, treeUri: treeUri, treeLabel: treeLabel);
-  }
-
-  Future<void> _runMigration({
-    required AttachmentStorageLocation target,
-    String? treeUri,
-    String? treeLabel,
-  }) async {
-    final controller = _MigrationProgressController();
-
-    final dialogFuture = showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => _MigrationProgressDialog(controller: controller),
-    );
-
-    final service = ref.read(attachmentStorageMigrationServiceProvider);
-    String? errorMessage;
-    var cancelled = false;
-    try {
-      await service.migrateTo(
-        targetLocation: target,
-        targetTreeUri: treeUri,
-        targetTreeLabel: treeLabel,
-        onProgress: controller.update,
-        isCancelled: () => controller.cancelRequested,
-      );
-    } catch (e) {
-      cancelled = controller.cancelRequested;
-      if (!cancelled) errorMessage = e.toString();
-    }
-
-    controller.complete();
-    await dialogFuture;
-
-    await _load();
-
-    if (!mounted) return;
-    final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
-    if (cancelled) {
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.storageMigrationCancelled)),
-      );
-    } else if (errorMessage != null) {
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.storageMigrationFailed(errorMessage))),
-      );
-    } else {
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.storageMigrationComplete)),
-      );
-    }
-  }
-
-  Future<void> _retryMigration() async {
-    final settings = _settings;
-    if (settings == null) return;
-    final target = AttachmentStorageLocation.fromSettingsValue(
-      settings.attachmentMigrationTarget ?? settings.attachmentStorageLocation,
-    );
-    await _runMigration(
-      target: target,
-      treeUri: settings.attachmentStorageTreeUri,
-      treeLabel: settings.attachmentStorageTreeLabel,
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final settings = _settings;
-    if (settings == null) {
-      return const Padding(
-        padding: EdgeInsets.all(16),
-        child: Center(child: CircularProgressIndicator()),
-      );
-    }
-    final canRetry = settings.attachmentMigrationStatus == 'failed';
-    final l10n = AppLocalizations.of(context);
-
-    return Column(
-      children: [
-        ListTile(
-          key: const Key('settings-attachment-storage-location'),
-          title: Text(l10n.storageLocationTitle),
-          subtitle: Text(_locationLabel(l10n, settings)),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () async {
-            final selection = await showDialog<AttachmentStorageLocation>(
-              context: context,
-              builder: (dialogContext) {
-                final l10n = AppLocalizations.of(dialogContext);
-                return SimpleDialog(
-                  title: Text(l10n.storageLocationDialogTitle),
-                  children: [
-                    SimpleDialogOption(
-                      key: const Key('storage-location-app-private'),
-                      onPressed: () => Navigator.pop(
-                        dialogContext,
-                        AttachmentStorageLocation.appPrivate,
-                      ),
-                      child: Text(l10n.storageAppPrivate),
-                    ),
-                    SimpleDialogOption(
-                      key: const Key('storage-location-sd-card'),
-                      onPressed: () => Navigator.pop(
-                        dialogContext,
-                        AttachmentStorageLocation.sdCard,
-                      ),
-                      child: Text(l10n.storageSdCard),
-                    ),
-                  ],
-                );
-              },
-            );
-            if (selection != null) await _changeLocation(selection);
-          },
-        ),
-        ListTile(
-          key: const Key('settings-migrate-storage'),
-          title: Text(l10n.storageMigrateRow),
-          subtitle: Text(_migrationStatusLabel(l10n, settings)),
-          trailing: canRetry
-              ? TextButton(
-                  key: const Key('settings-migrate-storage-retry'),
-                  onPressed: _retryMigration,
-                  child: Text(l10n.commonRetry),
-                )
-              : null,
-        ),
-        ListTile(
-          key: const Key('settings-storage-usage'),
-          title: Text(l10n.storageUsage),
-          subtitle: Text(
-            _totalBytes == null
-                ? l10n.storageUnknown
-                : _formatBytes(l10n, _totalBytes!),
-          ),
-        ),
-        ListTile(
-          key: const Key('settings-backup-health'),
-          title: Text(l10n.storageBackupHealth),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute<void>(builder: (_) => const BackupHealthScreen()),
-          ),
-        ),
-        ListTile(
-          key: const Key('settings-import-data'),
-          title: Text(l10n.storageImportData),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => _pickImportTarget(context, ref),
-        ),
-        ListTile(
-          key: const Key('settings-export-data'),
-          title: const Text(ExportStrings.exportDataTile),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => _pickExportTarget(context, ref),
-        ),
-        ListTile(
-          key: const Key('settings-open-encrypted-export'),
-          title: Text(l10n.settingsOpenEncryptedExport),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute<void>(
-              builder: (_) => const OpenEncryptedExportScreen(),
-            ),
-          ),
-        ),
-        // Sync has no transport yet — see AppFlavorConfig.enableSyncUi.
-        if (AppFlavorConfig.instance.enableSyncUi)
-          ListTile(
-            key: const Key('settings-sync-health'),
-            title: Text(l10n.storageSyncHealth),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (routeContext) => Scaffold(
-                  appBar: AppBar(
-                    title: Text(
-                      AppLocalizations.of(routeContext).storageSyncHealth,
-                    ),
-                  ),
-                  body: const SyncHealthDashboard(),
-                ),
-              ),
-            ),
-          )
-        else
-          _ComingSoonTile(title: l10n.storageSyncHealth),
-      ],
-    );
-  }
-
-  Future<void> _pickImportTarget(BuildContext context, WidgetRef ref) async {
-    final db = ref.read(appDatabaseProvider);
-    final journals = await db.journalsDao.getAllJournals();
-    if (!context.mounted) return;
-    if (journals.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context).storageImportNeedsJournal),
-        ),
-      );
-      return;
-    }
-
-    final selected = await showDialog<Journal>(
-      context: context,
-      builder: (dialogContext) => SimpleDialog(
-        title: Text(
-          AppLocalizations.of(dialogContext).storageImportChooseJournal,
-        ),
-        children: [
-          for (final j in journals)
-            SimpleDialogOption(
-              key: Key('import-target-journal-${j.id}'),
-              onPressed: () => Navigator.pop(dialogContext, j),
-              child: Text(j.title),
-            ),
-        ],
-      ),
-    );
-    if (selected == null || !context.mounted) return;
-
-    await Navigator.push(
-      context,
-      MaterialPageRoute<void>(
-        builder: (_) =>
-            ImportScreen(journalId: selected.id, journalTitle: selected.title),
-      ),
-    );
-  }
-
-  /// Asks which journal to export from, then opens the export screen.
-  ///
-  /// **Locked journals are not offered here.** The journal detail screen is
-  /// where a lock is opened; a journal the user has not unlocked this session
-  /// must not be exportable from a settings menu that never asked for the
-  /// password. If every journal is locked, the user is told to open one first
-  /// rather than being shown an empty list.
-  Future<void> _pickExportTarget(BuildContext context, WidgetRef ref) async {
-    final db = ref.read(appDatabaseProvider);
-    final journals = await db.journalsDao.getAllJournals();
-    if (!context.mounted) return;
-
-    if (journals.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(ExportStrings.noJournalsToExport)),
-      );
-      return;
-    }
-
-    final unlockedIds = ref.read(_unlockedJournalIdsProvider);
-    final available = journals
-        .where((j) => !j.isLocked || unlockedIds.contains(j.id))
-        .toList();
-
-    if (available.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(ExportStrings.allJournalsLocked)),
-      );
-      return;
-    }
-
-    final selected = await showDialog<Journal>(
-      context: context,
-      builder: (_) => SimpleDialog(
-        title: const Text(ExportStrings.chooseJournalToExport),
-        children: [
-          for (final j in available)
-            SimpleDialogOption(
-              key: Key('export-target-journal-${j.id}'),
-              onPressed: () => Navigator.pop(context, j),
-              child: Text(j.title),
-            ),
-        ],
-      ),
-    );
-    if (selected == null || !context.mounted) return;
-
-    await Navigator.push(
-      context,
-      MaterialPageRoute<void>(
-        builder: (_) =>
-            ExportScreen(journalId: selected.id, journalTitle: selected.title),
-      ),
-    );
-  }
-}
-
-class _MigrationProgressController extends ChangeNotifier {
-  int _processed = 0;
-  int _total = 0;
-  bool _cancelRequested = false;
-  bool _completed = false;
-
-  int get processed => _processed;
-  int get total => _total;
-  bool get cancelRequested => _cancelRequested;
-  bool get completed => _completed;
-
-  void update(int processed, int total) {
-    _processed = processed;
-    _total = total;
-    notifyListeners();
-  }
-
-  void cancel() {
-    if (_cancelRequested) return;
-    _cancelRequested = true;
-    notifyListeners();
-  }
-
-  void complete() {
-    if (_completed) return;
-    _completed = true;
-    notifyListeners();
-  }
-}
-
-class _MigrationProgressDialog extends StatefulWidget {
-  const _MigrationProgressDialog({required this.controller});
-
-  final _MigrationProgressController controller;
-
-  @override
-  State<_MigrationProgressDialog> createState() =>
-      _MigrationProgressDialogState();
-}
-
-class _MigrationProgressDialogState extends State<_MigrationProgressDialog> {
-  @override
-  void initState() {
-    super.initState();
-    widget.controller.addListener(_handleChange);
-  }
-
-  @override
-  void dispose() {
-    widget.controller.removeListener(_handleChange);
-    super.dispose();
-  }
-
-  void _handleChange() {
-    if (!mounted) return;
-    if (widget.controller.completed) {
-      Navigator.of(context).pop();
-    } else {
-      setState(() {});
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final c = widget.controller;
-    final progress = c.total == 0 ? null : c.processed / c.total;
-    return AlertDialog(
-      title: Text(l10n.migrationDialogTitle),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          LinearProgressIndicator(value: progress),
-          const SizedBox(height: 12),
-          Text(
-            c.cancelRequested
-                ? l10n.migrationCancelling
-                : l10n.migrationProgress(
-                    '${c.processed}',
-                    c.total == 0 ? l10n.migrationUnknownTotal : '${c.total}',
-                  ),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          key: const Key('migration-cancel-button'),
-          onPressed: c.cancelRequested ? null : c.cancel,
-          child: Text(l10n.commonCancel),
-        ),
-      ],
-    );
-  }
-}
-
-// ─── Permissions section ──────────────────────────────────────────────────
-
-class _PermissionsSection extends ConsumerStatefulWidget {
-  const _PermissionsSection();
-
-  @override
-  ConsumerState<_PermissionsSection> createState() =>
-      _PermissionsSectionState();
-}
-
-class _PermissionsSectionState extends ConsumerState<_PermissionsSection> {
-  PermissionsSnapshot? _snapshot;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    if (!mounted) return;
-    try {
-      final service = ref.read(appPermissionsServiceProvider);
-      final snapshot = await service.getSnapshot();
-      if (mounted) setState(() => _snapshot = snapshot);
-    } catch (_) {
-      // No permissions service overridden (e.g. some tests). Show "—".
-    }
-  }
-
-  String _summary(AppLocalizations l10n) {
-    final s = _snapshot;
-    if (s == null) return l10n.storageUnknown;
-    final all = [...s.explicitPermissions, ...s.implicitPermissions];
-    final granted = all
-        .where((p) => p.status == AppPermissionState.granted)
-        .length;
-    return l10n.permissionsGrantedSummary(granted, all.length);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Column(
-      children: [
-        ListTile(
-          key: const Key('settings-permissions-status'),
-          title: Text(l10n.permissionStatusRow),
-          subtitle: Text(_summary(l10n)),
-        ),
-        ListTile(
-          key: const Key('settings-manage-permissions'),
-          title: Text(l10n.permissionsManage),
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () async {
-            await Navigator.push(
-              context,
-              MaterialPageRoute<void>(
-                builder: (_) => const PermissionsScreen(),
-              ),
-            );
-            await _load();
-          },
-        ),
-        ListTile(
-          key: const Key('settings-open-system-settings'),
-          title: Text(l10n.permissionsOpenSystem),
-          trailing: const Icon(Icons.open_in_new),
-          onTap: () async {
-            try {
-              await ref
-                  .read(appPermissionsServiceProvider)
-                  .openSystemSettings();
-            } catch (_) {
-              /* permissions service not available */
-            }
-          },
         ),
       ],
     );
@@ -3324,7 +2139,7 @@ class _SearchTabState extends ConsumerState<_SearchTab> {
     setState(() => _query = trimmed);
 
     final db = ref.read(appDatabaseProvider);
-    final unlockedIds = ref.read(_unlockedJournalIdsProvider);
+    final unlockedIds = ref.read(unlockedJournalIdsProvider);
 
     final allJournals = await db.journalsDao.getAllJournals();
     final journalMap = {for (final j in allJournals) j.id: j};
@@ -3508,46 +2323,6 @@ class _SearchTabState extends ConsumerState<_SearchTab> {
               ],
             ),
           ),
-      ],
-    );
-  }
-}
-
-class _EntryTemplateChooserDialog extends StatelessWidget {
-  const _EntryTemplateChooserDialog();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final grouped = entryTemplatesByCategory;
-    // SimpleDialog already wraps `children` in a SingleChildScrollView, so the
-    // (now long) list scrolls without any custom sizing.
-    return SimpleDialog(
-      key: const Key('entry-template-chooser'),
-      title: Text(AppLocalizations.of(context).templateChooserTitle),
-      children: [
-        for (final entry in grouped.entries) ...[
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 12, 24, 4),
-            child: Text(
-              entry.key.label,
-              style: theme.textTheme.labelLarge?.copyWith(
-                color: theme.colorScheme.primary,
-              ),
-            ),
-          ),
-          for (final template in entry.value)
-            SimpleDialogOption(
-              key: Key('entry-template-${template.id.name}'),
-              onPressed: () => Navigator.pop(context, template),
-              child: ListTile(
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-                title: Text(template.label),
-                subtitle: Text(template.description),
-              ),
-            ),
-        ],
       ],
     );
   }

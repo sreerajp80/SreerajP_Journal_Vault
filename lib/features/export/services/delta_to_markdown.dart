@@ -70,6 +70,14 @@ String renderMarkdown(
         previousStyle = null;
         previousIndent = 0;
 
+      case DrawingBlock():
+        buffer.writeln();
+        buffer.writeln(
+          _renderDrawing(block, linkableImageIds.contains(block.attachmentId)),
+        );
+        previousStyle = null;
+        previousIndent = 0;
+
       case UnknownEmbedBlock():
         // Named rather than dropped, so the export is honest that something
         // was here that this build could not write out.
@@ -260,6 +268,16 @@ String _renderImage(ImageBlock block, bool linkToAttachments) {
       'attachments/${exportAttachmentFileName(block.attachmentId, block.fileName)}';
   // The alt text is escaped; the path is not — it went through safeFileName,
   // which has already removed everything that could break the link.
+  return '![${_escapeMarkdown(label)}]($path)';
+}
+
+/// Renders an inline drawing, as a real Markdown image when its file came along.
+String _renderDrawing(DrawingBlock block, bool linkToAttachments) {
+  final label = block.fileName.isEmpty ? 'Drawing' : block.fileName;
+  if (!linkToAttachments) return '_[Drawing: ${_escapeMarkdown(label)}]_';
+
+  final path =
+      'attachments/${exportAttachmentFileName(block.attachmentId, block.fileName)}';
   return '![${_escapeMarkdown(label)}]($path)';
 }
 

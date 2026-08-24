@@ -326,6 +326,7 @@ class BackupService {
     // and version 1 archives silently lost them.
     final entryMoods = await _db.select(_db.entryMoods).get();
     final searchPresets = await _db.select(_db.searchPresets).get();
+    final timeCapsules = await _db.select(_db.timeCapsules).get();
 
     return {
       'journals': journals
@@ -465,6 +466,24 @@ class BackupService {
               'resultType': s.resultType,
               'createdAt': s.createdAt.toIso8601String(),
               'updatedAt': s.updatedAt.toIso8601String(),
+            },
+          )
+          .toList(),
+      'timeCapsules': timeCapsules
+          .map(
+            (tc) => {
+              'id': tc.id,
+              'entryId': tc.entryId,
+              'unlockDate': tc.unlockDate.toIso8601String(),
+              'sealedAt': tc.sealedAt.toIso8601String(),
+              'isOpened': tc.isOpened,
+              'openedAt': tc.openedAt?.toIso8601String(),
+              'sealedCiphertext': tc.sealedCiphertext,
+              'ivBase64': tc.ivBase64,
+              'macBase64': tc.macBase64,
+              'sealedKeyCiphertext': tc.sealedKeyCiphertext,
+              'teaserMessage': tc.teaserMessage,
+              'createdAt': tc.createdAt.toIso8601String(),
             },
           )
           .toList(),

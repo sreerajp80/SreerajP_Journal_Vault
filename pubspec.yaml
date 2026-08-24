@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.2.1+4
+version: 1.5.1+8
 
 environment:
   sdk: ^3.12.2
@@ -55,28 +55,14 @@ dependencies:
   flutter_quill: ^11.5.0
   file_picker: ^11.0.2
   cryptography: ^2.7.0
+  crypto: ^3.0.6
   mime: ^2.0.0
   open_filex: ^4.7.0
   archive: ^4.0.7
   shared_preferences: ^2.5.3
-  # Held at 33.x: 34.x requires device_info_plus ^13.1.0, which pulls win32 ^6
-  # and collides with file_picker (win32 ^5). See the note on the plus packages.
-  syncfusion_flutter_pdfviewer: ^33.2.13
+  pdfrx: ^2.4.7
   just_audio: ^0.10.5
   permission_handler: ^12.0.1
-  # Held at 9.x / 12.x on purpose — win32 conflict, 2026-07-25.
-  #
-  # package_info_plus 10, device_info_plus 13 and syncfusion_flutter_pdfviewer
-  # 34 all require win32 ^6 (syncfusion via device_info_plus). Every stable
-  # file_picker (<= 11.x) requires win32 ^5, so the two groups cannot resolve
-  # together. win32 only affects the Windows target, which this app does not
-  # support, but pub resolves for all platforms regardless.
-  #
-  # file_picker won the tie: 11.0.2 fixes an Android path-traversal issue
-  # (CWE-22) on the attachment import path, which matters to this app; the held
-  # packages only supply version strings, an SDK-int check, and PDF rendering.
-  # Revisit when file_picker 12 leaves beta — it moves to win32 ^6 and the
-  # conflict disappears.
   package_info_plus: ^9.0.0
   device_info_plus: ^12.1.0
   table_calendar: ^3.2.0
@@ -86,6 +72,11 @@ dependencies:
   local_auth: ^3.0.2
   local_auth_android: ^2.0.9
   logger: ^2.4.0
+  image_picker: ^1.2.3
+  image_cropper: ^12.2.1
+  google_mlkit_text_recognition: ^0.17.1
+  qr_flutter: ^4.1.0
+  mobile_scanner: ^7.2.0
 
 dev_dependencies:
   flutter_test:

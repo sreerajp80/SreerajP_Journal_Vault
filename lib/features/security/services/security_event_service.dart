@@ -126,6 +126,40 @@ class SecurityEventService {
     return tamperCount;
   }
 
+  /// Performs an integrity check across all journals and entries in the vault.
+  Future<VaultIntegrityReport> runVaultIntegrityCheck() async {
+    final journals = await _db.journalsDao.getAllJournals();
+    int totalEntries = 0;
+    int totalIssues = 0;
+
+    for (final journal in journals) {
+      final entries = await _db.entriesDao.getEntriesForJournal(journal.id);
+      totalEntries += entries.length;
+      for (final entry in entries) {
+        final isOk = await checkEntryIntegrity(entry.id);
+        if (!isOk) totalIssues++;
+      }
+    }
+
+    if (totalIssues > 0) {
+      await logEvent(
+        eventType: 'tamper_detected',
+        severity: 'critical',
+        description:
+            'Vault integrity scan found $totalIssues issue(s) across $totalEntries entries in ${journals.length} journals',
+        metadata:
+            '{"scannedJournals": ${journals.length}, "scannedEntries": $totalEntries, "tamperIssues": $totalIssues}',
+      );
+    }
+
+    return VaultIntegrityReport(
+      scannedJournals: journals.length,
+      scannedEntries: totalEntries,
+      tamperIssues: totalIssues,
+      checkedAt: DateTime.now(),
+    );
+  }
+
   /// Returns recent security events.
   Future<List<SecurityEvent>> getRecentEvents({int limit = 50}) =>
       _db.securityEventsDao.getRecentEvents(limit: limit);
@@ -144,6 +178,10 @@ class SecurityEventService {
   Stream<List<SecurityEvent>> watchRecentEvents({int limit = 50}) =>
       _db.securityEventsDao.watchRecentEvents(limit: limit);
 
+  /// Watches tamper-detected security events.
+  Stream<List<SecurityEvent>> watchTamperEvents({int limit = 50}) =>
+      _db.securityEventsDao.watchEventsByType('tamper_detected', limit: limit);
+
   /// Returns the count of events since a given date.
   Future<int> getEventCountSince(DateTime since) =>
       _db.securityEventsDao.getEventCountSince(since);
@@ -151,4 +189,21 @@ class SecurityEventService {
   /// Cleans up old events, keeping the most recent.
   Future<void> pruneOldEvents({int keepCount = 500}) =>
       _db.securityEventsDao.deleteOldEvents(keepCount: keepCount);
+}
+
+/// Summary report of a full vault integrity verification scan.
+class VaultIntegrityReport {
+  const VaultIntegrityReport({
+    required this.scannedJournals,
+    required this.scannedEntries,
+    required this.tamperIssues,
+    required this.checkedAt,
+  });
+
+  final int scannedJournals;
+  final int scannedEntries;
+  final int tamperIssues;
+  final DateTime checkedAt;
+
+  bool get isClean => tamperIssues == 0;
 }

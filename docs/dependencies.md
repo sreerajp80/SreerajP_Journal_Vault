@@ -73,8 +73,11 @@ section 7.
 | `flutter_quill` | The rich-text entry editor and its Delta document format | `lib/features/entries/presentation/editor/` |
 | `record` | Voice note recording | `lib/features/entries/services/voice_note_service.dart` |
 | `speech_to_text` | Dictation into the editor | `lib/features/entries/` |
+| `image_picker` | Camera photo capture and gallery image selection for OCR | `lib/features/entries/presentation/entry_editor_screen.dart` |
+| `image_cropper` | Crop-and-rotate UI before OCR scanning, wraps Android uCrop (offline) | `lib/features/entries/services/image_edit_service.dart` |
+| `google_mlkit_text_recognition` | On-device, 100% offline OCR text extraction from images | `lib/features/entries/services/ocr_service.dart` |
 | `just_audio` | In-app audio attachment playback | `lib/features/attachments/presentation/audio_attachment_view.dart` |
-| `syncfusion_flutter_pdfviewer` | In-app PDF attachment viewing | `.../pdf_attachment_view.dart` |
+| `pdfrx` | In-app PDF attachment viewing (PDFium-based, open source) | `.../pdf_attachment_view.dart` |
 | `table_calendar` | The timeline calendar view | `lib/features/timeline/` |
 
 ### Files, attachments and export
@@ -128,14 +131,13 @@ Never edit a generated file by hand. The same rule applies to the localization o
 
 ### The `win32` knot (recorded 2026-07-25)
 
-`package_info_plus` 10, `device_info_plus` 13, and `syncfusion_flutter_pdfviewer` 34 all need
-`win32` version 6 (Syncfusion pulls it through `device_info_plus`). Every stable `file_picker`
+`package_info_plus` 10 and `device_info_plus` 13 need `win32` version 6. Every stable `file_picker`
 up to 11.x needs `win32` version 5. The two groups cannot resolve together. `win32` only affects
 the Windows target, which this app does not support, but pub resolves for every platform anyway.
 
 **`file_picker` won.** Version 11.0.2 fixes an Android path-traversal issue (CWE-22) on the
-attachment import path, which matters directly to this app. The three held packages only supply
-version strings, an SDK-int check, and PDF rendering.
+attachment import path, which matters directly to this app. The held packages only supply
+version strings and an SDK-int check.
 
 So these are pinned on purpose:
 
@@ -143,7 +145,6 @@ So these are pinned on purpose:
 |---|---|---|
 | `package_info_plus` | `^9.0.0` | 10.x needs `win32` 6 |
 | `device_info_plus` | `^12.1.0` | 13.x needs `win32` 6 |
-| `syncfusion_flutter_pdfviewer` | `^33.2.13` | 34.x needs `device_info_plus` 13 |
 
 **Revisit when `file_picker` 12 leaves beta.** It moves to `win32` 6 and the conflict disappears.
 

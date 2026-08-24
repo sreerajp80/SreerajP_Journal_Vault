@@ -105,14 +105,14 @@ class ExportCollector {
         ? await _attachmentsFor(entry.id)
         : const <ExportAttachmentRef>[];
 
-    // Images sitting in the writing are collected whether or not attachments
-    // were asked for, because the HTML and PDF exports draw them into the page
-    // itself. Nothing is read here beyond what is already needed to decrypt
-    // them, and a locked one is still refused later by ExportService.
-    final imageIds = blocks
-        .whereType<ImageBlock>()
-        .map((block) => block.attachmentId)
-        .toSet();
+    // Images and drawings sitting in the writing are collected whether or not
+    // attachments were asked for, because the HTML and PDF exports draw them
+    // into the page itself. Nothing is read here beyond what is already needed
+    // to decrypt them, and a locked one is still refused later by ExportService.
+    final imageIds = {
+      ...blocks.whereType<ImageBlock>().map((block) => block.attachmentId),
+      ...blocks.whereType<DrawingBlock>().map((block) => block.attachmentId),
+    };
     final inlineImages = imageIds.isEmpty
         ? const <ExportAttachmentRef>[]
         : (attachments.isNotEmpty

@@ -132,6 +132,24 @@ class ImageBlock extends ExportBlock {
   String toString() => 'ImageBlock($attachmentId, "$fileName")';
 }
 
+/// A sketch / handwriting drawing embedded in the entry.
+///
+/// See `drawing_embed.dart` — stored as `{attachmentId, fileName, widthFactor, strokeJson}`.
+class DrawingBlock extends ExportBlock {
+  const DrawingBlock({
+    required this.attachmentId,
+    required this.fileName,
+    this.strokeJson,
+  });
+
+  final int attachmentId;
+  final String fileName;
+  final String? strokeJson;
+
+  @override
+  String toString() => 'DrawingBlock($attachmentId, "$fileName")';
+}
+
 /// An embed this app does not know how to render.
 ///
 /// Kept rather than dropped, so an export is honest about there having been
@@ -347,6 +365,10 @@ ExportBlock? _embedBlock(Map<dynamic, dynamic> insert) {
     case 'vault_image':
       final image = _image(data);
       return image ?? const UnknownEmbedBlock('vault_image');
+    case 'drawing':
+    case 'vault_drawing':
+      final drawing = _drawing(data);
+      return drawing ?? UnknownEmbedBlock(type);
     default:
       return UnknownEmbedBlock(type);
   }
@@ -383,6 +405,25 @@ ImageBlock? _image(Object? data) {
     return ImageBlock(
       attachmentId: id,
       fileName: decoded['fileName']?.toString() ?? '',
+    );
+  } on FormatException {
+    return null;
+  }
+}
+
+/// Reads a drawing embed's `{attachmentId, fileName, strokeJson}`. Null when unusable.
+DrawingBlock? _drawing(Object? data) {
+  if (data is! String) return null;
+  try {
+    final decoded = jsonDecode(data);
+    if (decoded is! Map) return null;
+    final rawId = decoded['attachmentId'];
+    final id = rawId is int ? rawId : int.tryParse('$rawId');
+    if (id == null || id <= 0) return null;
+    return DrawingBlock(
+      attachmentId: id,
+      fileName: decoded['fileName']?.toString() ?? '',
+      strokeJson: decoded['strokeJson']?.toString(),
     );
   } on FormatException {
     return null;

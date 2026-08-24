@@ -199,7 +199,7 @@ and cover the Flutter engine, this app's method channels, `androidx.documentfile
 classes, plus `-dontwarn com.google.android.play.core.**`.
 
 > **Not yet runtime-verified.** R8 has never run against this app on a device. Plugins with
-> native code (`syncfusion_flutter_pdfviewer`, `just_audio`, `record`, `speech_to_text`,
+> native code (`pdfrx`, `just_audio`, `record`, `speech_to_text`,
 > `local_auth`, `permission_handler`, `file_picker`) could still fail with
 > `ClassNotFoundException` in a release build. See the smoke-test list in
 > [`release_process.md`](release_process.md).
@@ -279,13 +279,14 @@ two; the rest arrive transitively from plugins.
 | `READ_MEDIA_IMAGES` / `_VIDEO` / `_AUDIO` | `file_picker` | Attachment import on API 33+ | As above |
 | `RECORD_AUDIO` | `record` | Voice notes | Voice notes unavailable; rest of app works |
 | `USE_FINGERPRINT` | `local_auth` | Legacy biometric API | Falls back |
-| `ACCESS_NETWORK_STATE` | plugin (transitive) | **Not used by this app** | n/a |
-| `WAKE_LOCK` | plugin (transitive) | **Not used by this app** | n/a |
+| `ACCESS_NETWORK_STATE` | plugin (transitive) | **Removed** (`tools:node="remove"`) | n/a |
+| `WAKE_LOCK` | plugin (transitive) | **Removed** (`tools:node="remove"`) | n/a |
+| `INTERNET` | plugin (transitive) / dev | **Removed in prod** (`tools:node="remove"`) | Blocked / Offline guarantee |
 | `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | Flutter/androidx | Internal broadcast safety | n/a |
 
-> **Open item.** `ACCESS_NETWORK_STATE` and `WAKE_LOCK` are not used by any app code. The
-> standard says to remove permissions the app does not use. They come from plugin manifests, so
-> removing them needs `tools:node="remove"` entries. See section 17.
+> **Hardened 2026-08-23 (A5.3).** `INTERNET`, `ACCESS_NETWORK_STATE`, and `WAKE_LOCK` are explicitly
+> removed via `tools:node="remove"` in `android/app/src/main/AndroidManifest.xml` and guarded by
+> automated tests and `tool/check_no_internet_permission.sh` in CI.
 
 Rules followed: dangerous permissions are requested at the point of use with a rationale, never
 at startup; the app degrades gracefully when one is denied; there is a Permissions screen showing
@@ -565,7 +566,9 @@ are open.
    A plain export is still offered, and still warned about.
 
 10. **Two unused permissions** (`ACCESS_NETWORK_STATE`, `WAKE_LOCK`) arrive transitively and are
-   not stripped.
+    not stripped.
+    *Hardening:* **done 2026-08-23 (A5.3)** — `tools:node="remove"` explicitly strips
+    `INTERNET`, `ACCESS_NETWORK_STATE`, and `WAKE_LOCK` from production builds, guarded by CI.
 
 11. **No retention caps** on entry revisions, security events, or sync logs. Unbounded growth in
    tables that hold user-derived data.

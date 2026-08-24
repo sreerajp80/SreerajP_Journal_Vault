@@ -53,6 +53,9 @@ void main() {
       'security_events',
       'entry_moods',
     ],
+    9: ['user_templates'],
+    10: ['time_capsules'],
+    11: ['user_ritual_cards'],
   };
 
   const v7Columns = [
@@ -258,13 +261,31 @@ void main() {
       await db.close();
     });
 
-    test('reports schema version 8 after upgrading', () async {
+    test('v8 -> v9 creates user_templates table', () async {
+      await rewindTo(8);
+
+      final db = openDb();
+      expect(await tableExists(db, 'user_templates'), isTrue);
+
+      await db.close();
+    });
+
+    test('v10 -> v11 creates user_ritual_cards table', () async {
+      await rewindTo(10);
+
+      final db = openDb();
+      expect(await tableExists(db, 'user_ritual_cards'), isTrue);
+
+      await db.close();
+    });
+
+    test('reports schema version 11 after upgrading', () async {
       await rewindTo(1);
 
       final db = openDb();
       final rows = await db.customSelect('PRAGMA user_version').get();
 
-      expect(rows.single.read<int>('user_version'), 8);
+      expect(rows.single.read<int>('user_version'), 11);
 
       await db.close();
     });

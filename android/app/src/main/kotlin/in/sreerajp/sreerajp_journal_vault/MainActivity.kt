@@ -1,9 +1,12 @@
 package `in`.sreerajp.sreerajp_journal_vault
 
 import android.app.Activity
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.print.JvHtmlToPdf
 import android.security.keystore.KeyGenParameterSpec
@@ -11,6 +14,7 @@ import android.security.keystore.KeyProperties
 import android.util.Base64
 import android.view.WindowManager
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.app.NotificationCompat
 import androidx.documentfile.provider.DocumentFile
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -31,6 +35,8 @@ import kotlin.random.Random
 
 class MainActivity : FlutterFragmentActivity() {
     private var pendingStorageTreeResult: MethodChannel.Result? = null
+    private var shareChannel: MethodChannel? = null
+    private var pendingSharePayload: Map<String, Any?>? = null
 
     private val storageTreePicker = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
@@ -79,6 +85,20 @@ class MainActivity : FlutterFragmentActivity() {
         // own SharedPreferences so it can be read here, before the first frame is
         // drawn. A missing or unreadable value means protected.
         applyScreenSecurity(isScreenSecurityEnabled(applicationContext))
+
+        pendingSharePayload = extractSharePayload(applicationContext, intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val payload = extractSharePayload(applicationContext, intent)
+        pendingSharePayload = payload
+        if (payload != null) {
+            runOnUiThread {
+                shareChannel?.invokeMethod("onShareReceived", payload)
+            }
+        }
     }
 
     /** Sets or clears FLAG_SECURE on this window. Must run on the UI thread. */
@@ -482,6 +502,79 @@ class MainActivity : FlutterFragmentActivity() {
                     }
                 }
 
+                else -> result.notImplemented()
+            }
+        }
+
+        shareChannel = MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            SHARE_INTENT_CHANNEL,
+        ).apply {
+            setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "getInitialShare" -> {
+                        val payload = pendingSharePayload
+                        pendingSharePayload = null
+                        result.success(payload)
+                    }
+                    "clearPendingShare" -> {
+                        pendingSharePayload = null
+                        result.success(null)
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+        }
+
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            NOTIFICATIONS_CHANNEL,
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "showNotification" -> {
+                    val id = call.argument<Int>("id") ?: 1
+                    val title = call.argument<String>("title") ?: "Time Capsule"
+                    val message = call.argument<String>("message") ?: ""
+                    val channelId = call.argument<String>("channelId") ?: "time_capsules"
+                    val channelName = call.argument<String>("channelName") ?: "Time Capsules"
+
+                    try {
+                        val notificationManager =
+                            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            val channel = NotificationChannel(
+                                channelId,
+                                channelName,
+                                NotificationManager.IMPORTANCE_DEFAULT,
+                            )
+                            notificationManager.createNotificationChannel(channel)
+                        }
+
+                        val builder = NotificationCompat.Builder(this, channelId)
+                            .setSmallIcon(R.mipmap.ic_launcher)
+                            .setContentTitle(title)
+                            .setContentText(message)
+                            .setAutoCancel(true)
+                            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+
+                        notificationManager.notify(id, builder.build())
+                        result.success(null)
+                    } catch (e: Exception) {
+                        result.error("notification_error", e.message, null)
+                    }
+                }
+                "cancelNotification" -> {
+                    val id = call.argument<Int>("id") ?: 1
+                    try {
+                        val notificationManager =
+                            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                        notificationManager.cancel(id)
+                        result.success(null)
+                    } catch (e: Exception) {
+                        result.error("notification_error", e.message, null)
+                    }
+                }
                 else -> result.notImplemented()
             }
         }
@@ -907,9 +1000,134 @@ private const val DATABASE_WRAPPING_KEY_ALIAS = "sreerajp_journal_vault_database
 private const val RUNTIME_ENVIRONMENT_CHANNEL = "sreerajp.journal_vault/runtime_environment"
 private const val HTML_PDF_CHANNEL = "sreerajp.journal_vault/html_pdf"
 private const val SCREEN_SECURITY_CHANNEL = "sreerajp.journal_vault/screen_security"
+private const val SHARE_INTENT_CHANNEL = "sreerajp.journal_vault/share_intent"
+private const val NOTIFICATIONS_CHANNEL = "sreerajp.journal_vault/notifications"
 private const val SCREEN_SECURITY_PREFS = "screen_security"
 private const val SCREEN_SECURITY_KEY_ENABLED = "enabled"
 private const val ANDROID_KEY_STORE = "AndroidKeyStore"
 private const val AES_MODE = "AES/GCM/NoPadding"
 private const val ATTACHMENT_MIGRATION_TEMP_SUFFIX = ".migrating"
 private const val DEFAULT_STREAM_BUFFER_SIZE = 64 * 1024
+
+private fun extractSharePayload(context: Context, intent: Intent?): Map<String, Any?>? {
+    if (intent == null) return null
+    val action = intent.action ?: return null
+
+    when (action) {
+        Intent.ACTION_SEND -> {
+            val text = intent.getStringExtra(Intent.EXTRA_TEXT)
+            val subject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
+            val streamUri = if (android.os.Build.VERSION.SDK_INT >= 33) {
+                intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
+            }
+
+            val mediaItems = mutableListOf<Map<String, Any?>>()
+            if (streamUri != null) {
+                val item = resolveMediaItem(context, streamUri)
+                if (item != null) mediaItems.add(item)
+            }
+
+            if (text.isNullOrBlank() && subject.isNullOrBlank() && mediaItems.isEmpty()) {
+                return null
+            }
+
+            val type = when {
+                mediaItems.any {
+                    val fn = (it["fileName"] as? String)?.lowercase() ?: ""
+                    fn.endsWith(".jvenc") || fn.endsWith(".jvbk")
+                } -> "sealedFile"
+                mediaItems.isNotEmpty() -> "media"
+                else -> "text"
+            }
+
+            return mapOf(
+                "type" to type,
+                "text" to text,
+                "subject" to subject,
+                "mediaItems" to mediaItems,
+            )
+        }
+        Intent.ACTION_SEND_MULTIPLE -> {
+            val text = intent.getStringExtra(Intent.EXTRA_TEXT)
+            val subject = intent.getStringExtra(Intent.EXTRA_SUBJECT)
+            val streamUris = if (android.os.Build.VERSION.SDK_INT >= 33) {
+                intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                intent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)
+            }
+
+            val mediaItems = mutableListOf<Map<String, Any?>>()
+            streamUris?.forEach { uri ->
+                val item = resolveMediaItem(context, uri)
+                if (item != null) mediaItems.add(item)
+            }
+
+            if (text.isNullOrBlank() && subject.isNullOrBlank() && mediaItems.isEmpty()) {
+                return null
+            }
+
+            return mapOf(
+                "type" to "media",
+                "text" to text,
+                "subject" to subject,
+                "mediaItems" to mediaItems,
+            )
+        }
+        Intent.ACTION_VIEW -> {
+            val dataUri = intent.data ?: return null
+            val item = resolveMediaItem(context, dataUri) ?: return null
+            return mapOf(
+                "type" to "sealedFile",
+                "text" to null,
+                "subject" to null,
+                "mediaItems" to listOf(item),
+            )
+        }
+        else -> return null
+    }
+}
+
+private fun resolveMediaItem(context: Context, uri: Uri): Map<String, Any?>? {
+    try {
+        var fileName: String? = null
+        val contextResolver = context.contentResolver
+
+        if (uri.scheme == "content") {
+            val cursor = contextResolver.query(
+                uri,
+                arrayOf(android.provider.OpenableColumns.DISPLAY_NAME),
+                null,
+                null,
+                null,
+            )
+            cursor?.use {
+                if (it.moveToFirst()) {
+                    val nameIndex = it.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME)
+                    if (nameIndex != -1) {
+                        fileName = it.getString(nameIndex)
+                    }
+                }
+            }
+        }
+        if (fileName.isNullOrBlank()) {
+            fileName = uri.lastPathSegment ?: "shared_attachment"
+        }
+
+        val mimeType = contextResolver.getType(uri) ?: "application/octet-stream"
+        val bytes = contextResolver.openInputStream(uri)?.use { it.readBytes() } ?: return null
+
+        return mapOf(
+            "fileName" to fileName,
+            "mimeType" to mimeType,
+            "bytesBase64" to Base64.encodeToString(bytes, Base64.NO_WRAP),
+        )
+    } catch (_: Exception) {
+        return null
+    }
+}
+
+

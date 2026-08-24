@@ -6,7 +6,9 @@ import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
+import 'package:sreerajp_journal_vault/core/theme/typography_controller.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/callout_embed.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/editor/drawing_embed.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/image_embed.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/inline_image_store.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/table_embed.dart';
@@ -43,11 +45,11 @@ class VersionHistoryScreen extends ConsumerWidget {
             Center(child: Text(l10n.versionHistoryLoadFailed(e.toString()))),
         data: (revisions) {
           if (revisions.isEmpty) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(32),
+                padding: const EdgeInsets.all(32),
                 child: Text(
-                  'No previous versions yet.\n\nVersions are saved automatically when you edit an entry.',
+                  l10n.versionHistoryEmpty,
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -225,6 +227,7 @@ class _RevisionPreviewScreenState
       TableEmbedBuilder(),
       CalloutEmbedBuilder(),
       VaultImageEmbedBuilder(store: _imageStore),
+      DrawingEmbedBuilder(store: _imageStore),
     ];
   }
 
@@ -257,6 +260,23 @@ class _RevisionPreviewScreenState
     final title = widget.revision.title?.isNotEmpty == true
         ? widget.revision.title!
         : 'Untitled';
+    final typography = ref.watch(typographyProvider);
+    final theme = Theme.of(context);
+    final baseStyles = DefaultStyles.getInstance(context);
+    final entryBodyStyle = typography.toTextStyle(
+      color: theme.colorScheme.onSurface,
+    );
+    final customStyles = baseStyles.merge(
+      DefaultStyles(
+        paragraph: DefaultTextBlockStyle(
+          entryBodyStyle,
+          const HorizontalSpacing(0, 0),
+          const VerticalSpacing(0, 6),
+          const VerticalSpacing(0, 0),
+          null,
+        ),
+      ),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -264,9 +284,15 @@ class _RevisionPreviewScreenState
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: QuillEditor.basic(
-          controller: _controller,
-          config: QuillEditorConfig(embedBuilders: _embedBuilders),
+        child: DefaultTextStyle(
+          style: entryBodyStyle,
+          child: QuillEditor.basic(
+            controller: _controller,
+            config: QuillEditorConfig(
+              embedBuilders: _embedBuilders,
+              customStyles: customStyles,
+            ),
+          ),
         ),
       ),
     );

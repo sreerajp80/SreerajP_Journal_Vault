@@ -451,6 +451,18 @@ class BackupRestoreService {
     );
 
     await planTable(
+      table: 'timeCapsules',
+      existingKeys: () async {
+        final rows = await _db.select(_db.timeCapsules).get();
+        return {for (final tc in rows) '${tc.entryId}': tc.id};
+      },
+      keyOf: (row) {
+        final entryId = plan.mappedId('entries', _asInt(row['entryId']));
+        return entryId?.toString();
+      },
+    );
+
+    await planTable(
       table: 'journalTags',
       existingKeys: () async {
         final rows = await _db.select(_db.journalTags).get();
@@ -864,6 +876,34 @@ class BackupRestoreService {
             );
       },
     );
+
+    await insertTable(
+      table: 'timeCapsules',
+      insert: (row) async {
+        final entryId = plan.mappedId('entries', _asInt(row['entryId']));
+        if (entryId == null) return null;
+        return _db
+            .into(_db.timeCapsules)
+            .insert(
+              TimeCapsulesCompanion.insert(
+                entryId: entryId,
+                unlockDate: _dateValue(row['unlockDate']).value,
+                sealedAt: _dateValue(row['sealedAt']),
+                isOpened: Value((row['isOpened'] as bool?) ?? false),
+                openedAt: _nullableDateValue(row['openedAt']),
+                sealedCiphertext: (row['sealedCiphertext'] as String?) ?? '',
+                ivBase64: (row['ivBase64'] as String?) ?? '',
+                macBase64: (row['macBase64'] as String?) ?? '',
+                sealedKeyCiphertext: Value(
+                  row['sealedKeyCiphertext'] as String?,
+                ),
+                teaserMessage: Value(row['teaserMessage'] as String?),
+                createdAt: _dateValue(row['createdAt']),
+              ),
+              mode: InsertMode.insertOrIgnore,
+            );
+      },
+    );
   }
 
   // ───────────────────────── database helpers ─────────────────────────
@@ -871,6 +911,7 @@ class BackupRestoreService {
   /// Deletes user data in an order that respects foreign keys.
   Future<void> _clearUserData() async {
     await _db.delete(_db.syncMetadata).go();
+    await _db.delete(_db.timeCapsules).go();
     await _db.delete(_db.entryMoods).go();
     await _db.delete(_db.backlinks).go();
     await _db.delete(_db.entryRevisions).go();

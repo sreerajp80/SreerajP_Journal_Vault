@@ -42,17 +42,21 @@ typedef SealedFileSaver =
 class OpenEncryptedExportScreen extends StatefulWidget {
   const OpenEncryptedExportScreen({
     super.key,
-    this._envelope,
-    this._picker,
-    this._saver,
+    this.initialFile,
+    this.envelope,
+    this.picker,
+    this.saver,
   });
+
+  /// Optional pre-loaded sealed file (e.g. from inbound share/view intent).
+  final PickedSealedFile? initialFile;
 
   /// All three are injectable only so a widget test can run without the system
   /// dialogs and without real Argon2id, which takes seconds per call.
   /// Production passes none of them.
-  final VaultEnvelope? _envelope;
-  final SealedFilePicker? _picker;
-  final SealedFileSaver? _saver;
+  final VaultEnvelope? envelope;
+  final SealedFilePicker? picker;
+  final SealedFileSaver? saver;
 
   @override
   State<OpenEncryptedExportScreen> createState() =>
@@ -62,13 +66,13 @@ class OpenEncryptedExportScreen extends StatefulWidget {
 class _OpenEncryptedExportScreenState extends State<OpenEncryptedExportScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
-  late final VaultEnvelope _envelope = widget._envelope ?? VaultEnvelope();
-  late final SealedFilePicker _picker = widget._picker ?? _pickWithSystem;
-  late final SealedFileSaver _saver = widget._saver ?? _saveWithSystem;
+  late final VaultEnvelope _envelope = widget.envelope ?? VaultEnvelope();
+  late final SealedFilePicker _picker = widget.picker ?? _pickWithSystem;
+  late final SealedFileSaver _saver = widget.saver ?? _saveWithSystem;
 
   /// The chosen file, held in memory. Nothing is written until the password
   /// has opened it.
-  PickedSealedFile? _chosen;
+  late PickedSealedFile? _chosen = widget.initialFile;
 
   bool _busy = false;
   String? _error;

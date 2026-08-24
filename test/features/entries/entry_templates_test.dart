@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/features/entries/templates/entry_templates.dart';
 
 void main() {
@@ -69,5 +70,50 @@ void main() {
     final blank = templateFor(EntryTemplateId.blank);
     expect(blank.contentJson, '[]');
     expect(blank.defaultTitle, '');
+  });
+
+  test(
+    'domain-specific and topic templates are present with structured content',
+    () {
+      final domainTemplates = <EntryTemplateId>[
+        EntryTemplateId.topicDeepDive,
+        EntryTemplateId.sysadminRunbook,
+        EntryTemplateId.sanathanaDharmaStudy,
+        EntryTemplateId.diyProject,
+        EntryTemplateId.homeMaintenance,
+        EntryTemplateId.kitchenRecipe,
+      ];
+
+      for (final id in domainTemplates) {
+        final template = templateFor(id);
+        expect(template.id, id);
+        expect(template.defaultTitle.isNotEmpty, isTrue);
+        expect(template.description.isNotEmpty, isTrue);
+        expect(template.contentJson.length > 2, isTrue);
+        expect(validateTemplateJson(template), isTrue);
+      }
+    },
+  );
+
+  test('EntryTemplate.fromUserTemplate correctly wraps UserTemplate', () {
+    final ut = UserTemplate(
+      id: 99,
+      name: 'Custom Journaling',
+      description: 'A custom prompt layout',
+      defaultTitle: 'My Title {{today}}',
+      contentJson: '[{"insert":"Hello\\n"}]',
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+
+    final t = EntryTemplate.fromUserTemplate(ut);
+    expect(t.isCustom, isTrue);
+    expect(t.customId, 99);
+    expect(t.category, EntryTemplateCategory.custom);
+    expect(t.label, 'Custom Journaling');
+    expect(t.description, 'A custom prompt layout');
+    expect(t.defaultTitle, 'My Title {{today}}');
+    expect(t.contentJson, '[{"insert":"Hello\\n"}]');
+    expect(validateTemplateJson(t), isTrue);
   });
 }

@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
+
+import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 /// Playback surface used by [AudioAttachmentView].
 ///
@@ -152,29 +155,25 @@ class _AudioAttachmentViewState extends State<AudioAttachmentView>
       );
     }
 
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final total = _duration ?? Duration.zero;
-    final maxMs = total.inMilliseconds.toDouble();
-    final valueMs = _position.inMilliseconds.clamp(0, total.inMilliseconds);
 
     return Padding(
       key: const Key('audio-attachment-player'),
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(vertical: 24),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.audiotrack,
-            size: 72,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-          const SizedBox(height: 24),
+          Icon(Icons.audiotrack, size: 64, color: theme.colorScheme.primary),
+          const SizedBox(height: 16),
           Slider(
             key: const Key('audio-attachment-seek'),
-            value: valueMs.toDouble(),
-            max: maxMs > 0 ? maxMs : 1,
-            onChanged: maxMs > 0
-                ? (value) => _handle.seek(Duration(milliseconds: value.toInt()))
-                : null,
+            value: _position.inMilliseconds
+                .clamp(0, total.inMilliseconds)
+                .toDouble(),
+            max: max(1.0, total.inMilliseconds.toDouble()),
+            onChanged: (ms) => _handle.seek(Duration(milliseconds: ms.round())),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -189,7 +188,9 @@ class _AudioAttachmentViewState extends State<AudioAttachmentView>
             iconSize: 48,
             onPressed: () => _isPlaying ? _handle.pause() : _handle.play(),
             icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
-            tooltip: _isPlaying ? 'Pause' : 'Play',
+            tooltip: _isPlaying
+                ? l10n.audioPauseTooltip
+                : l10n.audioPlayTooltip,
           ),
         ],
       ),

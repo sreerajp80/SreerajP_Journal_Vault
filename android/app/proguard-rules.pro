@@ -38,9 +38,15 @@
 # Suppress warnings for optional dependencies that are not present at runtime.
 -dontwarn javax.annotation.**
 
+# --- ML Kit Text Recognition: optional script recognizers not bundled ---
+-dontwarn com.google.mlkit.vision.text.chinese.**
+-dontwarn com.google.mlkit.vision.text.devanagari.**
+-dontwarn com.google.mlkit.vision.text.japanese.**
+-dontwarn com.google.mlkit.vision.text.korean.**
+
 # NOTE: R8 was enabled for the first time on 2026-07-25. These rules cover the
 # engine, this app's channels, and the crypto path. Plugins with native Android
-# code (syncfusion_flutter_pdfviewer, just_audio, record, speech_to_text,
+# code (pdfrx, just_audio, record, speech_to_text,
 # local_auth, permission_handler, file_picker) have not been exercised in a
 # release build on a device. Per release_process.md, smoke-test PDF viewing,
 # audio playback, voice recording, biometric unlock, and file picking on a real

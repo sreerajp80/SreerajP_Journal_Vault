@@ -54,6 +54,11 @@ final recentSecurityEventsProvider = StreamProvider<List<SecurityEvent>>((ref) {
   return service.watchRecentEvents();
 });
 
+final tamperEventsProvider = StreamProvider<List<SecurityEvent>>((ref) {
+  final service = ref.read(securityEventServiceProvider);
+  return service.watchTamperEvents();
+});
+
 final criticalSecurityEventsProvider = FutureProvider<List<SecurityEvent>>((
   ref,
 ) async {

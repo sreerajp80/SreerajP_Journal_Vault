@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
 import 'app_localizations_en.dart';
+import 'app_localizations_ml.dart';
 
 // ignore_for_file: type=lint
 
@@ -92,7 +93,10 @@ abstract class AppLocalizations {
       ];
 
   /// A list of this localizations delegate's supported locales.
-  static const List<Locale> supportedLocales = <Locale>[Locale('en')];
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('en'),
+    Locale('ml'),
+  ];
 
   /// Title of the screen shown when the encrypted database cannot be opened at startup
   ///
@@ -526,7 +530,7 @@ abstract class AppLocalizations {
   /// **'{count} days'**
   String insightsStreakDays(int count);
 
-  /// Button that closes a dialog or panel
+  /// Close button label
   ///
   /// In en, this message translates to:
   /// **'Close'**
@@ -940,10 +944,10 @@ abstract class AppLocalizations {
   /// **'Idle'**
   String get syncStatusIdle;
 
-  /// Sync state: a sync is running now
+  /// Status when sync is in progress
   ///
   /// In en, this message translates to:
-  /// **'Syncing'**
+  /// **'Syncing changes...'**
   String get syncStatusSyncing;
 
   /// Sync state: the last sync worked
@@ -2877,6 +2881,3078 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose a template'**
   String get templateChooserTitle;
+
+  /// Shown when an entry has no recorded revision history
+  ///
+  /// In en, this message translates to:
+  /// **'No previous versions yet.\n\nVersions are saved automatically when you edit an entry.'**
+  String get versionHistoryEmpty;
+
+  /// Stroke width option: 2px
+  ///
+  /// In en, this message translates to:
+  /// **'Fine (2px)'**
+  String get drawingStrokeFine;
+
+  /// Stroke width option: 3.5px
+  ///
+  /// In en, this message translates to:
+  /// **'Normal (3.5px)'**
+  String get drawingStrokeNormal;
+
+  /// Stroke width option: 7px
+  ///
+  /// In en, this message translates to:
+  /// **'Thick (7px)'**
+  String get drawingStrokeThick;
+
+  /// Stroke width option: 14px
+  ///
+  /// In en, this message translates to:
+  /// **'Bold (14px)'**
+  String get drawingStrokeBold;
+
+  /// Default fallback title for full screen drawing viewer
+  ///
+  /// In en, this message translates to:
+  /// **'Drawing'**
+  String get drawingDefaultTitle;
+
+  /// Default fallback title for full screen image viewer
+  ///
+  /// In en, this message translates to:
+  /// **'Image'**
+  String get imageDefaultTitle;
+
+  /// Placeholder message for locked image embed
+  ///
+  /// In en, this message translates to:
+  /// **'Locked image — tap to unlock'**
+  String get editorImageLocked;
+
+  /// Placeholder message for missing image with file name
+  ///
+  /// In en, this message translates to:
+  /// **'Image unavailable — {fileName}'**
+  String editorImageUnavailableWithName(String fileName);
+
+  /// Tooltip to pause audio playback
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get audioPauseTooltip;
+
+  /// Tooltip to play audio playback
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get audioPlayTooltip;
+
+  /// Header indicating destination journal for import
+  ///
+  /// In en, this message translates to:
+  /// **'Import into \"{journalTitle}\"'**
+  String importIntoJournal(String journalTitle);
+
+  /// Supported import file formats description
+  ///
+  /// In en, this message translates to:
+  /// **'Supported formats: {formats}'**
+  String importSupportedFormats(String formats);
+
+  /// Supported import file extensions label
+  ///
+  /// In en, this message translates to:
+  /// **'Files: {extensions}'**
+  String importSupportedExtensions(String extensions);
+
+  /// Placeholder message prompting user to select files for import
+  ///
+  /// In en, this message translates to:
+  /// **'Select files to import as new entries'**
+  String get importSelectFilesPrompt;
+
+  /// Category name for journaling features
+  ///
+  /// In en, this message translates to:
+  /// **'Journaling & Rich Text Editor'**
+  String get featuresCategoryJournaling;
+
+  /// Category subtitle for journaling features
+  ///
+  /// In en, this message translates to:
+  /// **'Expressive writing, structured templates, OCR, and rich media'**
+  String get featuresCategoryJournalingSubtitle;
+
+  /// Category name for security features
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy, Encryption & Vault Security'**
+  String get featuresCategorySecurity;
+
+  /// Category subtitle for security features
+  ///
+  /// In en, this message translates to:
+  /// **'Guaranteed zero-leak encryption and granular security controls'**
+  String get featuresCategorySecuritySubtitle;
+
+  /// Category name for search and timeline features
+  ///
+  /// In en, this message translates to:
+  /// **'Search, Timeline & Insights'**
+  String get featuresCategoryDiscovery;
+
+  /// Category subtitle for search and timeline features
+  ///
+  /// In en, this message translates to:
+  /// **'Blazing fast search, deep calendar navigation, and writing habits'**
+  String get featuresCategoryDiscoverySubtitle;
+
+  /// Category name for storage and backup features
+  ///
+  /// In en, this message translates to:
+  /// **'Storage, Backups & Multi-Format Export'**
+  String get featuresCategoryStorage;
+
+  /// Category subtitle for storage and backup features
+  ///
+  /// In en, this message translates to:
+  /// **'Total data sovereignty with local backups and flexible exports'**
+  String get featuresCategoryStorageSubtitle;
+
+  /// Feature title: Quill rich text editor
+  ///
+  /// In en, this message translates to:
+  /// **'Quill Rich Text Editor'**
+  String get featureQuillTitle;
+
+  /// Feature description: Quill rich text editor
+  ///
+  /// In en, this message translates to:
+  /// **'Write entries with rich formatting including headings, bulleted & numbered lists, bold, italics, underlines, and inline blockquotes.'**
+  String get featureQuillDesc;
+
+  /// Feature title: Structured entry templates
+  ///
+  /// In en, this message translates to:
+  /// **'Structured Entry Templates'**
+  String get featureTemplatesTitle;
+
+  /// Feature description: Structured entry templates
+  ///
+  /// In en, this message translates to:
+  /// **'Jumpstart your writing with 8 customizable templates: Daily Reflection, Gratitude, Dream Journal, Workout Log, Travel Diary, Meeting Notes, Bullet Journal, and Freeform.'**
+  String get featureTemplatesDesc;
+
+  /// Feature title: Encrypted media attachments and OCR
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypted Media Attachments & OCR'**
+  String get featureMediaOcrTitle;
+
+  /// Feature description: Encrypted media attachments and OCR
+  ///
+  /// In en, this message translates to:
+  /// **'Attach photos, audio recordings, and documents encrypted on device. Extract text directly from images into your journal with offline OCR.'**
+  String get featureMediaOcrDesc;
+
+  /// Feature title: Color-coded tags and tag manager
+  ///
+  /// In en, this message translates to:
+  /// **'Color-Coded Tags & Tag Manager'**
+  String get featureTagsTitle;
+
+  /// Feature description: Color-coded tags and tag manager
+  ///
+  /// In en, this message translates to:
+  /// **'Organize entries and journals with vibrant color-coded tags. Rename, color, or bulk-manage tags effortlessly in the Tag Manager.'**
+  String get featureTagsDesc;
+
+  /// Feature title: Multiple distinct journals
+  ///
+  /// In en, this message translates to:
+  /// **'Multiple Distinct Journals'**
+  String get featureMultiJournalTitle;
+
+  /// Feature description: Multiple distinct journals
+  ///
+  /// In en, this message translates to:
+  /// **'Create multiple separate journals for work, personal diaries, travel adventures, or creative projects, each with custom tags and settings.'**
+  String get featureMultiJournalDesc;
+
+  /// Feature title: SQLCipher database encryption
+  ///
+  /// In en, this message translates to:
+  /// **'SQLCipher AES-256 Database Encryption'**
+  String get featureSqlcipherTitle;
+
+  /// Feature description: SQLCipher database encryption
+  ///
+  /// In en, this message translates to:
+  /// **'All journal data, entries, metadata, and tables are encrypted at rest using SQLCipher with AES-256-GCM. Unencrypted data is never written to disk.'**
+  String get featureSqlcipherDesc;
+
+  /// Feature title: Biometrics and App PIN
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric & App PIN Lock'**
+  String get featureBiometricsTitle;
+
+  /// Feature description: Biometrics and App PIN
+  ///
+  /// In en, this message translates to:
+  /// **'Secure your vault with your device fingerprint or face unlock, or set a dedicated App PIN. The app re-locks automatically whenever you switch apps.'**
+  String get featureBiometricsDesc;
+
+  /// Feature title: Per-journal password locks
+  ///
+  /// In en, this message translates to:
+  /// **'Per-Journal Password Locks'**
+  String get featureJournalLockTitle;
+
+  /// Feature description: Per-journal password locks
+  ///
+  /// In en, this message translates to:
+  /// **'Lock specific sensitive journals behind individual passwords using PBKDF2 key derivation. Locked journals require password entry each session.'**
+  String get featureJournalLockDesc;
+
+  /// Feature title: Attachment encryption locks
+  ///
+  /// In en, this message translates to:
+  /// **'Attachment-Level Encryption Locks'**
+  String get featureAttachmentLockTitle;
+
+  /// Feature description: Attachment encryption locks
+  ///
+  /// In en, this message translates to:
+  /// **'Individually lock and hide sensitive attachments and photos with separate encryption keys, keeping them private even when browsing entries.'**
+  String get featureAttachmentLockDesc;
+
+  /// Feature title: Screenshot guard
+  ///
+  /// In en, this message translates to:
+  /// **'Screenshot & Screen-Recording Guard'**
+  String get featureScreenshotGuardTitle;
+
+  /// Feature description: Screenshot guard
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic FLAG_SECURE window defense blocks malicious screenshot capture, screen recording apps, and recents app switcher snapshot leaking.'**
+  String get featureScreenshotGuardDesc;
+
+  /// Feature title: Tamper audit log
+  ///
+  /// In en, this message translates to:
+  /// **'Tamper-Evident Security Audit Log'**
+  String get featureTamperAuditTitle;
+
+  /// Feature description: Tamper audit log
+  ///
+  /// In en, this message translates to:
+  /// **'Monitors and logs key security events: app unlock attempts, failed biometric/PIN authentications, password changes, and export actions.'**
+  String get featureTamperAuditDesc;
+
+  /// Feature title: Auto-lock profiles
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-Lock Inactivity Profiles'**
+  String get featureAutoLockTitle;
+
+  /// Feature description: Auto-lock profiles
+  ///
+  /// In en, this message translates to:
+  /// **'Configure custom timeout durations (immediate, 30 seconds, 1 min, 5 min) to automatically relock your journal vault when idle.'**
+  String get featureAutoLockDesc;
+
+  /// Feature title: SQLite FTS search
+  ///
+  /// In en, this message translates to:
+  /// **'Lightning SQLite FTS Search'**
+  String get featureFtsSearchTitle;
+
+  /// Feature description: SQLite FTS search
+  ///
+  /// In en, this message translates to:
+  /// **'Instant full-text search indexing scans every entry body, title, tag, and metadata with SQLite FTS5 for sub-millisecond query results.'**
+  String get featureFtsSearchDesc;
+
+  /// Feature title: Saved search presets
+  ///
+  /// In en, this message translates to:
+  /// **'Saved Search Presets'**
+  String get featureSearchPresetsTitle;
+
+  /// Feature description: Saved search presets
+  ///
+  /// In en, this message translates to:
+  /// **'Save frequent queries with date range and tag filters as one-tap quick filter chips directly accessible from the search bar.'**
+  String get featureSearchPresetsDesc;
+
+  /// Feature title: Calendar timeline explorer
+  ///
+  /// In en, this message translates to:
+  /// **'Interactive Calendar Timeline Explorer'**
+  String get featureTimelineTitle;
+
+  /// Feature description: Calendar timeline explorer
+  ///
+  /// In en, this message translates to:
+  /// **'Navigate your entire journal history with a smooth calendar view, visual daily entry dots, day-by-day browsing, and quick date jumping.'**
+  String get featureTimelineDesc;
+
+  /// Feature title: Writing trends and insights
+  ///
+  /// In en, this message translates to:
+  /// **'Writing Trends & Habit Insights'**
+  String get featureInsightsTitle;
+
+  /// Feature description: Writing trends and insights
+  ///
+  /// In en, this message translates to:
+  /// **'Track your daily writing streaks, word counts, active writing days per month, and top tag distributions with offline analytical charts.'**
+  String get featureInsightsDesc;
+
+  /// Feature title: Attachment storage migration
+  ///
+  /// In en, this message translates to:
+  /// **'Attachment Storage Migration (SD Card)'**
+  String get featureStorageMigrationTitle;
+
+  /// Feature description: Attachment storage migration
+  ///
+  /// In en, this message translates to:
+  /// **'Seamlessly migrate all encrypted attachments between internal app storage and removable SD Card memory without interrupting journal access.'**
+  String get featureStorageMigrationDesc;
+
+  /// Feature title: Encrypted vault backups
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypted Vault Backups (.jvbk)'**
+  String get featureEncryptedBackupsTitle;
+
+  /// Feature description: Encrypted vault backups
+  ///
+  /// In en, this message translates to:
+  /// **'Export and restore complete password-protected .jvbk backup archives containing your database, attachments, tags, and settings.'**
+  String get featureEncryptedBackupsDesc;
+
+  /// Feature title: Formatted multi-format export
+  ///
+  /// In en, this message translates to:
+  /// **'Formatted Multi-Format Export'**
+  String get featureMultiExportTitle;
+
+  /// Feature description: Formatted multi-format export
+  ///
+  /// In en, this message translates to:
+  /// **'Export individual entries or complete journals into clean formatted PDF, Markdown zip archive, or raw JSON data formats.'**
+  String get featureMultiExportDesc;
+
+  /// Feature title: Standalone encrypted reader
+  ///
+  /// In en, this message translates to:
+  /// **'Standalone Encrypted Export Reader'**
+  String get featureEncryptedReaderTitle;
+
+  /// Feature description: Standalone encrypted reader
+  ///
+  /// In en, this message translates to:
+  /// **'Read password-protected encrypted journal exports independently inside the app without needing to restore the full backup database.'**
+  String get featureEncryptedReaderDesc;
+
+  /// Help topic title: Journal organization & templates
+  ///
+  /// In en, this message translates to:
+  /// **'Journal Organization & Templates'**
+  String get helpTopicJournalOrg;
+
+  /// Help topic subtitle: Journal organization & templates
+  ///
+  /// In en, this message translates to:
+  /// **'How multiple journals, starter prompts, and Quill rich text formatting work.'**
+  String get helpTopicJournalOrgSubtitle;
+
+  /// Help topic title: Attachments & OCR scanner
+  ///
+  /// In en, this message translates to:
+  /// **'Attachments & OCR Scanner'**
+  String get helpTopicAttachmentsOcr;
+
+  /// Help topic subtitle: Attachments & OCR scanner
+  ///
+  /// In en, this message translates to:
+  /// **'On-device offline OCR text recognition from images and encrypted media storage.'**
+  String get helpTopicAttachmentsOcrSubtitle;
+
+  /// Help topic title: Tags & color coding
+  ///
+  /// In en, this message translates to:
+  /// **'Tags & Color Coding'**
+  String get helpTopicTags;
+
+  /// Help topic subtitle: Tags & color coding
+  ///
+  /// In en, this message translates to:
+  /// **'Categorizing entries, custom tag color palettes, and global tag management.'**
+  String get helpTopicTagsSubtitle;
+
+  /// Help topic title: Encryption & keystore security
+  ///
+  /// In en, this message translates to:
+  /// **'Encryption & Keystore Security'**
+  String get helpTopicEncryption;
+
+  /// Help topic subtitle: Encryption & keystore security
+  ///
+  /// In en, this message translates to:
+  /// **'SQLCipher database encryption at rest, Android Keystore keys, and offline guarantees.'**
+  String get helpTopicEncryptionSubtitle;
+
+  /// Help topic title: App lock, biometrics & PIN
+  ///
+  /// In en, this message translates to:
+  /// **'App Lock, Biometrics & PIN'**
+  String get helpTopicBiometrics;
+
+  /// Help topic subtitle: App lock, biometrics & PIN
+  ///
+  /// In en, this message translates to:
+  /// **'Fingerprint and face unlock, custom App PIN setup, and auto-lock timeouts.'**
+  String get helpTopicBiometricsSubtitle;
+
+  /// Help topic title: Per-journal & attachment locks
+  ///
+  /// In en, this message translates to:
+  /// **'Per-Journal & Attachment Locks'**
+  String get helpTopicJournalLocks;
+
+  /// Help topic subtitle: Per-journal & attachment locks
+  ///
+  /// In en, this message translates to:
+  /// **'Individual journal password locks, session unlocking, and attachment-level locks.'**
+  String get helpTopicJournalLocksSubtitle;
+
+  /// Help topic title: Screenshot guard & audit trail
+  ///
+  /// In en, this message translates to:
+  /// **'Screenshot Guard & Audit Trail'**
+  String get helpTopicScreenshotAudit;
+
+  /// Help topic subtitle: Screenshot guard & audit trail
+  ///
+  /// In en, this message translates to:
+  /// **'FLAG_SECURE window defense, task switcher masking, and local security audit events.'**
+  String get helpTopicScreenshotAuditSubtitle;
+
+  /// Help topic title: Full-text search & timeline
+  ///
+  /// In en, this message translates to:
+  /// **'Full-Text Search & Timeline'**
+  String get helpTopicSearchTimeline;
+
+  /// Help topic subtitle: Full-text search & timeline
+  ///
+  /// In en, this message translates to:
+  /// **'SQLite FTS keyword search, saved search presets, and interactive calendar navigation.'**
+  String get helpTopicSearchTimelineSubtitle;
+
+  /// Help topic title: Writing insights & trends
+  ///
+  /// In en, this message translates to:
+  /// **'Writing Insights & Trends'**
+  String get helpTopicInsights;
+
+  /// Help topic subtitle: Writing insights & trends
+  ///
+  /// In en, this message translates to:
+  /// **'Habit streaks, word count statistics, monthly activity graphs, and tag analytics.'**
+  String get helpTopicInsightsSubtitle;
+
+  /// Help topic title: Storage locations & SD card
+  ///
+  /// In en, this message translates to:
+  /// **'Storage Locations & SD Card'**
+  String get helpTopicStorageMigration;
+
+  /// Help topic subtitle: Storage locations & SD card
+  ///
+  /// In en, this message translates to:
+  /// **'Moving encrypted media attachments between internal app storage and SD Card memory.'**
+  String get helpTopicStorageMigrationSubtitle;
+
+  /// Help topic title: Encrypted backups & restore
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypted Backups & Restore'**
+  String get helpTopicBackupRestore;
+
+  /// Help topic subtitle: Encrypted backups & restore
+  ///
+  /// In en, this message translates to:
+  /// **'Creating password-protected .jvbk backup files, health checks, and restoring on a new device.'**
+  String get helpTopicBackupRestoreSubtitle;
+
+  /// Help topic title: Export formats & reader
+  ///
+  /// In en, this message translates to:
+  /// **'Export Formats & Reader'**
+  String get helpTopicExportFormats;
+
+  /// Help topic subtitle: Export formats & reader
+  ///
+  /// In en, this message translates to:
+  /// **'Exporting to formatted PDF, Markdown zip, JSON, and using the built-in encrypted reader.'**
+  String get helpTopicExportFormatsSubtitle;
+
+  /// Help topic title: FAQs & troubleshooting
+  ///
+  /// In en, this message translates to:
+  /// **'FAQs & Troubleshooting'**
+  String get helpTopicFaq;
+
+  /// Help topic subtitle: FAQs & troubleshooting
+  ///
+  /// In en, this message translates to:
+  /// **'Answers about offline privacy, permissions, passcode recovery policies, and device transfers.'**
+  String get helpTopicFaqSubtitle;
+
+  /// Introduction for attachments and OCR help
+  ///
+  /// In en, this message translates to:
+  /// **'Enrich your journal entries with photos, audio notes, and documents. Extract printed or handwritten text directly using offline OCR text recognition.'**
+  String get helpAttachmentsIntro;
+
+  /// Section header for on-device OCR
+  ///
+  /// In en, this message translates to:
+  /// **'On-Device OCR Text Extraction'**
+  String get helpAttachmentsSectionOcr;
+
+  /// Help bullet for OCR camera
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the camera/scanner icon in the editor to capture a photo of a book, document, or written note.'**
+  String get helpAttachmentsOcrBullet1;
+
+  /// Help bullet for OCR privacy and speed
+  ///
+  /// In en, this message translates to:
+  /// **'The built-in on-device OCR engine detects and parses text in seconds without sending a single byte to external servers.'**
+  String get helpAttachmentsOcrBullet2;
+
+  /// Help bullet for OCR insertion
+  ///
+  /// In en, this message translates to:
+  /// **'Extracted text is automatically formatted and inserted right at your current cursor position.'**
+  String get helpAttachmentsOcrBullet3;
+
+  /// Section header for attachment encryption
+  ///
+  /// In en, this message translates to:
+  /// **'AES-256-GCM Attachment Encryption'**
+  String get helpAttachmentsSectionEncryption;
+
+  /// Help bullet for attachment encryption
+  ///
+  /// In en, this message translates to:
+  /// **'All media attachments are encrypted using AES-256-GCM before writing to storage. Stored files cannot be opened by gallery apps or file managers without the app.'**
+  String get helpAttachmentsEncryptionBullet1;
+
+  /// Footer note for OCR privacy
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Guarantee: All OCR text extraction runs entirely offline on your device with 100% privacy.'**
+  String get helpAttachmentsFooter;
+
+  /// Introduction for backup and restore help
+  ///
+  /// In en, this message translates to:
+  /// **'Keep your journal safe across device upgrades or system resets with encrypted .jvbk backup archives.'**
+  String get helpBackupIntro;
+
+  /// Section header for creating backup
+  ///
+  /// In en, this message translates to:
+  /// **'Creating an Encrypted Backup (.jvbk)'**
+  String get helpBackupSectionCreate;
+
+  /// Help bullet for creating backup step 1
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Settings → Storage → Backup & Restore → Create Backup.'**
+  String get helpBackupCreateBullet1;
+
+  /// Help bullet for backup password
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a strong password. This password encrypts both the database and all media attachments.'**
+  String get helpBackupCreateBullet2;
+
+  /// Help bullet for saving backup file
+  ///
+  /// In en, this message translates to:
+  /// **'Save the resulting .jvbk file to your desired folder, cloud storage, or external USB drive.'**
+  String get helpBackupCreateBullet3;
+
+  /// Section header for restoring backup
+  ///
+  /// In en, this message translates to:
+  /// **'Restoring on a New Device'**
+  String get helpBackupSectionRestore;
+
+  /// Help bullet for restore step 1
+  ///
+  /// In en, this message translates to:
+  /// **'Install SreerajP Journal Vault on your new device and open Settings → Storage → Restore Backup.'**
+  String get helpBackupRestoreBullet1;
+
+  /// Help bullet for restore step 2
+  ///
+  /// In en, this message translates to:
+  /// **'Select your .jvbk file and enter the exact password used when the backup was created.'**
+  String get helpBackupRestoreBullet2;
+
+  /// Help bullet for restore step 3
+  ///
+  /// In en, this message translates to:
+  /// **'All journals, entries, images, audio recordings, and tags will be fully restored into your new vault.'**
+  String get helpBackupRestoreBullet3;
+
+  /// Footer note for backup safety
+  ///
+  /// In en, this message translates to:
+  /// **'Important: Backups cannot be decrypted or recovered if you forget your backup password.'**
+  String get helpBackupFooter;
+
+  /// Introduction for biometrics and PIN help
+  ///
+  /// In en, this message translates to:
+  /// **'Protect your private thoughts with instant biometric verification or a dedicated 4-6 digit App PIN.'**
+  String get helpBiometricsIntro;
+
+  /// Section header for phone lock mode
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Lock Mode (Biometrics)'**
+  String get helpBiometricsSectionPhoneLock;
+
+  /// Help bullet for phone lock mode
+  ///
+  /// In en, this message translates to:
+  /// **'Uses your device\'s biometric authentication (fingerprint or face unlock) or system lock pattern.'**
+  String get helpBiometricsPhoneLockBullet1;
+
+  /// Help bullet for biometrics convenience
+  ///
+  /// In en, this message translates to:
+  /// **'Seamless and fast — unlocks instantly whenever you open the app.'**
+  String get helpBiometricsPhoneLockBullet2;
+
+  /// Section header for separate App PIN mode
+  ///
+  /// In en, this message translates to:
+  /// **'Separate App PIN Mode'**
+  String get helpBiometricsSectionAppPin;
+
+  /// Help bullet for App PIN
+  ///
+  /// In en, this message translates to:
+  /// **'Set a dedicated numeric PIN that is distinct from your device lock screen.'**
+  String get helpBiometricsAppPinBullet1;
+
+  /// Help bullet for App PIN privacy
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps your journal private even if someone else knows your phone\'s lock screen passcode.'**
+  String get helpBiometricsAppPinBullet2;
+
+  /// Section header for auto-lock timeout
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-Lock Timeout Profiles'**
+  String get helpBiometricsSectionAutoLock;
+
+  /// Help bullet for auto lock configuration
+  ///
+  /// In en, this message translates to:
+  /// **'Configure auto-lock timeout in Settings → Security → Auto-Lock Timeout (Immediate, 30s, 1m, 5m).'**
+  String get helpBiometricsAutoLockBullet1;
+
+  /// Help bullet for auto lock behavior
+  ///
+  /// In en, this message translates to:
+  /// **'When the app moves to background and the timeout expires, the vault locks automatically.'**
+  String get helpBiometricsAutoLockBullet2;
+
+  /// Introduction for encryption and security help
+  ///
+  /// In en, this message translates to:
+  /// **'SreerajP Journal Vault is architected from the ground up for total privacy and zero-knowledge data security.'**
+  String get helpEncryptionIntro;
+
+  /// Section header for SQLCipher database encryption
+  ///
+  /// In en, this message translates to:
+  /// **'SQLCipher Database Encryption'**
+  String get helpEncryptionSectionSqlcipher;
+
+  /// Help bullet for SQLCipher
+  ///
+  /// In en, this message translates to:
+  /// **'The underlying SQLite database is encrypted with SQLCipher using AES-256 in CBC/GCM mode.'**
+  String get helpEncryptionSqlcipherBullet1;
+
+  /// Help bullet for disk encryption
+  ///
+  /// In en, this message translates to:
+  /// **'Every single byte written to disk is encrypted, including entry text, titles, tags, and timestamps.'**
+  String get helpEncryptionSqlcipherBullet2;
+
+  /// Section header for Android Keystore
+  ///
+  /// In en, this message translates to:
+  /// **'Android Keystore Hardware Integration'**
+  String get helpEncryptionSectionKeystore;
+
+  /// Help bullet for Keystore security
+  ///
+  /// In en, this message translates to:
+  /// **'Master encryption keys are generated and stored inside the Android hardware-backed Keystore / Secure Enclave.'**
+  String get helpEncryptionKeystoreBullet1;
+
+  /// Help bullet for Keystore extraction protection
+  ///
+  /// In en, this message translates to:
+  /// **'Keys never leave the hardware module and cannot be extracted by root or other apps.'**
+  String get helpEncryptionKeystoreBullet2;
+
+  /// Section header for offline isolation
+  ///
+  /// In en, this message translates to:
+  /// **'Complete Offline Isolation'**
+  String get helpEncryptionSectionOffline;
+
+  /// Help bullet for no internet permission
+  ///
+  /// In en, this message translates to:
+  /// **'The app has zero internet permissions declared in its Android manifest.'**
+  String get helpEncryptionOfflineBullet1;
+
+  /// Help bullet for no analytics or tracking
+  ///
+  /// In en, this message translates to:
+  /// **'No tracking, no analytics, no ads, and no external API requests ever happen.'**
+  String get helpEncryptionOfflineBullet2;
+
+  /// Introduction for export formats help
+  ///
+  /// In en, this message translates to:
+  /// **'Export your entries anytime in standard formats so your memories always belong to you.'**
+  String get helpExportIntro;
+
+  /// Section header for PDF export
+  ///
+  /// In en, this message translates to:
+  /// **'Formatted PDF Export'**
+  String get helpExportSectionPdf;
+
+  /// Help bullet for PDF export
+  ///
+  /// In en, this message translates to:
+  /// **'Export single entries or entire journals as beautifully formatted, printable PDF documents with embedded images.'**
+  String get helpExportPdfBullet1;
+
+  /// Section header for Markdown and JSON export
+  ///
+  /// In en, this message translates to:
+  /// **'Markdown ZIP & JSON Data'**
+  String get helpExportSectionMarkdown;
+
+  /// Help bullet for Markdown zip export
+  ///
+  /// In en, this message translates to:
+  /// **'Export as Markdown text files with images bundled into a zip archive for Obsidian, Notion, or personal archives.'**
+  String get helpExportMarkdownBullet1;
+
+  /// Help bullet for JSON export
+  ///
+  /// In en, this message translates to:
+  /// **'Export raw JSON data for automated parsing and complete data portability.'**
+  String get helpExportMarkdownBullet2;
+
+  /// Section header for encrypted export reader
+  ///
+  /// In en, this message translates to:
+  /// **'Standalone Encrypted Reader'**
+  String get helpExportSectionReader;
+
+  /// Help bullet for encrypted reader
+  ///
+  /// In en, this message translates to:
+  /// **'Export encrypted journal packages and view them anywhere using the built-in encrypted reader tool in Settings.'**
+  String get helpExportReaderBullet1;
+
+  /// Introduction for FAQ help
+  ///
+  /// In en, this message translates to:
+  /// **'Find quick answers to commonly asked questions about security, backups, and journal management.'**
+  String get helpFaqIntro;
+
+  /// FAQ Question 1: internet data
+  ///
+  /// In en, this message translates to:
+  /// **'Is my data ever sent over the internet?'**
+  String get helpFaqQ1;
+
+  /// FAQ Answer 1: internet data
+  ///
+  /// In en, this message translates to:
+  /// **'Never. SreerajP Journal Vault does not declare the INTERNET permission. Everything stays 100% on your device.'**
+  String get helpFaqA1;
+
+  /// FAQ Question 2: forgotten password
+  ///
+  /// In en, this message translates to:
+  /// **'What if I forget my App PIN or Journal Password?'**
+  String get helpFaqQ2;
+
+  /// FAQ Answer 2: forgotten password
+  ///
+  /// In en, this message translates to:
+  /// **'Because encryption is zero-knowledge and on-device, lost passwords cannot be reset by anyone. We strongly recommend writing down your passwords in a secure place.'**
+  String get helpFaqA2;
+
+  /// FAQ Question 3: permissions requested
+  ///
+  /// In en, this message translates to:
+  /// **'Why are specific permissions requested?'**
+  String get helpFaqQ3;
+
+  /// FAQ Answer 3: permissions requested
+  ///
+  /// In en, this message translates to:
+  /// **'Camera & Photos: To take photos or import images/attachments into your entries.\nMicrophone: To record voice notes.\nStorage/Media: To save encrypted backups and export PDFs.'**
+  String get helpFaqA3;
+
+  /// FAQ Question 4: transfer to new phone
+  ///
+  /// In en, this message translates to:
+  /// **'Can I transfer my journal to a new phone?'**
+  String get helpFaqQ4;
+
+  /// FAQ Answer 4: transfer to new phone
+  ///
+  /// In en, this message translates to:
+  /// **'Yes! Create an encrypted backup (.jvbk) in Settings, transfer the file to your new phone, install SreerajP Journal Vault, and choose Restore Backup.'**
+  String get helpFaqA4;
+
+  /// Introduction for insights help
+  ///
+  /// In en, this message translates to:
+  /// **'Gain deep perspective on your journaling habits, emotional trends, and writing consistency.'**
+  String get helpInsightsIntro;
+
+  /// Section header for habit tracking
+  ///
+  /// In en, this message translates to:
+  /// **'Habit & Streak Tracking'**
+  String get helpInsightsSectionHabits;
+
+  /// Help bullet for streaks
+  ///
+  /// In en, this message translates to:
+  /// **'View current streak and best historical writing streaks to stay motivated.'**
+  String get helpInsightsHabitsBullet1;
+
+  /// Help bullet for activity heatmap
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly calendar activity heatmap highlights active writing days.'**
+  String get helpInsightsHabitsBullet2;
+
+  /// Section header for word count and stats
+  ///
+  /// In en, this message translates to:
+  /// **'Word Count & Activity Analytics'**
+  String get helpInsightsSectionStats;
+
+  /// Help bullet for word count analysis
+  ///
+  /// In en, this message translates to:
+  /// **'Analyze total words written, average entry length, and reading time across journals.'**
+  String get helpInsightsStatsBullet1;
+
+  /// Section header for tag distribution
+  ///
+  /// In en, this message translates to:
+  /// **'Tag & Topic Distribution'**
+  String get helpInsightsSectionTags;
+
+  /// Help bullet for tag analysis
+  ///
+  /// In en, this message translates to:
+  /// **'Visualize your most frequent tags and topics to understand your primary focus areas over time.'**
+  String get helpInsightsTagsBullet1;
+
+  /// Introduction for journal locks help
+  ///
+  /// In en, this message translates to:
+  /// **'Add secondary security barriers to specific journals or sensitive attachment files.'**
+  String get helpJournalLocksIntro;
+
+  /// Section header for per-journal password locks
+  ///
+  /// In en, this message translates to:
+  /// **'Per-Journal Password Locks'**
+  String get helpJournalLocksSectionJournal;
+
+  /// Help bullet for journal locks
+  ///
+  /// In en, this message translates to:
+  /// **'Assign unique passwords to sensitive journals. Even when the app is unlocked, locked journals stay encrypted until password entry.'**
+  String get helpJournalLocksJournalBullet1;
+
+  /// Help bullet for session unlock
+  ///
+  /// In en, this message translates to:
+  /// **'Session unlock keeps the journal open while using the app, and automatically re-locks upon closing or auto-lock timeout.'**
+  String get helpJournalLocksJournalBullet2;
+
+  /// Section header for attachment-level locks
+  ///
+  /// In en, this message translates to:
+  /// **'Attachment-Level Locks'**
+  String get helpJournalLocksSectionAttachment;
+
+  /// Help bullet for attachment locks
+  ///
+  /// In en, this message translates to:
+  /// **'Hide and lock private photo or document attachments behind independent passwords.'**
+  String get helpJournalLocksAttachmentBullet1;
+
+  /// Introduction for journal organization help
+  ///
+  /// In en, this message translates to:
+  /// **'Organize your life into dedicated journals, use structured prompts, and write expressive rich text.'**
+  String get helpJournalOrgIntro;
+
+  /// Section header for multiple journals
+  ///
+  /// In en, this message translates to:
+  /// **'Multiple Separate Journals'**
+  String get helpJournalOrgSectionMultiple;
+
+  /// Help bullet for distinct journals
+  ///
+  /// In en, this message translates to:
+  /// **'Create distinct journals for Personal, Work, Travel, Ideas, or Health.'**
+  String get helpJournalOrgMultipleBullet1;
+
+  /// Help bullet for switching journals
+  ///
+  /// In en, this message translates to:
+  /// **'Switch between journals seamlessly with the top journal selector.'**
+  String get helpJournalOrgMultipleBullet2;
+
+  /// Section header for starter templates
+  ///
+  /// In en, this message translates to:
+  /// **'Using Starter Templates'**
+  String get helpJournalOrgSectionTemplates;
+
+  /// Help bullet for templates
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from 8 built-in templates (Daily Reflection, Gratitude, Dream, etc.) when creating a new entry.'**
+  String get helpJournalOrgTemplatesBullet1;
+
+  /// Help bullet for custom templates
+  ///
+  /// In en, this message translates to:
+  /// **'Customize templates or create new ones in Settings → Templates.'**
+  String get helpJournalOrgTemplatesBullet2;
+
+  /// Section header for rich text formatting
+  ///
+  /// In en, this message translates to:
+  /// **'Rich Text Formatting'**
+  String get helpJournalOrgSectionRichText;
+
+  /// Help bullet for rich text toolbar
+  ///
+  /// In en, this message translates to:
+  /// **'Format text with bold, italic, headings, lists, tables, drawings, and inline callouts using the editor toolbar.'**
+  String get helpJournalOrgRichTextBullet1;
+
+  /// Introduction for screenshot audit help
+  ///
+  /// In en, this message translates to:
+  /// **'Learn how SreerajP Journal Vault protects your screens from snooping and logs critical security operations.'**
+  String get helpScreenshotAuditIntro;
+
+  /// Section header for screenshot guard
+  ///
+  /// In en, this message translates to:
+  /// **'Screenshot Guard (FLAG_SECURE)'**
+  String get helpScreenshotAuditSectionGuard;
+
+  /// Help bullet for screenshot blocking
+  ///
+  /// In en, this message translates to:
+  /// **'By default, the app blocks screenshots, screen recording, and masks recent task switcher previews.'**
+  String get helpScreenshotAuditGuardBullet1;
+
+  /// Help bullet for toggling screenshot guard
+  ///
+  /// In en, this message translates to:
+  /// **'You can toggle screenshot blocking in Settings → Security if you need to capture screenshots.'**
+  String get helpScreenshotAuditGuardBullet2;
+
+  /// Section header for security log
+  ///
+  /// In en, this message translates to:
+  /// **'Tamper-Evident Security Events Log'**
+  String get helpScreenshotAuditSectionLog;
+
+  /// Help bullet for security audit log
+  ///
+  /// In en, this message translates to:
+  /// **'The app records a local tamper-evident audit log of PIN attempts, lock switches, and exports in Settings → Security → Security Events.'**
+  String get helpScreenshotAuditLogBullet1;
+
+  /// Introduction for search and timeline help
+  ///
+  /// In en, this message translates to:
+  /// **'Locate past memories in milliseconds with SQLite Full-Text Search and an interactive calendar timeline.'**
+  String get helpSearchTimelineIntro;
+
+  /// Section header for FTS search
+  ///
+  /// In en, this message translates to:
+  /// **'SQLite Full-Text Search (FTS)'**
+  String get helpSearchTimelineSectionFts;
+
+  /// Help bullet for search indexing
+  ///
+  /// In en, this message translates to:
+  /// **'Search across all entries, titles, and tags with instant matching as you type.'**
+  String get helpSearchTimelineFtsBullet1;
+
+  /// Section header for saved search presets
+  ///
+  /// In en, this message translates to:
+  /// **'Saved Search Presets'**
+  String get helpSearchTimelineSectionPresets;
+
+  /// Help bullet for search presets
+  ///
+  /// In en, this message translates to:
+  /// **'Save frequent search filter combinations for one-tap quick access.'**
+  String get helpSearchTimelinePresetsBullet1;
+
+  /// Section header for calendar timeline
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar & Timeline Explorer'**
+  String get helpSearchTimelineSectionTimeline;
+
+  /// Help bullet for calendar navigation
+  ///
+  /// In en, this message translates to:
+  /// **'Browse entries by calendar date, navigate months, and view day-by-day chronological lists.'**
+  String get helpSearchTimelineTimelineBullet1;
+
+  /// Introduction for storage migration help
+  ///
+  /// In en, this message translates to:
+  /// **'Manage where encrypted attachments are stored and migrate between internal memory and SD Card storage.'**
+  String get helpStorageMigrationIntro;
+
+  /// Section header for internal storage
+  ///
+  /// In en, this message translates to:
+  /// **'Internal App-Private Storage'**
+  String get helpStorageMigrationSectionInternal;
+
+  /// Help bullet for internal storage
+  ///
+  /// In en, this message translates to:
+  /// **'By default, encrypted attachments reside in app-private internal storage, protected by Android OS sandbox permissions.'**
+  String get helpStorageMigrationInternalBullet1;
+
+  /// Section header for SD card storage
+  ///
+  /// In en, this message translates to:
+  /// **'SD Card Storage & Live Migration'**
+  String get helpStorageMigrationSectionSd;
+
+  /// Help bullet for SD card migration
+  ///
+  /// In en, this message translates to:
+  /// **'Move media files to SD card in Settings → Storage → Migrate Storage to free up internal phone storage.'**
+  String get helpStorageMigrationSdBullet1;
+
+  /// Help bullet for SD card encryption
+  ///
+  /// In en, this message translates to:
+  /// **'All files remain fully AES-256-GCM encrypted on the SD card.'**
+  String get helpStorageMigrationSdBullet2;
+
+  /// Introduction for tags help
+  ///
+  /// In en, this message translates to:
+  /// **'Categorize and organize your entries across all journals with custom color-coded tags.'**
+  String get helpTagsIntro;
+
+  /// Section header for tagging entries
+  ///
+  /// In en, this message translates to:
+  /// **'Tagging Entries & Journals'**
+  String get helpTagsSectionTagging;
+
+  /// Help bullet for adding tags
+  ///
+  /// In en, this message translates to:
+  /// **'Add tags to any entry from the top tag bar in the editor.'**
+  String get helpTagsTaggingBullet1;
+
+  /// Section header for tag colors
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Color Coding'**
+  String get helpTagsSectionColors;
+
+  /// Help bullet for tag colors
+  ///
+  /// In en, this message translates to:
+  /// **'Assign unique palette colors to tags to easily distinguish topics visually.'**
+  String get helpTagsColorsBullet1;
+
+  /// Section header for tag cleanup
+  ///
+  /// In en, this message translates to:
+  /// **'Tag Management & Cleanup'**
+  String get helpTagsSectionCleanup;
+
+  /// Help bullet for tag manager
+  ///
+  /// In en, this message translates to:
+  /// **'Rename, recolor, or delete unused tags globally from Settings → Tag Manager.'**
+  String get helpTagsCleanupBullet1;
+
+  /// Title for sync health dashboard
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Health'**
+  String get syncHealthTitle;
+
+  /// Subtitle for sync health dashboard
+  ///
+  /// In en, this message translates to:
+  /// **'Real-time P2P sync diagnostics & connection status'**
+  String get syncHealthSubtitle;
+
+  /// Number of connected peer devices
+  ///
+  /// In en, this message translates to:
+  /// **'Connected Peers: {count}'**
+  String syncConnectedPeers(int count);
+
+  /// Total bytes sent over sync
+  ///
+  /// In en, this message translates to:
+  /// **'Bytes Sent: {bytes}'**
+  String syncBytesSent(String bytes);
+
+  /// Total bytes received over sync
+  ///
+  /// In en, this message translates to:
+  /// **'Bytes Received: {bytes}'**
+  String syncBytesReceived(String bytes);
+
+  /// Title for tamper alerts screen
+  ///
+  /// In en, this message translates to:
+  /// **'Tamper Alerts'**
+  String get tamperAlertsTitle;
+
+  /// Section title explaining vault integrity
+  ///
+  /// In en, this message translates to:
+  /// **'How Tamper Detection Works'**
+  String get tamperAlertsHowItWorksTitle;
+
+  /// Body explaining vault integrity
+  ///
+  /// In en, this message translates to:
+  /// **'SreerajP Journal Vault continuously verifies structural consistency, chronological timestamps, and AES-256 encrypted records.'**
+  String get tamperAlertsHowItWorksBody;
+
+  /// Message when no alerts exist
+  ///
+  /// In en, this message translates to:
+  /// **'No tamper alerts recorded. Your vault entries are secure.'**
+  String get tamperAlertsNoHistory;
+
+  /// Header for alert history list
+  ///
+  /// In en, this message translates to:
+  /// **'Tamper Alert History'**
+  String get tamperAlertsHistoryHeader;
+
+  /// Message when integrity check is clean
+  ///
+  /// In en, this message translates to:
+  /// **'Vault scan complete: all entries verified clean.'**
+  String get tamperAlertsScanCompleteClean;
+
+  /// Message when integrity check found issues
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Integrity check found 1 issue.} other{Integrity check found {count} issues.}}'**
+  String tamperAlertsScanCompleteIssues(int count);
+
+  /// Status text for issues
+  ///
+  /// In en, this message translates to:
+  /// **'Warning — Integrity Issues Detected'**
+  String get tamperAlertsStatusIssues;
+
+  /// Detail message when tamper issues are found
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 data integrity issue was detected in records.} other{{count} data integrity issues were detected in records.}}'**
+  String tamperAlertsStatusIssuesDetail(int count);
+
+  /// Status text for verified
+  ///
+  /// In en, this message translates to:
+  /// **'Vault Integrity Verified'**
+  String get tamperAlertsStatusVerified;
+
+  /// Detail text for verified
+  ///
+  /// In en, this message translates to:
+  /// **'All database tables and encryption seals verified successfully.'**
+  String get tamperAlertsStatusVerifiedDetail;
+
+  /// Button to verify integrity
+  ///
+  /// In en, this message translates to:
+  /// **'Verify Vault Integrity'**
+  String get tamperAlertsVerifyButton;
+
+  /// Progress message during verification
+  ///
+  /// In en, this message translates to:
+  /// **'Verifying vault integrity...'**
+  String get tamperAlertsVerifying;
+
+  /// Title for quick capture dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Capture'**
+  String get shareQuickCaptureTitle;
+
+  /// Subtitle for quick capture dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Save incoming content as a new journal entry'**
+  String get shareQuickCaptureSubtitle;
+
+  /// Shown when no journal exists for share target
+  ///
+  /// In en, this message translates to:
+  /// **'No journals found. Create a journal first.'**
+  String get shareNoJournalsFound;
+
+  /// Label for selecting destination journal
+  ///
+  /// In en, this message translates to:
+  /// **'Select Journal'**
+  String get shareSelectJournal;
+
+  /// Label for entry title input in quick capture
+  ///
+  /// In en, this message translates to:
+  /// **'Entry Title'**
+  String get shareEntryTitleLabel;
+
+  /// Hint for entry title input in quick capture
+  ///
+  /// In en, this message translates to:
+  /// **'Enter title (optional)'**
+  String get shareEntryTitleHint;
+
+  /// Label for share content
+  ///
+  /// In en, this message translates to:
+  /// **'Content'**
+  String get shareContentLabel;
+
+  /// Hint for share content
+  ///
+  /// In en, this message translates to:
+  /// **'Shared note, quote, or link...'**
+  String get shareContentHint;
+
+  /// Label for shared attachments count
+  ///
+  /// In en, this message translates to:
+  /// **'Attachments ({count})'**
+  String shareAttachmentsLabel(int count);
+
+  /// Discard button in share dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get shareDiscard;
+
+  /// Open in editor button in share dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Open in Editor'**
+  String get shareOpenInEditor;
+
+  /// Save to journal button in share dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Save to Journal'**
+  String get shareSaveToJournal;
+
+  /// Error message when saving shared content fails
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save shared note.'**
+  String get shareSaveFailed;
+
+  /// Success message after saving shared note
+  ///
+  /// In en, this message translates to:
+  /// **'Shared note saved to \"{journalTitle}\"'**
+  String shareSavedSuccess(String journalTitle);
+
+  /// Dialog title when encrypted export is received
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypted file detected'**
+  String get shareSealedFileDetected;
+
+  /// Button to open encrypted export
+  ///
+  /// In en, this message translates to:
+  /// **'Open Encrypted File'**
+  String get shareOpenEncryptedExport;
+
+  /// Category for user-defined templates
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Templates'**
+  String get templateCategoryCustom;
+
+  /// Manage templates button
+  ///
+  /// In en, this message translates to:
+  /// **'Manage'**
+  String get templateChooserManage;
+
+  /// Create new template button
+  ///
+  /// In en, this message translates to:
+  /// **'New Template'**
+  String get templateChooserNew;
+
+  /// Collapse all button in template manager
+  ///
+  /// In en, this message translates to:
+  /// **'Collapse all'**
+  String get templateCollapseAll;
+
+  /// Expand all button in template manager
+  ///
+  /// In en, this message translates to:
+  /// **'Expand all'**
+  String get templateExpandAll;
+
+  /// Create template button
+  ///
+  /// In en, this message translates to:
+  /// **'New Template'**
+  String get templateCreateNew;
+
+  /// Title for template manager screen
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Templates'**
+  String get templateManagerTitle;
+
+  /// Edit template title/action
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Template'**
+  String get templateEdit;
+
+  /// Delete template title/action
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Template'**
+  String get templateDelete;
+
+  /// Dialog title confirming template deletion
+  ///
+  /// In en, this message translates to:
+  /// **'Delete template?'**
+  String get templateDeleteConfirmTitle;
+
+  /// Dialog message confirming template deletion
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete \"{name}\"? This action cannot be undone.'**
+  String templateDeleteConfirmMessage(String name);
+
+  /// Snackbar notification after template deletion
+  ///
+  /// In en, this message translates to:
+  /// **'Template deleted'**
+  String get templateDeleteSuccess;
+
+  /// Empty state in template manager
+  ///
+  /// In en, this message translates to:
+  /// **'No custom templates yet. Create one to reuse your favorite journaling layouts.'**
+  String get templateEmpty;
+
+  /// Label for template name field
+  ///
+  /// In en, this message translates to:
+  /// **'Template name'**
+  String get templateNameLabel;
+
+  /// Hint for template name field
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Daily Standup, Workout Note'**
+  String get templateNameHint;
+
+  /// Validation error when template name is missing
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a template name.'**
+  String get templateNameRequired;
+
+  /// Label for template description field
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get templateDescriptionLabel;
+
+  /// Hint for template description field
+  ///
+  /// In en, this message translates to:
+  /// **'Brief summary of what this template is for'**
+  String get templateDescriptionHint;
+
+  /// Label for default entry title field
+  ///
+  /// In en, this message translates to:
+  /// **'Default entry title'**
+  String get templateDefaultTitleLabel;
+
+  /// Hint for default entry title field
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Standup - today'**
+  String get templateDefaultTitleHint;
+
+  /// Label for template starter content
+  ///
+  /// In en, this message translates to:
+  /// **'Starter content'**
+  String get templateContentLabel;
+
+  /// Hint for template starter content
+  ///
+  /// In en, this message translates to:
+  /// **'Type your starter prompt or outline...'**
+  String get templateContentHint;
+
+  /// Tooltip for inserting dynamic date token
+  ///
+  /// In en, this message translates to:
+  /// **'Insert dynamic date token'**
+  String get templateInsertTokenTooltip;
+
+  /// Heading for dynamic date tokens list
+  ///
+  /// In en, this message translates to:
+  /// **'Dynamic Date Tokens'**
+  String get templateTokensHeading;
+
+  /// Help text for dynamic date tokens
+  ///
+  /// In en, this message translates to:
+  /// **'Dynamic date tokens automatically populate when creating a new entry.'**
+  String get templateTokensHelper;
+
+  /// Snackbar notification after template save
+  ///
+  /// In en, this message translates to:
+  /// **'Template saved'**
+  String get templateSaveSuccess;
+
+  /// Action to save current entry as template
+  ///
+  /// In en, this message translates to:
+  /// **'Save as template'**
+  String get templateSaveAsTemplate;
+
+  /// Title for save entry as template dialog
+  ///
+  /// In en, this message translates to:
+  /// **'New Template'**
+  String get templateSaveAsTemplateTitle;
+
+  /// Description for save entry as template dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Save this entry\'s layout as a reusable template.'**
+  String get templateSaveAsTemplateDesc;
+
+  /// Title for help section in settings
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get settingsSectionHelp;
+
+  /// Subtitle for help section in settings
+  ///
+  /// In en, this message translates to:
+  /// **'Guides, encryption details & FAQs'**
+  String get settingsSectionHelpSubtitle;
+
+  /// Title for features catalog in settings
+  ///
+  /// In en, this message translates to:
+  /// **'Features'**
+  String get settingsSectionFeatures;
+
+  /// Subtitle for features catalog in settings
+  ///
+  /// In en, this message translates to:
+  /// **'Explore all features and security tools'**
+  String get settingsSectionFeaturesSubtitle;
+
+  /// Header title in features catalog
+  ///
+  /// In en, this message translates to:
+  /// **'SreerajP Journal Vault Features'**
+  String get featuresHeaderTitle;
+
+  /// Header subtitle in features catalog
+  ///
+  /// In en, this message translates to:
+  /// **'Zero-leak offline architecture, military-grade encryption, and expressive journaling.'**
+  String get featuresHeaderSubtitle;
+
+  /// Word count format
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 word} other{{count} words}}'**
+  String entryWordCount(int count);
+
+  /// Character count format
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 char} other{{count} chars}}'**
+  String entryCharCount(int count);
+
+  /// Stats summary combining word and char counts
+  ///
+  /// In en, this message translates to:
+  /// **'{words} • {chars}'**
+  String entryStatsSummary(String words, String chars);
+
+  /// Enter distraction-free mode action
+  ///
+  /// In en, this message translates to:
+  /// **'Distraction-free mode'**
+  String get entryDistractionFreeEnter;
+
+  /// Exit distraction-free mode action
+  ///
+  /// In en, this message translates to:
+  /// **'Exit distraction-free mode'**
+  String get entryDistractionFreeExit;
+
+  /// Toggle focus paragraph on
+  ///
+  /// In en, this message translates to:
+  /// **'Focus paragraph: on'**
+  String get entryFocusParagraphOn;
+
+  /// Toggle focus paragraph off
+  ///
+  /// In en, this message translates to:
+  /// **'Focus paragraph: off'**
+  String get entryFocusParagraphOff;
+
+  /// Autosaving status
+  ///
+  /// In en, this message translates to:
+  /// **'Saving…'**
+  String get entryAutoSaving;
+
+  /// Autosaved with timestamp
+  ///
+  /// In en, this message translates to:
+  /// **'Saved at {time}'**
+  String entryAutoSaved(String time);
+
+  /// Autosaved just now status
+  ///
+  /// In en, this message translates to:
+  /// **'Saved just now'**
+  String get entryAutoSavedJustNow;
+
+  /// Unsaved changes warning
+  ///
+  /// In en, this message translates to:
+  /// **'Unsaved changes'**
+  String get entryUnsavedChanges;
+
+  /// Scan text button tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Scan text from image'**
+  String get entryEditorScanText;
+
+  /// Scan source dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Scan text from'**
+  String get entryEditorOcrSourceTitle;
+
+  /// Camera source option
+  ///
+  /// In en, this message translates to:
+  /// **'Take photo'**
+  String get entryEditorScanSourceCamera;
+
+  /// Gallery source option
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from gallery'**
+  String get entryEditorScanSourceGallery;
+
+  /// OCR scanning in progress
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning text from image...'**
+  String get entryEditorOcrScanning;
+
+  /// OCR no text found notice
+  ///
+  /// In en, this message translates to:
+  /// **'No text was detected in the image.'**
+  String get entryEditorOcrNoTextFound;
+
+  /// OCR error message
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to scan text from image.'**
+  String get entryEditorOcrError;
+
+  /// Crop image screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Crop Image'**
+  String get entryEditorCropImageTitle;
+
+  /// Crop image error
+  ///
+  /// In en, this message translates to:
+  /// **'Could not process image crop.'**
+  String get entryEditorCropImageError;
+
+  /// Theme mode title in appearance settings
+  ///
+  /// In en, this message translates to:
+  /// **'Theme Mode'**
+  String get appearanceThemeModeTitle;
+
+  /// Theme mode subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Choose System, Dark, or Light appearance'**
+  String get appearanceThemeModeSubtitle;
+
+  /// Accent color title in appearance settings
+  ///
+  /// In en, this message translates to:
+  /// **'Accent Color'**
+  String get appearanceAccentColorTitle;
+
+  /// Accent color subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Select primary brand color palette'**
+  String get appearanceAccentColorSubtitle;
+
+  /// Theme live preview header
+  ///
+  /// In en, this message translates to:
+  /// **'Live Preview'**
+  String get appearanceLivePreview;
+
+  /// Theme color presets tab
+  ///
+  /// In en, this message translates to:
+  /// **'Presets'**
+  String get appearancePresets;
+
+  /// Custom color picker tab
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Color Wheel'**
+  String get appearanceCustomWheel;
+
+  /// Sample text preview
+  ///
+  /// In en, this message translates to:
+  /// **'Sample Journal Entry'**
+  String get appearanceSampleText;
+
+  /// Reset appearance to default button
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to Default'**
+  String get appearanceResetDefault;
+
+  /// Contrast explanation note
+  ///
+  /// In en, this message translates to:
+  /// **'Text contrast is adjusted automatically for readability.'**
+  String get appearanceContrastNote;
+
+  /// System mode explanation
+  ///
+  /// In en, this message translates to:
+  /// **'System mode automatically follows your device\'s system-wide dark mode setting.'**
+  String get appearanceSystemModeExplainer;
+
+  /// Theme choice: warm parchment paper/sepia tones
+  ///
+  /// In en, this message translates to:
+  /// **'Paper / Sepia'**
+  String get settingsThemeSepia;
+
+  /// Theme choice: pitch black for OLED/AMOLED displays
+  ///
+  /// In en, this message translates to:
+  /// **'OLED / True Black'**
+  String get settingsThemeOled;
+
+  /// Description of the sepia/paper theme
+  ///
+  /// In en, this message translates to:
+  /// **'Warm parchment paper tone that is soothing for long writing sessions.'**
+  String get settingsThemeSepiaDesc;
+
+  /// Description of the OLED/True Black theme
+  ///
+  /// In en, this message translates to:
+  /// **'Pure pitch black background with crisp contrast for AMOLED battery saving.'**
+  String get settingsThemeOledDesc;
+
+  /// Description of the Light theme
+  ///
+  /// In en, this message translates to:
+  /// **'Clean and bright daylight reading surface.'**
+  String get settingsThemeLightDesc;
+
+  /// Description of the Dark theme
+  ///
+  /// In en, this message translates to:
+  /// **'Soft charcoal dark background for low-light writing.'**
+  String get settingsThemeDarkDesc;
+
+  /// Description of the System theme
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically follows your device system brightness preference.'**
+  String get settingsThemeSystemDesc;
+
+  /// Title of the reading typography settings screen
+  ///
+  /// In en, this message translates to:
+  /// **'Reading Typography'**
+  String get appearanceTypographyTitle;
+
+  /// Subtitle of typography settings
+  ///
+  /// In en, this message translates to:
+  /// **'Customize body font family and reading size'**
+  String get appearanceTypographySubtitle;
+
+  /// Header for font family section
+  ///
+  /// In en, this message translates to:
+  /// **'Body Font Family'**
+  String get appearanceFontFamily;
+
+  /// Header for font size section
+  ///
+  /// In en, this message translates to:
+  /// **'Body Font Size'**
+  String get appearanceFontSize;
+
+  /// Sans-serif font family label
+  ///
+  /// In en, this message translates to:
+  /// **'Sans-Serif'**
+  String get appearanceFontFamilySans;
+
+  /// Sans-serif font family description
+  ///
+  /// In en, this message translates to:
+  /// **'Clean and contemporary modern typeface'**
+  String get appearanceFontFamilySansDesc;
+
+  /// Serif font family label
+  ///
+  /// In en, this message translates to:
+  /// **'Book Serif'**
+  String get appearanceFontFamilySerif;
+
+  /// Serif font family description
+  ///
+  /// In en, this message translates to:
+  /// **'Classic editorial and literary book feel'**
+  String get appearanceFontFamilySerifDesc;
+
+  /// Monospace font family label
+  ///
+  /// In en, this message translates to:
+  /// **'Monospace'**
+  String get appearanceFontFamilyMonospace;
+
+  /// Monospace font family description
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed-width typewriter and Markdown aesthetic'**
+  String get appearanceFontFamilyMonospaceDesc;
+
+  /// Small font size preset label
+  ///
+  /// In en, this message translates to:
+  /// **'Small'**
+  String get appearanceFontSizeSmall;
+
+  /// Default font size preset label
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get appearanceFontSizeDefault;
+
+  /// Medium font size preset label
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get appearanceFontSizeMedium;
+
+  /// Large font size preset label
+  ///
+  /// In en, this message translates to:
+  /// **'Large'**
+  String get appearanceFontSizeLarge;
+
+  /// Extra large font size preset label
+  ///
+  /// In en, this message translates to:
+  /// **'X-Large'**
+  String get appearanceFontSizeExtraLarge;
+
+  /// Headline for sample journal preview card
+  ///
+  /// In en, this message translates to:
+  /// **'Quiet Reflections'**
+  String get appearanceSampleHeadline;
+
+  /// Body paragraph for sample journal preview card
+  ///
+  /// In en, this message translates to:
+  /// **'The journal is a quiet space to slow down and reflect. Every thought, memory, and sketch is securely preserved in your private vault.'**
+  String get appearanceSampleBody;
+
+  /// Confirmation message after updating typography
+  ///
+  /// In en, this message translates to:
+  /// **'Typography settings updated.'**
+  String get appearanceTypographyUpdated;
+
+  /// Confirmation message after resetting typography
+  ///
+  /// In en, this message translates to:
+  /// **'Typography reset to default.'**
+  String get appearanceTypographyReset;
+
+  /// Features category: journaling
+  ///
+  /// In en, this message translates to:
+  /// **'Journaling & Rich Text Editor'**
+  String get featuresCatJournaling;
+
+  /// Features category subtitle: journaling
+  ///
+  /// In en, this message translates to:
+  /// **'Expressive writing, structured templates, OCR, and rich media'**
+  String get featuresCatJournalingSub;
+
+  /// Features category: security
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy, Encryption & Vault Security'**
+  String get featuresCatSecurity;
+
+  /// Features category subtitle: security
+  ///
+  /// In en, this message translates to:
+  /// **'Guaranteed zero-leak encryption and granular security controls'**
+  String get featuresCatSecuritySub;
+
+  /// Features category: search
+  ///
+  /// In en, this message translates to:
+  /// **'Search, Timeline & Insights'**
+  String get featuresCatSearch;
+
+  /// Features category subtitle: search
+  ///
+  /// In en, this message translates to:
+  /// **'Instant full-text discovery, visual calendar, and habit analytics'**
+  String get featuresCatSearchSub;
+
+  /// Features category: storage
+  ///
+  /// In en, this message translates to:
+  /// **'Storage, Backups & Export'**
+  String get featuresCatStorage;
+
+  /// Features category subtitle: storage
+  ///
+  /// In en, this message translates to:
+  /// **'Full offline autonomy, storage migration, and multi-format exports'**
+  String get featuresCatStorageSub;
+
+  /// Help center header title
+  ///
+  /// In en, this message translates to:
+  /// **'Help Center & Knowledge Base'**
+  String get helpHeaderTitle;
+
+  /// Help center header subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Complete offline documentation, encryption details, and quick answers.'**
+  String get helpHeaderSubtitle;
+
+  /// Help center writing section
+  ///
+  /// In en, this message translates to:
+  /// **'Writing & Journal Management'**
+  String get helpSectionWriting;
+
+  /// Help center security section
+  ///
+  /// In en, this message translates to:
+  /// **'Security, Lock & Encryption'**
+  String get helpSectionSecurity;
+
+  /// Help center search section
+  ///
+  /// In en, this message translates to:
+  /// **'Search, Timeline & Insights'**
+  String get helpSectionSearch;
+
+  /// Help center storage section
+  ///
+  /// In en, this message translates to:
+  /// **'Storage, Backups & Export'**
+  String get helpSectionStorage;
+
+  /// Help center FAQ section
+  ///
+  /// In en, this message translates to:
+  /// **'Frequently Asked Questions'**
+  String get helpSectionFaq;
+
+  /// Toolbar insert drawing button tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Drawing canvas'**
+  String get editorInsertDrawing;
+
+  /// Drawing canvas screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Drawing & Sketch'**
+  String get drawingCanvasTitle;
+
+  /// Drawing canvas edit title
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Drawing'**
+  String get drawingCanvasEditTitle;
+
+  /// Drawing canvas pen tool
+  ///
+  /// In en, this message translates to:
+  /// **'Pen'**
+  String get drawingCanvasPen;
+
+  /// Drawing canvas highlighter tool
+  ///
+  /// In en, this message translates to:
+  /// **'Highlighter'**
+  String get drawingCanvasHighlighter;
+
+  /// Drawing canvas eraser tool
+  ///
+  /// In en, this message translates to:
+  /// **'Eraser'**
+  String get drawingCanvasEraser;
+
+  /// Clear drawing canvas action
+  ///
+  /// In en, this message translates to:
+  /// **'Clear canvas'**
+  String get drawingCanvasClear;
+
+  /// Confirm clear canvas dialog message
+  ///
+  /// In en, this message translates to:
+  /// **'Clear the entire drawing?'**
+  String get drawingCanvasClearConfirm;
+
+  /// Drawing stroke width selector
+  ///
+  /// In en, this message translates to:
+  /// **'Stroke width'**
+  String get drawingCanvasStrokeWidth;
+
+  /// Drawing stroke color selector
+  ///
+  /// In en, this message translates to:
+  /// **'Stroke color'**
+  String get drawingCanvasColor;
+
+  /// Drawing background selector
+  ///
+  /// In en, this message translates to:
+  /// **'Background'**
+  String get drawingCanvasBackground;
+
+  /// Blank background style
+  ///
+  /// In en, this message translates to:
+  /// **'Blank'**
+  String get drawingCanvasBgBlank;
+
+  /// Ruled lines background style
+  ///
+  /// In en, this message translates to:
+  /// **'Ruled'**
+  String get drawingCanvasBgRuled;
+
+  /// Grid background style
+  ///
+  /// In en, this message translates to:
+  /// **'Grid'**
+  String get drawingCanvasBgGrid;
+
+  /// Dots background style
+  ///
+  /// In en, this message translates to:
+  /// **'Dots'**
+  String get drawingCanvasBgDots;
+
+  /// Drawing canvas undo
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get drawingCanvasUndo;
+
+  /// Drawing canvas redo
+  ///
+  /// In en, this message translates to:
+  /// **'Redo'**
+  String get drawingCanvasRedo;
+
+  /// Save drawing button
+  ///
+  /// In en, this message translates to:
+  /// **'Save drawing'**
+  String get drawingCanvasSave;
+
+  /// Discard drawing dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Discard changes?'**
+  String get drawingCanvasDiscardTitle;
+
+  /// Discard drawing dialog message
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to discard your drawing changes?'**
+  String get drawingCanvasDiscardMessage;
+
+  /// Edit inline drawing tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Edit drawing'**
+  String get drawingEditTooltip;
+
+  /// Resize inline drawing tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Resize drawing'**
+  String get drawingSizeTooltip;
+
+  /// Delete inline drawing tooltip
+  ///
+  /// In en, this message translates to:
+  /// **'Delete drawing'**
+  String get drawingDeleteTooltip;
+
+  /// Drawing unavailable placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Drawing unavailable'**
+  String get drawingUnavailable;
+
+  /// Drawing loading placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Loading drawing…'**
+  String get drawingLoading;
+
+  /// Error message when saving a drawing fails
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save drawing.'**
+  String get drawingSaveError;
+
+  /// Custom templates action
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Templates'**
+  String get journalManageTemplates;
+
+  /// Help center title
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get helpTitle;
+
+  /// Features catalog title
+  ///
+  /// In en, this message translates to:
+  /// **'Features'**
+  String get featuresTitle;
+
+  /// Feature title: 100% offline & zero network permission
+  ///
+  /// In en, this message translates to:
+  /// **'100% Offline & Zero Network Permission'**
+  String get featureOfflineTitle;
+
+  /// Feature description: 100% offline & zero network permission
+  ///
+  /// In en, this message translates to:
+  /// **'The application contains zero network access code, requests no internet permissions, and keeps all journal data, attachments, and encryption strictly offline.'**
+  String get featureOfflineDesc;
+
+  /// Title of the Ritual Practice screen
+  ///
+  /// In en, this message translates to:
+  /// **'Ritual Practice'**
+  String get ritualScreenTitle;
+
+  /// Title of the Ritual Deck Browser screen
+  ///
+  /// In en, this message translates to:
+  /// **'Reflection Deck'**
+  String get ritualDeckBrowserTitle;
+
+  /// Tooltip for resetting spaced repetition intervals
+  ///
+  /// In en, this message translates to:
+  /// **'Reset SRS intervals'**
+  String get ritualResetReviewsTooltip;
+
+  /// Title of dialog confirming resetting all card reviews
+  ///
+  /// In en, this message translates to:
+  /// **'Reset All Card Reviews'**
+  String get ritualResetReviewsTitle;
+
+  /// Confirmation message when resetting spaced repetition reviews
+  ///
+  /// In en, this message translates to:
+  /// **'This will reset review levels and next review dates for all cards. Continue?'**
+  String get ritualResetReviewsConfirm;
+
+  /// Snackbar shown after resetting card reviews
+  ///
+  /// In en, this message translates to:
+  /// **'Card review intervals reset.'**
+  String get ritualResetReviewsDone;
+
+  /// Filter chip for all themes in reflection deck
+  ///
+  /// In en, this message translates to:
+  /// **'All Themes'**
+  String get ritualAllThemes;
+
+  /// Badge for cards that have never been reviewed
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get ritualSrsNew;
+
+  /// Badge for cards due for review today
+  ///
+  /// In en, this message translates to:
+  /// **'Due Today'**
+  String get ritualSrsDueToday;
+
+  /// Badge showing days until next review
+  ///
+  /// In en, this message translates to:
+  /// **'In {days}d'**
+  String ritualSrsInDays(int days);
+
+  /// Step label for breathing in ritual mode
+  ///
+  /// In en, this message translates to:
+  /// **'Breathe'**
+  String get ritualStepBreathe;
+
+  /// Step label for reflection card in ritual mode
+  ///
+  /// In en, this message translates to:
+  /// **'Reflect'**
+  String get ritualStepReflect;
+
+  /// Step label for writing in ritual mode
+  ///
+  /// In en, this message translates to:
+  /// **'Write'**
+  String get ritualStepWrite;
+
+  /// Heading for the breathing exercise in ritual mode
+  ///
+  /// In en, this message translates to:
+  /// **'Centering Breath'**
+  String get ritualBreatheHeading;
+
+  /// Button to skip breathing and go to reflection prompt
+  ///
+  /// In en, this message translates to:
+  /// **'Skip to Prompt'**
+  String get ritualSkipToPrompt;
+
+  /// Button to continue to reflection card
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get ritualContinueToCard;
+
+  /// Button to draw another reflection card
+  ///
+  /// In en, this message translates to:
+  /// **'Shuffle'**
+  String get ritualShuffleCard;
+
+  /// Label for spaced repetition rating buttons
+  ///
+  /// In en, this message translates to:
+  /// **'HOW MEMORABLE / EASY WAS THIS REFLECTION?'**
+  String get ritualSrsRatePrompt;
+
+  /// Rating button: Hard (review in 1 day)
+  ///
+  /// In en, this message translates to:
+  /// **'Hard'**
+  String get ritualSrsHard;
+
+  /// Subtitle for Hard rating button
+  ///
+  /// In en, this message translates to:
+  /// **'Review in 1d'**
+  String get ritualSrsHardSubtitle;
+
+  /// Rating button: Revision (review in 3 days)
+  ///
+  /// In en, this message translates to:
+  /// **'Revision'**
+  String get ritualSrsRevision;
+
+  /// Subtitle for Revision rating button
+  ///
+  /// In en, this message translates to:
+  /// **'Review in 3d'**
+  String get ritualSrsRevisionSubtitle;
+
+  /// Rating button: Easy (+7 days)
+  ///
+  /// In en, this message translates to:
+  /// **'Easy'**
+  String get ritualSrsEasy;
+
+  /// Subtitle for Easy rating button
+  ///
+  /// In en, this message translates to:
+  /// **'+7 days'**
+  String get ritualSrsEasySubtitle;
+
+  /// Button to advance to journal writing step
+  ///
+  /// In en, this message translates to:
+  /// **'Proceed to Journal'**
+  String get ritualProceedToJournal;
+
+  /// Heading when ready to write in ritual mode
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to Reflect'**
+  String get ritualReadyToWriteTitle;
+
+  /// Description explaining journal entry creation from prompt card
+  ///
+  /// In en, this message translates to:
+  /// **'Write your thoughts into today\'s journal entry inspired by \"{cardTitle}\".'**
+  String ritualReadyToWriteDesc(String cardTitle);
+
+  /// Button to open journal editor with prompt seeded
+  ///
+  /// In en, this message translates to:
+  /// **'Begin Journaling'**
+  String get ritualBeginWritingButton;
+
+  /// Button to finish ritual without creating a journal entry
+  ///
+  /// In en, this message translates to:
+  /// **'Complete Practice Only'**
+  String get ritualCompletePracticeOnly;
+
+  /// Title of Ritual Mode settings dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Ritual Mode Settings'**
+  String get ritualSettingsTitle;
+
+  /// Setting toggle to launch directly into ritual mode
+  ///
+  /// In en, this message translates to:
+  /// **'Open in Ritual Mode'**
+  String get ritualLaunchOnStartupTitle;
+
+  /// Subtitle for launch in ritual mode setting
+  ///
+  /// In en, this message translates to:
+  /// **'Begin every session with a guided breath and reflection prompt'**
+  String get ritualLaunchOnStartupSubtitle;
+
+  /// Label for selecting breathing technique
+  ///
+  /// In en, this message translates to:
+  /// **'Breathing Technique'**
+  String get ritualBreathTechniqueLabel;
+
+  /// Label and value for breath cycle count slider
+  ///
+  /// In en, this message translates to:
+  /// **'Breathing Cycles: {count}'**
+  String ritualBreathCyclesLabel(int count);
+
+  /// Reset button label
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get commonReset;
+
+  /// Title of daily ritual card on Home tab
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Ritual Practice'**
+  String get ritualHomeCardTitle;
+
+  /// Subtitle of daily ritual card on Home tab
+  ///
+  /// In en, this message translates to:
+  /// **'Center your mind with a guided breath and today\'s reflection card'**
+  String get ritualHomeCardSubtitle;
+
+  /// Button text on daily ritual card on Home tab
+  ///
+  /// In en, this message translates to:
+  /// **'Begin Practice'**
+  String get ritualHomeCardAction;
+
+  /// Settings tile title for Ritual Mode
+  ///
+  /// In en, this message translates to:
+  /// **'Ritual Mode & Reflection'**
+  String get ritualSettingsTileTitle;
+
+  /// Settings tile subtitle for Ritual Mode
+  ///
+  /// In en, this message translates to:
+  /// **'Guided breath timer, 50-card Sanathana Dharma deck & spaced repetition'**
+  String get ritualSettingsTileSubtitle;
+
+  /// Feature catalog title for Ritual Mode
+  ///
+  /// In en, this message translates to:
+  /// **'Ritual Mode & Reflection Cards'**
+  String get featureRitualTitle;
+
+  /// Feature catalog description for Ritual Mode
+  ///
+  /// In en, this message translates to:
+  /// **'A guided daily practice that calms your mind with a breath timer, surfaces rotating prompt cards with Anki-style spaced repetition, and opens directly to today\'s entry.'**
+  String get featureRitualDesc;
+
+  /// Title of P2P sync landing screen
+  ///
+  /// In en, this message translates to:
+  /// **'Device-to-Device Sync'**
+  String get syncLandingTitle;
+
+  /// Subtitle of P2P sync landing screen
+  ///
+  /// In en, this message translates to:
+  /// **'Sync entries and attachments directly over local Wi-Fi with no cloud servers'**
+  String get syncLandingSubtitle;
+
+  /// Host mode card title
+  ///
+  /// In en, this message translates to:
+  /// **'Send Changes (Host)'**
+  String get syncSendTitle;
+
+  /// Host mode card subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Display a pairing QR code to share journal entries and attachments with another device'**
+  String get syncSendSubtitle;
+
+  /// Client mode card title
+  ///
+  /// In en, this message translates to:
+  /// **'Receive Changes (Client)'**
+  String get syncReceiveTitle;
+
+  /// Client mode card subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Scan a pairing QR code or enter connection details to receive updates'**
+  String get syncReceiveSubtitle;
+
+  /// Host screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Host Wi-Fi Sync'**
+  String get syncHostTitle;
+
+  /// Client screen title
+  ///
+  /// In en, this message translates to:
+  /// **'Receive Wi-Fi Sync'**
+  String get syncClientTitle;
+
+  /// Tab label for camera QR scanner
+  ///
+  /// In en, this message translates to:
+  /// **'Scan QR'**
+  String get syncTabQrScan;
+
+  /// Tab label for manual connection entry
+  ///
+  /// In en, this message translates to:
+  /// **'Manual Details'**
+  String get syncTabManualEntry;
+
+  /// Tab label for host connection details
+  ///
+  /// In en, this message translates to:
+  /// **'Connection'**
+  String get syncTabConnection;
+
+  /// Label for host IP address
+  ///
+  /// In en, this message translates to:
+  /// **'Local IP Address'**
+  String get syncIpLabel;
+
+  /// Label for host TCP port
+  ///
+  /// In en, this message translates to:
+  /// **'Port'**
+  String get syncPortLabel;
+
+  /// Label for one-time pairing code
+  ///
+  /// In en, this message translates to:
+  /// **'Pairing Code'**
+  String get syncPairingCodeLabel;
+
+  /// Status when host is listening
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for incoming connection...'**
+  String get syncStatusListening;
+
+  /// Status when peer is authenticated
+  ///
+  /// In en, this message translates to:
+  /// **'Device connected & authenticated'**
+  String get syncStatusConnected;
+
+  /// Status when sync succeeds
+  ///
+  /// In en, this message translates to:
+  /// **'Sync completed successfully!'**
+  String get syncStatusCompleted;
+
+  /// Status when authentication fails
+  ///
+  /// In en, this message translates to:
+  /// **'Connection rejected: incorrect pairing code'**
+  String get syncStatusDenied;
+
+  /// Status when host is stopped
+  ///
+  /// In en, this message translates to:
+  /// **'Sync server stopped'**
+  String get syncStatusStopped;
+
+  /// Status when sync hits an error
+  ///
+  /// In en, this message translates to:
+  /// **'Sync server error'**
+  String get syncStatusError;
+
+  /// Button to start sync host
+  ///
+  /// In en, this message translates to:
+  /// **'Start Server'**
+  String get syncButtonStart;
+
+  /// Button to stop sync host
+  ///
+  /// In en, this message translates to:
+  /// **'Stop Server'**
+  String get syncButtonStop;
+
+  /// Button to start client sync
+  ///
+  /// In en, this message translates to:
+  /// **'Connect & Sync'**
+  String get syncButtonConnect;
+
+  /// Instructions shown above camera viewfinder
+  ///
+  /// In en, this message translates to:
+  /// **'Point your camera at the pairing QR code on the sending device'**
+  String get syncScanInstructions;
+
+  /// Hint text for IP input field
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 192.168.1.5'**
+  String get syncHostAddressHint;
+
+  /// Hint text for port input field
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 54321'**
+  String get syncPortHint;
+
+  /// Hint text for pairing code input field
+  ///
+  /// In en, this message translates to:
+  /// **'16-character pairing code'**
+  String get syncCodeHint;
+
+  /// Warning when no local IP is available
+  ///
+  /// In en, this message translates to:
+  /// **'No Wi-Fi / LAN IP detected. Make sure both devices are on the same Wi-Fi network or hotspot.'**
+  String get syncNoWifiAlert;
+
+  /// Snackbar message when pairing code is copied
+  ///
+  /// In en, this message translates to:
+  /// **'Pairing code copied to clipboard'**
+  String get syncPairingCodeCopied;
+
+  /// Title for optical air-gap sync
+  ///
+  /// In en, this message translates to:
+  /// **'Optical Air-Gap Sync (AirQR)'**
+  String get airqrTitle;
+
+  /// Intro description for AirQR optical sync
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronize settings, small journals, and entries over light using animated QR codes without network connections.'**
+  String get airqrIntro;
+
+  /// Title for AirQR send screen
+  ///
+  /// In en, this message translates to:
+  /// **'Send via AirQR'**
+  String get airqrSendTitle;
+
+  /// Title for AirQR receive screen
+  ///
+  /// In en, this message translates to:
+  /// **'Receive via AirQR'**
+  String get airqrReceiveTitle;
+
+  /// Title for receive action card
+  ///
+  /// In en, this message translates to:
+  /// **'Receive Data (Scanner)'**
+  String get airqrReceive;
+
+  /// Subtitle for receive action card
+  ///
+  /// In en, this message translates to:
+  /// **'Scan animated QR frames from another device'**
+  String get airqrReceiveSubtitle;
+
+  /// Title for sync settings action
+  ///
+  /// In en, this message translates to:
+  /// **'Sync App Settings'**
+  String get airqrSyncSettingsTitle;
+
+  /// Subtitle for sync settings action
+  ///
+  /// In en, this message translates to:
+  /// **'Theme, accent color, security, ritual & templates (< 1 sec)'**
+  String get airqrSyncSettingsSubtitle;
+
+  /// Title for sync journal action
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Single Journal'**
+  String get airqrSyncJournalTitle;
+
+  /// Subtitle for sync journal action
+  ///
+  /// In en, this message translates to:
+  /// **'Select and stream a journal with text entries'**
+  String get airqrSyncJournalSubtitle;
+
+  /// Title for too large dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Payload Too Large'**
+  String get airqrTooLargeTitle;
+
+  /// Title for warning dialog on large optical transfer
+  ///
+  /// In en, this message translates to:
+  /// **'Large Optical Transfer'**
+  String get airqrSlowTitle;
+
+  /// Button to proceed with optical transfer
+  ///
+  /// In en, this message translates to:
+  /// **'Send Anyway'**
+  String get airqrSendAnyway;
+
+  /// Title for AirQR speed note
+  ///
+  /// In en, this message translates to:
+  /// **'100% Offline & Private'**
+  String get airqrSpeedNoteTitle;
+
+  /// Body for AirQR speed note
+  ///
+  /// In en, this message translates to:
+  /// **'AirQR works purely via camera and screen. No Wi-Fi, hotspot, Bluetooth, or internet required.'**
+  String get airqrSpeedNoteBody;
+
+  /// Action menu item to seal an entry as a time capsule
+  ///
+  /// In en, this message translates to:
+  /// **'Seal as Time Capsule'**
+  String get timeCapsuleActionSeal;
+
+  /// Title of dialog to seal an entry as a time capsule
+  ///
+  /// In en, this message translates to:
+  /// **'Seal as Time Capsule'**
+  String get timeCapsuleSealTitle;
+
+  /// Description of cryptographic time capsule seal
+  ///
+  /// In en, this message translates to:
+  /// **'Cryptographically seals this entry until a future date. The decryption key will not be released until that date arrives.'**
+  String get timeCapsuleSealDescription;
+
+  /// Label for the unlock date field
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Date'**
+  String get timeCapsuleUnlockDateLabel;
+
+  /// Hint text for optional teaser note to future self
+  ///
+  /// In en, this message translates to:
+  /// **'Note to future self (optional teaser)'**
+  String get timeCapsuleTeaserHint;
+
+  /// Preset button for 1 month in the future
+  ///
+  /// In en, this message translates to:
+  /// **'1 Month'**
+  String get timeCapsulePreset1Month;
+
+  /// Preset button for 6 months in the future
+  ///
+  /// In en, this message translates to:
+  /// **'6 Months'**
+  String get timeCapsulePreset6Months;
+
+  /// Preset button for 1 year in the future
+  ///
+  /// In en, this message translates to:
+  /// **'1 Year'**
+  String get timeCapsulePreset1Year;
+
+  /// Preset button for 3 years in the future
+  ///
+  /// In en, this message translates to:
+  /// **'3 Years'**
+  String get timeCapsulePreset3Years;
+
+  /// Preset button for 5 years in the future
+  ///
+  /// In en, this message translates to:
+  /// **'5 Years'**
+  String get timeCapsulePreset5Years;
+
+  /// Preset button for custom date
+  ///
+  /// In en, this message translates to:
+  /// **'Custom Date'**
+  String get timeCapsulePresetCustom;
+
+  /// Button to confirm sealing the time capsule
+  ///
+  /// In en, this message translates to:
+  /// **'Seal Capsule'**
+  String get timeCapsuleSealConfirm;
+
+  /// Badge label indicating a sealed time capsule
+  ///
+  /// In en, this message translates to:
+  /// **'Sealed Time Capsule'**
+  String get timeCapsuleSealedBadge;
+
+  /// Status showing the unlock date
+  ///
+  /// In en, this message translates to:
+  /// **'Sealed until {date}'**
+  String timeCapsuleSealedUntil(String date);
+
+  /// Status showing days remaining until unlock
+  ///
+  /// In en, this message translates to:
+  /// **'Opens in {days} days'**
+  String timeCapsuleOpensInDays(int days);
+
+  /// Status showing hours remaining until unlock
+  ///
+  /// In en, this message translates to:
+  /// **'Opens in {hours} hours'**
+  String timeCapsuleOpensInHours(int hours);
+
+  /// Status when capsule unlock date is today
+  ///
+  /// In en, this message translates to:
+  /// **'Opens today!'**
+  String get timeCapsuleOpensToday;
+
+  /// Status badge when a time capsule has arrived at its unlock date
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to Open'**
+  String get timeCapsuleReadyToOpen;
+
+  /// Detailed explanation of cryptographic seal
+  ///
+  /// In en, this message translates to:
+  /// **'This entry is cryptographically sealed under AES-256-GCM. The app\'s date-gated vault engine will not release the decryption key until the unlock date.'**
+  String get timeCapsuleLockedExplanation;
+
+  /// Button to unseal and restore the time capsule
+  ///
+  /// In en, this message translates to:
+  /// **'Unseal Time Capsule'**
+  String get timeCapsuleUnsealButton;
+
+  /// Button text when unseal is locked
+  ///
+  /// In en, this message translates to:
+  /// **'Locked until {date}'**
+  String timeCapsuleUnsealLockedPrompt(String date);
+
+  /// Snackbar notification after sealing entry
+  ///
+  /// In en, this message translates to:
+  /// **'Entry sealed into a time capsule until {date}.'**
+  String timeCapsuleSealedSuccess(String date);
+
+  /// Snackbar notification after unsealing entry
+  ///
+  /// In en, this message translates to:
+  /// **'Time capsule successfully unsealed! Welcome back to your words.'**
+  String get timeCapsuleUnsealedSuccess;
+
+  /// Error message when device clock was rolled backwards
+  ///
+  /// In en, this message translates to:
+  /// **'Device clock rollback detected. The capsule cannot be unlocked while the device time is behind the recorded seal timestamp.'**
+  String get timeCapsuleClockTamperError;
+
+  /// Screen title for Time Capsules
+  ///
+  /// In en, this message translates to:
+  /// **'Time Capsules'**
+  String get timeCapsuleTitle;
+
+  /// Subtitle describing Time Capsules
+  ///
+  /// In en, this message translates to:
+  /// **'Letters and entries sealed for your future self'**
+  String get timeCapsuleSubtitle;
+
+  /// Empty state message when no time capsules exist
+  ///
+  /// In en, this message translates to:
+  /// **'No time capsules yet. Create an entry and seal it for your future self.'**
+  String get timeCapsuleEmptyState;
+
+  /// Banner title when time capsules are ready to open
+  ///
+  /// In en, this message translates to:
+  /// **'Time Capsule Ready!'**
+  String get timeCapsuleBannerTitle;
+
+  /// Banner body for 1 ready capsule
+  ///
+  /// In en, this message translates to:
+  /// **'You have {count} sealed capsule ready to open today.'**
+  String timeCapsuleBannerBody(int count);
+
+  /// Banner body for multiple ready capsules
+  ///
+  /// In en, this message translates to:
+  /// **'You have {count} sealed capsules ready to open today.'**
+  String timeCapsuleBannerBodyPlural(int count);
+
+  /// Header for sealed capsules
+  ///
+  /// In en, this message translates to:
+  /// **'Sealed Capsules'**
+  String get timeCapsuleCategorySealed;
+
+  /// Header for ready capsules
+  ///
+  /// In en, this message translates to:
+  /// **'Ready to Open'**
+  String get timeCapsuleCategoryReady;
+
+  /// Header for opened capsules
+  ///
+  /// In en, this message translates to:
+  /// **'Opened Capsules'**
+  String get timeCapsuleCategoryOpened;
+
+  /// Title of the create ritual card screen
+  ///
+  /// In en, this message translates to:
+  /// **'Create Card'**
+  String get ritualCreateCardTitle;
+
+  /// Title of the edit ritual card screen
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Card'**
+  String get ritualEditCardTitle;
+
+  /// FAB label on deck screen to create a new card
+  ///
+  /// In en, this message translates to:
+  /// **'New Card'**
+  String get ritualCreateCardButton;
+
+  /// Label for the theme picker in card creation
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get ritualCardThemeLabel;
+
+  /// Label for the card title field
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get ritualCardTitleLabel;
+
+  /// Hint text for card title
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. The Light of Self-Knowledge'**
+  String get ritualCardTitleHint;
+
+  /// Validation message when title is empty
+  ///
+  /// In en, this message translates to:
+  /// **'A title is required.'**
+  String get ritualCardTitleRequired;
+
+  /// Label for the card prompt or reflection question
+  ///
+  /// In en, this message translates to:
+  /// **'Reflection Question'**
+  String get ritualCardPromptLabel;
+
+  /// Hint text for card prompt
+  ///
+  /// In en, this message translates to:
+  /// **'A question to reflect upon during practice...'**
+  String get ritualCardPromptHint;
+
+  /// Validation message when prompt is empty
+  ///
+  /// In en, this message translates to:
+  /// **'A reflection question is required.'**
+  String get ritualCardPromptRequired;
+
+  /// Label for the card quote or teaching
+  ///
+  /// In en, this message translates to:
+  /// **'Teaching or Quote'**
+  String get ritualCardQuoteLabel;
+
+  /// Hint text for card quote
+  ///
+  /// In en, this message translates to:
+  /// **'A verse, shloka, or teaching...'**
+  String get ritualCardQuoteHint;
+
+  /// Validation message when quote is empty
+  ///
+  /// In en, this message translates to:
+  /// **'A teaching or quote is required.'**
+  String get ritualCardQuoteRequired;
+
+  /// Label for the card author or source field
+  ///
+  /// In en, this message translates to:
+  /// **'Source (optional)'**
+  String get ritualCardAuthorLabel;
+
+  /// Hint text for card author or source
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Bhagavad Gita 2.47'**
+  String get ritualCardAuthorHint;
+
+  /// Label above the card preview in create or edit screen
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get ritualCardPreviewLabel;
+
+  /// Button text to save a new card
+  ///
+  /// In en, this message translates to:
+  /// **'Create Card'**
+  String get ritualSaveCardCreate;
+
+  /// Button text to save edits to an existing card
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get ritualSaveCardEdit;
+
+  /// Snackbar after creating a card
+  ///
+  /// In en, this message translates to:
+  /// **'Card created.'**
+  String get ritualCardCreatedMessage;
+
+  /// Snackbar after editing a card
+  ///
+  /// In en, this message translates to:
+  /// **'Card updated.'**
+  String get ritualCardUpdatedMessage;
+
+  /// Snackbar when card save fails
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the card. Please try again.'**
+  String get ritualCardSaveError;
+
+  /// Badge text on user-created cards in the deck
+  ///
+  /// In en, this message translates to:
+  /// **'MY CARD'**
+  String get ritualUserCardBadge;
+
+  /// Menu item to edit a user card
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get ritualEditCardAction;
+
+  /// Menu item or button to delete a user card
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get ritualDeleteCardAction;
+
+  /// Title of the delete card confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Card'**
+  String get ritualDeleteCardTitle;
+
+  /// Body of the delete card confirmation dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete \"{title}\"? This cannot be undone.'**
+  String ritualDeleteCardConfirm(String title);
+
+  /// Snackbar after deleting a card
+  ///
+  /// In en, this message translates to:
+  /// **'Card deleted.'**
+  String get ritualCardDeletedMessage;
+
+  /// Error shown when no journal exists to write a ritual entry into
+  ///
+  /// In en, this message translates to:
+  /// **'Please create a journal first.'**
+  String get ritualNoJournalError;
 }
 
 class _AppLocalizationsDelegate
@@ -2890,7 +5966,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) =>
-      <String>['en'].contains(locale.languageCode);
+      <String>['en', 'ml'].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -2901,6 +5977,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
   switch (locale.languageCode) {
     case 'en':
       return AppLocalizationsEn();
+    case 'ml':
+      return AppLocalizationsMl();
   }
 
   throw FlutterError(

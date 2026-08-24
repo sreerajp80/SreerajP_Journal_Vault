@@ -70,6 +70,7 @@ Test suite as of the last full run: **555 passing, 0 failing** (2026-08-18).
 - [x] A4.2 — Encrypting the exported file — built 2026-08-18. The envelope moved to
       `lib/core/security/`, so the backup archive and an encrypted export share one
       versioned format. Settings can open a sealed export again.
+- [x] C3 — Time capsules and letters to your future self (cryptographic date-gated key release, cleartext wiping, monotonic clock rollback protection, countdown timer, overview catalogue) — built 2026-08-24.
 
 ### C — guidelines conformance (2026-08-18)
 

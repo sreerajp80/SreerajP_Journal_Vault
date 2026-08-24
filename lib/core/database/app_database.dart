@@ -316,6 +316,61 @@ class VoiceNotes extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
+/// Stores user-created entry templates with customizable titles and starter content.
+class UserTemplates extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  TextColumn get description => text().nullable()();
+  TextColumn get defaultTitle => text().nullable()();
+  TextColumn get contentJson => text()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+/// Cryptographically sealed time capsule letter to future self.
+///
+/// When an entry is sealed:
+/// - The body content is encrypted under a dedicated AES-256-GCM key.
+/// - The cleartext in `entries` table (`plainText` and `contentJson`) is wiped (nulled).
+/// - The entry is excluded from FTS search results.
+/// - The app's date-gated release engine refuses decryption until [unlockDate] arrives.
+class TimeCapsules extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get entryId =>
+      integer().references(Entries, #id, onDelete: KeyAction.cascade)();
+  DateTimeColumn get unlockDate => dateTime()();
+  DateTimeColumn get sealedAt => dateTime().withDefault(currentDateAndTime)();
+  BoolColumn get isOpened => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get openedAt => dateTime().nullable()();
+  TextColumn get sealedCiphertext => text()(); // AES-256-GCM ciphertext
+  TextColumn get ivBase64 => text()();
+  TextColumn get macBase64 => text()();
+  TextColumn get sealedKeyCiphertext => text().nullable()();
+  TextColumn get teaserMessage => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {entryId},
+  ];
+}
+
+/// Stores user-created reflection cards for the Sanathana Dharma ritual deck.
+///
+/// Curated cards ship with the app as Dart constants; this table holds only
+/// cards the user writes themselves. The [theme] column stores the
+/// `RitualTheme` enum name so it can be parsed back on read.
+class UserRitualCards extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get theme => text()();
+  TextColumn get title => text()();
+  TextColumn get prompt => text()();
+  TextColumn get quote => text()();
+  TextColumn get quoteAuthor => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
 // ──────────────────────────── DAOs ────────────────────────────
 
 @DriftAccessor(tables: [Journals])
@@ -1010,6 +1065,16 @@ class SecurityEventsDao extends DatabaseAccessor<AppDatabase>
             ..limit(limit))
           .watch();
 
+  Stream<List<SecurityEvent>> watchEventsByType(
+    String eventType, {
+    int limit = 50,
+  }) =>
+      (select(securityEvents)
+            ..where((t) => t.eventType.equals(eventType))
+            ..orderBy([(t) => OrderingTerm.desc(t.createdAt)])
+            ..limit(limit))
+          .watch();
+
   Future<int> getEventCountSince(DateTime since) async {
     final rows = await (select(
       securityEvents,
@@ -1049,6 +1114,113 @@ class EntryMoodsDao extends DatabaseAccessor<AppDatabase>
   Stream<EntryMood?> watchMoodForEntry(int entryId) => (select(
     entryMoods,
   )..where((t) => t.entryId.equals(entryId))).watchSingleOrNull();
+}
+
+@DriftAccessor(tables: [UserTemplates])
+class UserTemplatesDao extends DatabaseAccessor<AppDatabase>
+    with _$UserTemplatesDaoMixin {
+  UserTemplatesDao(super.db);
+
+  Future<int> createUserTemplate(UserTemplatesCompanion companion) =>
+      into(userTemplates).insert(companion);
+
+  Future<List<UserTemplate>> getAllUserTemplates() =>
+      (select(userTemplates)..orderBy([(t) => OrderingTerm.asc(t.name)])).get();
+
+  Stream<List<UserTemplate>> watchAllUserTemplates() => (select(
+    userTemplates,
+  )..orderBy([(t) => OrderingTerm.asc(t.name)])).watch();
+
+  Future<UserTemplate?> getUserTemplateById(int id) =>
+      (select(userTemplates)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  Future<bool> updateUserTemplate(UserTemplate template) =>
+      update(userTemplates).replace(template);
+
+  Future<void> updateUserTemplateCompanion(
+    int id,
+    UserTemplatesCompanion companion,
+  ) => (update(userTemplates)..where((t) => t.id.equals(id))).write(companion);
+
+  Future<void> deleteUserTemplate(int id) =>
+      (delete(userTemplates)..where((t) => t.id.equals(id))).go();
+}
+
+@DriftAccessor(tables: [UserRitualCards])
+class UserRitualCardsDao extends DatabaseAccessor<AppDatabase>
+    with _$UserRitualCardsDaoMixin {
+  UserRitualCardsDao(super.db);
+
+  Future<int> createCard(UserRitualCardsCompanion companion) =>
+      into(userRitualCards).insert(companion);
+
+  Future<List<UserRitualCard>> getAllCards() => (select(
+    userRitualCards,
+  )..orderBy([(t) => OrderingTerm.asc(t.createdAt)])).get();
+
+  Stream<List<UserRitualCard>> watchAllCards() => (select(
+    userRitualCards,
+  )..orderBy([(t) => OrderingTerm.asc(t.createdAt)])).watch();
+
+  Future<UserRitualCard?> getCardById(int id) => (select(
+    userRitualCards,
+  )..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  Future<void> updateCard(int id, UserRitualCardsCompanion companion) =>
+      (update(userRitualCards)..where((t) => t.id.equals(id))).write(companion);
+
+  Future<void> deleteCard(int id) =>
+      (delete(userRitualCards)..where((t) => t.id.equals(id))).go();
+}
+
+@DriftAccessor(tables: [TimeCapsules])
+class TimeCapsulesDao extends DatabaseAccessor<AppDatabase>
+    with _$TimeCapsulesDaoMixin {
+  TimeCapsulesDao(super.db);
+
+  Future<int> createCapsule(TimeCapsulesCompanion companion) =>
+      into(timeCapsules).insert(companion);
+
+  Future<TimeCapsule?> getCapsuleForEntry(int entryId) => (select(
+    timeCapsules,
+  )..where((t) => t.entryId.equals(entryId))).getSingleOrNull();
+
+  Stream<TimeCapsule?> watchCapsuleForEntry(int entryId) => (select(
+    timeCapsules,
+  )..where((t) => t.entryId.equals(entryId))).watchSingleOrNull();
+
+  Future<List<TimeCapsule>> getAllCapsules() => (select(
+    timeCapsules,
+  )..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).get();
+
+  Stream<List<TimeCapsule>> watchAllCapsules() => (select(
+    timeCapsules,
+  )..orderBy([(t) => OrderingTerm.desc(t.createdAt)])).watch();
+
+  Future<List<TimeCapsule>> getUnopenedCapsules() =>
+      (select(timeCapsules)..where((t) => t.isOpened.equals(false))).get();
+
+  Future<List<TimeCapsule>> getReadyToOpenCapsules(DateTime now) =>
+      (select(timeCapsules)..where(
+            (t) =>
+                t.isOpened.equals(false) &
+                t.unlockDate.isSmallerOrEqualValue(now),
+          ))
+          .get();
+
+  Future<void> updateCapsule(int id, TimeCapsulesCompanion companion) =>
+      (update(timeCapsules)..where((t) => t.id.equals(id))).write(companion);
+
+  Future<void> markOpened(int id, DateTime openedAt) =>
+      (update(timeCapsules)..where((t) => t.id.equals(id))).write(
+        TimeCapsulesCompanion(
+          isOpened: const Value(true),
+          openedAt: Value(openedAt),
+        ),
+      );
+
+  Future<void> deleteCapsuleForEntry(int entryId) =>
+      (delete(timeCapsules)..where((t) => t.entryId.equals(entryId))).go();
 }
 
 // ──────────────────────────── Database ────────────────────────────
@@ -1105,6 +1277,9 @@ class DateEntryCount {
     AttachmentLocks,
     SecurityEvents,
     EntryMoods,
+    UserTemplates,
+    TimeCapsules,
+    UserRitualCards,
   ],
   daos: [
     JournalsDao,
@@ -1127,13 +1302,16 @@ class DateEntryCount {
     AttachmentLocksDao,
     SecurityEventsDao,
     EntryMoodsDao,
+    UserTemplatesDao,
+    TimeCapsulesDao,
+    UserRitualCardsDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase.forExecutor(super.executor);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 11;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -1178,6 +1356,15 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 8) {
         await m.addColumn(tags, tags.colorArgb);
+      }
+      if (from < 9) {
+        await m.createTable(userTemplates);
+      }
+      if (from < 10) {
+        await m.createTable(timeCapsules);
+      }
+      if (from < 11) {
+        await m.createTable(userRitualCards);
       }
     },
     beforeOpen: (details) async {
@@ -1262,6 +1449,7 @@ class AppDatabase extends _$AppDatabase {
   /// Searches entry content and attachment text using FTS5.
   ///
   /// Returns results ranked by relevance with highlighted snippets.
+  /// Unopened sealed time capsules are excluded until their unlock date.
   Future<List<FtsSearchResult>> searchEntries(String query) async {
     if (query.trim().isEmpty) return [];
 
@@ -1273,6 +1461,8 @@ class AppDatabase extends _$AppDatabase {
         .map((t) => '"$t"')
         .join(' ');
 
+    final nowSec = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
     // Search entry content.
     final entryResults = await customSelect(
       '''
@@ -1283,11 +1473,13 @@ class AppDatabase extends _$AppDatabase {
              entries_fts.rank
       FROM entries_fts
       INNER JOIN entries e ON e.id = entries_fts.rowid
+      LEFT JOIN time_capsules tc ON tc.entry_id = e.id
       WHERE entries_fts MATCH ?
+        AND (tc.id IS NULL OR tc.is_opened = 1 OR tc.unlock_date <= ?)
       ORDER BY entries_fts.rank
       LIMIT 100
       ''',
-      variables: [Variable.withString(sanitised)],
+      variables: [Variable.withString(sanitised), Variable.withInt(nowSec)],
     ).get();
 
     // Search attachment extracted text.
@@ -1302,11 +1494,13 @@ class AppDatabase extends _$AppDatabase {
       INNER JOIN attachment_texts at2 ON at2.id = attachment_text_fts.rowid
       INNER JOIN attachments a ON a.id = at2.attachment_id
       INNER JOIN entries e ON e.id = a.entry_id
+      LEFT JOIN time_capsules tc ON tc.entry_id = e.id
       WHERE attachment_text_fts MATCH ?
+        AND (tc.id IS NULL OR tc.is_opened = 1 OR tc.unlock_date <= ?)
       ORDER BY attachment_text_fts.rank
       LIMIT 50
       ''',
-      variables: [Variable.withString(sanitised)],
+      variables: [Variable.withString(sanitised), Variable.withInt(nowSec)],
     ).get();
 
     // Merge and deduplicate by entry id, keeping best rank.

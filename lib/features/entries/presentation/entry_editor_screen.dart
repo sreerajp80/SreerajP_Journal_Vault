@@ -7,13 +7,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:image_picker/image_picker.dart';
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
 import 'package:sreerajp_journal_vault/core/links/vault_backlink_parser.dart';
+import 'package:sreerajp_journal_vault/core/logging/app_logger.dart';
+import 'package:sreerajp_journal_vault/core/theme/typography_controller.dart';
 import 'package:sreerajp_journal_vault/features/attachments/domain/attachment_open_models.dart';
 import 'package:sreerajp_journal_vault/features/attachments/presentation/attachment_viewer_screen.dart';
 import 'package:sreerajp_journal_vault/features/attachments/providers/attachment_providers.dart';
+import 'package:sreerajp_journal_vault/features/attachments/services/attachment_picker_service.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/callout_embed.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/editor/drawing/drawing_canvas_screen.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/editor/drawing_embed.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/editor/editor_markdown_shortcuts.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/editor/editor_stats_bar.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/editor_toolbar.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/image_embed.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/inline_image_store.dart';
@@ -21,14 +29,21 @@ import 'package:sreerajp_journal_vault/features/entries/presentation/editor/tabl
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/voice_note_recorder.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/version_history_screen.dart';
 import 'package:sreerajp_journal_vault/features/entries/providers/entry_providers.dart';
+import 'package:sreerajp_journal_vault/features/entries/providers/image_edit_providers.dart';
+import 'package:sreerajp_journal_vault/features/entries/providers/ocr_providers.dart';
 import 'package:sreerajp_journal_vault/features/entries/services/voice_note_service.dart';
 import 'package:sreerajp_journal_vault/features/entries/templates/entry_templates.dart';
+import 'package:sreerajp_journal_vault/features/entries/templates/template_token_engine.dart';
 import 'package:sreerajp_journal_vault/features/insights/providers/insights_providers.dart';
 import 'package:sreerajp_journal_vault/features/export/export_strings.dart';
 import 'package:sreerajp_journal_vault/features/export/presentation/export_screen.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/providers/lock_gate_providers.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/services/biometric_authenticator.dart';
 import 'package:sreerajp_journal_vault/features/smart_tags/presentation/smart_tag_chip_bar.dart';
+import 'package:intl/intl.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/time_capsule_seal_dialog.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/time_capsule_sealed_screen.dart';
+import 'package:sreerajp_journal_vault/features/entries/providers/time_capsule_providers.dart';
 import 'package:sreerajp_journal_vault/features/permissions/domain/app_permission_models.dart';
 import 'package:sreerajp_journal_vault/features/permissions/providers/permissions_providers.dart';
 import 'package:sreerajp_journal_vault/features/security/providers/security_providers.dart';
@@ -40,6 +55,11 @@ class EntryEditorScreen extends ConsumerStatefulWidget {
     required this.journalId,
     this.entryId,
     this.initialTemplateId,
+    this.initialTemplate,
+    this.initialTitle,
+    this.initialPlainText,
+    this.initialAttachments,
+    this.imagePicker,
   });
 
   final int journalId;
@@ -50,6 +70,21 @@ class EntryEditorScreen extends ConsumerStatefulWidget {
   /// When creating a new entry, the template to seed the title and content
   /// with. Null means start blank.
   final EntryTemplateId? initialTemplateId;
+
+  /// Explicit template instance (built-in or custom user-created).
+  final EntryTemplate? initialTemplate;
+
+  /// Optional initial title (e.g. from inbound share).
+  final String? initialTitle;
+
+  /// Optional initial plain text (e.g. from inbound share).
+  final String? initialPlainText;
+
+  /// Optional initial attachments to import immediately into this new entry.
+  final List<PickedAttachmentData>? initialAttachments;
+
+  /// Optional image picker for tests.
+  final ImagePicker? imagePicker;
 
   @override
   ConsumerState<EntryEditorScreen> createState() => _EntryEditorScreenState();
@@ -92,6 +127,30 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
   /// otherwise mark the entry dirty.
   StreamSubscription<DocChange>? _docChangeSub;
 
+  /// Handles real-time Markdown prefix expansions.
+  final EditorMarkdownShortcuts _markdownShortcuts = EditorMarkdownShortcuts();
+
+  /// Whether distraction-free full-screen writing mode is enabled.
+  bool _isDistractionFree = false;
+
+  /// Whether focus paragraph dim mode is enabled.
+  bool _isFocusParagraph = false;
+
+  /// Current auto-save status.
+  EditorSaveStatus _saveStatus = EditorSaveStatus.saved;
+
+  /// Timestamp of the last successful save.
+  DateTime? _lastSavedTime;
+
+  /// Debounce timer for background auto-saving.
+  Timer? _autoSaveTimer;
+
+  /// Live word count.
+  int _wordCount = 0;
+
+  /// Live character count.
+  int _characterCount = 0;
+
   /// Last title text we've observed. [TextEditingController] notifies on any
   /// value change including selection, so we compare text to filter out
   /// caret-only changes the same way [_docChangeSub] does for the body.
@@ -111,11 +170,26 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
       TableEmbedBuilder(),
       CalloutEmbedBuilder(),
       VaultImageEmbedBuilder(store: _imageStore),
+      DrawingEmbedBuilder(store: _imageStore, onEditDrawing: _editDrawing),
     ];
     if (widget.entryId != null) {
       _loadEntry(widget.entryId!);
     } else {
       _createEntry();
+    }
+  }
+
+  void _updateStats() {
+    final text = _quillController.document.toPlainText();
+    final words = EditorStatsBar.countWords(text);
+    final chars = EditorStatsBar.countCharacters(text);
+    if (words != _wordCount || chars != _characterCount) {
+      if (mounted) {
+        setState(() {
+          _wordCount = words;
+          _characterCount = chars;
+        });
+      }
     }
   }
 
@@ -143,19 +217,32 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
       _entryId = id;
       _mood = existingMood?.mood;
     });
+    _updateStats();
     _attachChangeListeners();
   }
 
   Future<void> _createEntry() async {
-    final selected = templateFor(widget.initialTemplateId);
+    final selected =
+        widget.initialTemplate ?? templateFor(widget.initialTemplateId);
+
+    String resolvedTitle = TemplateTokenEngine.resolveTokens(
+      selected.defaultTitle,
+    );
+    String resolvedContentJson = TemplateTokenEngine.resolveContentJsonTokens(
+      selected.contentJson,
+    );
+
+    if (widget.initialTitle != null && widget.initialTitle!.isNotEmpty) {
+      resolvedTitle = widget.initialTitle!;
+    }
 
     // Pre-fill the editor with the template content if one was provided.
-    if (selected.id != EntryTemplateId.blank) {
-      _titleController.text = selected.defaultTitle;
-      if (selected.contentJson != '[]') {
+    if (selected.id != EntryTemplateId.blank || selected.isCustom) {
+      _titleController.text = resolvedTitle;
+      if (resolvedContentJson != '[]') {
         try {
           final doc = Document.fromJson(
-            jsonDecode(selected.contentJson) as List,
+            jsonDecode(resolvedContentJson) as List,
           );
           _quillController.document = doc;
           _quillController.moveCursorToEnd();
@@ -163,19 +250,140 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
           /* fall through to empty doc */
         }
       }
+    } else {
+      _titleController.text = resolvedTitle;
+    }
+
+    if (widget.initialPlainText != null &&
+        widget.initialPlainText!.isNotEmpty) {
+      _quillController.document = Document()
+        ..insert(0, widget.initialPlainText!);
+      resolvedContentJson = jsonEncode(
+        _quillController.document.toDelta().toJson(),
+      );
     }
 
     final database = ref.read(appDatabaseProvider);
     final id = await database.entriesDao.createEntry(
       EntriesCompanion.insert(
         journalId: widget.journalId,
-        title: Value(selected.defaultTitle),
-        contentJson: Value(selected.contentJson),
+        title: Value(resolvedTitle),
+        contentJson: Value(resolvedContentJson),
       ),
     );
+
+    if (widget.initialAttachments != null &&
+        widget.initialAttachments!.isNotEmpty) {
+      for (final picked in widget.initialAttachments!) {
+        try {
+          final attachmentId = await ref
+              .read(attachmentImportServiceProvider)
+              .importToEntry(database: database, entryId: id, picked: picked);
+          if (picked.mimeType.startsWith('image/')) {
+            final embed = VaultImageEmbed.create(
+              attachmentId: attachmentId,
+              fileName: picked.fileName,
+            );
+            final index = _quillController.document.length - 1;
+            _quillController.replaceText(index, 0, embed, null);
+            _quillController.replaceText(index + 1, 0, '\n', null);
+          }
+        } catch (_) {}
+      }
+      final updatedJson = jsonEncode(
+        _quillController.document.toDelta().toJson(),
+      );
+      await database.entriesDao.updateEntryById(
+        id,
+        EntriesCompanion(contentJson: Value(updatedJson)),
+      );
+    }
+
     if (!mounted) return;
     setState(() => _entryId = id);
+    _updateStats();
     _attachChangeListeners();
+  }
+
+  Future<void> _saveAsTemplate() async {
+    final l10n = AppLocalizations.of(context);
+    final title = _titleController.text.trim();
+    final contentJson = jsonEncode(
+      _quillController.document.toDelta().toJson(),
+    );
+
+    final nameController = TextEditingController(
+      text: title.isNotEmpty ? title : '',
+    );
+    final descController = TextEditingController();
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        title: Text(l10n.templateSaveAsTemplateTitle),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l10n.templateSaveAsTemplateDesc),
+            const SizedBox(height: 12),
+            TextField(
+              key: const Key('save-as-template-name-field'),
+              controller: nameController,
+              autofocus: true,
+              decoration: InputDecoration(
+                labelText: l10n.templateNameLabel,
+                hintText: l10n.templateNameHint,
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              key: const Key('save-as-template-desc-field'),
+              controller: descController,
+              decoration: InputDecoration(
+                labelText: l10n.templateDescriptionLabel,
+                hintText: l10n.templateDescriptionHint,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogCtx).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            key: const Key('confirm-save-as-template-button'),
+            onPressed: () {
+              if (nameController.text.trim().isNotEmpty) {
+                Navigator.of(dialogCtx).pop(true);
+              }
+            },
+            child: Text(l10n.commonSave),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      final name = nameController.text.trim();
+      final desc = descController.text.trim();
+      final db = ref.read(appDatabaseProvider);
+      await db.userTemplatesDao.createUserTemplate(
+        UserTemplatesCompanion.insert(
+          name: name,
+          description: Value(desc.isEmpty ? null : desc),
+          defaultTitle: Value(title.isEmpty ? null : title),
+          contentJson: contentJson,
+        ),
+      );
+      ref.invalidate(allUserTemplatesProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(l10n.templateSaveSuccess)));
+      }
+    }
   }
 
   /// Wired after initial hydration so the seeded title/body don't immediately
@@ -193,9 +401,11 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
   /// because the old subscription points at the old document object.
   void _subscribeToDocChanges() {
     _docChangeSub?.cancel();
-    _docChangeSub = _quillController.document.changes.listen(
-      (_) => _markDirty(),
-    );
+    _docChangeSub = _quillController.document.changes.listen((change) {
+      _markdownShortcuts.handleDocChange(_quillController, change);
+      _updateStats();
+      _markDirty();
+    });
   }
 
   void _handleTitleChange() {
@@ -205,12 +415,23 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
   }
 
   void _markDirty() {
-    if (_isDirty || !mounted) return;
-    setState(() => _isDirty = true);
+    _autoSaveTimer?.cancel();
+    if (!_isDirty || _saveStatus != EditorSaveStatus.unsaved) {
+      if (!mounted) return;
+      setState(() {
+        _isDirty = true;
+        _saveStatus = EditorSaveStatus.unsaved;
+      });
+    }
+    // Schedule a background auto-save 2.5s after editing stops.
+    _autoSaveTimer = Timer(const Duration(milliseconds: 2500), () {
+      _saveContent(isAutoSave: true);
+    });
   }
 
   @override
   void dispose() {
+    _autoSaveTimer?.cancel();
     if (_trackingChanges) {
       _titleController.removeListener(_handleTitleChange);
     }
@@ -223,8 +444,15 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
   }
 
   /// Saves the current content and creates a revision snapshot.
-  Future<void> _saveContent() async {
+  Future<void> _saveContent({bool isAutoSave = false}) async {
     if (_entryId == null) return;
+    if (!isAutoSave) {
+      _autoSaveTimer?.cancel();
+    }
+
+    if (mounted) {
+      setState(() => _saveStatus = EditorSaveStatus.saving);
+    }
 
     final database = ref.read(appDatabaseProvider);
     final json = jsonEncode(_quillController.document.toDelta().toJson());
@@ -268,16 +496,23 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
     }
 
     if (!mounted) return;
-    setState(() => _isDirty = false);
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          key: const Key('entry-saved-snackbar'),
-          content: Text(AppLocalizations.of(context).entrySaved),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+    setState(() {
+      _isDirty = false;
+      _saveStatus = EditorSaveStatus.saved;
+      _lastSavedTime = DateTime.now();
+    });
+
+    if (!isAutoSave) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            key: const Key('entry-saved-snackbar'),
+            content: Text(AppLocalizations.of(context).entrySaved),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+    }
   }
 
   Future<void> _confirmDelete() async {
@@ -496,6 +731,57 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
     );
   }
 
+  Future<void> _sealAsTimeCapsule() async {
+    if (_entryId == null) return;
+    if (_isDirty) {
+      await _saveContent();
+      if (!mounted) return;
+    }
+
+    final config = await showDialog<TimeCapsuleSealConfig>(
+      context: context,
+      builder: (_) => const TimeCapsuleSealDialog(),
+    );
+
+    if (config == null || !mounted) return;
+
+    try {
+      final service = ref.read(timeCapsuleServiceProvider);
+      await service.sealEntry(
+        entryId: _entryId!,
+        unlockDate: config.unlockDate,
+        teaserMessage: config.teaserMessage,
+      );
+
+      if (!mounted) return;
+
+      final l10n = AppLocalizations.of(context);
+      final formattedDate = DateFormat.yMMMMd().format(config.unlockDate);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          key: const Key('time-capsule-sealed-snackbar'),
+          content: Text(l10n.timeCapsuleSealedSuccess(formattedDate)),
+        ),
+      );
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute<void>(
+          builder: (_) => TimeCapsuleSealedScreen(
+            entryId: _entryId!,
+            journalId: widget.journalId,
+          ),
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to seal time capsule: $e')),
+        );
+      }
+    }
+  }
+
   Future<void> _reloadContent() async {
     if (_entryId == null) return;
     final database = ref.read(appDatabaseProvider);
@@ -516,6 +802,7 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
       _quillController.document = Document();
       _quillController.moveCursorToEnd();
     }
+    _updateStats();
     // The document object was replaced — the prior subscription pointed at
     // the old one and would never fire again. Resubscribe so subsequent
     // edits to the restored document still mark the entry dirty.
@@ -585,6 +872,151 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
+
+    final typography = ref.watch(typographyProvider);
+    final baseStyles = DefaultStyles.getInstance(context);
+    final entryBodyStyle = typography.toTextStyle(
+      color: theme.colorScheme.onSurface,
+    );
+    final customStyles = baseStyles.merge(
+      DefaultStyles(
+        paragraph: DefaultTextBlockStyle(
+          entryBodyStyle,
+          const HorizontalSpacing(0, 0),
+          const VerticalSpacing(0, 6),
+          const VerticalSpacing(0, 0),
+          null,
+        ),
+      ),
+    );
+
+    Widget editorContent = DefaultTextStyle(
+      style: entryBodyStyle,
+      child: QuillEditor.basic(
+        controller: _quillController,
+        config: QuillEditorConfig(
+          embedBuilders: _embedBuilders,
+          customStyles: customStyles,
+          placeholder: 'Write your entry…',
+          contextMenuBuilder: _buildSelectionContextMenu,
+        ),
+      ),
+    );
+
+    if (_isFocusParagraph) {
+      editorContent = AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest.withValues(
+            alpha: 0.15,
+          ),
+          border: Border(
+            left: BorderSide(
+              color: theme.colorScheme.primary.withValues(alpha: 0.6),
+              width: 3,
+            ),
+          ),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: editorContent,
+      );
+    }
+
+    if (_isDistractionFree) {
+      return Scaffold(
+        key: const Key('distraction-free-scaffold'),
+        body: SafeArea(
+          child: Column(
+            children: [
+              // Minimal distraction-free top bar
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Row(
+                  children: [
+                    IconButton(
+                      key: const Key('distraction-free-exit-button'),
+                      icon: const Icon(Icons.fullscreen_exit),
+                      tooltip: l10n.entryDistractionFreeExit,
+                      onPressed: () =>
+                          setState(() => _isDistractionFree = false),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      key: const Key('distraction-free-focus-button'),
+                      icon: Icon(
+                        _isFocusParagraph
+                            ? Icons.filter_center_focus
+                            : Icons.center_focus_weak_outlined,
+                      ),
+                      color: _isFocusParagraph
+                          ? theme.colorScheme.primary
+                          : null,
+                      tooltip: _isFocusParagraph
+                          ? l10n.entryFocusParagraphOn
+                          : l10n.entryFocusParagraphOff,
+                      onPressed: () => setState(
+                        () => _isFocusParagraph = !_isFocusParagraph,
+                      ),
+                    ),
+                    IconButton(
+                      key: const Key('distraction-free-save-button'),
+                      icon: Icon(_isDirty ? Icons.save : Icons.save_outlined),
+                      color: _isDirty ? theme.colorScheme.primary : null,
+                      onPressed: _isDirty ? _saveContent : null,
+                      tooltip: _isDirty
+                          ? l10n.entrySaveTooltip
+                          : l10n.entryNoUnsavedChanges,
+                    ),
+                  ],
+                ),
+              ),
+              // Title field
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                child: TextField(
+                  key: const Key('entry-title-field'),
+                  controller: _titleController,
+                  decoration: InputDecoration(
+                    labelText: l10n.entryTitleLabel,
+                    border: InputBorder.none,
+                  ),
+                  style: theme.textTheme.titleLarge,
+                  textInputAction: TextInputAction.next,
+                ),
+              ),
+              const Divider(height: 1),
+              // Rich formatting toolbar
+              EditorToolbar(
+                key: _toolbarKey,
+                controller: _quillController,
+                onInsertTable: _insertTable,
+                onInsertCallout: _insertCallout,
+                onInsertImage: _entryId == null ? null : _insertImage,
+                onInsertDrawing: _entryId == null ? null : _insertDrawing,
+                onScanText: _scanTextFromPhoto,
+                onToggleFocusParagraph: () =>
+                    setState(() => _isFocusParagraph = !_isFocusParagraph),
+                isFocusParagraph: _isFocusParagraph,
+                onToggleDistractionFree: () =>
+                    setState(() => _isDistractionFree = !_isDistractionFree),
+                isDistractionFree: _isDistractionFree,
+              ),
+              // Editor body
+              Expanded(child: editorContent),
+              // Live word and character stats bar
+              EditorStatsBar(
+                wordCount: _wordCount,
+                characterCount: _characterCount,
+                saveStatus: _saveStatus,
+                lastSavedTime: _lastSavedTime,
+                compact: true,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_isDirty ? l10n.entryEditTitleDirty : l10n.entryEditTitle),
@@ -605,11 +1037,46 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
             ),
           if (_entryId != null)
             IconButton(
+              key: const Key('entry-seal-time-capsule-button'),
+              icon: const Icon(Icons.hourglass_top_rounded),
+              tooltip: l10n.timeCapsuleActionSeal,
+              onPressed: _sealAsTimeCapsule,
+            ),
+          // Focus paragraph dim mode toggle in AppBar
+          IconButton(
+            key: const Key('entry-appbar-focus-toggle'),
+            icon: Icon(
+              _isFocusParagraph
+                  ? Icons.filter_center_focus
+                  : Icons.center_focus_weak_outlined,
+            ),
+            color: _isFocusParagraph ? theme.colorScheme.primary : null,
+            tooltip: _isFocusParagraph
+                ? l10n.entryFocusParagraphOn
+                : l10n.entryFocusParagraphOff,
+            onPressed: () =>
+                setState(() => _isFocusParagraph = !_isFocusParagraph),
+          ),
+          // Distraction-free mode toggle in AppBar
+          IconButton(
+            key: const Key('entry-appbar-distraction-free-toggle'),
+            icon: const Icon(Icons.fullscreen),
+            tooltip: l10n.entryDistractionFreeEnter,
+            onPressed: () => setState(() => _isDistractionFree = true),
+          ),
+          if (_entryId != null)
+            IconButton(
               key: const Key('entry-delete-button'),
               icon: const Icon(Icons.delete_outline),
               onPressed: _confirmDelete,
               tooltip: l10n.entryDeleteTooltip,
             ),
+          IconButton(
+            key: const Key('entry-save-as-template-button'),
+            icon: const Icon(Icons.bookmark_add_outlined),
+            tooltip: l10n.templateSaveAsTemplate,
+            onPressed: _saveAsTemplate,
+          ),
           IconButton(
             key: const Key('entry-save-button'),
             icon: Icon(_isDirty ? Icons.save : Icons.save_outlined),
@@ -647,17 +1114,23 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
             // Offered only once the entry exists — an inline image needs a row
             // to hang its attachment off.
             onInsertImage: _entryId == null ? null : _insertImage,
+            onInsertDrawing: _entryId == null ? null : _insertDrawing,
+            onScanText: _scanTextFromPhoto,
+            onToggleFocusParagraph: () =>
+                setState(() => _isFocusParagraph = !_isFocusParagraph),
+            isFocusParagraph: _isFocusParagraph,
+            onToggleDistractionFree: () =>
+                setState(() => _isDistractionFree = !_isDistractionFree),
+            isDistractionFree: _isDistractionFree,
           ),
           // Editor body
-          Expanded(
-            child: QuillEditor.basic(
-              controller: _quillController,
-              config: QuillEditorConfig(
-                embedBuilders: _embedBuilders,
-                placeholder: 'Write your entry…',
-                contextMenuBuilder: _buildSelectionContextMenu,
-              ),
-            ),
+          Expanded(child: editorContent),
+          // Word & Character count + Auto-save indicator bar
+          EditorStatsBar(
+            wordCount: _wordCount,
+            characterCount: _characterCount,
+            saveStatus: _saveStatus,
+            lastSavedTime: _lastSavedTime,
           ),
           // Smart tag suggestions for what has been written so far. Reads the
           // live document rather than the saved row, so suggestions track the
@@ -691,6 +1164,7 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
           _BottomActionBar(
             onAddAttachment: _handleAddAttachment,
             onRecordVoiceNote: _showVoiceNoteRecorder,
+            onScanText: _scanTextFromPhoto,
           ),
         ],
       ),
@@ -907,6 +1381,280 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
     setState(() => _attachmentRefreshToken++);
   }
 
+  /// Opens the drawing canvas, saves the sketch as an encrypted attachment,
+  /// and embeds it into the entry.
+  Future<void> _insertDrawing() async {
+    if (_entryId == null) return;
+
+    final result = await Navigator.of(context).push<DrawingCanvasResult>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => const DrawingCanvasScreen(),
+      ),
+    );
+
+    if (result == null || !mounted) return;
+
+    final fileName = 'drawing_${DateTime.now().millisecondsSinceEpoch}.png';
+    final picked = PickedAttachmentData(
+      fileName: fileName,
+      bytes: result.pngBytes,
+      mimeType: 'image/png',
+    );
+
+    final int attachmentId;
+    try {
+      attachmentId = await ref
+          .read(attachmentImportServiceProvider)
+          .importToEntry(
+            database: ref.read(appDatabaseProvider),
+            entryId: _entryId!,
+            picked: picked,
+          );
+    } catch (_) {
+      if (mounted) {
+        _showMessage(AppLocalizations.of(context).drawingSaveError);
+      }
+      return;
+    }
+
+    if (!mounted) return;
+
+    final embed = DrawingEmbed.create(
+      attachmentId: attachmentId,
+      fileName: fileName,
+      strokeJson: result.strokeJson,
+    );
+
+    final index = _quillController.selection.baseOffset;
+    _quillController.replaceText(index, 0, embed, null);
+    _quillController.replaceText(
+      index + 1,
+      0,
+      '\n',
+      TextSelection.collapsed(offset: index + 2),
+    );
+
+    setState(() {
+      _attachmentRefreshToken++;
+      _isDirty = true;
+    });
+  }
+
+  /// Re-opens an existing drawing in the canvas screen to edit its vector strokes.
+  Future<void> _editDrawing(DrawingEmbedData data, int documentOffset) async {
+    if (_entryId == null) return;
+
+    final result = await Navigator.of(context).push<DrawingCanvasResult>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => DrawingCanvasScreen(initialStrokeJson: data.strokeJson),
+      ),
+    );
+
+    if (result == null || !mounted) return;
+
+    final fileName = data.fileName.isNotEmpty
+        ? data.fileName
+        : 'drawing_${DateTime.now().millisecondsSinceEpoch}.png';
+
+    final picked = PickedAttachmentData(
+      fileName: fileName,
+      bytes: result.pngBytes,
+      mimeType: 'image/png',
+    );
+
+    final int newAttachmentId;
+    try {
+      newAttachmentId = await ref
+          .read(attachmentImportServiceProvider)
+          .importToEntry(
+            database: ref.read(appDatabaseProvider),
+            entryId: _entryId!,
+            picked: picked,
+          );
+    } catch (_) {
+      if (mounted) {
+        _showMessage(AppLocalizations.of(context).drawingSaveError);
+      }
+      return;
+    }
+
+    if (!mounted) return;
+
+    final newEmbed = DrawingEmbed.create(
+      attachmentId: newAttachmentId,
+      fileName: fileName,
+      widthFactor: data.widthFactor,
+      strokeJson: result.strokeJson,
+    );
+
+    _quillController.replaceText(
+      documentOffset,
+      1,
+      newEmbed,
+      null,
+      ignoreFocus: true,
+    );
+
+    // Clean up old attachment row and file if different
+    if (data.attachmentId > 0 && data.attachmentId != newAttachmentId) {
+      try {
+        final db = ref.read(appDatabaseProvider);
+        final oldAttachment = await db.attachmentsDao.getAttachmentById(
+          data.attachmentId,
+        );
+        await db.attachmentsDao.deleteAttachmentById(data.attachmentId);
+        final crypto = ref.read(attachmentCryptoStorageProvider);
+        await crypto.deleteStoredFile(oldAttachment.encryptedPath);
+      } catch (_) {}
+    }
+
+    setState(() {
+      _attachmentRefreshToken++;
+      _isDirty = true;
+    });
+  }
+
+  Future<void> _scanTextFromPhoto() async {
+    final l10n = AppLocalizations.of(context);
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt_outlined),
+              title: Text(l10n.entryEditorScanSourceCamera),
+              onTap: () => Navigator.pop(sheetContext, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: Text(l10n.entryEditorScanSourceGallery),
+              onTap: () => Navigator.pop(sheetContext, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (source == null || !mounted) return;
+
+    final picker = widget.imagePicker ?? ImagePicker();
+    final XFile? pickedFile;
+    try {
+      pickedFile = await picker.pickImage(source: source);
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'EntryEditorScreen: image pick failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      if (mounted) _showMessage(l10n.entryEditorOcrError);
+      return;
+    }
+
+    if (pickedFile == null || !mounted) return;
+
+    // --- Crop & rotate step ---
+    final theme = Theme.of(context);
+    String? croppedPath;
+    try {
+      final imageEditService = ref.read(imageEditServiceProvider);
+      croppedPath = await imageEditService.cropAndRotate(
+        sourcePath: pickedFile.path,
+        toolbarTitle: l10n.entryEditorCropImageTitle,
+        toolbarColor: theme.colorScheme.surface,
+        toolbarWidgetColor: theme.colorScheme.onSurface,
+        statusBarBrightness: theme.brightness,
+        activeControlColor: theme.colorScheme.primary,
+      );
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'EntryEditorScreen: image crop failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      if (mounted) _showMessage(l10n.entryEditorCropImageError);
+      // Clean up the picked file before returning.
+      try {
+        File(pickedFile.path).deleteSync();
+      } catch (_) {}
+      return;
+    }
+
+    if (croppedPath == null || !mounted) {
+      // User cancelled the cropper — clean up and stop.
+      try {
+        File(pickedFile.path).deleteSync();
+      } catch (_) {}
+      return;
+    }
+
+    // The path to send to OCR: the cropped file if different, else the original.
+    final ocrImagePath = croppedPath;
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(l10n.entryEditorOcrScanning),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+    try {
+      final ocrService = ref.read(ocrServiceProvider);
+      final extractedText = await ocrService.extractTextFromImage(ocrImagePath);
+      if (!mounted) return;
+
+      if (extractedText.isEmpty) {
+        _showMessage(l10n.entryEditorOcrNoTextFound);
+        return;
+      }
+
+      final selection = _quillController.selection;
+      final int index;
+      final int length;
+      if (selection.isValid && selection.baseOffset >= 0) {
+        index = selection.baseOffset;
+        length = selection.isCollapsed
+            ? 0
+            : (selection.extentOffset - selection.baseOffset).abs();
+      } else {
+        index = _quillController.document.length - 1;
+        length = 0;
+      }
+
+      _quillController.replaceText(
+        index,
+        length,
+        extractedText,
+        TextSelection.collapsed(offset: index + extractedText.length),
+      );
+
+      setState(() => _isDirty = true);
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'EntryEditorScreen: OCR extraction failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      if (mounted) _showMessage(l10n.entryEditorOcrError);
+    } finally {
+      // Clean up temporary image files.
+      for (final path in {pickedFile.path, ocrImagePath}) {
+        try {
+          final file = File(path);
+          if (file.existsSync()) {
+            file.deleteSync();
+          }
+        } catch (_) {}
+      }
+    }
+  }
+
   void _showMessage(String message) {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
@@ -918,10 +1666,12 @@ class _BottomActionBar extends StatelessWidget {
   const _BottomActionBar({
     required this.onAddAttachment,
     required this.onRecordVoiceNote,
+    required this.onScanText,
   });
 
   final VoidCallback onAddAttachment;
   final VoidCallback onRecordVoiceNote;
+  final VoidCallback onScanText;
 
   @override
   Widget build(BuildContext context) {
@@ -945,6 +1695,12 @@ class _BottomActionBar extends StatelessWidget {
             icon: const Icon(Icons.mic_outlined),
             onPressed: onRecordVoiceNote,
             tooltip: AppLocalizations.of(context).entryRecordVoiceNote,
+          ),
+          IconButton(
+            key: const Key('entry-ocr-scan-button'),
+            icon: const Icon(Icons.document_scanner_outlined),
+            onPressed: onScanText,
+            tooltip: AppLocalizations.of(context).entryEditorScanText,
           ),
         ],
       ),

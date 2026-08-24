@@ -466,7 +466,7 @@ Test suite went from 235 passing / 1 failing to **257 passing / 0 failing**.
 
 `AttachmentOpenRouter` had computed `inAppPdf` / `inAppAudio` / `inAppArchive` decisions since V1,
 and the tests asserted them, but **no screen ever read those values** — `open()` sent every
-attachment to an external app through `open_filex`. `syncfusion_flutter_pdfviewer` and
+attachment to an external app through `open_filex`. `pdfrx` and
 `just_audio` sat in `pubspec.yaml` imported by nothing. V1 attachment slices 3, 4, 5 and 7 were
 unbuilt.
 
@@ -475,7 +475,7 @@ Now delivered:
 | Piece | File |
 |---|---|
 | Host screen, shared shell, owns the temp file | `features/attachments/presentation/attachment_viewer_screen.dart` |
-| PDF body (`SfPdfViewer.file`) | `.../pdf_attachment_view.dart` |
+| PDF body (`PdfViewer.file` via `pdfrx`) | `.../pdf_attachment_view.dart` |
 | Audio body (`just_audio` behind `AudioPlaybackHandle`) | `.../audio_attachment_view.dart` |
 | ZIP listing (`archive`, nothing extracted) | `.../archive_attachment_view.dart` |
 

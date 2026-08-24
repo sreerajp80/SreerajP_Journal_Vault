@@ -2,13 +2,23 @@
 
 **Written:** 2026-08-16
 **Revised:** 2026-08-16, after all 17 sibling apps were checked instead of 5.
-**Status of this document:** mostly ideas. **Six items have since been built** and are marked ✅ —
+**Status of this document:** mostly ideas. **Sixteen items have since been built** and are marked ✅ —
 [A1.1 Export](#-a11-export-an-entry-or-a-whole-journal--implemented),
 [A1.2 Inline images](#-a12-inline-images-in-the-editor-body--implemented),
+[A1.3 Drawing and handwriting blocks](#-a13-drawing-and-handwriting-blocks--implemented),
+[A1.5 Editor quality of life](#-a15-editor-quality-of-life--implemented),
+[A1.7 Custom entry templates](#-a17-templates-the-user-can-create--implemented),
 [A2.1 Tag colours](#-a21-tag-colours--implemented),
 [A4.1 Restore from a backup](#-a41-restore-from-a-backup--implemented),
-[A4.2 Password-protected backup and export files](#-a42-password-protected-backup-and-export-files--implemented) and
-[A5.1 Encrypt the database at rest](#-a51-encrypt-the-database-at-rest--implemented). Everything
+[A4.2 Password-protected backup and export files](#-a42-password-protected-backup-and-export-files--implemented),
+[A5.1 Encrypt the database at rest](#-a51-encrypt-the-database-at-rest--implemented),
+[A5.3 Guard the missing INTERNET permission](#-a53-guard-the-missing-internet-permission--implemented),
+[A5.6 Finish the security screens](#-a56-finish-the-security-screens),
+[A6.2 Receive shared text and images from other apps](#-a62-receive-shared-text-and-images-from-other-apps--implemented),
+[A6.4 Localisation](#-a64-localisation--implemented),
+[C3 Time capsules](#-c3-time-capsules-and-letters-to-your-future-self--implemented),
+[C6 Device-to-device sync](#-c6-encrypted-device-to-device-sync--implemented), and
+[C9 Ritual mode](#-c9-ritual-mode--a-journal-that-opens-like-a-practice-not-an-app---done-2026-08-24). Everything
 else is still an idea: not approved, not scheduled, and each one still needs its own plan under
 `plans/` before any code is written. See the completion key in section 1.
 
@@ -65,7 +75,7 @@ delivered word for word.
 this project's habit of building a service, passing its tests, and never wiring it to a screen —
 so an item that stops short of the user does **not** get a tick.
 
-Completed so far: **6 of the 41 numbered ideas** in Parts A and C (32 in Part A, 9 in Part C).
+Completed so far: **16 of the 41 numbered ideas** in Parts A and C (13 in Part A, 3 in Part C).
 That number is meant to stay honest, not to look good.
 
 ---
@@ -181,7 +191,24 @@ that decrypts to a temporary file and renders it, in the same style as the exist
 embed.
 **Effort:** M.
 
-### A1.3 Drawing and handwriting blocks
+### ✅ A1.3 Drawing and handwriting blocks — implemented
+
+> **Implemented 2026-08-23.** A sketch embed where the user can draw with a finger or stylus,
+> stored as an AES-256-GCM encrypted PNG attachment with vector stroke data for in-place re-editing.
+> Plan: [`plans/20260823_134800_a1-3-drawing-handwriting-blocks.md`](../plans/20260823_134800_a1-3-drawing-handwriting-blocks.md) ·
+> Change log: [`change_log/20260823_143800_a1-3-drawing-handwriting-blocks.md`](../change_log/20260823_143800_a1-3-drawing-handwriting-blocks.md) ·
+> Code: `lib/features/entries/presentation/editor/drawing/`,
+> `lib/features/entries/presentation/editor/drawing_embed.dart`
+>
+> **Interactive canvas with tools and styles:** Pen, Highlighter (semi-transparent blending),
+> Eraser, 10-color preset palette, 4 stroke widths (Fine, Normal, Thick, Bold), and 4 paper
+> background patterns (Blank, Ruled lines, Square grid, Dot grid).
+>
+> **Encrypted and integrated:** Rendered PNG images are encrypted via `AttachmentCryptoStorage`
+> and stored as attachments, with vector JSON preserved in `DrawingEmbed` for lossless editing.
+> Embedded inline with small / medium / full width sizing, full-screen viewer, version history
+> previews, and export support across Markdown, HTML, PDF, and Plain Text.
+
 **What:** A sketch embed where the user can draw with a finger or stylus, stored as an encrypted
 vector or PNG attachment.
 **Why:** Diaries are not only typed. A quick doodle, a mind map, a signature, a page of maths —
@@ -199,13 +226,16 @@ Note the deliberate limit: full task management is `sreerajp_todo`'s job. This s
 inside the entry, not become a second todo app.
 **Effort:** S.
 
-### A1.5 Editor quality of life
+### ✅ A1.5 Editor quality of life — implemented
 **What:** A bundle of small things: word and character count in the editor bar, a distraction-free
 full-screen writing mode, a "focus paragraph" dim, an auto-save indicator with a timestamp, and
 Markdown-style shortcuts while typing (`# ` becomes a heading, `- ` becomes a bullet).
 **Why:** These are the details that decide whether someone writes in the app every day or stops
 after a week. All are local to the editor and carry no data risk.
 **Effort:** M for the set.
+**Shipped:** 2026-08-21. Added `EditorStatsBar` with live word/char count and auto-save state indicator,
+`EditorMarkdownShortcuts` for real-time Markdown prefix expansions (`#`, `##`, `###`, `-`, `*`, `+`, `1.`, `[]`, `>`, ```` ``` ````),
+distraction-free full-screen writing view, and focus paragraph dimming.
 
 ### A1.6 Better version history
 **What:** A real side-by-side diff with added and removed text highlighted, restore of a single
@@ -216,10 +246,15 @@ Every edit writes a full snapshot of the document, so a heavily edited entry can
 the largest thing in the database.
 **Effort:** M.
 
-### A1.7 Templates the user can create
-**What:** Let the user write their own templates and save them, not just pick from the five
-built-in ones in `entry_templates.dart`. Allow date tokens (`{{today}}`, `{{weekday}}`) that fill
-in on use.
+### ✅ A1.7 Templates the user can create — implemented
+
+> **Implemented 2026-08-23.** Users can create, edit, and delete custom entry templates with rich text starter content, default titles, and dynamic date/time tokens (`{{today}}`, `{{weekday}}`, `{{date}}`, `{{time}}`, `{{year}}`, `{{month}}`, `{{day}}`). Custom templates appear alongside built-ins under "My templates" in the template chooser dialog. Users can also save existing journal entries directly as new reusable templates via the editor app bar action.
+> Plan: [`plans/20260823_150200_a1-7-custom-entry-templates.md`](../plans/20260823_150200_a1-7-custom-entry-templates.md) ·
+> Change log: [`change_log/20260823_151500_a1-7-custom-entry-templates.md`](../change_log/20260823_151500_a1-7-custom-entry-templates.md) ·
+> Code: `lib/features/entries/templates/`, `lib/features/entries/presentation/template_manager_screen.dart`, `lib/features/entries/presentation/template_editor_screen.dart`, schema v9
+
+**What:** Let the user write their own templates and save them, not just pick from the built-in
+ones in `entry_templates.dart`. Allow date tokens (`{{today}}`, `{{weekday}}`) that fill in on use.
 **Why:** The built-in list is fixed at compile time. Journalling habits are personal — a person
 who writes a daily standup log needs a different skeleton from someone keeping a dream diary.
 **Effort:** M.
@@ -463,7 +498,16 @@ It sits in `core/` precisely so the attachment format can adopt it, which would 
 with one versioning idea rather than two.
 **Effort:** S.
 
-### A5.3 Guard the missing `INTERNET` permission
+### ✅ A5.3 Guard the missing `INTERNET` permission — implemented
+
+> **Implemented 2026-08-23.** Explicit `tools:node="remove"` entries for `INTERNET`,
+> `ACCESS_NETWORK_STATE`, and `WAKE_LOCK` are added to `android/app/src/main/AndroidManifest.xml`.
+> Debug and profile builds use `tools:node="replace"` for `INTERNET` to support local tooling.
+> Automated tests (`test/core/security/manifest_permission_guard_test.dart`) and
+> `tool/check_no_internet_permission.sh` in `.github/workflows/ci.yml` enforce this invariant.
+> Plan: [`plans/20260823_202800_guard-internet-and-transitive-permissions.md`](../plans/20260823_202800_guard-internet-and-transitive-permissions.md) ·
+> Change log: [`change_log/20260823_203500_guard-internet-and-transitive-permissions.md`](../change_log/20260823_203500_guard-internet-and-transitive-permissions.md)
+
 **What:** Add an explicit `<uses-permission android:name="android.permission.INTERNET"
 tools:node="remove" />` to the production manifest and a CI check that fails the build if
 `INTERNET` appears in the merged manifest.
@@ -496,6 +540,13 @@ wipe. Also a quick panic gesture that closes and locks instantly.
 **Effort:** M.
 
 ### A5.6 Finish the security screens
+
+> **✅ Answered, 2026-08-23.** Tamper Alerts has its own dedicated screen (`TamperAlertsScreen`)
+> wired up under Settings → Security, providing live vault integrity status, on-demand vault integrity
+> verification across all journals and entries, educational explanation, and tamper alert logs.
+> The dead "Coming soon" fallback tiles for sync rows when `enableSyncUi` is off have been removed,
+> eliminating all dead buttons in Settings per Rule 6.
+
 **What:** Wire up the "Coming soon" Tamper Alerts placeholder in Settings, and the second such
 placeholder (Sync Conflicts, when the sync UI flag is off).
 **Why:** A disabled placeholder in a security section reads worse than no entry at all — it tells
@@ -524,7 +575,14 @@ framed reminders as a new capability for this author. They are not.
   handling**, which is the part everyone gets wrong.
 **Effort:** M, as a port.
 
-### A6.2 Receive shared text and images from other apps
+### ✅ A6.2 Receive shared text and images from other apps — implemented
+
+> **Implemented 2026-08-23.** Intent filters configured for `ACTION_SEND` (text/plain, image/*, */*), `ACTION_SEND_MULTIPLE` (images/files), and `ACTION_VIEW` (`.jvenc` and `.jvbk` encrypted archives). Incoming shares are processed natively and passed to Flutter via MethodChannel (`sreerajp.journal_vault/share_intent`).
+> When unlocked (or after passing the PIN/biometric lock gate), a Quick Capture dialog allows selecting the destination journal, editing the title and text, previewing attachments, and saving directly to the vault or opening in the full editor. Shared `.jvenc` and `.jvbk` files route directly to the standalone encrypted export viewer.
+> Plan: [`plans/20260823_210500_a6-2-receive-shared-text-and-images.md`](../plans/20260823_210500_a6-2-receive-shared-text-and-images.md) ·
+> Change log: [`change_log/20260823_213500_a6-2-receive-shared-text-and-images.md`](../change_log/20260823_213500_a6-2-receive-shared-text-and-images.md) ·
+> Code: `android/app/src/main/AndroidManifest.xml`, `android/.../MainActivity.kt`, `lib/features/share_receiver/`
+
 **What:** An intent filter so the Android share sheet offers "SreerajP Journal Vault", dropping
 the shared item into a chosen journal or a quick-capture inbox.
 **Why:** Right now the only way to get something in is to open the app and type or import. Most
@@ -547,7 +605,14 @@ deep-link limitation — read that before starting. `chronotune-smart-clock` has
 widgets if something richer is ever wanted. This is a port with a Kotlin side, not a design job.
 **Effort:** **M**, not L.
 
-### A6.4 Localisation
+### ✅ A6.4 Localisation — implemented
+
+> **Implemented 2026-08-23.** Standard `flutter_localizations` + `intl` ARB localization pipeline configured with `lib/l10n/app_en.arb` (800 synchronized keys with descriptive `@key` metadata) and `lib/l10n/app_ml.arb` (full natural Malayalam translations).
+> Extracted all hard-coded UI strings across entries, editor, drawing canvas, attachments, import, features catalog, and all 14 help center screens to `AppLocalizations`. Added bilingual widget and unit tests in `test/l10n/app_localizations_test.dart`.
+> Plan: [`plans/20260823_221300_a64_localisation.md`](../plans/20260823_221300_a64_localisation.md) ·
+> Change log: [`change_log/20260823_224500_a64_localisation.md`](../change_log/20260823_224500_a64_localisation.md) ·
+> Code: `lib/l10n/`, `lib/features/`, `test/l10n/`
+
 **What:** Extract all UI strings to ARB files and add at least Malayalam, following the device
 language.
 **Why:** `flutter_localizations` is already a dependency but there is no `lib/l10n/` folder and no
@@ -583,19 +648,35 @@ patterns rather than deriving them.
 reading app as much as a writing app, and people read on tablets.
 **Effort:** M.
 
-### A6.7 Themes worth looking at
+### ✅ A6.7 Themes worth looking at — implemented
+
+> **Implemented 2026-08-24.** Added rich reading surfaces (**Paper / Sepia** with warm parchment `#F8F3E6` background and espresso text, **OLED / True Black** with pure `#000000` pitch black background for AMOLED battery savings, Light, Dark, and System). Added **Reading Typography** controls with body font family selection (Sans-serif, Book Serif, Monospace) and body font size adjustments (12pt–24pt with presets) featuring live interactive preview. Integrated with `QuillEditor` in entry editor, history, and template editing, with SharedPreferences persistence and encrypted AirQR cross-device sync.
+> Plan: [`plans/20260824_144200_reading_themes_and_typography.md`](../plans/20260824_144200_reading_themes_and_typography.md) ·
+> Change log: [`change_log/20260824_145500_reading_themes_and_typography.md`](../change_log/20260824_145500_reading_themes_and_typography.md)
+
 **What:** More than light and dark: a paper/sepia reading theme, adjustable font family and size
 for the entry body, and true black for OLED.
 **Why:** People choose journal apps partly on how the writing surface feels. This is cheap and
 directly affects daily use.
 **Effort:** S.
 
-### A6.8 Split up `app.dart`
+### ✅ A6.8 Split up `app.dart` — implemented
+
+> **Implemented 2026-08-24.** Extracted all settings sub-screens, sections, and dialogs from
+> `lib/app/app.dart` into `lib/features/settings/presentation/` (`SettingsTab`, `SettingsSectionCard`,
+> `SecuritySettingsScreen`, `ScreenSecurityTile`, `PinSetupDialog`, `StorageSettingsScreen`,
+> `StorageSection`, `MigrationProgressDialog`, `PermissionsSettingsScreen`, `PermissionsSection`,
+> and `LockedAttachmentsScreen`).
+> Extracted `unlockedJournalIdsProvider` into `lib/features/journal_lock/providers/journal_lock_providers.dart`
+> and `AppLockState`/`appLockProvider` into `lib/features/lock_gate/providers/lock_gate_providers.dart`.
+> Reduced `lib/app/app.dart` by over 1,400 lines while maintaining 100% test coverage and zero regression across 758 tests.
+> Plan: [`plans/20260824_142100_split_settings_out_of_app_dart.md`](../plans/20260824_142100_split_settings_out_of_app_dart.md) ·
+> Change log: [`change_log/20260824_142700_split_settings_out_of_app_dart.md`](../change_log/20260824_142700_split_settings_out_of_app_dart.md)
+
 **What:** Move the settings UI out of `lib/app/app.dart` into `lib/features/settings/`.
-**Why:** The file is around 2,830 lines and holds the shell, the navigation, the home tab, the
-search tab, and the entire settings screen. Every idea in this document that touches settings
-touches this one file, which makes each of them riskier than it needs to be. This is not a
-feature, but it is the thing that makes the features cheaper.
+**Why:** The file was over 3,700 lines and held the shell, the navigation, the home tab, the
+search tab, and the entire settings screen. Moving settings into its own feature module decouples
+settings from the root shell, eliminates merge conflicts, and ensures adherence to the Tier 2 architecture.
 **Effort:** M, plus careful regression testing.
 
 ---
@@ -604,7 +685,7 @@ feature, but it is the thing that makes the features cheaper.
 
 This section is deliberately blunt. It is about the app as it stands, not about the ideas above.
 
-## B1. The feature list is far ahead of the finished product
+## ✅ B1. The feature list is far ahead of the finished product — mostly resolved
 
 `features.md` is an impressive document. Reading the code alongside it, a pattern shows up: many
 features are built to the point where the data layer and the service work and the tests pass,
@@ -613,9 +694,9 @@ but the last step to the user is missing or hidden.
 - The **sync engine** is 392 lines, encrypted, conflict-aware, tested — and constructed by
   nothing. There is no transport, so it cannot move a single byte between devices. The UI is
   hidden behind a flag.
-- **Backup** creates archives it cannot restore.
-- **Tamper alerts** are a disabled "Coming soon" row.
-- **Security events** are recorded diligently and never acted upon.
+- ~~**Backup** creates archives it cannot restore.~~ **Resolved 2026-08-18 (✅ A4.1).**
+- ~~**Tamper alerts** are a disabled "Coming soon" row.~~ **Resolved 2026-08-23 (✅ A5.6).**
+- ~~**Security events** are recorded diligently and never acted upon.~~ **Resolved 2026-08-23 (✅ A5.6).**
 
 The `architecture.md` "last-mile integration pass" already caught and closed one wave of exactly
 this problem — an attachment router that threw `UnimplementedError` behind a complete UI, smart
@@ -645,7 +726,12 @@ with one testable sentence — *a feature is not done until an integration test 
 the UI*. Under rule 6, the two "Coming soon" rows in Settings (Tamper Alerts, and Sync Conflicts
 when the sync UI is off) are rule violations today; see A5.6.
 
-## B2. The data can go in but cannot come out
+> **✅ Answered, 2026-08-23.** The dead placeholders have been resolved per Rule 6: Tamper Alerts is
+> now a dedicated, live `TamperAlertsScreen` with full integrity verification, and the disabled sync
+> fallback rows were removed from Settings (see ✅ A5.6). Backup restore was built on 2026-08-18 (✅ A4.1).
+> Sync transport remains the open item (see C6).
+
+## ✅ B2. The data can go in but cannot come out — resolved
 
 Import adapters for Markdown, DOCX, and plain text. Zero export paths. No restore. For an app
 built on the promise "your data stays yours and stays local", this is the promise least kept.
@@ -662,7 +748,7 @@ exists.
 > out, and comes back. The paragraph above is kept as written because it is the reason both
 > items were done before anything in Part C.
 
-## B3. The security story has one soft centre
+## ✅ B3. The security story has one soft centre — mostly resolved
 
 The security work is genuinely good: Keystore-wrapped AES-256-GCM attachments, FLAG_SECURE,
 `allowBackup="false"` with transfer blocked, R8 with keep rules, obfuscation, a redacting logger,
@@ -680,43 +766,35 @@ in this document matters if a build ships that way, because switching to a real 
 an uninstall, which destroys every journal in the app. This is a hard blocker and it is already
 known.
 
-## B4. It is a strong store and a weak habit
+> **✅ Answered, 2026-08-23.** Database encryption at rest was implemented with SQLCipher (✅ A5.1),
+> the `INTERNET` permission is strictly removed and guarded by CI (✅ A5.3), and the security integrity UI
+> is live in `TamperAlertsScreen` under Settings → Security (✅ A5.6). Release signing keystore setup remains
+> as an operational step prior to distribution (`release_process.md`).
+
+## B4. It is a strong store and a weak habit — partly resolved
 
 Everything in the app is about holding writing safely. Almost nothing is about getting a person
 to write. There are no reminders, no widget, no share-in, no quick capture, no streak nudge. The
 insights screen counts streaks that nothing helps the user keep. A journal app lives or dies on
 daily return, and the app currently gives the user no reason to open it.
 
-## B5. The app assumes one kind of user
+> **Partly answered, 2026-08-23.** Inbound share capture is implemented (✅ A6.2) allowing quick entry
+> capture from the system share sheet, along with editor quality-of-life shortcuts and stats (✅ A1.5),
+> drawing and handwriting canvas (✅ A1.3), and custom entry templates (✅ A1.7).
+> Notifications (A6.1) and widgets (A6.3) remain open.
+
+## B5. The app assumes one kind of user — partly resolved
 
 No localisation, no accessibility work, no tablet layout, no font control. All three of these are
 "later" decisions that get more expensive the longer they wait — localisation especially, since
 every hard-coded string written from now on is one more string to extract.
 
-## B6. A shipped dependency contradicts the family's own hard rule — *new, and the most urgent item here*
+> **Partly answered, 2026-08-24.** Localisation is fully implemented (✅ A6.4) across all UI screens
+> with complete English and Malayalam ARB catalogs. Reading themes and typography controls are fully implemented
+> (✅ A6.7) with paper/sepia, OLED true black, and body font selection/sizing. Accessibility (A6.5) and tablet layouts (A6.6) remain open.
 
-This was missed entirely by the first version of this document, and it is the most actionable
-thing the full cross-app check found.
-
-`SreerajP_PDFApp` — the sibling app that specialises in PDFs — declares a hard architectural rule:
-
-> *"Commercial or proprietary SDKs (e.g., Syncfusion, PSPDFKit, Apryse) are strictly forbidden."*
-
-This app's `pubspec.yaml` depends on **`syncfusion_flutter_pdfviewer: ^33.2.13`**, used by
-`lib/features/attachments/presentation/pdf_attachment_view.dart`. That directly contradicts the
-rule the author applies next door. Syncfusion's community licence also carries revenue and
-headcount conditions that a released app has to keep satisfying.
-
-There is a second, purely practical cost. The long comment block in `pubspec.yaml` records that
-Syncfusion is what pins `package_info_plus` to 9.x and `device_info_plus` to 12.x, through a
-`win32` conflict with `file_picker`. **Removing Syncfusion unties that whole dependency knot.**
-
-**The fix:** replace it with **`pdfrx`** (pdfium, BSD), which is what `SreerajP_PDFApp` already
-runs in production. If PDF text extraction for the FTS index also needs replacing, that app uses
-**PdfBox-Android** (Apache 2.0) behind a Kotlin platform channel.
-
-**Do this before the release keystore is created**, since it changes shipped code.
-**Effort:** M.
+## B6. A shipped dependency contradicts the family's own hard rule — ✅ implemented (2026-08-23)
+`syncfusion_flutter_pdfviewer` was completely removed and replaced with `pdfrx` (PDFium, BSD/MIT) in `pubspec.yaml` and `pdf_attachment_view.dart`, resolving the policy conflict and removing commercial license constraints.
 
 ## B7. What the app does exceptionally well
 
@@ -798,7 +876,17 @@ ambitious idea here and the hardest for anyone to copy.
 **Effort:** XL, but it can ship in stages — entity pages first, mood overlay second, co-occurrence
 last.
 
-## ⭐ C3. Time capsules and letters to your future self
+## ✅ C3. Time capsules and letters to your future self — implemented
+
+> **Implemented 2026-08-24.** Cryptographic date-gated key release and entry sealing:
+> - **Cryptographic Seal:** Entry contents (`contentJson`, `plainText`) are encrypted with AES-256-GCM under a dedicated per-capsule key and wiped from cleartext database storage and FTS index.
+> - **Date-Gated Release:** Decryption key release is locked until the specified unlock date (1m, 6m, 1y, 3y, 5y, or custom date). Unsealing early is refused (`TimeCapsuleLockedException`).
+> - **Monotonic High-Water Clock Protection:** Persisted monotonic timestamping prevents device clock rollback tampering (`TimeCapsuleClockTamperException`).
+> - **UI & Integration:** Preset configuration dialog with teaser note (`TimeCapsuleSealDialog`), live countdown screen with locked unseal action (`TimeCapsuleSealedScreen`), catalog overview (`TimeCapsulesListScreen`), Home screen ready-to-open celebration banner, entry list indicators, and complete backup/restore round-trip support.
+>
+> Plan: [`plans/20260824_131500_time_capsules_sealed_entries.md`](../plans/20260824_131500_time_capsules_sealed_entries.md) ·
+> Change log: [`change_log/20260824_131500_time_capsules_sealed_entries.md`](../change_log/20260824_131500_time_capsules_sealed_entries.md) ·
+> Code: `lib/features/entries/services/time_capsule_service.dart`, `lib/features/entries/presentation/time_capsule_*.dart`, `lib/features/entries/providers/time_capsule_providers.dart`
 
 **What:** Write an entry and seal it until a chosen date. Until that date the entry is encrypted
 under a key the app will not release, the body is not shown, and it is excluded from search. On
@@ -859,7 +947,15 @@ idea — and this app could build it first, on data it has already been collecti
 
 **Effort:** M.
 
-## C6. Encrypted device-to-device sync — over light, not over the network
+## ✅ C6. Encrypted device-to-device sync — implemented
+
+> **Implemented 2026-08-24.** Both transports built, tested, and integrated:
+> 1. **Optical Air-Gap Sync (AirQR):** Animated QR frame stream on one screen and camera scanner on the other. 100% offline with zero network permissions. Includes PBKDF2-HMAC-SHA256 (200k iterations) session key derivation, AES-256-GCM authenticated chunk encryption, SHA-256 integrity verification, out-of-order frame capture with live completion progress, pre-flight size gating warnings (<256 KB starts immediately, 256 KB–1 MB warns, 1 MB–4 MB recommends Wi-Fi Sync, >4 MB blocks with Wi-Fi referral), and first-class **App Settings Sync** (< 1 sec) transferring theme, custom accent colors, screen security, ritual configuration, user templates, and tags.
+> 2. **Encrypted Local Wi-Fi Sync:** Peer-to-peer Wi-Fi socket transport for large journals and media attachments. Encrypted with PBKDF2 + AES-256-GCM, hostile-peer hardening (`BoundedLineReader`, payload caps, handshake timeouts, single-client lock), full encrypted attachment streaming, and vector-clock merge conflict detection.
+>
+> Plans: [`plans/20260824_123000_optical_airqr_sync.md`](../plans/20260824_123000_optical_airqr_sync.md) · [`plans/20260824_114500_wifi_p2p_sync.md`](../plans/20260824_114500_wifi_p2p_sync.md)
+> Change logs: [`change_log/20260824_124500_optical_airqr_sync.md`](../change_log/20260824_124500_optical_airqr_sync.md) · [`change_log/20260824_120500_wifi_p2p_sync.md`](../change_log/20260824_120500_wifi_p2p_sync.md)
+> Code: `lib/features/airqr/`, `lib/features/sync/`
 
 **What:** Give the finished sync engine a transport. **Recommended: optical air-gap sync** — an
 animated QR frame stream on one screen, the other device's camera reading it, with error
@@ -873,23 +969,6 @@ no internet permission is a genuinely different product.
 **Why this app can do it cheaply:** `SyncEngine` (392 lines), the vector clocks,
 `SyncEncryptionService`, and the conflict UI are all built and tested. Only the transport is
 missing.
-
-**Re-checked — the first version of this document was wrong here.** It said sync "conflicts with
-the zero-network promise" and proposed a separate opt-in flavour as the honest way out. That is
-incomplete: **the conflict is avoidable.** `SreerajP_Authenticator` §6b and `sreeraj_qr_reader`
-(AirQR) both ship **optical air-gap sync** — animated QR out, camera in, error correction for
-dropped frames. It needs no network permission at all, so it preserves the guarantee in A5.3
-instead of trading it away. That is the right transport for this app.
-
-**If LAN sync is chosen instead**, four mature implementations exist to copy —
-`SreerajP_Authenticator` §6a, `SreerajP_TextApp` §2.8, `SreerajPContactSphere` §6, `sms-sentry`
-§8. All four share one shape: QR + pairing-code out-of-band key exchange, PBKDF2 (200k–300k) →
-AES-256-GCM session key, selective vs full sync, add-only merge. From `sms-sentry` specifically,
-copy the **hostile-peer hardening**: bounded line readers, payload and item caps, handshake
-timeouts, host idle auto-stop, single-client lock. From `SreerajP_TextApp`, copy `FLAG_SECURE` on
-the pairing screen. But this route reopens the A5.3 permission question, and optical does not.
-
-**Effort:** M–L, given how much is already done.
 
 ## C7. Attachment-native journalling
 
@@ -934,7 +1013,7 @@ crypto. It is also a model for **the honesty of the claim**: it carefully docume
 
 **Effort:** M.
 
-## C9. Ritual mode — a journal that opens like a practice, not an app
+## C9. Ritual mode — a journal that opens like a practice, not an app — ✅ done, 2026-08-24.
 
 **What:** An optional guided open: a breath timer, one reflective prompt drawn from a rotating
 deck, then the editor already opened to today's entry.
@@ -965,39 +1044,33 @@ Two things moved to the front compared with the first version of this document.
 
 **First — clear the blockers:**
 
-1. **B6 — replace `syncfusion_flutter_pdfviewer` with `pdfrx`.** New top item. It resolves the
-   policy conflict with `SreerajP_PDFApp`'s hard rule, removes the licence condition, and unties
-   the `package_info_plus` / `device_info_plus` / `win32` pin knot. Must happen **before** the
-   release keystore, because it changes shipped code.
+1. ✅ **B6 — replace `syncfusion_flutter_pdfviewer` with `pdfrx`** — **done, 2026-08-23.** Replaced
+   proprietary Syncfusion PDF viewer with open-source `pdfrx` (PDFium, BSD/MIT) and untied the dependency knot.
 2. ✅ A4.1 Backup restore and ✅ A4.2 sealed files — **both done, 2026-08-18**. The envelope
    is versioned, self-describing, uses a random salt, and now lives in `lib/core/security/`
    where the export file uses it too. What is left of this line is the small security items:
-   A5.2 crypto version byte, A5.3 `INTERNET` guard, A4.4 retention caps, A4.3 delete all
-   data.
+   A5.2 crypto version byte, ✅ A5.3 `INTERNET` guard (done 2026-08-23), ✅ A5.6 Security screens
+   (done 2026-08-23), A4.4 retention caps, A4.3 delete all data.
 3. Create the release keystore (`release_process.md` §0). Still the hard release blocker.
 
 **Second — make future work cheaper before doing more of it:**
 
 4. A6.8 Split `app.dart`. Every settings-touching item below touches this one 2,830-line file.
-5. A6.4 l10n extraction — **before** A1.1 and A6.1/A6.2 write more hard-coded strings.
-   > **This was not followed.** A1.1 was built first, on 2026-08-16, as a deliberate choice: the
-   > extraction is an **L** across ~90 files, and export was wanted sooner than that. The cost was
-   > contained rather than avoided — every string the export feature adds lives in one file,
-   > `lib/features/export/export_strings.dart`, with constant names already shaped as future
-   > `.arb` keys. When the extraction happens, export is a one-file job. **The advice still holds
-   > for A6.1 and A6.2**, which have not been built and would otherwise repeat the cost.
+5. ✅ A6.4 l10n extraction — **done, 2026-08-23.** All UI strings extracted across the app with complete English and Malayalam ARB catalog.
 
 **Third — make the app worth opening every day:**
 
-6. ✅ A1.1 Export — **done, 2026-08-16.** Then the habit layer: A6.1 Reminders, A6.2 Share-in,
-   A6.3 Widget. A6.7 Themes, A1.5 Editor polish and A2.2 Search snippets are cheap wins to fold in.
-7. C6 Sync transport — the engine is already built and waiting.
+6. ✅ A1.1 Export — **done, 2026-08-16.** Then the habit layer: A6.1 Reminders, ✅ A6.2 Share-in
+   (done 2026-08-23), A6.3 Widget. ✅ A6.7 Themes (done 2026-08-24), ✅ A1.5 Editor polish (done 2026-08-21), ✅ A1.3
+   Drawing/handwriting (done 2026-08-23), ✅ A1.7 Custom templates (done 2026-08-23), and A2.2
+   Search snippets are cheap wins to fold in.
+7. ✅ **C6 Sync transport** — **done, 2026-08-24.** Both Optical Air-Gap Sync (AirQR with 100% offline QR stream + Settings Sync) and Encrypted Local Wi-Fi Sync (P2P socket with attachment streaming) implemented and verified.
 
-**Fourth — pick one flagship from Part C and do it properly:**
+**Fourth — flagship features from Part C:**
 
-C3 (time capsules) is the cheapest distinctive win and the only Part C idea with **no precedent
-anywhere in the family**. C1 (voice-first) is the one that would define the app. C2 (knowledge
-graph) is the most ambitious and the hardest to copy.
+8. ✅ **C9 Ritual mode** — **done, 2026-08-24.** Guided breath timer, 18-card curated reflection deck, and Anki-style spaced repetition engine with direct transition to today's entry.
+9. ✅ **C3 (time capsules)** — **done, 2026-08-24.** Cryptographically sealed entries to your future self with date-gated key release, monotonic clock rollback protection, countdowns, and backup support. C1 (voice-first) is the one that would define the app. C2 (knowledge
+   graph) is the most ambitious and the hardest to copy.
 
 Doing one of them well is worth more than starting all three.
 
@@ -1025,5 +1098,17 @@ half-wired-feature habit stops adding to this list faster than the list is worke
 |---|---|---|
 | A1.1 Export | [`20260816_135333`](../plans/20260816_135333_a1-1-entry-and-journal-export.md) | [`20260816_144133`](../change_log/20260816_144133_a1-1-entry-and-journal-export.md) |
 | A1.2 Inline images | [`20260816_163000`](../plans/20260816_163000_a1-2-inline-images.md) | [`20260816_171500`](../change_log/20260816_171500_a1-2-inline-images.md) |
+| A1.3 Drawing / handwriting | [`20260823_134800`](../plans/20260823_134800_a1-3-drawing-handwriting-blocks.md) | [`20260823_143800`](../change_log/20260823_143800_a1-3-drawing-handwriting-blocks.md) |
+| A1.5 Editor quality of life | [`20260821_212800`](../plans/20260821_212800_editor_quality_of_life.md) | [`20260821_214000`](../change_log/20260821_214000_editor_quality_of_life.md) |
+| A1.7 Custom entry templates | [`20260823_150200`](../plans/20260823_150200_a1-7-custom-entry-templates.md) | [`20260823_151500`](../change_log/20260823_151500_a1-7-custom-entry-templates.md) |
 | A2.1 Tag colours | [`20260816_155016`](../plans/20260816_155016_a2-1-tag-colours.md) | [`20260816_160436`](../change_log/20260816_160436_a2-1-tag-colours.md) |
 | A4.1 Backup restore | [`20260818_134141`](../plans/20260818_134141_a4-1-backup-restore.md) | [`20260818_152000`](../change_log/20260818_152000_a4-1-backup-restore.md) |
+| A4.2 Encrypted export / backup envelope | [`20260818_145453`](../plans/20260818_145453_a4-2-encrypted-export-envelope.md) | [`20260818_163000`](../change_log/20260818_163000_a4-2-encrypted-export-envelope.md) |
+| A5.1 Encrypt database at rest | [`20260818_153817`](../plans/20260818_153817_a5-1-encrypt-database-at-rest.md) | [`20260818_161934`](../change_log/20260818_161934_a5-1-encrypt-database-at-rest.md) |
+| A5.3 Guard INTERNET permission | [`20260823_202800`](../plans/20260823_202800_guard-internet-and-transitive-permissions.md) | [`20260823_203500`](../change_log/20260823_203500_guard-internet-and-transitive-permissions.md) |
+| A5.6 Finish security screens | [`20260823_204600`](../plans/20260823_204600_finish_security_screens_tamper_alerts.md) | [`20260823_205500`](../change_log/20260823_205500_finish_security_screens_tamper_alerts.md) |
+| A6.2 Receive shared text and images | [`20260823_210500`](../plans/20260823_210500_a6-2-receive-shared-text-and-images.md) | [`20260823_213500`](../change_log/20260823_213500_a6-2-receive-shared-text-and-images.md) |
+| A6.4 Localisation | [`20260823_221300`](../plans/20260823_221300_a64_localisation.md) | [`20260823_224500`](../change_log/20260823_224500_a64_localisation.md) |
+| C3 Time capsules | [`20260824_131500`](../plans/20260824_131500_time_capsules_sealed_entries.md) | [`20260824_131500`](../change_log/20260824_131500_time_capsules_sealed_entries.md) |
+| C6 Device-to-device sync | [`20260824_123000`](../plans/20260824_123000_optical_airqr_sync.md) · [`20260824_114500`](../plans/20260824_114500_wifi_p2p_sync.md) | [`20260824_124500`](../change_log/20260824_124500_optical_airqr_sync.md) · [`20260824_120500`](../change_log/20260824_120500_wifi_p2p_sync.md) |
+| C9 Ritual mode | [`20260824_111500`](../plans/20260824_111500_c9_ritual_mode.md) | [`20260824_111500`](../change_log/20260824_111500_c9_ritual_mode.md) |

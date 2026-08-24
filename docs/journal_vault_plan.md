@@ -185,7 +185,7 @@
   - Add startup orphan-temp sweep and lifecycle cleanup on background/close.
   - Verify: no plaintext leftovers after close, restart, or failed open.
 - Slice 3 - In-app PDF viewer:
-  - Use `syncfusion_flutter_pdfviewer` (or equivalent maintained viewer) for in-app rendering.
+  - Use `pdfrx` (PDFium-based open-source viewer) for in-app rendering.
   - Add loading/error/empty states aligned with app error policy.
   - Verify: open multi-page PDF, rotate device, reopen after lock/unlock.
 - Slice 4 - In-app audio player:

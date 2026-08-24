@@ -328,6 +328,51 @@ class EntryMoodsDaoManager {
       $$EntryMoodsTableTableManager(_db.attachedDatabase, _db.entryMoods);
 }
 
+mixin _$UserTemplatesDaoMixin on DatabaseAccessor<AppDatabase> {
+  $UserTemplatesTable get userTemplates => attachedDatabase.userTemplates;
+  UserTemplatesDaoManager get managers => UserTemplatesDaoManager(this);
+}
+
+class UserTemplatesDaoManager {
+  final _$UserTemplatesDaoMixin _db;
+  UserTemplatesDaoManager(this._db);
+  $$UserTemplatesTableTableManager get userTemplates =>
+      $$UserTemplatesTableTableManager(_db.attachedDatabase, _db.userTemplates);
+}
+
+mixin _$UserRitualCardsDaoMixin on DatabaseAccessor<AppDatabase> {
+  $UserRitualCardsTable get userRitualCards => attachedDatabase.userRitualCards;
+  UserRitualCardsDaoManager get managers => UserRitualCardsDaoManager(this);
+}
+
+class UserRitualCardsDaoManager {
+  final _$UserRitualCardsDaoMixin _db;
+  UserRitualCardsDaoManager(this._db);
+  $$UserRitualCardsTableTableManager get userRitualCards =>
+      $$UserRitualCardsTableTableManager(
+        _db.attachedDatabase,
+        _db.userRitualCards,
+      );
+}
+
+mixin _$TimeCapsulesDaoMixin on DatabaseAccessor<AppDatabase> {
+  $JournalsTable get journals => attachedDatabase.journals;
+  $EntriesTable get entries => attachedDatabase.entries;
+  $TimeCapsulesTable get timeCapsules => attachedDatabase.timeCapsules;
+  TimeCapsulesDaoManager get managers => TimeCapsulesDaoManager(this);
+}
+
+class TimeCapsulesDaoManager {
+  final _$TimeCapsulesDaoMixin _db;
+  TimeCapsulesDaoManager(this._db);
+  $$JournalsTableTableManager get journals =>
+      $$JournalsTableTableManager(_db.attachedDatabase, _db.journals);
+  $$EntriesTableTableManager get entries =>
+      $$EntriesTableTableManager(_db.attachedDatabase, _db.entries);
+  $$TimeCapsulesTableTableManager get timeCapsules =>
+      $$TimeCapsulesTableTableManager(_db.attachedDatabase, _db.timeCapsules);
+}
+
 class $JournalsTable extends Journals with TableInfo<$JournalsTable, Journal> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -10072,6 +10117,1694 @@ class EntryMoodsCompanion extends UpdateCompanion<EntryMood> {
   }
 }
 
+class $UserTemplatesTable extends UserTemplates
+    with TableInfo<$UserTemplatesTable, UserTemplate> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UserTemplatesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _defaultTitleMeta = const VerificationMeta(
+    'defaultTitle',
+  );
+  @override
+  late final GeneratedColumn<String> defaultTitle = GeneratedColumn<String>(
+    'default_title',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _contentJsonMeta = const VerificationMeta(
+    'contentJson',
+  );
+  @override
+  late final GeneratedColumn<String> contentJson = GeneratedColumn<String>(
+    'content_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    description,
+    defaultTitle,
+    contentJson,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'user_templates';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<UserTemplate> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('default_title')) {
+      context.handle(
+        _defaultTitleMeta,
+        defaultTitle.isAcceptableOrUnknown(
+          data['default_title']!,
+          _defaultTitleMeta,
+        ),
+      );
+    }
+    if (data.containsKey('content_json')) {
+      context.handle(
+        _contentJsonMeta,
+        contentJson.isAcceptableOrUnknown(
+          data['content_json']!,
+          _contentJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_contentJsonMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  UserTemplate map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UserTemplate(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      defaultTitle: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}default_title'],
+      ),
+      contentJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content_json'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $UserTemplatesTable createAlias(String alias) {
+    return $UserTemplatesTable(attachedDatabase, alias);
+  }
+}
+
+class UserTemplate extends DataClass implements Insertable<UserTemplate> {
+  final int id;
+  final String name;
+  final String? description;
+  final String? defaultTitle;
+  final String contentJson;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const UserTemplate({
+    required this.id,
+    required this.name,
+    this.description,
+    this.defaultTitle,
+    required this.contentJson,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    if (!nullToAbsent || defaultTitle != null) {
+      map['default_title'] = Variable<String>(defaultTitle);
+    }
+    map['content_json'] = Variable<String>(contentJson);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  UserTemplatesCompanion toCompanion(bool nullToAbsent) {
+    return UserTemplatesCompanion(
+      id: Value(id),
+      name: Value(name),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      defaultTitle: defaultTitle == null && nullToAbsent
+          ? const Value.absent()
+          : Value(defaultTitle),
+      contentJson: Value(contentJson),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory UserTemplate.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UserTemplate(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      description: serializer.fromJson<String?>(json['description']),
+      defaultTitle: serializer.fromJson<String?>(json['defaultTitle']),
+      contentJson: serializer.fromJson<String>(json['contentJson']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'description': serializer.toJson<String?>(description),
+      'defaultTitle': serializer.toJson<String?>(defaultTitle),
+      'contentJson': serializer.toJson<String>(contentJson),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  UserTemplate copyWith({
+    int? id,
+    String? name,
+    Value<String?> description = const Value.absent(),
+    Value<String?> defaultTitle = const Value.absent(),
+    String? contentJson,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => UserTemplate(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    description: description.present ? description.value : this.description,
+    defaultTitle: defaultTitle.present ? defaultTitle.value : this.defaultTitle,
+    contentJson: contentJson ?? this.contentJson,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  UserTemplate copyWithCompanion(UserTemplatesCompanion data) {
+    return UserTemplate(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      defaultTitle: data.defaultTitle.present
+          ? data.defaultTitle.value
+          : this.defaultTitle,
+      contentJson: data.contentJson.present
+          ? data.contentJson.value
+          : this.contentJson,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserTemplate(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('defaultTitle: $defaultTitle, ')
+          ..write('contentJson: $contentJson, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    name,
+    description,
+    defaultTitle,
+    contentJson,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UserTemplate &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.description == this.description &&
+          other.defaultTitle == this.defaultTitle &&
+          other.contentJson == this.contentJson &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class UserTemplatesCompanion extends UpdateCompanion<UserTemplate> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<String?> description;
+  final Value<String?> defaultTitle;
+  final Value<String> contentJson;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const UserTemplatesCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.description = const Value.absent(),
+    this.defaultTitle = const Value.absent(),
+    this.contentJson = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  UserTemplatesCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    this.description = const Value.absent(),
+    this.defaultTitle = const Value.absent(),
+    required String contentJson,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : name = Value(name),
+       contentJson = Value(contentJson);
+  static Insertable<UserTemplate> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<String>? description,
+    Expression<String>? defaultTitle,
+    Expression<String>? contentJson,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (description != null) 'description': description,
+      if (defaultTitle != null) 'default_title': defaultTitle,
+      if (contentJson != null) 'content_json': contentJson,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  UserTemplatesCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<String?>? description,
+    Value<String?>? defaultTitle,
+    Value<String>? contentJson,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+  }) {
+    return UserTemplatesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      defaultTitle: defaultTitle ?? this.defaultTitle,
+      contentJson: contentJson ?? this.contentJson,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (defaultTitle.present) {
+      map['default_title'] = Variable<String>(defaultTitle.value);
+    }
+    if (contentJson.present) {
+      map['content_json'] = Variable<String>(contentJson.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserTemplatesCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('description: $description, ')
+          ..write('defaultTitle: $defaultTitle, ')
+          ..write('contentJson: $contentJson, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TimeCapsulesTable extends TimeCapsules
+    with TableInfo<$TimeCapsulesTable, TimeCapsule> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TimeCapsulesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _entryIdMeta = const VerificationMeta(
+    'entryId',
+  );
+  @override
+  late final GeneratedColumn<int> entryId = GeneratedColumn<int>(
+    'entry_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES entries (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _unlockDateMeta = const VerificationMeta(
+    'unlockDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> unlockDate = GeneratedColumn<DateTime>(
+    'unlock_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sealedAtMeta = const VerificationMeta(
+    'sealedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> sealedAt = GeneratedColumn<DateTime>(
+    'sealed_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _isOpenedMeta = const VerificationMeta(
+    'isOpened',
+  );
+  @override
+  late final GeneratedColumn<bool> isOpened = GeneratedColumn<bool>(
+    'is_opened',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_opened" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _openedAtMeta = const VerificationMeta(
+    'openedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> openedAt = GeneratedColumn<DateTime>(
+    'opened_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sealedCiphertextMeta = const VerificationMeta(
+    'sealedCiphertext',
+  );
+  @override
+  late final GeneratedColumn<String> sealedCiphertext = GeneratedColumn<String>(
+    'sealed_ciphertext',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _ivBase64Meta = const VerificationMeta(
+    'ivBase64',
+  );
+  @override
+  late final GeneratedColumn<String> ivBase64 = GeneratedColumn<String>(
+    'iv_base64',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _macBase64Meta = const VerificationMeta(
+    'macBase64',
+  );
+  @override
+  late final GeneratedColumn<String> macBase64 = GeneratedColumn<String>(
+    'mac_base64',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sealedKeyCiphertextMeta =
+      const VerificationMeta('sealedKeyCiphertext');
+  @override
+  late final GeneratedColumn<String> sealedKeyCiphertext =
+      GeneratedColumn<String>(
+        'sealed_key_ciphertext',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _teaserMessageMeta = const VerificationMeta(
+    'teaserMessage',
+  );
+  @override
+  late final GeneratedColumn<String> teaserMessage = GeneratedColumn<String>(
+    'teaser_message',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    entryId,
+    unlockDate,
+    sealedAt,
+    isOpened,
+    openedAt,
+    sealedCiphertext,
+    ivBase64,
+    macBase64,
+    sealedKeyCiphertext,
+    teaserMessage,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'time_capsules';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TimeCapsule> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('entry_id')) {
+      context.handle(
+        _entryIdMeta,
+        entryId.isAcceptableOrUnknown(data['entry_id']!, _entryIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entryIdMeta);
+    }
+    if (data.containsKey('unlock_date')) {
+      context.handle(
+        _unlockDateMeta,
+        unlockDate.isAcceptableOrUnknown(data['unlock_date']!, _unlockDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_unlockDateMeta);
+    }
+    if (data.containsKey('sealed_at')) {
+      context.handle(
+        _sealedAtMeta,
+        sealedAt.isAcceptableOrUnknown(data['sealed_at']!, _sealedAtMeta),
+      );
+    }
+    if (data.containsKey('is_opened')) {
+      context.handle(
+        _isOpenedMeta,
+        isOpened.isAcceptableOrUnknown(data['is_opened']!, _isOpenedMeta),
+      );
+    }
+    if (data.containsKey('opened_at')) {
+      context.handle(
+        _openedAtMeta,
+        openedAt.isAcceptableOrUnknown(data['opened_at']!, _openedAtMeta),
+      );
+    }
+    if (data.containsKey('sealed_ciphertext')) {
+      context.handle(
+        _sealedCiphertextMeta,
+        sealedCiphertext.isAcceptableOrUnknown(
+          data['sealed_ciphertext']!,
+          _sealedCiphertextMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_sealedCiphertextMeta);
+    }
+    if (data.containsKey('iv_base64')) {
+      context.handle(
+        _ivBase64Meta,
+        ivBase64.isAcceptableOrUnknown(data['iv_base64']!, _ivBase64Meta),
+      );
+    } else if (isInserting) {
+      context.missing(_ivBase64Meta);
+    }
+    if (data.containsKey('mac_base64')) {
+      context.handle(
+        _macBase64Meta,
+        macBase64.isAcceptableOrUnknown(data['mac_base64']!, _macBase64Meta),
+      );
+    } else if (isInserting) {
+      context.missing(_macBase64Meta);
+    }
+    if (data.containsKey('sealed_key_ciphertext')) {
+      context.handle(
+        _sealedKeyCiphertextMeta,
+        sealedKeyCiphertext.isAcceptableOrUnknown(
+          data['sealed_key_ciphertext']!,
+          _sealedKeyCiphertextMeta,
+        ),
+      );
+    }
+    if (data.containsKey('teaser_message')) {
+      context.handle(
+        _teaserMessageMeta,
+        teaserMessage.isAcceptableOrUnknown(
+          data['teaser_message']!,
+          _teaserMessageMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {entryId},
+  ];
+  @override
+  TimeCapsule map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TimeCapsule(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      entryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}entry_id'],
+      )!,
+      unlockDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}unlock_date'],
+      )!,
+      sealedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}sealed_at'],
+      )!,
+      isOpened: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_opened'],
+      )!,
+      openedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}opened_at'],
+      ),
+      sealedCiphertext: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sealed_ciphertext'],
+      )!,
+      ivBase64: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}iv_base64'],
+      )!,
+      macBase64: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mac_base64'],
+      )!,
+      sealedKeyCiphertext: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}sealed_key_ciphertext'],
+      ),
+      teaserMessage: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}teaser_message'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $TimeCapsulesTable createAlias(String alias) {
+    return $TimeCapsulesTable(attachedDatabase, alias);
+  }
+}
+
+class TimeCapsule extends DataClass implements Insertable<TimeCapsule> {
+  final int id;
+  final int entryId;
+  final DateTime unlockDate;
+  final DateTime sealedAt;
+  final bool isOpened;
+  final DateTime? openedAt;
+  final String sealedCiphertext;
+  final String ivBase64;
+  final String macBase64;
+  final String? sealedKeyCiphertext;
+  final String? teaserMessage;
+  final DateTime createdAt;
+  const TimeCapsule({
+    required this.id,
+    required this.entryId,
+    required this.unlockDate,
+    required this.sealedAt,
+    required this.isOpened,
+    this.openedAt,
+    required this.sealedCiphertext,
+    required this.ivBase64,
+    required this.macBase64,
+    this.sealedKeyCiphertext,
+    this.teaserMessage,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['entry_id'] = Variable<int>(entryId);
+    map['unlock_date'] = Variable<DateTime>(unlockDate);
+    map['sealed_at'] = Variable<DateTime>(sealedAt);
+    map['is_opened'] = Variable<bool>(isOpened);
+    if (!nullToAbsent || openedAt != null) {
+      map['opened_at'] = Variable<DateTime>(openedAt);
+    }
+    map['sealed_ciphertext'] = Variable<String>(sealedCiphertext);
+    map['iv_base64'] = Variable<String>(ivBase64);
+    map['mac_base64'] = Variable<String>(macBase64);
+    if (!nullToAbsent || sealedKeyCiphertext != null) {
+      map['sealed_key_ciphertext'] = Variable<String>(sealedKeyCiphertext);
+    }
+    if (!nullToAbsent || teaserMessage != null) {
+      map['teaser_message'] = Variable<String>(teaserMessage);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  TimeCapsulesCompanion toCompanion(bool nullToAbsent) {
+    return TimeCapsulesCompanion(
+      id: Value(id),
+      entryId: Value(entryId),
+      unlockDate: Value(unlockDate),
+      sealedAt: Value(sealedAt),
+      isOpened: Value(isOpened),
+      openedAt: openedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(openedAt),
+      sealedCiphertext: Value(sealedCiphertext),
+      ivBase64: Value(ivBase64),
+      macBase64: Value(macBase64),
+      sealedKeyCiphertext: sealedKeyCiphertext == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sealedKeyCiphertext),
+      teaserMessage: teaserMessage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(teaserMessage),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory TimeCapsule.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TimeCapsule(
+      id: serializer.fromJson<int>(json['id']),
+      entryId: serializer.fromJson<int>(json['entryId']),
+      unlockDate: serializer.fromJson<DateTime>(json['unlockDate']),
+      sealedAt: serializer.fromJson<DateTime>(json['sealedAt']),
+      isOpened: serializer.fromJson<bool>(json['isOpened']),
+      openedAt: serializer.fromJson<DateTime?>(json['openedAt']),
+      sealedCiphertext: serializer.fromJson<String>(json['sealedCiphertext']),
+      ivBase64: serializer.fromJson<String>(json['ivBase64']),
+      macBase64: serializer.fromJson<String>(json['macBase64']),
+      sealedKeyCiphertext: serializer.fromJson<String?>(
+        json['sealedKeyCiphertext'],
+      ),
+      teaserMessage: serializer.fromJson<String?>(json['teaserMessage']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'entryId': serializer.toJson<int>(entryId),
+      'unlockDate': serializer.toJson<DateTime>(unlockDate),
+      'sealedAt': serializer.toJson<DateTime>(sealedAt),
+      'isOpened': serializer.toJson<bool>(isOpened),
+      'openedAt': serializer.toJson<DateTime?>(openedAt),
+      'sealedCiphertext': serializer.toJson<String>(sealedCiphertext),
+      'ivBase64': serializer.toJson<String>(ivBase64),
+      'macBase64': serializer.toJson<String>(macBase64),
+      'sealedKeyCiphertext': serializer.toJson<String?>(sealedKeyCiphertext),
+      'teaserMessage': serializer.toJson<String?>(teaserMessage),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  TimeCapsule copyWith({
+    int? id,
+    int? entryId,
+    DateTime? unlockDate,
+    DateTime? sealedAt,
+    bool? isOpened,
+    Value<DateTime?> openedAt = const Value.absent(),
+    String? sealedCiphertext,
+    String? ivBase64,
+    String? macBase64,
+    Value<String?> sealedKeyCiphertext = const Value.absent(),
+    Value<String?> teaserMessage = const Value.absent(),
+    DateTime? createdAt,
+  }) => TimeCapsule(
+    id: id ?? this.id,
+    entryId: entryId ?? this.entryId,
+    unlockDate: unlockDate ?? this.unlockDate,
+    sealedAt: sealedAt ?? this.sealedAt,
+    isOpened: isOpened ?? this.isOpened,
+    openedAt: openedAt.present ? openedAt.value : this.openedAt,
+    sealedCiphertext: sealedCiphertext ?? this.sealedCiphertext,
+    ivBase64: ivBase64 ?? this.ivBase64,
+    macBase64: macBase64 ?? this.macBase64,
+    sealedKeyCiphertext: sealedKeyCiphertext.present
+        ? sealedKeyCiphertext.value
+        : this.sealedKeyCiphertext,
+    teaserMessage: teaserMessage.present
+        ? teaserMessage.value
+        : this.teaserMessage,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  TimeCapsule copyWithCompanion(TimeCapsulesCompanion data) {
+    return TimeCapsule(
+      id: data.id.present ? data.id.value : this.id,
+      entryId: data.entryId.present ? data.entryId.value : this.entryId,
+      unlockDate: data.unlockDate.present
+          ? data.unlockDate.value
+          : this.unlockDate,
+      sealedAt: data.sealedAt.present ? data.sealedAt.value : this.sealedAt,
+      isOpened: data.isOpened.present ? data.isOpened.value : this.isOpened,
+      openedAt: data.openedAt.present ? data.openedAt.value : this.openedAt,
+      sealedCiphertext: data.sealedCiphertext.present
+          ? data.sealedCiphertext.value
+          : this.sealedCiphertext,
+      ivBase64: data.ivBase64.present ? data.ivBase64.value : this.ivBase64,
+      macBase64: data.macBase64.present ? data.macBase64.value : this.macBase64,
+      sealedKeyCiphertext: data.sealedKeyCiphertext.present
+          ? data.sealedKeyCiphertext.value
+          : this.sealedKeyCiphertext,
+      teaserMessage: data.teaserMessage.present
+          ? data.teaserMessage.value
+          : this.teaserMessage,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TimeCapsule(')
+          ..write('id: $id, ')
+          ..write('entryId: $entryId, ')
+          ..write('unlockDate: $unlockDate, ')
+          ..write('sealedAt: $sealedAt, ')
+          ..write('isOpened: $isOpened, ')
+          ..write('openedAt: $openedAt, ')
+          ..write('sealedCiphertext: $sealedCiphertext, ')
+          ..write('ivBase64: $ivBase64, ')
+          ..write('macBase64: $macBase64, ')
+          ..write('sealedKeyCiphertext: $sealedKeyCiphertext, ')
+          ..write('teaserMessage: $teaserMessage, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    entryId,
+    unlockDate,
+    sealedAt,
+    isOpened,
+    openedAt,
+    sealedCiphertext,
+    ivBase64,
+    macBase64,
+    sealedKeyCiphertext,
+    teaserMessage,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TimeCapsule &&
+          other.id == this.id &&
+          other.entryId == this.entryId &&
+          other.unlockDate == this.unlockDate &&
+          other.sealedAt == this.sealedAt &&
+          other.isOpened == this.isOpened &&
+          other.openedAt == this.openedAt &&
+          other.sealedCiphertext == this.sealedCiphertext &&
+          other.ivBase64 == this.ivBase64 &&
+          other.macBase64 == this.macBase64 &&
+          other.sealedKeyCiphertext == this.sealedKeyCiphertext &&
+          other.teaserMessage == this.teaserMessage &&
+          other.createdAt == this.createdAt);
+}
+
+class TimeCapsulesCompanion extends UpdateCompanion<TimeCapsule> {
+  final Value<int> id;
+  final Value<int> entryId;
+  final Value<DateTime> unlockDate;
+  final Value<DateTime> sealedAt;
+  final Value<bool> isOpened;
+  final Value<DateTime?> openedAt;
+  final Value<String> sealedCiphertext;
+  final Value<String> ivBase64;
+  final Value<String> macBase64;
+  final Value<String?> sealedKeyCiphertext;
+  final Value<String?> teaserMessage;
+  final Value<DateTime> createdAt;
+  const TimeCapsulesCompanion({
+    this.id = const Value.absent(),
+    this.entryId = const Value.absent(),
+    this.unlockDate = const Value.absent(),
+    this.sealedAt = const Value.absent(),
+    this.isOpened = const Value.absent(),
+    this.openedAt = const Value.absent(),
+    this.sealedCiphertext = const Value.absent(),
+    this.ivBase64 = const Value.absent(),
+    this.macBase64 = const Value.absent(),
+    this.sealedKeyCiphertext = const Value.absent(),
+    this.teaserMessage = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  TimeCapsulesCompanion.insert({
+    this.id = const Value.absent(),
+    required int entryId,
+    required DateTime unlockDate,
+    this.sealedAt = const Value.absent(),
+    this.isOpened = const Value.absent(),
+    this.openedAt = const Value.absent(),
+    required String sealedCiphertext,
+    required String ivBase64,
+    required String macBase64,
+    this.sealedKeyCiphertext = const Value.absent(),
+    this.teaserMessage = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  }) : entryId = Value(entryId),
+       unlockDate = Value(unlockDate),
+       sealedCiphertext = Value(sealedCiphertext),
+       ivBase64 = Value(ivBase64),
+       macBase64 = Value(macBase64);
+  static Insertable<TimeCapsule> custom({
+    Expression<int>? id,
+    Expression<int>? entryId,
+    Expression<DateTime>? unlockDate,
+    Expression<DateTime>? sealedAt,
+    Expression<bool>? isOpened,
+    Expression<DateTime>? openedAt,
+    Expression<String>? sealedCiphertext,
+    Expression<String>? ivBase64,
+    Expression<String>? macBase64,
+    Expression<String>? sealedKeyCiphertext,
+    Expression<String>? teaserMessage,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (entryId != null) 'entry_id': entryId,
+      if (unlockDate != null) 'unlock_date': unlockDate,
+      if (sealedAt != null) 'sealed_at': sealedAt,
+      if (isOpened != null) 'is_opened': isOpened,
+      if (openedAt != null) 'opened_at': openedAt,
+      if (sealedCiphertext != null) 'sealed_ciphertext': sealedCiphertext,
+      if (ivBase64 != null) 'iv_base64': ivBase64,
+      if (macBase64 != null) 'mac_base64': macBase64,
+      if (sealedKeyCiphertext != null)
+        'sealed_key_ciphertext': sealedKeyCiphertext,
+      if (teaserMessage != null) 'teaser_message': teaserMessage,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  TimeCapsulesCompanion copyWith({
+    Value<int>? id,
+    Value<int>? entryId,
+    Value<DateTime>? unlockDate,
+    Value<DateTime>? sealedAt,
+    Value<bool>? isOpened,
+    Value<DateTime?>? openedAt,
+    Value<String>? sealedCiphertext,
+    Value<String>? ivBase64,
+    Value<String>? macBase64,
+    Value<String?>? sealedKeyCiphertext,
+    Value<String?>? teaserMessage,
+    Value<DateTime>? createdAt,
+  }) {
+    return TimeCapsulesCompanion(
+      id: id ?? this.id,
+      entryId: entryId ?? this.entryId,
+      unlockDate: unlockDate ?? this.unlockDate,
+      sealedAt: sealedAt ?? this.sealedAt,
+      isOpened: isOpened ?? this.isOpened,
+      openedAt: openedAt ?? this.openedAt,
+      sealedCiphertext: sealedCiphertext ?? this.sealedCiphertext,
+      ivBase64: ivBase64 ?? this.ivBase64,
+      macBase64: macBase64 ?? this.macBase64,
+      sealedKeyCiphertext: sealedKeyCiphertext ?? this.sealedKeyCiphertext,
+      teaserMessage: teaserMessage ?? this.teaserMessage,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (entryId.present) {
+      map['entry_id'] = Variable<int>(entryId.value);
+    }
+    if (unlockDate.present) {
+      map['unlock_date'] = Variable<DateTime>(unlockDate.value);
+    }
+    if (sealedAt.present) {
+      map['sealed_at'] = Variable<DateTime>(sealedAt.value);
+    }
+    if (isOpened.present) {
+      map['is_opened'] = Variable<bool>(isOpened.value);
+    }
+    if (openedAt.present) {
+      map['opened_at'] = Variable<DateTime>(openedAt.value);
+    }
+    if (sealedCiphertext.present) {
+      map['sealed_ciphertext'] = Variable<String>(sealedCiphertext.value);
+    }
+    if (ivBase64.present) {
+      map['iv_base64'] = Variable<String>(ivBase64.value);
+    }
+    if (macBase64.present) {
+      map['mac_base64'] = Variable<String>(macBase64.value);
+    }
+    if (sealedKeyCiphertext.present) {
+      map['sealed_key_ciphertext'] = Variable<String>(
+        sealedKeyCiphertext.value,
+      );
+    }
+    if (teaserMessage.present) {
+      map['teaser_message'] = Variable<String>(teaserMessage.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TimeCapsulesCompanion(')
+          ..write('id: $id, ')
+          ..write('entryId: $entryId, ')
+          ..write('unlockDate: $unlockDate, ')
+          ..write('sealedAt: $sealedAt, ')
+          ..write('isOpened: $isOpened, ')
+          ..write('openedAt: $openedAt, ')
+          ..write('sealedCiphertext: $sealedCiphertext, ')
+          ..write('ivBase64: $ivBase64, ')
+          ..write('macBase64: $macBase64, ')
+          ..write('sealedKeyCiphertext: $sealedKeyCiphertext, ')
+          ..write('teaserMessage: $teaserMessage, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $UserRitualCardsTable extends UserRitualCards
+    with TableInfo<$UserRitualCardsTable, UserRitualCard> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $UserRitualCardsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _themeMeta = const VerificationMeta('theme');
+  @override
+  late final GeneratedColumn<String> theme = GeneratedColumn<String>(
+    'theme',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _promptMeta = const VerificationMeta('prompt');
+  @override
+  late final GeneratedColumn<String> prompt = GeneratedColumn<String>(
+    'prompt',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _quoteMeta = const VerificationMeta('quote');
+  @override
+  late final GeneratedColumn<String> quote = GeneratedColumn<String>(
+    'quote',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _quoteAuthorMeta = const VerificationMeta(
+    'quoteAuthor',
+  );
+  @override
+  late final GeneratedColumn<String> quoteAuthor = GeneratedColumn<String>(
+    'quote_author',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    theme,
+    title,
+    prompt,
+    quote,
+    quoteAuthor,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'user_ritual_cards';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<UserRitualCard> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('theme')) {
+      context.handle(
+        _themeMeta,
+        theme.isAcceptableOrUnknown(data['theme']!, _themeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_themeMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('prompt')) {
+      context.handle(
+        _promptMeta,
+        prompt.isAcceptableOrUnknown(data['prompt']!, _promptMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_promptMeta);
+    }
+    if (data.containsKey('quote')) {
+      context.handle(
+        _quoteMeta,
+        quote.isAcceptableOrUnknown(data['quote']!, _quoteMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_quoteMeta);
+    }
+    if (data.containsKey('quote_author')) {
+      context.handle(
+        _quoteAuthorMeta,
+        quoteAuthor.isAcceptableOrUnknown(
+          data['quote_author']!,
+          _quoteAuthorMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  UserRitualCard map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return UserRitualCard(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      theme: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}theme'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      prompt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}prompt'],
+      )!,
+      quote: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}quote'],
+      )!,
+      quoteAuthor: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}quote_author'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $UserRitualCardsTable createAlias(String alias) {
+    return $UserRitualCardsTable(attachedDatabase, alias);
+  }
+}
+
+class UserRitualCard extends DataClass implements Insertable<UserRitualCard> {
+  final int id;
+  final String theme;
+  final String title;
+  final String prompt;
+  final String quote;
+  final String? quoteAuthor;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const UserRitualCard({
+    required this.id,
+    required this.theme,
+    required this.title,
+    required this.prompt,
+    required this.quote,
+    this.quoteAuthor,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['theme'] = Variable<String>(theme);
+    map['title'] = Variable<String>(title);
+    map['prompt'] = Variable<String>(prompt);
+    map['quote'] = Variable<String>(quote);
+    if (!nullToAbsent || quoteAuthor != null) {
+      map['quote_author'] = Variable<String>(quoteAuthor);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  UserRitualCardsCompanion toCompanion(bool nullToAbsent) {
+    return UserRitualCardsCompanion(
+      id: Value(id),
+      theme: Value(theme),
+      title: Value(title),
+      prompt: Value(prompt),
+      quote: Value(quote),
+      quoteAuthor: quoteAuthor == null && nullToAbsent
+          ? const Value.absent()
+          : Value(quoteAuthor),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory UserRitualCard.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return UserRitualCard(
+      id: serializer.fromJson<int>(json['id']),
+      theme: serializer.fromJson<String>(json['theme']),
+      title: serializer.fromJson<String>(json['title']),
+      prompt: serializer.fromJson<String>(json['prompt']),
+      quote: serializer.fromJson<String>(json['quote']),
+      quoteAuthor: serializer.fromJson<String?>(json['quoteAuthor']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'theme': serializer.toJson<String>(theme),
+      'title': serializer.toJson<String>(title),
+      'prompt': serializer.toJson<String>(prompt),
+      'quote': serializer.toJson<String>(quote),
+      'quoteAuthor': serializer.toJson<String?>(quoteAuthor),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  UserRitualCard copyWith({
+    int? id,
+    String? theme,
+    String? title,
+    String? prompt,
+    String? quote,
+    Value<String?> quoteAuthor = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => UserRitualCard(
+    id: id ?? this.id,
+    theme: theme ?? this.theme,
+    title: title ?? this.title,
+    prompt: prompt ?? this.prompt,
+    quote: quote ?? this.quote,
+    quoteAuthor: quoteAuthor.present ? quoteAuthor.value : this.quoteAuthor,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  UserRitualCard copyWithCompanion(UserRitualCardsCompanion data) {
+    return UserRitualCard(
+      id: data.id.present ? data.id.value : this.id,
+      theme: data.theme.present ? data.theme.value : this.theme,
+      title: data.title.present ? data.title.value : this.title,
+      prompt: data.prompt.present ? data.prompt.value : this.prompt,
+      quote: data.quote.present ? data.quote.value : this.quote,
+      quoteAuthor: data.quoteAuthor.present
+          ? data.quoteAuthor.value
+          : this.quoteAuthor,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserRitualCard(')
+          ..write('id: $id, ')
+          ..write('theme: $theme, ')
+          ..write('title: $title, ')
+          ..write('prompt: $prompt, ')
+          ..write('quote: $quote, ')
+          ..write('quoteAuthor: $quoteAuthor, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    theme,
+    title,
+    prompt,
+    quote,
+    quoteAuthor,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is UserRitualCard &&
+          other.id == this.id &&
+          other.theme == this.theme &&
+          other.title == this.title &&
+          other.prompt == this.prompt &&
+          other.quote == this.quote &&
+          other.quoteAuthor == this.quoteAuthor &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class UserRitualCardsCompanion extends UpdateCompanion<UserRitualCard> {
+  final Value<int> id;
+  final Value<String> theme;
+  final Value<String> title;
+  final Value<String> prompt;
+  final Value<String> quote;
+  final Value<String?> quoteAuthor;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const UserRitualCardsCompanion({
+    this.id = const Value.absent(),
+    this.theme = const Value.absent(),
+    this.title = const Value.absent(),
+    this.prompt = const Value.absent(),
+    this.quote = const Value.absent(),
+    this.quoteAuthor = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  UserRitualCardsCompanion.insert({
+    this.id = const Value.absent(),
+    required String theme,
+    required String title,
+    required String prompt,
+    required String quote,
+    this.quoteAuthor = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : theme = Value(theme),
+       title = Value(title),
+       prompt = Value(prompt),
+       quote = Value(quote);
+  static Insertable<UserRitualCard> custom({
+    Expression<int>? id,
+    Expression<String>? theme,
+    Expression<String>? title,
+    Expression<String>? prompt,
+    Expression<String>? quote,
+    Expression<String>? quoteAuthor,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (theme != null) 'theme': theme,
+      if (title != null) 'title': title,
+      if (prompt != null) 'prompt': prompt,
+      if (quote != null) 'quote': quote,
+      if (quoteAuthor != null) 'quote_author': quoteAuthor,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  UserRitualCardsCompanion copyWith({
+    Value<int>? id,
+    Value<String>? theme,
+    Value<String>? title,
+    Value<String>? prompt,
+    Value<String>? quote,
+    Value<String?>? quoteAuthor,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+  }) {
+    return UserRitualCardsCompanion(
+      id: id ?? this.id,
+      theme: theme ?? this.theme,
+      title: title ?? this.title,
+      prompt: prompt ?? this.prompt,
+      quote: quote ?? this.quote,
+      quoteAuthor: quoteAuthor ?? this.quoteAuthor,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (theme.present) {
+      map['theme'] = Variable<String>(theme.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (prompt.present) {
+      map['prompt'] = Variable<String>(prompt.value);
+    }
+    if (quote.present) {
+      map['quote'] = Variable<String>(quote.value);
+    }
+    if (quoteAuthor.present) {
+      map['quote_author'] = Variable<String>(quoteAuthor.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserRitualCardsCompanion(')
+          ..write('id: $id, ')
+          ..write('theme: $theme, ')
+          ..write('title: $title, ')
+          ..write('prompt: $prompt, ')
+          ..write('quote: $quote, ')
+          ..write('quoteAuthor: $quoteAuthor, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -10102,6 +11835,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $SecurityEventsTable securityEvents = $SecurityEventsTable(this);
   late final $EntryMoodsTable entryMoods = $EntryMoodsTable(this);
+  late final $UserTemplatesTable userTemplates = $UserTemplatesTable(this);
+  late final $TimeCapsulesTable timeCapsules = $TimeCapsulesTable(this);
+  late final $UserRitualCardsTable userRitualCards = $UserRitualCardsTable(
+    this,
+  );
   late final JournalsDao journalsDao = JournalsDao(this as AppDatabase);
   late final EntriesDao entriesDao = EntriesDao(this as AppDatabase);
   late final TagsDao tagsDao = TagsDao(this as AppDatabase);
@@ -10146,6 +11884,15 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     this as AppDatabase,
   );
   late final EntryMoodsDao entryMoodsDao = EntryMoodsDao(this as AppDatabase);
+  late final UserTemplatesDao userTemplatesDao = UserTemplatesDao(
+    this as AppDatabase,
+  );
+  late final TimeCapsulesDao timeCapsulesDao = TimeCapsulesDao(
+    this as AppDatabase,
+  );
+  late final UserRitualCardsDao userRitualCardsDao = UserRitualCardsDao(
+    this as AppDatabase,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -10172,6 +11919,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     attachmentLocks,
     securityEvents,
     entryMoods,
+    userTemplates,
+    timeCapsules,
+    userRitualCards,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -10230,6 +11980,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('entry_moods', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'entries',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('time_capsules', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -10881,6 +12638,24 @@ final class $$EntriesTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$TimeCapsulesTable, List<TimeCapsule>>
+  _timeCapsulesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.timeCapsules,
+    aliasName: 'entries__id__time_capsules__entry_id',
+  );
+
+  $$TimeCapsulesTableProcessedTableManager get timeCapsulesRefs {
+    final manager = $$TimeCapsulesTableTableManager(
+      $_db,
+      $_db.timeCapsules,
+    ).filter((f) => f.entryId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_timeCapsulesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$EntriesTableFilterComposer
@@ -11091,6 +12866,31 @@ class $$EntriesTableFilterComposer
           }) => $$EntryMoodsTableFilterComposer(
             $db: $db,
             $table: $db.entryMoods,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> timeCapsulesRefs(
+    Expression<bool> Function($$TimeCapsulesTableFilterComposer f) f,
+  ) {
+    final $$TimeCapsulesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.timeCapsules,
+      getReferencedColumn: (t) => t.entryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TimeCapsulesTableFilterComposer(
+            $db: $db,
+            $table: $db.timeCapsules,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -11373,6 +13173,31 @@ class $$EntriesTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> timeCapsulesRefs<T extends Object>(
+    Expression<T> Function($$TimeCapsulesTableAnnotationComposer a) f,
+  ) {
+    final $$TimeCapsulesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.timeCapsules,
+      getReferencedColumn: (t) => t.entryId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TimeCapsulesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.timeCapsules,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$EntriesTableTableManager
@@ -11396,6 +13221,7 @@ class $$EntriesTableTableManager
             bool entryRevisionsRefs,
             bool voiceNotesRefs,
             bool entryMoodsRefs,
+            bool timeCapsulesRefs,
           })
         > {
   $$EntriesTableTableManager(_$AppDatabase db, $EntriesTable table)
@@ -11466,6 +13292,7 @@ class $$EntriesTableTableManager
                 entryRevisionsRefs = false,
                 voiceNotesRefs = false,
                 entryMoodsRefs = false,
+                timeCapsulesRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -11476,6 +13303,7 @@ class $$EntriesTableTableManager
                     if (entryRevisionsRefs) db.entryRevisions,
                     if (voiceNotesRefs) db.voiceNotes,
                     if (entryMoodsRefs) db.entryMoods,
+                    if (timeCapsulesRefs) db.timeCapsules,
                   ],
                   addJoins:
                       <
@@ -11637,6 +13465,27 @@ class $$EntriesTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (timeCapsulesRefs)
+                        await $_getPrefetchedData<
+                          Entry,
+                          $EntriesTable,
+                          TimeCapsule
+                        >(
+                          currentTable: table,
+                          referencedTable: $$EntriesTableReferences
+                              ._timeCapsulesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$EntriesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).timeCapsulesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.entryId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -11665,6 +13514,7 @@ typedef $$EntriesTableProcessedTableManager =
         bool entryRevisionsRefs,
         bool voiceNotesRefs,
         bool entryMoodsRefs,
+        bool timeCapsulesRefs,
       })
     >;
 typedef $$TagsTableCreateCompanionBuilder =
@@ -17696,6 +19546,955 @@ typedef $$EntryMoodsTableProcessedTableManager =
       EntryMood,
       PrefetchHooks Function({bool entryId})
     >;
+typedef $$UserTemplatesTableCreateCompanionBuilder =
+    UserTemplatesCompanion Function({
+      Value<int> id,
+      required String name,
+      Value<String?> description,
+      Value<String?> defaultTitle,
+      required String contentJson,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+typedef $$UserTemplatesTableUpdateCompanionBuilder =
+    UserTemplatesCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<String?> description,
+      Value<String?> defaultTitle,
+      Value<String> contentJson,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+
+class $$UserTemplatesTableFilterComposer
+    extends Composer<_$AppDatabase, $UserTemplatesTable> {
+  $$UserTemplatesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get defaultTitle => $composableBuilder(
+    column: $table.defaultTitle,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get contentJson => $composableBuilder(
+    column: $table.contentJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$UserTemplatesTableOrderingComposer
+    extends Composer<_$AppDatabase, $UserTemplatesTable> {
+  $$UserTemplatesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get defaultTitle => $composableBuilder(
+    column: $table.defaultTitle,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get contentJson => $composableBuilder(
+    column: $table.contentJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$UserTemplatesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $UserTemplatesTable> {
+  $$UserTemplatesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get defaultTitle => $composableBuilder(
+    column: $table.defaultTitle,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get contentJson => $composableBuilder(
+    column: $table.contentJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$UserTemplatesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $UserTemplatesTable,
+          UserTemplate,
+          $$UserTemplatesTableFilterComposer,
+          $$UserTemplatesTableOrderingComposer,
+          $$UserTemplatesTableAnnotationComposer,
+          $$UserTemplatesTableCreateCompanionBuilder,
+          $$UserTemplatesTableUpdateCompanionBuilder,
+          (
+            UserTemplate,
+            BaseReferences<_$AppDatabase, $UserTemplatesTable, UserTemplate>,
+          ),
+          UserTemplate,
+          PrefetchHooks Function()
+        > {
+  $$UserTemplatesTableTableManager(_$AppDatabase db, $UserTemplatesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$UserTemplatesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$UserTemplatesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$UserTemplatesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<String?> defaultTitle = const Value.absent(),
+                Value<String> contentJson = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => UserTemplatesCompanion(
+                id: id,
+                name: name,
+                description: description,
+                defaultTitle: defaultTitle,
+                contentJson: contentJson,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                Value<String?> description = const Value.absent(),
+                Value<String?> defaultTitle = const Value.absent(),
+                required String contentJson,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => UserTemplatesCompanion.insert(
+                id: id,
+                name: name,
+                description: description,
+                defaultTitle: defaultTitle,
+                contentJson: contentJson,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$UserTemplatesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $UserTemplatesTable,
+      UserTemplate,
+      $$UserTemplatesTableFilterComposer,
+      $$UserTemplatesTableOrderingComposer,
+      $$UserTemplatesTableAnnotationComposer,
+      $$UserTemplatesTableCreateCompanionBuilder,
+      $$UserTemplatesTableUpdateCompanionBuilder,
+      (
+        UserTemplate,
+        BaseReferences<_$AppDatabase, $UserTemplatesTable, UserTemplate>,
+      ),
+      UserTemplate,
+      PrefetchHooks Function()
+    >;
+typedef $$TimeCapsulesTableCreateCompanionBuilder =
+    TimeCapsulesCompanion Function({
+      Value<int> id,
+      required int entryId,
+      required DateTime unlockDate,
+      Value<DateTime> sealedAt,
+      Value<bool> isOpened,
+      Value<DateTime?> openedAt,
+      required String sealedCiphertext,
+      required String ivBase64,
+      required String macBase64,
+      Value<String?> sealedKeyCiphertext,
+      Value<String?> teaserMessage,
+      Value<DateTime> createdAt,
+    });
+typedef $$TimeCapsulesTableUpdateCompanionBuilder =
+    TimeCapsulesCompanion Function({
+      Value<int> id,
+      Value<int> entryId,
+      Value<DateTime> unlockDate,
+      Value<DateTime> sealedAt,
+      Value<bool> isOpened,
+      Value<DateTime?> openedAt,
+      Value<String> sealedCiphertext,
+      Value<String> ivBase64,
+      Value<String> macBase64,
+      Value<String?> sealedKeyCiphertext,
+      Value<String?> teaserMessage,
+      Value<DateTime> createdAt,
+    });
+
+final class $$TimeCapsulesTableReferences
+    extends BaseReferences<_$AppDatabase, $TimeCapsulesTable, TimeCapsule> {
+  $$TimeCapsulesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $EntriesTable _entryIdTable(_$AppDatabase db) =>
+      db.entries.createAlias('time_capsules__entry_id__entries__id');
+
+  $$EntriesTableProcessedTableManager get entryId {
+    final $_column = $_itemColumn<int>('entry_id')!;
+
+    final manager = $$EntriesTableTableManager(
+      $_db,
+      $_db.entries,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_entryIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$TimeCapsulesTableFilterComposer
+    extends Composer<_$AppDatabase, $TimeCapsulesTable> {
+  $$TimeCapsulesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get unlockDate => $composableBuilder(
+    column: $table.unlockDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get sealedAt => $composableBuilder(
+    column: $table.sealedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isOpened => $composableBuilder(
+    column: $table.isOpened,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get openedAt => $composableBuilder(
+    column: $table.openedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sealedCiphertext => $composableBuilder(
+    column: $table.sealedCiphertext,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ivBase64 => $composableBuilder(
+    column: $table.ivBase64,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get macBase64 => $composableBuilder(
+    column: $table.macBase64,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sealedKeyCiphertext => $composableBuilder(
+    column: $table.sealedKeyCiphertext,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get teaserMessage => $composableBuilder(
+    column: $table.teaserMessage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$EntriesTableFilterComposer get entryId {
+    final $$EntriesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.entryId,
+      referencedTable: $db.entries,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EntriesTableFilterComposer(
+            $db: $db,
+            $table: $db.entries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TimeCapsulesTableOrderingComposer
+    extends Composer<_$AppDatabase, $TimeCapsulesTable> {
+  $$TimeCapsulesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get unlockDate => $composableBuilder(
+    column: $table.unlockDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get sealedAt => $composableBuilder(
+    column: $table.sealedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isOpened => $composableBuilder(
+    column: $table.isOpened,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get openedAt => $composableBuilder(
+    column: $table.openedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sealedCiphertext => $composableBuilder(
+    column: $table.sealedCiphertext,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ivBase64 => $composableBuilder(
+    column: $table.ivBase64,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get macBase64 => $composableBuilder(
+    column: $table.macBase64,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sealedKeyCiphertext => $composableBuilder(
+    column: $table.sealedKeyCiphertext,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get teaserMessage => $composableBuilder(
+    column: $table.teaserMessage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$EntriesTableOrderingComposer get entryId {
+    final $$EntriesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.entryId,
+      referencedTable: $db.entries,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EntriesTableOrderingComposer(
+            $db: $db,
+            $table: $db.entries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TimeCapsulesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TimeCapsulesTable> {
+  $$TimeCapsulesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get unlockDate => $composableBuilder(
+    column: $table.unlockDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get sealedAt =>
+      $composableBuilder(column: $table.sealedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get isOpened =>
+      $composableBuilder(column: $table.isOpened, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get openedAt =>
+      $composableBuilder(column: $table.openedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get sealedCiphertext => $composableBuilder(
+    column: $table.sealedCiphertext,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get ivBase64 =>
+      $composableBuilder(column: $table.ivBase64, builder: (column) => column);
+
+  GeneratedColumn<String> get macBase64 =>
+      $composableBuilder(column: $table.macBase64, builder: (column) => column);
+
+  GeneratedColumn<String> get sealedKeyCiphertext => $composableBuilder(
+    column: $table.sealedKeyCiphertext,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get teaserMessage => $composableBuilder(
+    column: $table.teaserMessage,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$EntriesTableAnnotationComposer get entryId {
+    final $$EntriesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.entryId,
+      referencedTable: $db.entries,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$EntriesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.entries,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TimeCapsulesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TimeCapsulesTable,
+          TimeCapsule,
+          $$TimeCapsulesTableFilterComposer,
+          $$TimeCapsulesTableOrderingComposer,
+          $$TimeCapsulesTableAnnotationComposer,
+          $$TimeCapsulesTableCreateCompanionBuilder,
+          $$TimeCapsulesTableUpdateCompanionBuilder,
+          (TimeCapsule, $$TimeCapsulesTableReferences),
+          TimeCapsule,
+          PrefetchHooks Function({bool entryId})
+        > {
+  $$TimeCapsulesTableTableManager(_$AppDatabase db, $TimeCapsulesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TimeCapsulesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TimeCapsulesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TimeCapsulesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> entryId = const Value.absent(),
+                Value<DateTime> unlockDate = const Value.absent(),
+                Value<DateTime> sealedAt = const Value.absent(),
+                Value<bool> isOpened = const Value.absent(),
+                Value<DateTime?> openedAt = const Value.absent(),
+                Value<String> sealedCiphertext = const Value.absent(),
+                Value<String> ivBase64 = const Value.absent(),
+                Value<String> macBase64 = const Value.absent(),
+                Value<String?> sealedKeyCiphertext = const Value.absent(),
+                Value<String?> teaserMessage = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => TimeCapsulesCompanion(
+                id: id,
+                entryId: entryId,
+                unlockDate: unlockDate,
+                sealedAt: sealedAt,
+                isOpened: isOpened,
+                openedAt: openedAt,
+                sealedCiphertext: sealedCiphertext,
+                ivBase64: ivBase64,
+                macBase64: macBase64,
+                sealedKeyCiphertext: sealedKeyCiphertext,
+                teaserMessage: teaserMessage,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int entryId,
+                required DateTime unlockDate,
+                Value<DateTime> sealedAt = const Value.absent(),
+                Value<bool> isOpened = const Value.absent(),
+                Value<DateTime?> openedAt = const Value.absent(),
+                required String sealedCiphertext,
+                required String ivBase64,
+                required String macBase64,
+                Value<String?> sealedKeyCiphertext = const Value.absent(),
+                Value<String?> teaserMessage = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => TimeCapsulesCompanion.insert(
+                id: id,
+                entryId: entryId,
+                unlockDate: unlockDate,
+                sealedAt: sealedAt,
+                isOpened: isOpened,
+                openedAt: openedAt,
+                sealedCiphertext: sealedCiphertext,
+                ivBase64: ivBase64,
+                macBase64: macBase64,
+                sealedKeyCiphertext: sealedKeyCiphertext,
+                teaserMessage: teaserMessage,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$TimeCapsulesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({entryId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (entryId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.entryId,
+                                referencedTable: $$TimeCapsulesTableReferences
+                                    ._entryIdTable(db),
+                                referencedColumn: $$TimeCapsulesTableReferences
+                                    ._entryIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$TimeCapsulesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TimeCapsulesTable,
+      TimeCapsule,
+      $$TimeCapsulesTableFilterComposer,
+      $$TimeCapsulesTableOrderingComposer,
+      $$TimeCapsulesTableAnnotationComposer,
+      $$TimeCapsulesTableCreateCompanionBuilder,
+      $$TimeCapsulesTableUpdateCompanionBuilder,
+      (TimeCapsule, $$TimeCapsulesTableReferences),
+      TimeCapsule,
+      PrefetchHooks Function({bool entryId})
+    >;
+typedef $$UserRitualCardsTableCreateCompanionBuilder =
+    UserRitualCardsCompanion Function({
+      Value<int> id,
+      required String theme,
+      required String title,
+      required String prompt,
+      required String quote,
+      Value<String?> quoteAuthor,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+typedef $$UserRitualCardsTableUpdateCompanionBuilder =
+    UserRitualCardsCompanion Function({
+      Value<int> id,
+      Value<String> theme,
+      Value<String> title,
+      Value<String> prompt,
+      Value<String> quote,
+      Value<String?> quoteAuthor,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+
+class $$UserRitualCardsTableFilterComposer
+    extends Composer<_$AppDatabase, $UserRitualCardsTable> {
+  $$UserRitualCardsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get theme => $composableBuilder(
+    column: $table.theme,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get prompt => $composableBuilder(
+    column: $table.prompt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get quote => $composableBuilder(
+    column: $table.quote,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get quoteAuthor => $composableBuilder(
+    column: $table.quoteAuthor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$UserRitualCardsTableOrderingComposer
+    extends Composer<_$AppDatabase, $UserRitualCardsTable> {
+  $$UserRitualCardsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get theme => $composableBuilder(
+    column: $table.theme,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get prompt => $composableBuilder(
+    column: $table.prompt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get quote => $composableBuilder(
+    column: $table.quote,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get quoteAuthor => $composableBuilder(
+    column: $table.quoteAuthor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$UserRitualCardsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $UserRitualCardsTable> {
+  $$UserRitualCardsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get theme =>
+      $composableBuilder(column: $table.theme, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get prompt =>
+      $composableBuilder(column: $table.prompt, builder: (column) => column);
+
+  GeneratedColumn<String> get quote =>
+      $composableBuilder(column: $table.quote, builder: (column) => column);
+
+  GeneratedColumn<String> get quoteAuthor => $composableBuilder(
+    column: $table.quoteAuthor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$UserRitualCardsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $UserRitualCardsTable,
+          UserRitualCard,
+          $$UserRitualCardsTableFilterComposer,
+          $$UserRitualCardsTableOrderingComposer,
+          $$UserRitualCardsTableAnnotationComposer,
+          $$UserRitualCardsTableCreateCompanionBuilder,
+          $$UserRitualCardsTableUpdateCompanionBuilder,
+          (
+            UserRitualCard,
+            BaseReferences<
+              _$AppDatabase,
+              $UserRitualCardsTable,
+              UserRitualCard
+            >,
+          ),
+          UserRitualCard,
+          PrefetchHooks Function()
+        > {
+  $$UserRitualCardsTableTableManager(
+    _$AppDatabase db,
+    $UserRitualCardsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$UserRitualCardsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$UserRitualCardsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$UserRitualCardsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> theme = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> prompt = const Value.absent(),
+                Value<String> quote = const Value.absent(),
+                Value<String?> quoteAuthor = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => UserRitualCardsCompanion(
+                id: id,
+                theme: theme,
+                title: title,
+                prompt: prompt,
+                quote: quote,
+                quoteAuthor: quoteAuthor,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String theme,
+                required String title,
+                required String prompt,
+                required String quote,
+                Value<String?> quoteAuthor = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => UserRitualCardsCompanion.insert(
+                id: id,
+                theme: theme,
+                title: title,
+                prompt: prompt,
+                quote: quote,
+                quoteAuthor: quoteAuthor,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$UserRitualCardsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $UserRitualCardsTable,
+      UserRitualCard,
+      $$UserRitualCardsTableFilterComposer,
+      $$UserRitualCardsTableOrderingComposer,
+      $$UserRitualCardsTableAnnotationComposer,
+      $$UserRitualCardsTableCreateCompanionBuilder,
+      $$UserRitualCardsTableUpdateCompanionBuilder,
+      (
+        UserRitualCard,
+        BaseReferences<_$AppDatabase, $UserRitualCardsTable, UserRitualCard>,
+      ),
+      UserRitualCard,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -17741,4 +20540,10 @@ class $AppDatabaseManager {
       $$SecurityEventsTableTableManager(_db, _db.securityEvents);
   $$EntryMoodsTableTableManager get entryMoods =>
       $$EntryMoodsTableTableManager(_db, _db.entryMoods);
+  $$UserTemplatesTableTableManager get userTemplates =>
+      $$UserTemplatesTableTableManager(_db, _db.userTemplates);
+  $$TimeCapsulesTableTableManager get timeCapsules =>
+      $$TimeCapsulesTableTableManager(_db, _db.timeCapsules);
+  $$UserRitualCardsTableTableManager get userRitualCards =>
+      $$UserRitualCardsTableTableManager(_db, _db.userRitualCards);
 }

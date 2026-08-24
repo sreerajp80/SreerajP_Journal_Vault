@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
+import 'package:sreerajp_journal_vault/features/backup/services/backup_attachment_cipher.dart';
 import 'package:sreerajp_journal_vault/features/sync/services/sync_encryption_service.dart';
 import 'package:sreerajp_journal_vault/features/sync/services/sync_id_generator.dart';
 import 'package:sreerajp_journal_vault/features/sync/services/sync_protocol.dart';
@@ -19,10 +20,17 @@ enum SyncStatus { idle, syncing, success, failed, conflict }
 /// 4. Pulls remote changes, decrypts, and merges or flags conflicts.
 /// 5. Logs every sync attempt for the health dashboard.
 class SyncEngine {
-  final AppDatabase _db;
-  final SyncProtocol _protocol;
-  final SyncEncryptionService _encryption;
-  final String _deviceId;
+  final AppDatabase db;
+  final SyncProtocol protocol;
+  final SyncEncryptionService encryption;
+  final String deviceId;
+  final BackupAttachmentCipher? attachmentCipher;
+
+  AppDatabase get _db => db;
+  SyncProtocol get _protocol => protocol;
+  SyncEncryptionService get _encryption => encryption;
+  String get _deviceId => deviceId;
+  BackupAttachmentCipher? get _attachmentCipher => attachmentCipher;
 
   SyncStatus _status = SyncStatus.idle;
   SyncStatus get status => _status;
@@ -44,10 +52,11 @@ class SyncEngine {
   ];
 
   SyncEngine({
-    required this._db,
-    required this._protocol,
-    required this._encryption,
-    required this._deviceId,
+    required this.db,
+    required this.protocol,
+    required this.encryption,
+    required this.deviceId,
+    this.attachmentCipher,
   });
 
   /// Runs a full bidirectional sync cycle with retry support.
@@ -334,7 +343,36 @@ class SyncEngine {
 
     // Convert QueryRow to Map
     final row = results.first;
-    return row.data;
+    final data = Map<String, dynamic>.from(row.data);
+
+    final cipher = _attachmentCipher;
+    if (table == 'attachments' && cipher != null) {
+      try {
+        final filePath =
+            data['file_path'] as String? ?? data['filePath'] as String?;
+        final nonce =
+            data['nonce_base64'] as String? ?? data['nonceBase64'] as String?;
+        final keyRef =
+            data['key_reference'] as String? ?? data['keyReference'] as String?;
+        final fileName =
+            data['file_name'] as String? ??
+            data['fileName'] as String? ??
+            'attachment.bin';
+        if (filePath != null && nonce != null && keyRef != null) {
+          final bytes = await cipher.decryptToBytes(
+            encryptedPath: filePath,
+            nonceBase64: nonce,
+            keyReference: keyRef,
+            fileName: fileName,
+          );
+          data['_attachmentBytesBase64'] = base64Encode(bytes);
+        }
+      } catch (_) {
+        // Continue if attachment file could not be read
+      }
+    }
+
+    return data;
   }
 
   /// Inserts a new record received from a remote device.
@@ -345,6 +383,49 @@ class SyncEngine {
   ) async {
     // Remove 'id' to let auto-increment assign a local ID
     final insertData = Map<String, dynamic>.from(data)..remove('id');
+    final attachmentBytesB64 =
+        insertData.remove('_attachmentBytesBase64') as String?;
+
+    final cipher = _attachmentCipher;
+    if (table == 'attachments' &&
+        attachmentBytesB64 != null &&
+        cipher != null) {
+      try {
+        final bytes = base64Decode(attachmentBytesB64);
+        final fileName =
+            (insertData['file_name'] ??
+                    insertData['fileName'] ??
+                    'attachment.bin')
+                as String;
+        final stored = await cipher.encryptFromBytes(
+          bytes: bytes,
+          fileName: fileName,
+        );
+        if (insertData.containsKey('file_path')) {
+          insertData['file_path'] = stored.encryptedPath;
+        } else {
+          insertData['filePath'] = stored.encryptedPath;
+        }
+        if (insertData.containsKey('nonce_base64')) {
+          insertData['nonce_base64'] = stored.nonceBase64;
+        } else {
+          insertData['nonceBase64'] = stored.nonceBase64;
+        }
+        if (insertData.containsKey('key_reference')) {
+          insertData['key_reference'] = stored.keyReference;
+        } else {
+          insertData['keyReference'] = stored.keyReference;
+        }
+        if (insertData.containsKey('file_size_bytes')) {
+          insertData['file_size_bytes'] = stored.sizeBytes;
+        } else {
+          insertData['fileSizeBytes'] = stored.sizeBytes;
+        }
+      } catch (_) {
+        // Fallback: keep original metadata if re-encryption fails
+      }
+    }
+
     final columns = insertData.keys.join(', ');
     final placeholders = insertData.keys.map((_) => '?').join(', ');
     final values = insertData.values.map((v) => Variable(v)).toList();
@@ -378,6 +459,49 @@ class SyncEngine {
     Map<String, dynamic> data,
   ) async {
     final updateData = Map<String, dynamic>.from(data)..remove('id');
+    final attachmentBytesB64 =
+        updateData.remove('_attachmentBytesBase64') as String?;
+
+    final cipher = _attachmentCipher;
+    if (table == 'attachments' &&
+        attachmentBytesB64 != null &&
+        cipher != null) {
+      try {
+        final bytes = base64Decode(attachmentBytesB64);
+        final fileName =
+            (updateData['file_name'] ??
+                    updateData['fileName'] ??
+                    'attachment.bin')
+                as String;
+        final stored = await cipher.encryptFromBytes(
+          bytes: bytes,
+          fileName: fileName,
+        );
+        if (updateData.containsKey('file_path')) {
+          updateData['file_path'] = stored.encryptedPath;
+        } else {
+          updateData['filePath'] = stored.encryptedPath;
+        }
+        if (updateData.containsKey('nonce_base64')) {
+          updateData['nonce_base64'] = stored.nonceBase64;
+        } else {
+          updateData['nonceBase64'] = stored.nonceBase64;
+        }
+        if (updateData.containsKey('key_reference')) {
+          updateData['key_reference'] = stored.keyReference;
+        } else {
+          updateData['keyReference'] = stored.keyReference;
+        }
+        if (updateData.containsKey('file_size_bytes')) {
+          updateData['file_size_bytes'] = stored.sizeBytes;
+        } else {
+          updateData['fileSizeBytes'] = stored.sizeBytes;
+        }
+      } catch (_) {
+        // Fallback
+      }
+    }
+
     final setClause = updateData.keys.map((k) => '$k = ?').join(', ');
     final values = [
       ...updateData.values.map((v) => Variable(v)),

@@ -49,6 +49,16 @@ String renderPlainText(List<ExportBlock> blocks) {
           );
         previousStyle = null;
 
+      case DrawingBlock():
+        buffer
+          ..writeln()
+          ..writeln(
+            block.fileName.isEmpty
+                ? '[Drawing]'
+                : '[Drawing: ${block.fileName}]',
+          );
+        previousStyle = null;
+
       case UnknownEmbedBlock():
         buffer
           ..writeln()

@@ -14,12 +14,24 @@ class EditorToolbar extends StatelessWidget {
     this.onInsertTable,
     this.onInsertCallout,
     this.onInsertImage,
+    this.onInsertDrawing,
+    this.onScanText,
+    this.onToggleFocusParagraph,
+    this.isFocusParagraph = false,
+    this.onToggleDistractionFree,
+    this.isDistractionFree = false,
   });
 
   final QuillController controller;
   final VoidCallback? onInsertTable;
   final VoidCallback? onInsertCallout;
   final VoidCallback? onInsertImage;
+  final VoidCallback? onInsertDrawing;
+  final VoidCallback? onScanText;
+  final VoidCallback? onToggleFocusParagraph;
+  final bool isFocusParagraph;
+  final VoidCallback? onToggleDistractionFree;
+  final bool isDistractionFree;
 
   @override
   Widget build(BuildContext context) {
@@ -154,6 +166,61 @@ class EditorToolbar extends StatelessWidget {
                 icon: const Icon(Icons.image_outlined, size: 20),
                 onPressed: onInsertImage,
                 tooltip: AppLocalizations.of(context).editorInsertImage,
+                visualDensity: VisualDensity.compact,
+              ),
+            // Drawing / Sketch insert
+            if (onInsertDrawing != null)
+              IconButton(
+                key: const Key('editor-insert-drawing'),
+                icon: const Icon(Icons.draw_outlined, size: 20),
+                onPressed: onInsertDrawing,
+                tooltip: AppLocalizations.of(context).editorInsertDrawing,
+                visualDensity: VisualDensity.compact,
+              ),
+            // OCR / Scan text from image
+            if (onScanText != null)
+              IconButton(
+                key: const Key('editor-scan-text'),
+                icon: const Icon(Icons.document_scanner_outlined, size: 20),
+                onPressed: onScanText,
+                tooltip: AppLocalizations.of(context).entryEditorScanText,
+                visualDensity: VisualDensity.compact,
+              ),
+            _divider(),
+            // Focus paragraph dim mode toggle
+            if (onToggleFocusParagraph != null)
+              IconButton(
+                key: const Key('editor-toggle-focus-paragraph'),
+                icon: Icon(
+                  isFocusParagraph
+                      ? Icons.filter_center_focus
+                      : Icons.center_focus_weak_outlined,
+                  size: 20,
+                  color: isFocusParagraph
+                      ? Theme.of(context).colorScheme.primary
+                      : null,
+                ),
+                onPressed: onToggleFocusParagraph,
+                tooltip: isFocusParagraph
+                    ? AppLocalizations.of(context).entryFocusParagraphOn
+                    : AppLocalizations.of(context).entryFocusParagraphOff,
+                visualDensity: VisualDensity.compact,
+              ),
+            // Distraction-free mode toggle
+            if (onToggleDistractionFree != null)
+              IconButton(
+                key: const Key('editor-toggle-distraction-free'),
+                icon: Icon(
+                  isDistractionFree ? Icons.fullscreen_exit : Icons.fullscreen,
+                  size: 20,
+                  color: isDistractionFree
+                      ? Theme.of(context).colorScheme.primary
+                      : null,
+                ),
+                onPressed: onToggleDistractionFree,
+                tooltip: isDistractionFree
+                    ? AppLocalizations.of(context).entryDistractionFreeExit
+                    : AppLocalizations.of(context).entryDistractionFreeEnter,
                 visualDensity: VisualDensity.compact,
               ),
             _divider(),

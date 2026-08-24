@@ -80,6 +80,15 @@ jobs:
       - name: Check for absolute local paths
         run: sh tool/check_absolute_paths.sh --all
 
+  permission-guard-check:
+    name: Guard offline and unused permissions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check manifest permission removals
+        run: sh tool/check_no_internet_permission.sh
+
   build-dev:
     name: Build dev debug APK
     runs-on: ubuntu-latest

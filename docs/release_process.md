@@ -118,7 +118,7 @@ Enabled. Rules in `android/app/proguard-rules.pro`.
 > up only at runtime. Before the first release, smoke-test each of these on the actual release
 > build:
 >
-> - [ ] Open a PDF attachment (`syncfusion_flutter_pdfviewer`)
+> - [ ] Open a PDF attachment (`pdfrx`)
 > - [ ] Play an audio attachment (`just_audio`)
 > - [ ] Record a voice note (`record`)
 > - [ ] Speech-to-text transcription (`speech_to_text`)
@@ -133,8 +133,7 @@ Enabled. Rules in `android/app/proguard-rules.pro`.
 
 ### 6.3 Size analysis
 
-`flutter build apk --flavor prod --release --analyze-size`. The last release APK was **63.8 MB**
-(universal, unsplit) — large, driven mainly by the Syncfusion PDF viewer. Use `--split-per-abi`
+`flutter build apk --flavor prod --release --analyze-size`. Use `--split-per-abi`
 for real distribution.
 
 ### 6.4 Debuggable verification

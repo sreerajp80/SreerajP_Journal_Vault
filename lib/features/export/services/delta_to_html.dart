@@ -149,6 +149,9 @@ String _renderBlock(ExportBlock block, Map<int, String> imageSources) {
     case ImageBlock():
       return _renderImage(block, imageSources[block.attachmentId]);
 
+    case DrawingBlock():
+      return _renderDrawing(block, imageSources[block.attachmentId]);
+
     case UnknownEmbedBlock():
       return '<p class="unknown-embed">[${escapeHtml(block.type)} block — '
           'not exportable as text]</p>';
@@ -242,6 +245,20 @@ String _renderImage(ImageBlock block, String? source) {
   }
 
   return '<figure class="inline-image">'
+      '<img src="${escapeHtmlAttribute(source)}" alt="${escapeHtml(label)}">'
+      '</figure>';
+}
+
+/// Renders an inline drawing, or names it when there is no source for it.
+String _renderDrawing(DrawingBlock block, String? source) {
+  final label = block.fileName.isEmpty ? 'Drawing' : block.fileName;
+
+  if (source == null || !source.startsWith('data:image/')) {
+    return '<p class="unknown-embed">[${escapeHtml(label)} — '
+        'drawing not included]</p>';
+  }
+
+  return '<figure class="inline-drawing">'
       '<img src="${escapeHtmlAttribute(source)}" alt="${escapeHtml(label)}">'
       '</figure>';
 }

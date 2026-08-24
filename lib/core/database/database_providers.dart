@@ -28,6 +28,20 @@ final entryTagsProvider = FutureProvider.family<List<Tag>, int>((ref, entryId) {
   return db.tagsDao.getTagsForEntry(entryId);
 });
 
+/// All user-created templates in the database.
+final allUserTemplatesProvider = FutureProvider<List<UserTemplate>>((
+  ref,
+) async {
+  final db = ref.read(appDatabaseProvider);
+  return db.userTemplatesDao.getAllUserTemplates();
+});
+
+/// Stream of all user-created templates for live UI updates.
+final userTemplatesStreamProvider = StreamProvider<List<UserTemplate>>((ref) {
+  final db = ref.read(appDatabaseProvider);
+  return db.userTemplatesDao.watchAllUserTemplates();
+});
+
 class JournalListItem {
   const JournalListItem({required this.journal, required this.tags});
 

@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:sreerajp_journal_vault/core/database/app_database.dart';
+
 /// Identifiers for the V2 entry templates listed in the plan, plus the
 /// expanded V3 set covering reflection, thoughts, projects, relationships,
 /// health, learning, creativity, planning and specialty journaling.
@@ -51,6 +53,7 @@ enum EntryTemplateId {
   bookNotes,
   skillPractice,
   mistakeLog,
+  topicDeepDive,
 
   // Creative:
   dreamJournal,
@@ -63,17 +66,23 @@ enum EntryTemplateId {
   weeklyIntentions,
   monthlyReview,
 
-  // Specialty:
+  // Specialty & domain-specific:
   workoutLog,
   readingLog,
   foodJournal,
   spendingLog,
   prayerMeditation,
+  sysadminRunbook,
+  sanathanaDharmaStudy,
+  diyProject,
+  homeMaintenance,
+  kitchenRecipe,
 }
 
 /// Coarse grouping used by the chooser dialog so the (now long) list is
 /// scannable. Order here is the order shown in the chooser.
 enum EntryTemplateCategory {
+  custom,
   general,
   reflective,
   thoughts,
@@ -89,6 +98,8 @@ enum EntryTemplateCategory {
 extension EntryTemplateCategoryX on EntryTemplateCategory {
   String get label {
     switch (this) {
+      case EntryTemplateCategory.custom:
+        return 'My templates';
       case EntryTemplateCategory.general:
         return 'Start fresh';
       case EntryTemplateCategory.reflective:
@@ -123,14 +134,37 @@ class EntryTemplate {
     required this.description,
     required this.defaultTitle,
     required this.contentJson,
+    this.customId,
   });
 
+  const EntryTemplate.custom({
+    required this.customId,
+    required this.label,
+    required this.description,
+    required this.defaultTitle,
+    required this.contentJson,
+  }) : id = EntryTemplateId.blank,
+       category = EntryTemplateCategory.custom;
+
   final EntryTemplateId id;
+  final int? customId;
   final EntryTemplateCategory category;
   final String label;
   final String description;
   final String defaultTitle;
   final String contentJson;
+
+  bool get isCustom => customId != null;
+
+  factory EntryTemplate.fromUserTemplate(UserTemplate ut) {
+    return EntryTemplate.custom(
+      customId: ut.id,
+      label: ut.name,
+      description: ut.description ?? '',
+      defaultTitle: ut.defaultTitle ?? '',
+      contentJson: ut.contentJson,
+    );
+  }
 }
 
 /// Built-in template registry. Order is the order shown in the chooser
@@ -510,6 +544,19 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
         '{"insert":"Root cause\\n\\n"},'
         '{"insert":"Prevention\\n\\n"}]',
   ),
+  EntryTemplate(
+    id: EntryTemplateId.topicDeepDive,
+    category: EntryTemplateCategory.learning,
+    label: 'Topic Deep Dive',
+    description: 'Detailed study note on a concept, subject, or domain.',
+    defaultTitle: 'Topic Deep Dive',
+    contentJson:
+        '[{"insert":"Topic / Core Concept\\n\\n"},'
+        '{"insert":"Key Principles & Overview\\n\\n"},'
+        '{"insert":"Detailed Analysis & Notes\\n\\n"},'
+        '{"insert":"Key Takeaways & References\\n\\n"},'
+        '{"insert":"Open Questions / Further Exploration\\n\\n"}]',
+  ),
 
   // ---------------- Creative ----------------
   EntryTemplate(
@@ -656,6 +703,71 @@ const List<EntryTemplate> _templates = <EntryTemplate>[
         '[{"insert":"Practice\\n\\n"},'
         '{"insert":"Duration\\n\\n"},'
         '{"insert":"Reflections\\n\\n"}]',
+  ),
+  EntryTemplate(
+    id: EntryTemplateId.sysadminRunbook,
+    category: EntryTemplateCategory.specialty,
+    label: 'System Administration',
+    description: 'Server / system runbook, commands, and maintenance log.',
+    defaultTitle: 'Sysadmin / Tech Note',
+    contentJson:
+        '[{"insert":"System / Service: \\n"},'
+        '{"insert":"Objective & Architecture\\n\\n"},'
+        '{"insert":"Configuration & Commands\\n\\n"},'
+        '{"insert":"Verification & Health Checks\\n\\n"},'
+        '{"insert":"Troubleshooting & Rollback Notes\\n\\n"}]',
+  ),
+  EntryTemplate(
+    id: EntryTemplateId.sanathanaDharmaStudy,
+    category: EntryTemplateCategory.specialty,
+    label: 'Sanathana Dharma Study',
+    description: 'Scripture, shloka, tatva/meaning, and sadhana reflection.',
+    defaultTitle: 'Sanathana Dharma Study',
+    contentJson:
+        '[{"insert":"Topic / Scripture: \\n"},'
+        '{"insert":"Shloka / Mantra / Reference\\n\\n"},'
+        '{"insert":"Word Breakdown & Meaning\\n\\n"},'
+        '{"insert":"Philosophical Insights (Tatva)\\n\\n"},'
+        '{"insert":"Daily Sadhana & Practical Application\\n\\n"}]',
+  ),
+  EntryTemplate(
+    id: EntryTemplateId.diyProject,
+    category: EntryTemplateCategory.specialty,
+    label: 'DIY & Maker Project',
+    description: 'Materials, tools, step-by-step build, and safety.',
+    defaultTitle: 'DIY Project',
+    contentJson:
+        '[{"insert":"Project Goal & Scope\\n\\n"},'
+        '{"insert":"Tools & Materials Required\\n\\n"},'
+        '{"insert":"Step-by-Step Procedure\\n\\n"},'
+        '{"insert":"Safety & Precautions\\n\\n"},'
+        '{"insert":"Testing & Lessons Learned\\n\\n"}]',
+  ),
+  EntryTemplate(
+    id: EntryTemplateId.homeMaintenance,
+    category: EntryTemplateCategory.specialty,
+    label: 'Home & Maintenance',
+    description: 'Appliance care, repairs, warranties, and vendor logs.',
+    defaultTitle: 'Home Maintenance Note',
+    contentJson:
+        '[{"insert":"Area / Item / Appliance: \\n"},'
+        '{"insert":"Issue / Maintenance Task\\n\\n"},'
+        '{"insert":"Service History & Costs\\n\\n"},'
+        '{"insert":"Warranty & Vendor Contacts\\n\\n"},'
+        '{"insert":"Next Scheduled Check: \\n\\n"}]',
+  ),
+  EntryTemplate(
+    id: EntryTemplateId.kitchenRecipe,
+    category: EntryTemplateCategory.specialty,
+    label: 'Kitchen & Recipe',
+    description: 'Dish, ingredients, step-by-step method, and tips.',
+    defaultTitle: 'Recipe & Kitchen Note',
+    contentJson:
+        '[{"insert":"Dish Name: \\n"},'
+        '{"insert":"Cuisine / Prep & Cook Time: \\n\\n"},'
+        '{"insert":"Ingredients & Quantities\\n\\n"},'
+        '{"insert":"Step-by-Step Method\\n\\n"},'
+        '{"insert":"Chef Notes & Variations\\n\\n"}]',
   ),
 ];
 

@@ -218,7 +218,8 @@ class _InlineImageBlockState extends State<_InlineImageBlock> {
                 constraints: const BoxConstraints(maxHeight: _maxHeight),
                 child: FutureBuilder<InlineImageState>(
                   future: _state,
-                  builder: (context, snapshot) => _buildBody(snapshot.data),
+                  builder: (context, snapshot) =>
+                      _buildBody(context, snapshot.data),
                 ),
               ),
             ),
@@ -229,7 +230,8 @@ class _InlineImageBlockState extends State<_InlineImageBlock> {
     );
   }
 
-  Widget _buildBody(InlineImageState? state) {
+  Widget _buildBody(BuildContext context, InlineImageState? state) {
+    final l10n = AppLocalizations.of(context);
     return switch (state) {
       null => const _ImagePlaceholder(
         key: Key('vault-image-loading'),
@@ -247,9 +249,9 @@ class _InlineImageBlockState extends State<_InlineImageBlock> {
             alignment: Alignment.centerLeft,
             // A file that disappears under us (cache swept while the screen is
             // open) must not throw a red box into the middle of the entry.
-            errorBuilder: (_, _, _) => const _ImagePlaceholder(
+            errorBuilder: (_, _, _) => _ImagePlaceholder(
               icon: Icons.broken_image_outlined,
-              message: 'Image unavailable',
+              message: l10n.editorImageUnavailable,
             ),
           ),
         ),
@@ -257,15 +259,15 @@ class _InlineImageBlockState extends State<_InlineImageBlock> {
       InlineImageLocked() => _ImagePlaceholder(
         key: const Key('vault-image-locked'),
         icon: Icons.lock_outline,
-        message: 'Locked image — tap to unlock',
+        message: l10n.editorImageLocked,
         onTap: _unlock,
       ),
       InlineImageUnavailable() => _ImagePlaceholder(
         key: const Key('vault-image-unavailable'),
         icon: Icons.broken_image_outlined,
         message: widget.data.fileName.isEmpty
-            ? 'Image unavailable'
-            : 'Image unavailable — ${widget.data.fileName}',
+            ? l10n.editorImageUnavailable
+            : l10n.editorImageUnavailableWithName(widget.data.fileName),
       ),
     };
   }
@@ -370,8 +372,11 @@ class _FullScreenImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(fileName.isEmpty ? 'Image' : fileName)),
+      appBar: AppBar(
+        title: Text(fileName.isEmpty ? l10n.imageDefaultTitle : fileName),
+      ),
       body: Center(
         child: InteractiveViewer(
           maxScale: 5,

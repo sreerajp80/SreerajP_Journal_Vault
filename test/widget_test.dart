@@ -82,17 +82,23 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Appearance'), findsOneWidget);
-    expect(find.text('Theme'), findsOneWidget);
+    expect(find.byKey(const Key('appearance-card-theme-mode')), findsOneWidget);
     expect(
-      find.text('Choose how SreerajP_Journal_Vault looks.'),
+      find.byKey(const Key('appearance-card-accent-color')),
       findsOneWidget,
     );
+
+    // Tap into Theme Mode settings
+    await tester.tap(find.byKey(const Key('appearance-card-theme-mode')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('THEME MODE'), findsOneWidget);
     expect(
       tester.widget<MaterialApp>(find.byType(MaterialApp)).themeMode,
       ThemeMode.light,
     );
 
-    await tester.tap(find.byKey(const Key('settings-theme-chip-dark')));
+    await tester.tap(find.text('Dark'));
     await tester.pumpAndSettle();
 
     expect(
@@ -138,6 +144,9 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('settings-card-appearance')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('appearance-card-theme-mode')));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Dark'));
@@ -676,12 +685,17 @@ String _formatDate(DateTime dateTime) {
   return '${local.year}-$month-$day';
 }
 
-class _FailingThemeModeStore implements ThemeModeStore {
+class _FailingThemeModeStore extends ThemeModeStore {
   @override
   ThemeMode read() => ThemeMode.light;
 
   @override
   Future<void> save(ThemeMode mode) async {
+    throw const ThemeModePersistenceException();
+  }
+
+  @override
+  Future<void> saveAppThemeMode(AppThemeMode mode) async {
     throw const ThemeModePersistenceException();
   }
 }

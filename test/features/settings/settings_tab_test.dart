@@ -15,6 +15,7 @@ import 'package:sreerajp_journal_vault/features/lock_gate/services/biometric_aut
 import 'package:sreerajp_journal_vault/features/permissions/domain/app_permission_models.dart';
 import 'package:sreerajp_journal_vault/features/permissions/providers/permissions_providers.dart';
 import 'package:sreerajp_journal_vault/features/permissions/services/app_permissions_service.dart';
+import 'package:sreerajp_journal_vault/features/security/providers/security_providers.dart';
 
 void main() {
   late AppDatabase database;
@@ -56,6 +57,12 @@ void main() {
           biometricAuthenticatorProvider.overrideWithValue(fakeBiometric),
           appPinKeystoreProvider.overrideWithValue(fakeKeystore),
           appPermissionsServiceProvider.overrideWithValue(fakePermissions),
+          tamperEventsProvider.overrideWith(
+            (ref) => Stream.value(<SecurityEvent>[]),
+          ),
+          recentSecurityEventsProvider.overrideWith(
+            (ref) => Stream.value(<SecurityEvent>[]),
+          ),
           if (cryptoStorage != null)
             attachmentCryptoStorageProvider.overrideWithValue(cryptoStorage),
           ...extraOverrides,
@@ -76,7 +83,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('renders all five section cards in the plan-defined order', (
+  testWidgets('renders all seven section cards in the plan-defined order', (
     tester,
   ) async {
     await pumpApp(tester);
@@ -85,7 +92,9 @@ void main() {
       ('settings-card-security', 'Security'),
       ('settings-card-appearance', 'Appearance'),
       ('settings-card-storage', 'Storage'),
+      ('settings-card-features', 'Features'),
       ('settings-card-permissions', 'Permissions'),
+      ('settings-card-help', 'Help'),
       ('settings-card-about', 'About'),
     ];
 
@@ -107,7 +116,6 @@ void main() {
 
     // Section content now lives behind its card, not on the home screen.
     expect(find.byKey(const Key('settings-screen-security')), findsNothing);
-    expect(find.byKey(const Key('settings-theme-chip-dark')), findsNothing);
   });
 
   testWidgets('Security card opens a page holding every security row', (
@@ -116,38 +124,83 @@ void main() {
     await pumpApp(tester);
     await openSection(tester, 'security');
 
-    // Slice B coming-soon stubs that Slice D wires up — Auto-Lock Timeout
-    // and Attachment-Level Lock now have real screens; only Tamper Alerts
-    // is still a stub (V3 hardware integration).
     expect(find.text('Auto-Lock Timeout'), findsOneWidget);
     expect(find.text('Attachment-Level Lock'), findsOneWidget);
     expect(find.text('Tamper Alerts'), findsOneWidget);
-    // Two stubs on this page: Tamper Alerts and Sync Conflicts. Sync has no
-    // transport, so AppFlavorConfig.enableSyncUi hides its real screen
-    // rather than showing a sync that cannot run.
-    expect(find.text('Coming soon'), findsNWidgets(2));
-    expect(find.text('Sync Conflicts'), findsOneWidget);
+    // Tamper Alerts has its own screen; sync rows have no dead stubs when disabled.
+    expect(find.text('Coming soon'), findsNothing);
 
-    // Slice D Security rows.
+    // Security rows.
     expect(find.byKey(const Key('settings-auto-lock-timeout')), findsOneWidget);
     expect(
       find.byKey(const Key('settings-attachment-level-lock')),
       findsOneWidget,
     );
-    // Gated off: the row renders as a disabled stub, not a tappable screen.
-    expect(find.byKey(const Key('settings-sync-conflicts')), findsNothing);
+    expect(find.byKey(const Key('settings-tamper-alerts')), findsOneWidget);
     expect(find.byKey(const Key('settings-security-events')), findsOneWidget);
     expect(find.byKey(const Key('settings-screen-security')), findsOneWidget);
   });
 
-  testWidgets('Appearance card opens the theme chooser', (tester) async {
+  testWidgets('Tamper Alerts tile pushes the TamperAlertsScreen', (
+    tester,
+  ) async {
+    await pumpApp(tester);
+    await openSection(tester, 'security');
+
+    await tester.tap(find.byKey(const Key('settings-tamper-alerts')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Tamper Alerts'), findsWidgets);
+    expect(find.text('Vault Integrity Verified'), findsOneWidget);
+    expect(
+      find.byKey(const Key('tamper-alerts-verify-button')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('Appearance card opens the appearance hub', (tester) async {
     await pumpApp(tester);
     await openSection(tester, 'appearance');
 
-    // System theme chip must NOT exist; only Light + Dark.
-    expect(find.text('System'), findsNothing);
+    expect(find.byKey(const Key('appearance-card-theme-mode')), findsOneWidget);
+    expect(
+      find.byKey(const Key('appearance-card-accent-color')),
+      findsOneWidget,
+    );
+
+    // Tap theme mode card
+    await tester.tap(find.byKey(const Key('appearance-card-theme-mode')));
+    await tester.pumpAndSettle();
+
     expect(find.text('Light'), findsOneWidget);
     expect(find.text('Dark'), findsOneWidget);
+    expect(find.text('System'), findsOneWidget);
+  });
+
+  testWidgets('Features card opens the features catalog', (tester) async {
+    await pumpApp(tester);
+    await openSection(tester, 'features');
+
+    expect(find.text('SreerajP Journal Vault Features'), findsOneWidget);
+    expect(find.text('JOURNALING & RICH TEXT EDITOR'), findsOneWidget);
+    expect(find.text('PRIVACY, ENCRYPTION & VAULT SECURITY'), findsOneWidget);
+    expect(find.text('Quill Rich Text Editor'), findsOneWidget);
+    expect(find.text('SQLCipher AES-256 Database Encryption'), findsOneWidget);
+  });
+
+  testWidgets('Help card opens the help center', (tester) async {
+    await pumpApp(tester);
+    await openSection(tester, 'help');
+
+    expect(find.text('Help Center & Knowledge Base'), findsOneWidget);
+    expect(find.text('WRITING & JOURNAL MANAGEMENT'), findsOneWidget);
+    expect(find.text('SECURITY, LOCK & ENCRYPTION'), findsOneWidget);
+    expect(find.text('Journal Organization & Templates'), findsOneWidget);
+
+    await tester.tap(find.text('Journal Organization & Templates'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Multiple Separate Journals'), findsOneWidget);
   });
 
   testWidgets('Storage card opens a page holding every storage row', (
@@ -165,10 +218,10 @@ void main() {
     expect(find.byKey(const Key('settings-storage-usage')), findsOneWidget);
     expect(find.byKey(const Key('settings-backup-health')), findsOneWidget);
     expect(find.byKey(const Key('settings-import-data')), findsOneWidget);
-    // Gated off: the row renders as a disabled stub, not a tappable screen.
+    // Gated off: the sync row is not rendered when sync UI is disabled.
     expect(find.byKey(const Key('settings-sync-health')), findsNothing);
-    expect(find.text('Sync Health'), findsOneWidget);
-    expect(find.text('Coming soon'), findsOneWidget);
+    expect(find.text('Sync Health'), findsNothing);
+    expect(find.text('Coming soon'), findsNothing);
   });
 
   testWidgets('Permissions card opens a page holding every permissions row', (

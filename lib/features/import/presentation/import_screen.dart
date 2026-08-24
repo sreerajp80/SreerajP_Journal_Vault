@@ -48,17 +48,21 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Import into "${widget.journalTitle}"',
+                      l10n.importIntoJournal(widget.journalTitle),
                       style: theme.textTheme.titleMedium,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Supported formats: ${importService.supportedFormats.join(", ")}',
+                      l10n.importSupportedFormats(
+                        importService.supportedFormats.join(', '),
+                      ),
                       style: theme.textTheme.bodySmall,
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Files: ${importService.supportedExtensions.join(", ")}',
+                      l10n.importSupportedExtensions(
+                        importService.supportedExtensions.join(', '),
+                      ),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
@@ -129,7 +133,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Select files to import as new entries',
+                        l10n.importSelectFilesPrompt,
                         style: theme.textTheme.bodyLarge?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
