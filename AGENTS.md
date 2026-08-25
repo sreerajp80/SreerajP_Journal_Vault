@@ -23,7 +23,7 @@ Code — if you change a rule here, change it there too.
 | Database | Drift over **SQLCipher** (`package:sqlite3`, `source: sqlcipher` build hook) — encrypted at rest, key in the Keystore |
 | Secure storage | Android Keystore through a `MethodChannel` in `MainActivity.kt`. No `flutter_secure_storage` |
 | Orientation | Both |
-| Connectivity | Fully offline — no `INTERNET` permission, no network client |
+| Connectivity | No cloud, no server, no HTTP client. `INTERNET` and `ACCESS_NETWORK_STATE` are declared only so Wi-Fi Sync can open a direct device-to-device socket on the local network |
 
 ---
 
@@ -67,8 +67,11 @@ the Production and Sensitive Data sections of the engineering standard.
 
 ## Hard rules (must follow — these override convenience)
 
-1. **Fully offline.** The app never asks for `INTERNET`. Do not add a network client, an
-   analytics SDK, a crash reporter, or any package that pulls one in.
+1. **No cloud.** Do not add an HTTP client, a cloud or BaaS SDK, an analytics SDK, a crash
+   reporter, or any package that pulls one in. `INTERNET` exists for one reason only —
+   local-network Wi-Fi Sync, a direct socket between two of the user's own devices. Never use it
+   for anything that leaves the local network. `tool/check_no_internet_permission.sh` enforces
+   this in CI.
 2. **Journal content never leaves encrypted.** Attachments are AES-256-GCM, and the database
    itself is SQLCipher. Keys live in the Android Keystore, never in Dart, never in
    SharedPreferences in the clear. The `hooks: user_defines: sqlite3: source: sqlcipher` block in
@@ -162,7 +165,7 @@ and defaults to `prod`. Never use `kDebugMode` or `kReleaseMode` as a stand-in f
 - Never log secrets, keys, tokens, PINs, or decrypted content — even in debug builds.
 - Secrets go to the Android Keystore through `MainActivity.kt`. Only `iv:ciphertext` is ever
   written to SharedPreferences.
-- Request only the permissions the app needs. Never add `INTERNET`.
+- Request only the permissions the app needs. Never add a permission that widens network reach beyond the local network, and never add an HTTP or cloud client.
 - `android:allowBackup="false"` and `res/xml/data_extraction_rules.xml` must stay in the
   manifest. `FLAG_SECURE` must stay applied in `MainActivity.onCreate` by default; the only
   thing that may clear it is the user's own "Block Screenshots" switch in Settings.

@@ -81,12 +81,12 @@ jobs:
         run: sh tool/check_absolute_paths.sh --all
 
   permission-guard-check:
-    name: Guard offline and unused permissions
+    name: Guard permissions and no-cloud dependencies
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check manifest permission removals
+      - name: Check manifest permission policy
         run: sh tool/check_no_internet_permission.sh
 
   build-dev:

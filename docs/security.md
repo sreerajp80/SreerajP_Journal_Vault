@@ -131,10 +131,20 @@ Last reviewed: 2026-08-16 · Reviewer: Sreeraj P (with Claude)
 
 ### In transit
 
-- Network use: **none.** Verified 2026-07-25 against the merged `prodRelease` manifest — the
-  `INTERNET` permission is absent, and no HTTP client is in `pubspec.yaml`.
-- The `lib/features/sync/` module implements an encrypted sync protocol and conflict resolution
-  but has no transport. Adding one would require revisiting this whole document.
+- Cloud, server and third-party network use: **none.** There is no HTTP client in
+  `pubspec.yaml`, no analytics, and no crash reporter. CI enforces this with
+  `tool/check_no_internet_permission.sh`.
+- Local network use: **Wi-Fi Sync only** (added 2026-08-24). Two devices on the same Wi-Fi or
+  hotspot talk over a direct TCP socket. Nothing is sent to any other host.
+  - Pairing uses a 16-character high-entropy code, shown as a QR code, from which both sides
+    derive a session key with PBKDF2-HMAC-SHA256 over a random 16-byte salt.
+  - Every payload on the wire is sealed with AES-256-GCM (random 12-byte nonce, 16-byte tag), so
+    the LAN is treated as hostile. Attachments are decrypted on the sender and re-encrypted into
+    the receiver's own Keystore-managed vault.
+  - `lib/features/sync/services/bounded_line_reader.dart` caps payload size and applies timeouts,
+    to blunt memory-exhaustion and hang attacks from a malicious peer on the same network.
+  - The host binds an ephemeral port and holds a single-client lock; the client must solve a
+    cryptographic challenge before any record is transferred.
 
 ---
 
@@ -279,14 +289,22 @@ two; the rest arrive transitively from plugins.
 | `READ_MEDIA_IMAGES` / `_VIDEO` / `_AUDIO` | `file_picker` | Attachment import on API 33+ | As above |
 | `RECORD_AUDIO` | `record` | Voice notes | Voice notes unavailable; rest of app works |
 | `USE_FINGERPRINT` | `local_auth` | Legacy biometric API | Falls back |
-| `ACCESS_NETWORK_STATE` | plugin (transitive) | **Removed** (`tools:node="remove"`) | n/a |
+| `ACCESS_NETWORK_STATE` | Wi-Fi Sync | **Declared** — lets Wi-Fi Sync see whether a local network is up | Wi-Fi Sync unavailable; rest of app works |
 | `WAKE_LOCK` | plugin (transitive) | **Removed** (`tools:node="remove"`) | n/a |
-| `INTERNET` | plugin (transitive) / dev | **Removed in prod** (`tools:node="remove"`) | Blocked / Offline guarantee |
+| `INTERNET` | Wi-Fi Sync / dev | **Declared** — required to bind a local TCP socket. No cloud, no server, no HTTP client | Wi-Fi Sync unavailable; rest of app works |
 | `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` | Flutter/androidx | Internal broadcast safety | n/a |
 
-> **Hardened 2026-08-23 (A5.3).** `INTERNET`, `ACCESS_NETWORK_STATE`, and `WAKE_LOCK` are explicitly
-> removed via `tools:node="remove"` in `android/app/src/main/AndroidManifest.xml` and guarded by
-> automated tests and `tool/check_no_internet_permission.sh` in CI.
+> **Hardened 2026-08-23 (A5.3).** `INTERNET`, `ACCESS_NETWORK_STATE`, and `WAKE_LOCK` were
+> explicitly removed via `tools:node="remove"` in `android/app/src/main/AndroidManifest.xml`.
+>
+> **Policy changed 2026-08-24 (Wi-Fi Sync).** Wi-Fi Sync opens a direct device-to-device TCP
+> socket on the user's own LAN, so `INTERNET` and `ACCESS_NETWORK_STATE` are now declared on
+> purpose. `WAKE_LOCK` is still stripped. `tool/check_no_internet_permission.sh` enforces the new
+> policy in CI: `WAKE_LOCK` stripped; `INTERNET` and `ACCESS_NETWORK_STATE` present and **not**
+> stripped, so nobody breaks sync by removing them; a deny list of wider network, location, boot
+> and background-service permissions absent; and no HTTP or cloud client package in
+> `pubspec.yaml`. `test/core/security/manifest_permission_guard_test.dart` checks the same thing
+> from Dart.
 
 Rules followed: dangerous permissions are requested at the point of use with a rationale, never
 at startup; the app degrades gracefully when one is denied; there is a Permissions screen showing
@@ -304,7 +322,7 @@ Reviewed 2026-07-25. This is an honest snapshot, not a clean bill of health.
 | M2 | Inadequate Supply Chain Security | **partial** | `pubspec.lock` is committed and `go_router` (unused) was removed. No formal dependency or licence audit has been done. |
 | M3 | Insecure Authentication | **verified** | App lock with background enforcement, mutually exclusive modes, per-journal and per-attachment locks. |
 | M4 | Insufficient Input/Output Validation | **partial** | Drift uses parameterised queries throughout. Import adapters (Markdown, DOCX, plain text) have unit tests but no malformed-input fuzzing. |
-| M5 | Insecure Communication | **verified** | No network traffic. `INTERNET` absent from the merged release manifest. |
+| M5 | Insecure Communication | **verified** | No cloud, server or HTTP client. The only traffic is the direct device-to-device Wi-Fi Sync socket on the user's own LAN, authenticated by a pairing-code challenge and sealed with AES-256-GCM. See "In transit". |
 | M6 | Inadequate Privacy Controls | **partial** | No telemetry; backup excluded; logging policy defined. Existing log statements not yet audited against it. |
 | M7 | Insufficient Binary Protections | **verified (build), unverified (runtime)** | `--obfuscate` and R8 both work at build time. Never run on a device. |
 | M8 | Security Misconfiguration | **verified** | `debuggable` false, `allowBackup` false, `FLAG_SECURE` on by default (user-switchable in Settings). Two unused transitive permissions remain (section 11). |
@@ -567,8 +585,12 @@ are open.
 
 10. **Two unused permissions** (`ACCESS_NETWORK_STATE`, `WAKE_LOCK`) arrive transitively and are
     not stripped.
-    *Hardening:* **done 2026-08-23 (A5.3)** — `tools:node="remove"` explicitly strips
+    *Hardening:* **done 2026-08-23 (A5.3)** — `tools:node="remove"` explicitly stripped
     `INTERNET`, `ACCESS_NETWORK_STATE`, and `WAKE_LOCK` from production builds, guarded by CI.
+    *Updated 2026-08-24:* `INTERNET` and `ACCESS_NETWORK_STATE` were deliberately re-added for
+    Wi-Fi Sync, which needs a local TCP socket. They are no longer unused. `WAKE_LOCK` is still
+    stripped, and the CI guard now also blocks wider network permissions and any HTTP or cloud
+    client package.
 
 11. **No retention caps** on entry revisions, security events, or sync logs. Unbounded growth in
    tables that hold user-derived data.
