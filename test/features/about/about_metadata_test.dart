@@ -31,6 +31,10 @@ void main() {
     expect(metadata.details, {'Author': 'Sreeraj P'});
   });
 
+  test('formatBuildTimestamp preserves YYYY-MM-DD date string', () {
+    expect(formatBuildTimestamp('2026-08-29'), '2026-08-29');
+  });
+
   test('formatBuildTimestamp normalizes ISO timestamps', () {
     expect(
       formatBuildTimestamp('2026-03-19T12:34:56Z'),

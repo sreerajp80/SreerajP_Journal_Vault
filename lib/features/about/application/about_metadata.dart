@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sreerajp_journal_vault/core/config/app_config.dart';
 import 'package:sreerajp_journal_vault/core/config/config_service.dart';
+import 'package:sreerajp_journal_vault/core/constants/build_date.g.dart';
 
 /// Label shown when the build timestamp define is absent or empty.
 const String missingBuildTimestampLabel = 'Build date unavailable';
@@ -41,12 +42,15 @@ final configServiceProvider = Provider<ConfigService>((ref) {
   return ConfigService();
 });
 
-/// Formats a raw ISO-8601 [buildTimestamp] string into a human-readable date.
+/// Formats a raw build timestamp or date string into a human-readable date.
 ///
 /// Returns [missingBuildTimestampLabel] when the input is blank or unparseable.
 String formatBuildTimestamp(String raw) {
   final trimmed = raw.trim();
   if (trimmed.isEmpty) return missingBuildTimestampLabel;
+  if (RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(trimmed)) {
+    return trimmed;
+  }
   try {
     final dt = DateTime.parse(trimmed).toLocal();
     final y = dt.year;
@@ -79,8 +83,9 @@ AboutMetadata buildAboutMetadata({
 /// Override in tests via [aboutMetadataProvider.overrideWith].
 final aboutMetadataProvider = FutureProvider<AboutMetadata>((ref) async {
   final config = await ref.watch(configServiceProvider).loadAndVerify();
-  return buildAboutMetadata(
-    config: config,
-    buildTimestamp: const String.fromEnvironment('BUILD_TIMESTAMP'),
-  );
+  const buildTimestampEnv = String.fromEnvironment('BUILD_TIMESTAMP');
+  final buildTimestamp = buildTimestampEnv.isNotEmpty
+      ? buildTimestampEnv
+      : kBuildDate;
+  return buildAboutMetadata(config: config, buildTimestamp: buildTimestamp);
 });

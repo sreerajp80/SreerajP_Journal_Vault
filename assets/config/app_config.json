@@ -1,11 +1,10 @@
 {
   "appName": "SreerajP Journal Vault",
   "description": "A private, encrypted journal with attachments, search, and insights.",
-  "version": "1.5.1",
-  "build": "8",
+  "version": "1.5.3",
+  "build": "10",
   "details": {
     "Author": "Sreeraj P",
-    "Last Build": "24-08-2026",
     "Email": "sreerajp@zohomail.in",
     "License": "All libraries used are open source.",
     "AI Used": "Claude (Anthropic) / Google Gemini",

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sreerajp_journal_vault/core/config/config_service.dart';
+import 'package:sreerajp_journal_vault/core/constants/build_date.g.dart';
 import 'package:sreerajp_journal_vault/features/about/application/about_metadata.dart';
 import 'package:sreerajp_journal_vault/features/about/presentation/about_screen.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
@@ -52,7 +53,7 @@ void main() {
     expect(find.text('Custom Row'), findsOneWidget);
     expect(find.text('Custom Value'), findsOneWidget);
 
-    expect(find.text(missingBuildTimestampLabel), findsOneWidget);
+    expect(find.text(kBuildDate), findsOneWidget);
   });
 
   testWidgets('about skips rows with a blank key or value', (
