@@ -1,8 +1,8 @@
 {
   "appName": "SreerajP Journal Vault",
   "description": "A private, encrypted journal with attachments, search, and insights.",
-  "version": "1.5.3",
-  "build": "10",
+  "version": "1.5.4",
+  "build": "11",
   "details": {
     "Author": "Sreeraj P",
     "Email": "sreerajp@zohomail.in",

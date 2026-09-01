@@ -3,14 +3,13 @@ import 'dart:math';
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_quill/flutter_quill.dart'
-    show FlutterQuillLocalizations;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod/misc.dart' show Override;
 
 import 'package:sreerajp_journal_vault/core/config/app_flavor_config.dart';
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
+import 'package:sreerajp_journal_vault/core/l10n/quill_localizations_fallback.dart';
 import 'package:sreerajp_journal_vault/core/theme/accent_color_controller.dart';
 import 'package:sreerajp_journal_vault/core/theme/theme_mode_controller.dart';
 import 'package:sreerajp_journal_vault/core/utils/date_formatters.dart';
@@ -184,7 +183,10 @@ class _JournalVaultAppState extends ConsumerState<JournalVaultApp> {
       themeMode: appThemeMode.toFlutterThemeMode(),
       localizationsDelegates: const [
         AppLocalizations.delegate,
-        FlutterQuillLocalizations.delegate,
+        // Wrapped, not the package delegate itself: flutter_quill has no
+        // Malayalam translation, and a missing Quill delegate makes the editor
+        // throw and render as a grey box. See the fallback delegate's doc.
+        quillLocalizationsFallbackDelegate,
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
