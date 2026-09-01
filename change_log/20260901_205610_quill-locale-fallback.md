@@ -1,6 +1,6 @@
 # Entry body not editable on a Malayalam device — fixed
 
-Implements `plans/20260901_101500_quill-locale-fallback.md`.
+Implements `plans/20260901_205610_quill-locale-fallback.md`.
 
 ## What was wrong
 
