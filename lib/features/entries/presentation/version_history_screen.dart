@@ -218,6 +218,14 @@ class _RevisionPreviewScreenState
   /// content the user is trying to compare against.
   late final List<EmbedBuilder> _embedBuilders;
 
+  /// Owned by this screen. [QuillEditor.basic] builds a fresh [FocusNode] and
+  /// [ScrollController] when it isn't given them, which would leak a pair on
+  /// every rebuild and reset the preview's scroll position.
+  final FocusNode _previewFocusNode = FocusNode(
+    debugLabel: 'RevisionPreviewEditor',
+  );
+  final ScrollController _previewScrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
@@ -252,6 +260,8 @@ class _RevisionPreviewScreenState
   void dispose() {
     unawaited(_imageStore.dispose());
     _controller.dispose();
+    _previewFocusNode.dispose();
+    _previewScrollController.dispose();
     super.dispose();
   }
 
@@ -288,6 +298,8 @@ class _RevisionPreviewScreenState
           style: entryBodyStyle,
           child: QuillEditor.basic(
             controller: _controller,
+            focusNode: _previewFocusNode,
+            scrollController: _previewScrollController,
             config: QuillEditorConfig(
               embedBuilders: _embedBuilders,
               customStyles: customStyles,

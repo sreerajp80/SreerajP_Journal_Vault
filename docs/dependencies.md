@@ -76,6 +76,7 @@ section 7.
 | `image_picker` | Camera photo capture and gallery image selection for OCR | `lib/features/entries/presentation/entry_editor_screen.dart` |
 | `image_cropper` | Crop-and-rotate UI before OCR scanning, wraps Android uCrop (offline) | `lib/features/entries/services/image_edit_service.dart` |
 | `google_mlkit_text_recognition` | On-device, 100% offline OCR text extraction from images | `lib/features/entries/services/ocr_service.dart` |
+| `image` | Pure-Dart image decode, resize, grayscale and contrast. Prepares a photo before OCR so thin marks (`.`, `=`, `,`, `:`) are large and clear enough to be recognised. No networking dependency | `lib/features/entries/services/ocr_image_preprocessor.dart` |
 | `just_audio` | In-app audio attachment playback | `lib/features/attachments/presentation/audio_attachment_view.dart` |
 | `pdfrx` | In-app PDF attachment viewing (PDFium-based, open source) | `.../pdf_attachment_view.dart` |
 | `table_calendar` | The timeline calendar view | `lib/features/timeline/` |

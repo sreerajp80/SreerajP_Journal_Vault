@@ -1322,6 +1322,12 @@ abstract class AppLocalizations {
   /// **'Enter callout text...'**
   String get editorCalloutHint;
 
+  /// Tooltip for the editor toolbar button that types a tab character
+  ///
+  /// In en, this message translates to:
+  /// **'Insert tab'**
+  String get editorInsertTab;
+
   /// Tooltip, and dialog title, for adding a table
   ///
   /// In en, this message translates to:
@@ -1603,6 +1609,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Linked from'**
   String get entryLinkedFrom;
+
+  /// Tooltip for the button that opens the mood picker sheet
+  ///
+  /// In en, this message translates to:
+  /// **'Set mood'**
+  String get entryMoodTooltip;
 
   /// Heading of the mood picker
   ///
@@ -5953,6 +5965,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please create a journal first.'**
   String get ritualNoJournalError;
+
+  /// Selection menu item that moves the caret to the start of the current line. Shown as a left arrow-to-bar glyph.
+  ///
+  /// In en, this message translates to:
+  /// **'⇤'**
+  String get editorGotoLineStart;
+
+  /// Selection menu item that moves the caret to the end of the current line. Shown as a right arrow-to-bar glyph.
+  ///
+  /// In en, this message translates to:
+  /// **'⇥'**
+  String get editorGotoLineEnd;
 }
 
 class _AppLocalizationsDelegate

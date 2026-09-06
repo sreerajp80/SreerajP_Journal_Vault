@@ -11,6 +11,7 @@ class EditorToolbar extends StatelessWidget {
   const EditorToolbar({
     super.key,
     required this.controller,
+    this.onInsertTab,
     this.onInsertTable,
     this.onInsertCallout,
     this.onInsertImage,
@@ -23,6 +24,10 @@ class EditorToolbar extends StatelessWidget {
   });
 
   final QuillController controller;
+
+  /// Inserts a tab character at the caret. Android soft keyboards have no Tab
+  /// key, so this button is the only way to type one on a phone.
+  final VoidCallback? onInsertTab;
   final VoidCallback? onInsertTable;
   final VoidCallback? onInsertCallout;
   final VoidCallback? onInsertImage;
@@ -104,6 +109,15 @@ class EditorToolbar extends StatelessWidget {
             // Indent / Outdent
             QuillToolbarIndentButton(controller: controller, isIncrease: false),
             QuillToolbarIndentButton(controller: controller, isIncrease: true),
+            // Tab character — the soft keyboard has no Tab key.
+            if (onInsertTab != null)
+              IconButton(
+                key: const Key('editor-insert-tab'),
+                icon: const Icon(Icons.keyboard_tab, size: 20),
+                onPressed: onInsertTab,
+                tooltip: AppLocalizations.of(context).editorInsertTab,
+                visualDensity: VisualDensity.compact,
+              ),
             _divider(),
             // Alignment (left / center / right / justify)
             QuillToolbarToggleStyleButton(

@@ -1026,6 +1026,10 @@
   "@editorCalloutHint": {
     "description": "Placeholder inside an empty callout block"
   },
+  "editorInsertTab": "Insert tab",
+  "@editorInsertTab": {
+    "description": "Tooltip for the editor toolbar button that types a tab character"
+  },
   "editorInsertTable": "Insert table",
   "@editorInsertTable": {
     "description": "Tooltip, and dialog title, for adding a table"
@@ -1228,6 +1232,10 @@
   "entryLinkedFrom": "Linked from",
   "@entryLinkedFrom": {
     "description": "Heading above the entries that link to this one"
+  },
+  "entryMoodTooltip": "Set mood",
+  "@entryMoodTooltip": {
+    "description": "Tooltip for the button that opens the mood picker sheet"
   },
   "entryMood": "Mood",
   "@entryMood": {
@@ -4435,5 +4443,13 @@
   "ritualNoJournalError": "Please create a journal first.",
   "@ritualNoJournalError": {
     "description": "Error shown when no journal exists to write a ritual entry into"
+  },
+  "editorGotoLineStart": "⇤",
+  "@editorGotoLineStart": {
+    "description": "Selection menu item that moves the caret to the start of the current line. Shown as a left arrow-to-bar glyph."
+  },
+  "editorGotoLineEnd": "⇥",
+  "@editorGotoLineEnd": {
+    "description": "Selection menu item that moves the caret to the end of the current line. Shown as a right arrow-to-bar glyph."
   }
 }

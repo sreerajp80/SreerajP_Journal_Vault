@@ -160,12 +160,23 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
   /// popup can flip below the selection when it would otherwise overlap.
   final GlobalKey _toolbarKey = GlobalKey();
 
+  /// Owned by this screen and handed to the body editor. [QuillEditor.basic]
+  /// builds a fresh [FocusNode] when it isn't given one, so the editor would
+  /// lose focus on every rebuild — typing or deleting a character rebuilds via
+  /// [_updateStats], and focus would fall back to the title field.
+  final FocusNode _editorFocusNode = FocusNode(debugLabel: 'EntryBodyEditor');
+
+  /// Same reasoning as [_editorFocusNode]: a per-build [ScrollController] would
+  /// reset the body's scroll position and leak on every keystroke.
+  final ScrollController _editorScrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
     _quillController = QuillController.basic();
     _titleController = TextEditingController();
     _imageStore = buildInlineImageStore(ref);
+    _editorFocusNode.addListener(_handleEditorFocusChange);
     _embedBuilders = [
       TableEmbedBuilder(),
       CalloutEmbedBuilder(),
@@ -177,6 +188,30 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
     } else {
       _createEntry();
     }
+  }
+
+  /// True while the caret is in the body editor — that is, while the user is
+  /// typing. The panels that sit under the editor are hidden in this state so
+  /// nothing below the caret can change height mid-keystroke.
+  bool get _isTyping => _editorFocusNode.hasFocus;
+
+  void _handleEditorFocusChange() {
+    if (mounted) setState(() {});
+  }
+
+  /// Types a tab character at the caret.
+  ///
+  /// Android soft keyboards carry no Tab key, and flutter_quill only reacts to
+  /// a hardware Tab, so the toolbar button is the only route on a phone.
+  void _insertTab() {
+    final selection = _quillController.selection;
+    final start = selection.start;
+    _quillController.replaceText(
+      start,
+      selection.end - start,
+      '\t',
+      TextSelection.collapsed(offset: start + 1),
+    );
   }
 
   void _updateStats() {
@@ -440,6 +475,9 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
     unawaited(_imageStore.dispose());
     _quillController.dispose();
     _titleController.dispose();
+    _editorFocusNode.removeListener(_handleEditorFocusChange);
+    _editorFocusNode.dispose();
+    _editorScrollController.dispose();
     super.dispose();
   }
 
@@ -894,7 +932,12 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
       style: entryBodyStyle,
       child: QuillEditor.basic(
         controller: _quillController,
+        focusNode: _editorFocusNode,
+        scrollController: _editorScrollController,
         config: QuillEditorConfig(
+          // enableAlwaysIndentOnTab is left at its default of false on
+          // purpose: a hardware Tab must type a real tab character rather than
+          // re-indent the block, matching the toolbar's Tab button.
           embedBuilders: _embedBuilders,
           customStyles: customStyles,
           placeholder: 'Write your entry…',
@@ -989,6 +1032,7 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
               EditorToolbar(
                 key: _toolbarKey,
                 controller: _quillController,
+                onInsertTab: _insertTab,
                 onInsertTable: _insertTable,
                 onInsertCallout: _insertCallout,
                 onInsertImage: _entryId == null ? null : _insertImage,
@@ -1109,6 +1153,7 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
           EditorToolbar(
             key: _toolbarKey,
             controller: _quillController,
+            onInsertTab: _insertTab,
             onInsertTable: _insertTable,
             onInsertCallout: _insertCallout,
             // Offered only once the entry exists — an inline image needs a row
@@ -1125,48 +1170,74 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
           ),
           // Editor body
           Expanded(child: editorContent),
-          // Word & Character count + Auto-save indicator bar
+          // Word & Character count + Auto-save indicator bar. Fixed height,
+          // so it can never grow over the line being typed.
           EditorStatsBar(
             wordCount: _wordCount,
             characterCount: _characterCount,
             saveStatus: _saveStatus,
             lastSavedTime: _lastSavedTime,
+            compact: true,
           ),
-          // Smart tag suggestions for what has been written so far. Reads the
-          // live document rather than the saved row, so suggestions track the
-          // text as it is typed. Renders nothing when there is no match.
-          if (_entryId != null)
-            SmartTagChipBar(
-              entryId: _entryId!,
-              plainText: _quillController.document.toPlainText(),
-            ),
-          // 1–5 mood picker; persisted by _saveContent.
-          if (_entryId != null)
-            _MoodPickerRow(
-              value: _mood,
-              onChanged: (v) {
-                if (v == _mood) return;
-                setState(() {
-                  _mood = v;
-                  _isDirty = true;
-                });
-              },
-            ),
-          // Linked-from panel: inbound references to this entry.
-          if (_entryId != null) _LinkedFromPanel(entryId: _entryId!),
-          // Attachment tray with per-attachment lock toggle.
-          if (_entryId != null)
-            _AttachmentTray(
-              entryId: _entryId!,
-              refreshToken: _attachmentRefreshToken,
-            ),
-          // Bottom action bar
+          // The three panels below can appear, disappear or change height at
+          // any moment — the smart-tag bar re-reads the live text on every
+          // keystroke. Growing while the user types would shrink the editor and
+          // push the caret line out of view, so they are held back until the
+          // caret leaves the body.
+          if (!_isTyping) ...[
+            // Smart tag suggestions for what has been written so far. Reads the
+            // live document rather than the saved row, so suggestions track the
+            // text as it is typed. Renders nothing when there is no match.
+            if (_entryId != null)
+              SmartTagChipBar(
+                entryId: _entryId!,
+                plainText: _quillController.document.toPlainText(),
+              ),
+            // Linked-from panel: inbound references to this entry.
+            if (_entryId != null) _LinkedFromPanel(entryId: _entryId!),
+            // Attachment tray with per-attachment lock toggle.
+            if (_entryId != null)
+              _AttachmentTray(
+                entryId: _entryId!,
+                refreshToken: _attachmentRefreshToken,
+              ),
+          ],
+          // Bottom action bar. The mood picker lives behind its button rather
+          // than in this column, so it does not sit on screen all the time.
           _BottomActionBar(
             onAddAttachment: _handleAddAttachment,
             onRecordVoiceNote: _showVoiceNoteRecorder,
             onScanText: _scanTextFromPhoto,
+            mood: _mood,
+            onPickMood: _entryId == null ? null : _showMoodPicker,
           ),
         ],
+      ),
+    );
+  }
+
+  /// Opens the 1–5 mood picker in a bottom sheet.
+  ///
+  /// The picker used to sit permanently at the foot of the editor. It now
+  /// appears only on request, so the writing area keeps that strip of screen.
+  Future<void> _showMoodPicker() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: _MoodPickerRow(
+          value: _mood,
+          // Clearing a mood also passes null, so the choice is applied here
+          // rather than through the sheet's return value — a swipe-away would
+          // look exactly like "cleared".
+          onChanged: (v) {
+            Navigator.pop(sheetContext);
+            if (v == _mood) return;
+            setState(() {
+              _mood = v;
+              _isDirty = true;
+            });
+          },
+        ),
       ),
     );
   }
@@ -1175,7 +1246,13 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
     BuildContext context,
     QuillRawEditorState state,
   ) {
-    final buttonItems = <ContextMenuButtonItem>[];
+    final l10n = AppLocalizations.of(context);
+    final buttonItems = <ContextMenuButtonItem>[
+      // Jump-to-line-edge items come first, because they are the reason this
+      // menu is opened when the caret cannot be tapped near the screen edge.
+      _lineJumpContextMenuItem(l10n.editorGotoLineStart, toStart: true),
+      _lineJumpContextMenuItem(l10n.editorGotoLineEnd, toStart: false),
+    ];
     if (!_quillController.selection.isCollapsed) {
       buttonItems.addAll([
         _formatContextMenuItem('Bold', Attribute.bold),
@@ -1217,6 +1294,31 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
       );
     }
     return anchors;
+  }
+
+  /// Builds one of the two caret-jump items in the selection popup.
+  ///
+  /// Tapping it collapses the selection onto the first or the last character
+  /// of the logical line the caret sits on, then closes the popup.
+  ContextMenuButtonItem _lineJumpContextMenuItem(
+    String label, {
+    required bool toStart,
+  }) {
+    return ContextMenuButtonItem(
+      label: label,
+      onPressed: () {
+        final text = _quillController.document.toPlainText();
+        final from = _quillController.selection.baseOffset;
+        final target = toStart
+            ? lineStartOffset(text, from)
+            : lineEndOffset(text, from);
+        _quillController.updateSelection(
+          TextSelection.collapsed(offset: target),
+          ChangeSource.local,
+        );
+        ContextMenuController.removeAny();
+      },
+    );
   }
 
   ContextMenuButtonItem _formatContextMenuItem(
@@ -1667,11 +1769,19 @@ class _BottomActionBar extends StatelessWidget {
     required this.onAddAttachment,
     required this.onRecordVoiceNote,
     required this.onScanText,
+    this.mood,
+    this.onPickMood,
   });
 
   final VoidCallback onAddAttachment;
   final VoidCallback onRecordVoiceNote;
   final VoidCallback onScanText;
+
+  /// Current 1–5 mood, or null when none is set. Drives the button's face.
+  final int? mood;
+
+  /// Opens the mood picker sheet. Null before the entry row exists.
+  final VoidCallback? onPickMood;
 
   @override
   Widget build(BuildContext context) {
@@ -1702,6 +1812,18 @@ class _BottomActionBar extends StatelessWidget {
             onPressed: onScanText,
             tooltip: AppLocalizations.of(context).entryEditorScanText,
           ),
+          if (onPickMood != null)
+            IconButton(
+              key: const Key('entry-mood-button'),
+              icon: mood == null
+                  ? const Icon(Icons.mood_outlined)
+                  : Text(
+                      _MoodPickerRow.faceFor(mood!),
+                      style: const TextStyle(fontSize: 20),
+                    ),
+              onPressed: onPickMood,
+              tooltip: AppLocalizations.of(context).entryMoodTooltip,
+            ),
         ],
       ),
     );
@@ -1828,6 +1950,10 @@ class _MoodPickerRow extends StatelessWidget {
   final ValueChanged<int?> onChanged;
 
   static const _labels = {1: '😞', 2: '🙁', 3: '😐', 4: '🙂', 5: '😄'};
+
+  /// The face for a 1–5 level, so the button that opens this picker can show
+  /// the same emoji the chips use.
+  static String faceFor(int level) => _labels[level] ?? _labels[3]!;
 
   @override
   Widget build(BuildContext context) {
@@ -2095,4 +2221,25 @@ class _AttachmentTrayState extends ConsumerState<_AttachmentTray> {
       ),
     );
   }
+}
+
+/// Offset of the first character of the logical line holding [offset].
+///
+/// A logical line is the text between two newlines, so a soft-wrapped visual
+/// row does not count as its own line. [offset] is clamped into [text].
+int lineStartOffset(String text, int offset) {
+  final at = offset.clamp(0, text.length);
+  if (at == 0) return 0;
+  final newline = text.lastIndexOf('\n', at - 1);
+  return newline == -1 ? 0 : newline + 1;
+}
+
+/// Offset just after the last character of the logical line holding [offset].
+///
+/// This is the position of the next newline, or the end of [text] when the
+/// caret is on the last line. [offset] is clamped into [text].
+int lineEndOffset(String text, int offset) {
+  final at = offset.clamp(0, text.length);
+  final newline = text.indexOf('\n', at);
+  return newline == -1 ? text.length : newline;
 }

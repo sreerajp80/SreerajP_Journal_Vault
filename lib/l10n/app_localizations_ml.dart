@@ -734,6 +734,9 @@ class AppLocalizationsMl extends AppLocalizations {
   String get editorCalloutHint => 'കോൾഔട്ട് വിവരണം ഇവിടെ എഴുതുക...';
 
   @override
+  String get editorInsertTab => 'Insert tab';
+
+  @override
   String get editorInsertTable => 'പട്ടിക ചേർക്കുക';
 
   @override
@@ -883,6 +886,9 @@ class AppLocalizationsMl extends AppLocalizations {
 
   @override
   String get entryLinkedFrom => 'ലിങ്ക് ചെയ്ത ഉറവിടം';
+
+  @override
+  String get entryMoodTooltip => 'Set mood';
 
   @override
   String get entryMood => 'വികാരം';
@@ -3438,4 +3444,10 @@ class AppLocalizationsMl extends AppLocalizations {
 
   @override
   String get ritualNoJournalError => 'Please create a journal first.';
+
+  @override
+  String get editorGotoLineStart => '⇤';
+
+  @override
+  String get editorGotoLineEnd => '⇥';
 }

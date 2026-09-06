@@ -719,6 +719,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editorCalloutHint => 'Enter callout text...';
 
   @override
+  String get editorInsertTab => 'Insert tab';
+
+  @override
   String get editorInsertTable => 'Insert table';
 
   @override
@@ -867,6 +870,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get entryLinkedFrom => 'Linked from';
+
+  @override
+  String get entryMoodTooltip => 'Set mood';
 
   @override
   String get entryMood => 'Mood';
@@ -3390,4 +3396,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ritualNoJournalError => 'Please create a journal first.';
+
+  @override
+  String get editorGotoLineStart => '⇤';
+
+  @override
+  String get editorGotoLineEnd => '⇥';
 }

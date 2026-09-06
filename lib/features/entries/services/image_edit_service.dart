@@ -45,6 +45,11 @@ class CropperImageEditService implements ImageEditService {
     try {
       final croppedFile = await cropper.cropImage(
         sourcePath: sourcePath,
+        // Lossless PNG, not the default JPEG at quality 90. JPEG blur eats the
+        // one-pixel strokes of `.`, `=`, `,` and `:`, so the crop step must not
+        // degrade the image before OCR ever sees it.
+        compressFormat: ImageCompressFormat.png,
+        compressQuality: 100,
         uiSettings: [
           AndroidUiSettings(
             toolbarTitle: toolbarTitle,

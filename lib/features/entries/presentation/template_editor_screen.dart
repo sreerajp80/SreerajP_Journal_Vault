@@ -44,6 +44,13 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
   late final FocusNode _defaultTitleFocusNode;
   late final QuillController _quillController;
 
+  /// Owned by this screen and handed to the body editor. [QuillEditor.basic]
+  /// builds a fresh [FocusNode] and [ScrollController] when it isn't given
+  /// them, so the body would lose focus (and its scroll position) on every
+  /// rebuild.
+  final FocusNode _bodyFocusNode = FocusNode(debugLabel: 'TemplateBodyEditor');
+  final ScrollController _bodyScrollController = ScrollController();
+
   bool _isSaving = false;
   bool _titleHasFocus = false;
 
@@ -95,6 +102,8 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
     _defaultTitleController.dispose();
     _defaultTitleFocusNode.dispose();
     _quillController.dispose();
+    _bodyFocusNode.dispose();
+    _bodyScrollController.dispose();
     super.dispose();
   }
 
@@ -376,6 +385,8 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
                               style: entryBodyStyle,
                               child: QuillEditor.basic(
                                 controller: _quillController,
+                                focusNode: _bodyFocusNode,
+                                scrollController: _bodyScrollController,
                                 config: QuillEditorConfig(
                                   placeholder: l10n.templateContentHint,
                                   customStyles: customStyles,
