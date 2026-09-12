@@ -3402,4 +3402,152 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get editorGotoLineEnd => '⇥';
+
+  @override
+  String get ocrCameraTitle => 'Scan Document';
+
+  @override
+  String get ocrCameraPermissionDenied =>
+      'Camera permission is required to photograph documents for text recognition.';
+
+  @override
+  String get ocrCameraOpenSettings => 'Open Settings';
+
+  @override
+  String get ocrCameraNoCameras => 'No camera found on this device.';
+
+  @override
+  String get ocrCameraFlashOff => 'Flash off';
+
+  @override
+  String get ocrCameraFlashAuto => 'Flash auto';
+
+  @override
+  String get ocrCameraFlashOn => 'Flash on';
+
+  @override
+  String get ocrCameraFlashTorch => 'Torch on';
+
+  @override
+  String get ocrCameraGridToggle => 'Framing grid';
+
+  @override
+  String get ocrCameraSwitch => 'Switch camera';
+
+  @override
+  String get ocrCameraCaptureHint => 'Tap to focus • Pinch to zoom';
+
+  @override
+  String get ocrCameraCapture => 'Take photo';
+
+  @override
+  String get ocrCameraGallery => 'Choose from gallery';
+
+  @override
+  String get ocrCameraExposure => 'Exposure';
+
+  @override
+  String get ocrCameraZoom => 'Zoom';
+
+  @override
+  String get ocrCameraFocusAuto => 'Auto focus';
+
+  @override
+  String get ocrCameraFocusLocked => 'Focus locked';
+
+  @override
+  String get ocrCameraExposureAuto => 'Auto exposure';
+
+  @override
+  String get ocrCameraExposureLocked => 'Exposure locked';
+
+  @override
+  String get ocrCameraControls => 'Camera controls';
+
+  @override
+  String get ocrCameraReset => 'Reset';
+
+  @override
+  String get ocrEnhanceTitle => 'Enhance & Scan';
+
+  @override
+  String get ocrEnhanceRotate => 'Rotate';
+
+  @override
+  String get ocrEnhanceRotateLeft => 'Rotate left';
+
+  @override
+  String get ocrEnhanceRotateRight => 'Rotate right';
+
+  @override
+  String get ocrEnhanceCrop => 'Crop';
+
+  @override
+  String get ocrEnhanceFilter => 'Filter';
+
+  @override
+  String get ocrEnhanceInvert => 'Invert';
+
+  @override
+  String get ocrEnhanceFilterOriginal => 'Original';
+
+  @override
+  String get ocrEnhanceFilterDocument => 'Document';
+
+  @override
+  String get ocrEnhanceFilterGrayscale => 'Grayscale';
+
+  @override
+  String get ocrEnhanceFilterEnhance => 'High Contrast';
+
+  @override
+  String get ocrEnhanceBrightness => 'Brightness';
+
+  @override
+  String get ocrEnhanceContrast => 'Contrast';
+
+  @override
+  String get ocrEnhanceAdjust => 'Adjust';
+
+  @override
+  String get ocrEnhanceLiveText => 'Recognized Text Preview';
+
+  @override
+  String get ocrEnhanceLiveTextNone =>
+      'No text detected yet. Try adjusting contrast, rotating, or cropping closer.';
+
+  @override
+  String ocrEnhanceLiveWordCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count words detected',
+      one: '1 word detected',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ocrEnhanceInsertText => 'Insert into Entry';
+
+  @override
+  String get ocrEnhanceRetake => 'Retake';
+
+  @override
+  String get ocrEnhanceProcessing => 'Enhancing image...';
+
+  @override
+  String get ocrEnhanceLiveScanning => 'Scanning text...';
+
+  @override
+  String get ocrLanguageAll => 'English + മലയാളം';
+
+  @override
+  String get ocrLanguageMalayalam => 'മലയാളം';
+
+  @override
+  String get ocrLanguageEnglish => 'English';
+
+  @override
+  String get ocrLanguageSelectTooltip => 'Select OCR language';
 }

@@ -5977,6 +5977,282 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'⇥'**
   String get editorGotoLineEnd;
+
+  /// Title of the dedicated OCR camera screen
+  ///
+  /// In en, this message translates to:
+  /// **'Scan Document'**
+  String get ocrCameraTitle;
+
+  /// Message displayed when camera permission is not granted
+  ///
+  /// In en, this message translates to:
+  /// **'Camera permission is required to photograph documents for text recognition.'**
+  String get ocrCameraPermissionDenied;
+
+  /// Button to open application settings for granting camera permission
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get ocrCameraOpenSettings;
+
+  /// Message displayed when no camera hardware is available
+  ///
+  /// In en, this message translates to:
+  /// **'No camera found on this device.'**
+  String get ocrCameraNoCameras;
+
+  /// Tooltip/semantics for flash off mode
+  ///
+  /// In en, this message translates to:
+  /// **'Flash off'**
+  String get ocrCameraFlashOff;
+
+  /// Tooltip/semantics for flash auto mode
+  ///
+  /// In en, this message translates to:
+  /// **'Flash auto'**
+  String get ocrCameraFlashAuto;
+
+  /// Tooltip/semantics for flash on mode
+  ///
+  /// In en, this message translates to:
+  /// **'Flash on'**
+  String get ocrCameraFlashOn;
+
+  /// Tooltip/semantics for torch/flashlight mode
+  ///
+  /// In en, this message translates to:
+  /// **'Torch on'**
+  String get ocrCameraFlashTorch;
+
+  /// Tooltip for toggling the document alignment grid
+  ///
+  /// In en, this message translates to:
+  /// **'Framing grid'**
+  String get ocrCameraGridToggle;
+
+  /// Tooltip for switching between back and front cameras
+  ///
+  /// In en, this message translates to:
+  /// **'Switch camera'**
+  String get ocrCameraSwitch;
+
+  /// Hint banner reminding user they can tap to focus and pinch to zoom
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to focus • Pinch to zoom'**
+  String get ocrCameraCaptureHint;
+
+  /// Shutter button semantics label in OCR camera
+  ///
+  /// In en, this message translates to:
+  /// **'Take photo'**
+  String get ocrCameraCapture;
+
+  /// Button to select a photo from the device gallery directly from the camera screen
+  ///
+  /// In en, this message translates to:
+  /// **'Choose from gallery'**
+  String get ocrCameraGallery;
+
+  /// Label for camera exposure compensation control
+  ///
+  /// In en, this message translates to:
+  /// **'Exposure'**
+  String get ocrCameraExposure;
+
+  /// Label for camera continuous zoom control
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom'**
+  String get ocrCameraZoom;
+
+  /// Tooltip/label when camera focus mode is set to auto
+  ///
+  /// In en, this message translates to:
+  /// **'Auto focus'**
+  String get ocrCameraFocusAuto;
+
+  /// Tooltip/label when camera focus mode is locked
+  ///
+  /// In en, this message translates to:
+  /// **'Focus locked'**
+  String get ocrCameraFocusLocked;
+
+  /// Tooltip/label when camera exposure mode is set to auto
+  ///
+  /// In en, this message translates to:
+  /// **'Auto exposure'**
+  String get ocrCameraExposureAuto;
+
+  /// Tooltip/label when camera exposure mode is locked
+  ///
+  /// In en, this message translates to:
+  /// **'Exposure locked'**
+  String get ocrCameraExposureLocked;
+
+  /// Tooltip/button label to open camera adjustment sliders
+  ///
+  /// In en, this message translates to:
+  /// **'Camera controls'**
+  String get ocrCameraControls;
+
+  /// Button to reset camera exposure or zoom adjustments back to default
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get ocrCameraReset;
+
+  /// App bar title for the image enhancement and live OCR screen
+  ///
+  /// In en, this message translates to:
+  /// **'Enhance & Scan'**
+  String get ocrEnhanceTitle;
+
+  /// Label for image rotation tool
+  ///
+  /// In en, this message translates to:
+  /// **'Rotate'**
+  String get ocrEnhanceRotate;
+
+  /// Tooltip for 90 degrees counter-clockwise rotation
+  ///
+  /// In en, this message translates to:
+  /// **'Rotate left'**
+  String get ocrEnhanceRotateLeft;
+
+  /// Tooltip for 90 degrees clockwise rotation
+  ///
+  /// In en, this message translates to:
+  /// **'Rotate right'**
+  String get ocrEnhanceRotateRight;
+
+  /// Label for image cropping tool
+  ///
+  /// In en, this message translates to:
+  /// **'Crop'**
+  String get ocrEnhanceCrop;
+
+  /// Label for image filter selection tab
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get ocrEnhanceFilter;
+
+  /// Label for the toolbar button that flips light and dark, so light text on a dark background can be read
+  ///
+  /// In en, this message translates to:
+  /// **'Invert'**
+  String get ocrEnhanceInvert;
+
+  /// Preset filter showing original image without modification
+  ///
+  /// In en, this message translates to:
+  /// **'Original'**
+  String get ocrEnhanceFilterOriginal;
+
+  /// Document binarization filter maximizing contrast between text and background
+  ///
+  /// In en, this message translates to:
+  /// **'Document'**
+  String get ocrEnhanceFilterDocument;
+
+  /// Grayscale monochrome filter
+  ///
+  /// In en, this message translates to:
+  /// **'Grayscale'**
+  String get ocrEnhanceFilterGrayscale;
+
+  /// High-contrast enhancement filter for faint text
+  ///
+  /// In en, this message translates to:
+  /// **'High Contrast'**
+  String get ocrEnhanceFilterEnhance;
+
+  /// Label for image brightness adjustment slider
+  ///
+  /// In en, this message translates to:
+  /// **'Brightness'**
+  String get ocrEnhanceBrightness;
+
+  /// Label for image contrast adjustment slider
+  ///
+  /// In en, this message translates to:
+  /// **'Contrast'**
+  String get ocrEnhanceContrast;
+
+  /// Tab label for brightness and contrast sliders
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust'**
+  String get ocrEnhanceAdjust;
+
+  /// Header for live OCR text preview card
+  ///
+  /// In en, this message translates to:
+  /// **'Recognized Text Preview'**
+  String get ocrEnhanceLiveText;
+
+  /// Message shown when OCR has not detected any text in the current image
+  ///
+  /// In en, this message translates to:
+  /// **'No text detected yet. Try adjusting contrast, rotating, or cropping closer.'**
+  String get ocrEnhanceLiveTextNone;
+
+  /// Badge showing number of words recognized in the live preview
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 word detected} other{{count} words detected}}'**
+  String ocrEnhanceLiveWordCount(int count);
+
+  /// Primary button action to confirm and insert recognized text into the editor
+  ///
+  /// In en, this message translates to:
+  /// **'Insert into Entry'**
+  String get ocrEnhanceInsertText;
+
+  /// Button to discard current photo and return to camera
+  ///
+  /// In en, this message translates to:
+  /// **'Retake'**
+  String get ocrEnhanceRetake;
+
+  /// Status text while image adjustments are being rendered
+  ///
+  /// In en, this message translates to:
+  /// **'Enhancing image...'**
+  String get ocrEnhanceProcessing;
+
+  /// Status text while live OCR recognition is running in the background
+  ///
+  /// In en, this message translates to:
+  /// **'Scanning text...'**
+  String get ocrEnhanceLiveScanning;
+
+  /// OCR language option for mixed English and Malayalam text
+  ///
+  /// In en, this message translates to:
+  /// **'English + മലയാളം'**
+  String get ocrLanguageAll;
+
+  /// OCR language option for Malayalam text only
+  ///
+  /// In en, this message translates to:
+  /// **'മലയാളം'**
+  String get ocrLanguageMalayalam;
+
+  /// OCR language option for English text only
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get ocrLanguageEnglish;
+
+  /// Tooltip for the OCR language selector
+  ///
+  /// In en, this message translates to:
+  /// **'Select OCR language'**
+  String get ocrLanguageSelectTooltip;
 }
 
 class _AppLocalizationsDelegate

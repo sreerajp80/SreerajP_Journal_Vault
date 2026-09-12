@@ -27,6 +27,8 @@ import 'package:sreerajp_journal_vault/features/entries/presentation/editor/imag
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/inline_image_store.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/table_embed.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/voice_note_recorder.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/ocr_camera_screen.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/ocr_enhance_screen.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/version_history_screen.dart';
 import 'package:sreerajp_journal_vault/features/entries/providers/entry_providers.dart';
 import 'package:sreerajp_journal_vault/features/entries/providers/image_edit_providers.dart';
@@ -1643,21 +1645,67 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
 
     if (source == null || !mounted) return;
 
-    final picker = widget.imagePicker ?? ImagePicker();
-    final XFile? pickedFile;
-    try {
-      pickedFile = await picker.pickImage(source: source);
-    } catch (e, stackTrace) {
-      AppLogger.error(
-        'EntryEditorScreen: image pick failed',
-        error: e,
-        stackTrace: stackTrace,
-      );
-      if (mounted) _showMessage(l10n.entryEditorOcrError);
+    final String? pickedResult;
+    if (source == ImageSource.camera) {
+      if (widget.imagePicker != null) {
+        // Preserves test fake injection when testing EntryEditorScreen
+        try {
+          final picked = await widget.imagePicker!.pickImage(
+            source: ImageSource.camera,
+          );
+          pickedResult = picked?.path;
+        } catch (e, stackTrace) {
+          AppLogger.error(
+            'EntryEditorScreen: image pick failed',
+            error: e,
+            stackTrace: stackTrace,
+          );
+          if (mounted) _showMessage(l10n.entryEditorOcrError);
+          return;
+        }
+      } else {
+        pickedResult = await Navigator.of(context).push<String>(
+          MaterialPageRoute(builder: (_) => const OcrCameraScreen()),
+        );
+      }
+    } else {
+      final picker = widget.imagePicker ?? ImagePicker();
+      try {
+        final picked = await picker.pickImage(source: ImageSource.gallery);
+        if (picked != null && widget.imagePicker == null) {
+          if (!mounted) return;
+          pickedResult = await Navigator.of(context).push<String>(
+            MaterialPageRoute(
+              builder: (_) => OcrEnhanceScreen(imagePath: picked.path),
+            ),
+          );
+        } else {
+          pickedResult = picked?.path;
+        }
+      } catch (e, stackTrace) {
+        AppLogger.error(
+          'EntryEditorScreen: gallery image pick failed',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        if (mounted) _showMessage(l10n.entryEditorOcrError);
+        return;
+      }
+    }
+
+    if (pickedResult == null || !mounted) return;
+
+    // If pickedResult is recognized text returned directly from OcrEnhanceScreen
+    if (!File(pickedResult).existsSync()) {
+      if (pickedResult.trim().isEmpty) {
+        _showMessage(l10n.entryEditorOcrNoTextFound);
+      } else {
+        _insertExtractedText(pickedResult);
+      }
       return;
     }
 
-    if (pickedFile == null || !mounted) return;
+    final pickedPath = pickedResult;
 
     // --- Crop & rotate step ---
     final theme = Theme.of(context);
@@ -1665,7 +1713,7 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
     try {
       final imageEditService = ref.read(imageEditServiceProvider);
       croppedPath = await imageEditService.cropAndRotate(
-        sourcePath: pickedFile.path,
+        sourcePath: pickedPath,
         toolbarTitle: l10n.entryEditorCropImageTitle,
         toolbarColor: theme.colorScheme.surface,
         toolbarWidgetColor: theme.colorScheme.onSurface,
@@ -1681,7 +1729,7 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
       if (mounted) _showMessage(l10n.entryEditorCropImageError);
       // Clean up the picked file before returning.
       try {
-        File(pickedFile.path).deleteSync();
+        File(pickedPath).deleteSync();
       } catch (_) {}
       return;
     }
@@ -1689,7 +1737,7 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
     if (croppedPath == null || !mounted) {
       // User cancelled the cropper — clean up and stop.
       try {
-        File(pickedFile.path).deleteSync();
+        File(pickedPath).deleteSync();
       } catch (_) {}
       return;
     }
@@ -1716,27 +1764,7 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
         return;
       }
 
-      final selection = _quillController.selection;
-      final int index;
-      final int length;
-      if (selection.isValid && selection.baseOffset >= 0) {
-        index = selection.baseOffset;
-        length = selection.isCollapsed
-            ? 0
-            : (selection.extentOffset - selection.baseOffset).abs();
-      } else {
-        index = _quillController.document.length - 1;
-        length = 0;
-      }
-
-      _quillController.replaceText(
-        index,
-        length,
-        extractedText,
-        TextSelection.collapsed(offset: index + extractedText.length),
-      );
-
-      setState(() => _isDirty = true);
+      _insertExtractedText(extractedText);
     } catch (e, stackTrace) {
       AppLogger.error(
         'EntryEditorScreen: OCR extraction failed',
@@ -1746,7 +1774,7 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
       if (mounted) _showMessage(l10n.entryEditorOcrError);
     } finally {
       // Clean up temporary image files.
-      for (final path in {pickedFile.path, ocrImagePath}) {
+      for (final path in {pickedPath, ocrImagePath}) {
         try {
           final file = File(path);
           if (file.existsSync()) {
@@ -1755,6 +1783,31 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
         } catch (_) {}
       }
     }
+  }
+
+  void _insertExtractedText(String extractedText) {
+    if (extractedText.isEmpty) return;
+    final selection = _quillController.selection;
+    final int index;
+    final int length;
+    if (selection.isValid && selection.baseOffset >= 0) {
+      index = selection.baseOffset;
+      length = selection.isCollapsed
+          ? 0
+          : (selection.extentOffset - selection.baseOffset).abs();
+    } else {
+      index = _quillController.document.length - 1;
+      length = 0;
+    }
+
+    _quillController.replaceText(
+      index,
+      length,
+      extractedText,
+      TextSelection.collapsed(offset: index + extractedText.length),
+    );
+
+    setState(() => _isDirty = true);
   }
 
   void _showMessage(String message) {

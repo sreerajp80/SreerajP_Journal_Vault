@@ -4451,5 +4451,194 @@
   "editorGotoLineEnd": "⇥",
   "@editorGotoLineEnd": {
     "description": "Selection menu item that moves the caret to the end of the current line. Shown as a right arrow-to-bar glyph."
+  },
+  "ocrCameraTitle": "Scan Document",
+  "@ocrCameraTitle": {
+    "description": "Title of the dedicated OCR camera screen"
+  },
+  "ocrCameraPermissionDenied": "Camera permission is required to photograph documents for text recognition.",
+  "@ocrCameraPermissionDenied": {
+    "description": "Message displayed when camera permission is not granted"
+  },
+  "ocrCameraOpenSettings": "Open Settings",
+  "@ocrCameraOpenSettings": {
+    "description": "Button to open application settings for granting camera permission"
+  },
+  "ocrCameraNoCameras": "No camera found on this device.",
+  "@ocrCameraNoCameras": {
+    "description": "Message displayed when no camera hardware is available"
+  },
+  "ocrCameraFlashOff": "Flash off",
+  "@ocrCameraFlashOff": {
+    "description": "Tooltip/semantics for flash off mode"
+  },
+  "ocrCameraFlashAuto": "Flash auto",
+  "@ocrCameraFlashAuto": {
+    "description": "Tooltip/semantics for flash auto mode"
+  },
+  "ocrCameraFlashOn": "Flash on",
+  "@ocrCameraFlashOn": {
+    "description": "Tooltip/semantics for flash on mode"
+  },
+  "ocrCameraFlashTorch": "Torch on",
+  "@ocrCameraFlashTorch": {
+    "description": "Tooltip/semantics for torch/flashlight mode"
+  },
+  "ocrCameraGridToggle": "Framing grid",
+  "@ocrCameraGridToggle": {
+    "description": "Tooltip for toggling the document alignment grid"
+  },
+  "ocrCameraSwitch": "Switch camera",
+  "@ocrCameraSwitch": {
+    "description": "Tooltip for switching between back and front cameras"
+  },
+  "ocrCameraCaptureHint": "Tap to focus • Pinch to zoom",
+  "@ocrCameraCaptureHint": {
+    "description": "Hint banner reminding user they can tap to focus and pinch to zoom"
+  },
+  "ocrCameraCapture": "Take photo",
+  "@ocrCameraCapture": {
+    "description": "Shutter button semantics label in OCR camera"
+  },
+  "ocrCameraGallery": "Choose from gallery",
+  "@ocrCameraGallery": {
+    "description": "Button to select a photo from the device gallery directly from the camera screen"
+  },
+  "ocrCameraExposure": "Exposure",
+  "@ocrCameraExposure": {
+    "description": "Label for camera exposure compensation control"
+  },
+  "ocrCameraZoom": "Zoom",
+  "@ocrCameraZoom": {
+    "description": "Label for camera continuous zoom control"
+  },
+  "ocrCameraFocusAuto": "Auto focus",
+  "@ocrCameraFocusAuto": {
+    "description": "Tooltip/label when camera focus mode is set to auto"
+  },
+  "ocrCameraFocusLocked": "Focus locked",
+  "@ocrCameraFocusLocked": {
+    "description": "Tooltip/label when camera focus mode is locked"
+  },
+  "ocrCameraExposureAuto": "Auto exposure",
+  "@ocrCameraExposureAuto": {
+    "description": "Tooltip/label when camera exposure mode is set to auto"
+  },
+  "ocrCameraExposureLocked": "Exposure locked",
+  "@ocrCameraExposureLocked": {
+    "description": "Tooltip/label when camera exposure mode is locked"
+  },
+  "ocrCameraControls": "Camera controls",
+  "@ocrCameraControls": {
+    "description": "Tooltip/button label to open camera adjustment sliders"
+  },
+  "ocrCameraReset": "Reset",
+  "@ocrCameraReset": {
+    "description": "Button to reset camera exposure or zoom adjustments back to default"
+  },
+  "ocrEnhanceTitle": "Enhance & Scan",
+  "@ocrEnhanceTitle": {
+    "description": "App bar title for the image enhancement and live OCR screen"
+  },
+  "ocrEnhanceRotate": "Rotate",
+  "@ocrEnhanceRotate": {
+    "description": "Label for image rotation tool"
+  },
+  "ocrEnhanceRotateLeft": "Rotate left",
+  "@ocrEnhanceRotateLeft": {
+    "description": "Tooltip for 90 degrees counter-clockwise rotation"
+  },
+  "ocrEnhanceRotateRight": "Rotate right",
+  "@ocrEnhanceRotateRight": {
+    "description": "Tooltip for 90 degrees clockwise rotation"
+  },
+  "ocrEnhanceCrop": "Crop",
+  "@ocrEnhanceCrop": {
+    "description": "Label for image cropping tool"
+  },
+  "ocrEnhanceFilter": "Filter",
+  "@ocrEnhanceFilter": {
+    "description": "Label for image filter selection tab"
+  },
+  "ocrEnhanceInvert": "Invert",
+  "@ocrEnhanceInvert": {
+    "description": "Label for the toolbar button that flips light and dark, so light text on a dark background can be read"
+  },
+  "ocrEnhanceFilterOriginal": "Original",
+  "@ocrEnhanceFilterOriginal": {
+    "description": "Preset filter showing original image without modification"
+  },
+  "ocrEnhanceFilterDocument": "Document",
+  "@ocrEnhanceFilterDocument": {
+    "description": "Document binarization filter maximizing contrast between text and background"
+  },
+  "ocrEnhanceFilterGrayscale": "Grayscale",
+  "@ocrEnhanceFilterGrayscale": {
+    "description": "Grayscale monochrome filter"
+  },
+  "ocrEnhanceFilterEnhance": "High Contrast",
+  "@ocrEnhanceFilterEnhance": {
+    "description": "High-contrast enhancement filter for faint text"
+  },
+  "ocrEnhanceBrightness": "Brightness",
+  "@ocrEnhanceBrightness": {
+    "description": "Label for image brightness adjustment slider"
+  },
+  "ocrEnhanceContrast": "Contrast",
+  "@ocrEnhanceContrast": {
+    "description": "Label for image contrast adjustment slider"
+  },
+  "ocrEnhanceAdjust": "Adjust",
+  "@ocrEnhanceAdjust": {
+    "description": "Tab label for brightness and contrast sliders"
+  },
+  "ocrEnhanceLiveText": "Recognized Text Preview",
+  "@ocrEnhanceLiveText": {
+    "description": "Header for live OCR text preview card"
+  },
+  "ocrEnhanceLiveTextNone": "No text detected yet. Try adjusting contrast, rotating, or cropping closer.",
+  "@ocrEnhanceLiveTextNone": {
+    "description": "Message shown when OCR has not detected any text in the current image"
+  },
+  "ocrEnhanceLiveWordCount": "{count, plural, =1{1 word detected} other{{count} words detected}}",
+  "@ocrEnhanceLiveWordCount": {
+    "description": "Badge showing number of words recognized in the live preview",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ocrEnhanceInsertText": "Insert into Entry",
+  "@ocrEnhanceInsertText": {
+    "description": "Primary button action to confirm and insert recognized text into the editor"
+  },
+  "ocrEnhanceRetake": "Retake",
+  "@ocrEnhanceRetake": {
+    "description": "Button to discard current photo and return to camera"
+  },
+  "ocrEnhanceProcessing": "Enhancing image...",
+  "@ocrEnhanceProcessing": {
+    "description": "Status text while image adjustments are being rendered"
+  },
+  "ocrEnhanceLiveScanning": "Scanning text...",
+  "@ocrEnhanceLiveScanning": {
+    "description": "Status text while live OCR recognition is running in the background"
+  },
+  "ocrLanguageAll": "English + മലയാളം",
+  "@ocrLanguageAll": {
+    "description": "OCR language option for mixed English and Malayalam text"
+  },
+  "ocrLanguageMalayalam": "മലയാളം",
+  "@ocrLanguageMalayalam": {
+    "description": "OCR language option for Malayalam text only"
+  },
+  "ocrLanguageEnglish": "English",
+  "@ocrLanguageEnglish": {
+    "description": "OCR language option for English text only"
+  },
+  "ocrLanguageSelectTooltip": "Select OCR language",
+  "@ocrLanguageSelectTooltip": {
+    "description": "Tooltip for the OCR language selector"
   }
 }

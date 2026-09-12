@@ -44,6 +44,10 @@
 -dontwarn com.google.mlkit.vision.text.japanese.**
 -dontwarn com.google.mlkit.vision.text.korean.**
 
+# --- Tesseract4Android ---
+-keep class com.googlecode.tesseract.android.** { *; }
+-keep class com.googlecode.leptonica.android.** { *; }
+
 # NOTE: R8 was enabled for the first time on 2026-07-25. These rules cover the
 # engine, this app's channels, and the crypto path. Plugins with native Android
 # code (pdfrx, just_audio, record, speech_to_text,

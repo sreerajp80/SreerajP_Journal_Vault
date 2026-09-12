@@ -84,14 +84,26 @@ class _FakeOcrService implements OcrService {
   final String textToReturn;
   final bool shouldThrow;
   String? lastProcessedPath;
+  String? lastLanguage;
+  final List<int> cancelledRequestIds = <int>[];
 
   @override
-  Future<String> extractTextFromImage(String imagePath) async {
+  Future<String> extractTextFromImage(
+    String imagePath, {
+    String language = 'eng+mal',
+    int? requestId,
+  }) async {
     lastProcessedPath = imagePath;
+    lastLanguage = language;
     if (shouldThrow) {
       throw Exception('OCR extraction failed');
     }
     return textToReturn;
+  }
+
+  @override
+  Future<void> cancelRequests(List<int> requestIds) async {
+    cancelledRequestIds.addAll(requestIds);
   }
 }
 
@@ -239,5 +251,100 @@ void main() {
       expect(result, 'plain text');
       expect(scannedPaths, ['/tmp/photo.jpg']);
     });
+  });
+
+  group('NativeOcrService', () {
+    const ocrChannel = MethodChannel('sreerajp.journal_vault/ocr');
+    MethodCall? lastCall;
+
+    setUp(() {
+      lastCall = null;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(ocrChannel, (call) async {
+            lastCall = call;
+            if (call.method == 'extractText') {
+              final lang = call.arguments['language'] as String?;
+              if (lang == 'mal') {
+                return 'മാതൃവാണി';
+              }
+              return 'English text and മലയാളം';
+            }
+            return null;
+          });
+    });
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(ocrChannel, null);
+    });
+
+    test(
+      'invokes native extractText with default bilingual language',
+      () async {
+        const service = NativeOcrService();
+        final result = await service.extractTextFromImage(
+          '/tmp/test_image.jpg',
+        );
+
+        expect(result, 'English text and മലയാളം');
+        expect(lastCall?.method, 'extractText');
+        expect(lastCall?.arguments['imagePath'], '/tmp/test_image.jpg');
+        expect(lastCall?.arguments['language'], 'eng+mal');
+      },
+    );
+
+    test('passes the request id so the call can be cancelled later', () async {
+      const service = NativeOcrService();
+      await service.extractTextFromImage('/tmp/test_image.jpg', requestId: 7);
+
+      expect(lastCall?.arguments['requestId'], 7);
+    });
+
+    test('asks the platform to drop cancelled recognition requests', () async {
+      const service = NativeOcrService();
+      await service.cancelRequests(<int>[3, 4]);
+
+      expect(lastCall?.method, 'cancelOcr');
+      expect(lastCall?.arguments['requestIds'], <int>[3, 4]);
+    });
+
+    test('sends nothing when there is nothing to cancel', () async {
+      const service = NativeOcrService();
+      await service.cancelRequests(<int>[]);
+
+      expect(lastCall, isNull);
+    });
+
+    test('invokes native extractText with specific language', () async {
+      const service = NativeOcrService();
+      final result = await service.extractTextFromImage(
+        '/tmp/malayalam.jpg',
+        language: 'mal',
+      );
+
+      expect(result, 'മാതൃവാണി');
+      expect(lastCall?.arguments['language'], 'mal');
+    });
+
+    test(
+      'falls back to fallbackService when native plugin is missing',
+      () async {
+        final fallback = _FakeOcrService(textToReturn: 'fallback result');
+        const missingChannel = MethodChannel('non_existent_channel');
+        final service = NativeOcrService(
+          channel: missingChannel,
+          fallbackService: fallback,
+        );
+
+        final result = await service.extractTextFromImage(
+          '/tmp/photo.jpg',
+          language: 'eng',
+        );
+
+        expect(result, 'fallback result');
+        expect(fallback.lastProcessedPath, '/tmp/photo.jpg');
+        expect(fallback.lastLanguage, 'eng');
+      },
+    );
   });
 }

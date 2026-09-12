@@ -169,4 +169,9 @@ dependencies {
     implementation("androidx.documentfile:documentfile:1.0.1")
     implementation("androidx.activity:activity:1.9.0")
     implementation("androidx.fragment:fragment:1.8.6")
+    implementation("cz.adaptech.tesseract4android:tesseract4android:4.9.0")
+
+    // Test only — never shipped in the APK. Covers the pure-arithmetic OCR
+    // reading-order algorithm in OcrReadingOrder.kt.
+    testImplementation("junit:junit:4.13.2")
 }

@@ -73,13 +73,40 @@ section 7.
 | `flutter_quill` | The rich-text entry editor and its Delta document format | `lib/features/entries/presentation/editor/` |
 | `record` | Voice note recording | `lib/features/entries/services/voice_note_service.dart` |
 | `speech_to_text` | Dictation into the editor | `lib/features/entries/` |
-| `image_picker` | Camera photo capture and gallery image selection for OCR | `lib/features/entries/presentation/entry_editor_screen.dart` |
+| `image_picker` | Gallery image selection and fallback photo capture for OCR | `lib/features/entries/presentation/entry_editor_screen.dart` |
 | `image_cropper` | Crop-and-rotate UI before OCR scanning, wraps Android uCrop (offline) | `lib/features/entries/services/image_edit_service.dart` |
-| `google_mlkit_text_recognition` | On-device, 100% offline OCR text extraction from images | `lib/features/entries/services/ocr_service.dart` |
+| `google_mlkit_text_recognition` | On-device fallback text extraction from images | `lib/features/entries/services/ocr_service.dart` |
+| `tesseract4android` (native) | On-device, 100% offline Tesseract 5 OCR text extraction supporting English, Malayalam, and bilingual recognition via native MethodChannel | `android/app/build.gradle.kts`, `MainActivity.kt`, `lib/features/entries/services/ocr_service.dart` |
 | `image` | Pure-Dart image decode, resize, grayscale and contrast. Prepares a photo before OCR so thin marks (`.`, `=`, `,`, `:`) are large and clear enough to be recognised. No networking dependency | `lib/features/entries/services/ocr_image_preprocessor.dart` |
 | `just_audio` | In-app audio attachment playback | `lib/features/attachments/presentation/audio_attachment_view.dart` |
 | `pdfrx` | In-app PDF attachment viewing (PDFium-based, open source) | `.../pdf_attachment_view.dart` |
 | `table_calendar` | The timeline calendar view | `lib/features/timeline/` |
+
+#### OCR language models (`assets/tessdata/`)
+
+These are data files, not packages. They ship inside the app and are copied to
+internal storage on first run by `ensureTessData` in `MainActivity.kt`. Nothing
+is downloaded — the app has no HTTP client and none of this leaves the device.
+
+The Tesseract project publishes each language in three builds. They differ in how
+precisely the recogniser's weights are stored, which trades accuracy against size
+and speed.
+
+| File | Build used | Size | Why |
+|---|---|---|---|
+| `mal.traineddata` | `tessdata_best` | 12.5 MB | Full-precision weights. Malayalam has stacked vowel signs and joined letter shapes, which are the first thing lost when weights are rounded, so it gains the most from this build. |
+| `eng.traineddata` | `tessdata_fast` | 4.1 MB | Rounded weights. English recognition is already reliable at this build, and `tessdata_best` would add 11.3 MB for little gain. |
+
+Source: `github.com/tesseract-ocr/tessdata_best` and
+`github.com/tesseract-ocr/tessdata_fast`, Apache 2.0.
+
+The `tessdata` (standard) build is deliberately not used. Its extra size is the
+pre-neural engine from Tesseract 3, which this app never switches on.
+
+**When changing any model file, bump `TESSDATA_VERSION` in `MainActivity.kt`.**
+The copy to internal storage is skipped when the files are already there, so
+without a version bump an app update would keep using the old model for everyone
+who already had the app installed.
 
 ### Files, attachments and export
 

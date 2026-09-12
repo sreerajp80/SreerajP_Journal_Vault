@@ -43,14 +43,26 @@ class _FakeOcrService implements OcrService {
   final String textToReturn;
   final bool shouldThrow;
   String? lastProcessedPath;
+  String? lastLanguage;
+  final List<int> cancelledRequestIds = <int>[];
 
   @override
-  Future<String> extractTextFromImage(String imagePath) async {
+  Future<String> extractTextFromImage(
+    String imagePath, {
+    String language = 'eng+mal',
+    int? requestId,
+  }) async {
     lastProcessedPath = imagePath;
+    lastLanguage = language;
     if (shouldThrow) {
       throw Exception('OCR extraction failed');
     }
     return textToReturn;
+  }
+
+  @override
+  Future<void> cancelRequests(List<int> requestIds) async {
+    cancelledRequestIds.addAll(requestIds);
   }
 }
 

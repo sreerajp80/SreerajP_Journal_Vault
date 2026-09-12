@@ -734,7 +734,7 @@ class AppLocalizationsMl extends AppLocalizations {
   String get editorCalloutHint => 'കോൾഔട്ട് വിവരണം ഇവിടെ എഴുതുക...';
 
   @override
-  String get editorInsertTab => 'Insert tab';
+  String get editorInsertTab => 'ടാബ് ചേർക്കുക';
 
   @override
   String get editorInsertTable => 'പട്ടിക ചേർക്കുക';
@@ -888,7 +888,7 @@ class AppLocalizationsMl extends AppLocalizations {
   String get entryLinkedFrom => 'ലിങ്ക് ചെയ്ത ഉറവിടം';
 
   @override
-  String get entryMoodTooltip => 'Set mood';
+  String get entryMoodTooltip => 'മൂഡ് നിശ്ചയിക്കുക';
 
   @override
   String get entryMood => 'വികാരം';
@@ -2724,92 +2724,91 @@ class AppLocalizationsMl extends AppLocalizations {
       'സിസ്റ്റം മോഡ് ഫോണിലെ ഡാർക്ക് മോഡ് ക്രമീകരണത്തിന് അനുസരിച്ച് സ്വയമേവ മാറും.';
 
   @override
-  String get settingsThemeSepia => 'Paper / Sepia';
+  String get settingsThemeSepia => 'പേപ്പർ / സെപിയ';
 
   @override
-  String get settingsThemeOled => 'OLED / True Black';
+  String get settingsThemeOled => 'OLED / കറുപ്പ്';
 
   @override
   String get settingsThemeSepiaDesc =>
-      'Warm parchment paper tone that is soothing for long writing sessions.';
+      'ദീർഘനേരത്തെ എഴുത്തിന് അനുയോജ്യമായ മൃദുവായ പേപ്പർ നിറം.';
 
   @override
   String get settingsThemeOledDesc =>
-      'Pure pitch black background with crisp contrast for AMOLED battery saving.';
+      'AMOLED സ്ക്രീനുകളിൽ ബാറ്ററി ലാഭിക്കാൻ സഹായിക്കുന്ന പൂർണ്ണ കറുപ്പ് പശ്ചാത്തലം.';
 
   @override
   String get settingsThemeLightDesc =>
-      'Clean and bright daylight reading surface.';
+      'പകൽ വെളിച്ചത്തിൽ വായിക്കാൻ അനുയോജ്യമായ തെളിഞ്ഞ പശ്ചാത്തലം.';
 
   @override
   String get settingsThemeDarkDesc =>
-      'Soft charcoal dark background for low-light writing.';
+      'കുറഞ്ഞ വെളിച്ചത്തിൽ എഴുതാൻ അനുയോജ്യമായ ഡാർക്ക് പശ്ചാത്തലം.';
 
   @override
   String get settingsThemeSystemDesc =>
-      'Automatically follows your device system brightness preference.';
+      'ഉപകരണത്തിന്റെ സിസ്റ്റം തീം സ്വയമേവ പിന്തുടരുന്നു.';
 
   @override
-  String get appearanceTypographyTitle => 'Reading Typography';
+  String get appearanceTypographyTitle => 'വായനാ ടൈപ്പോഗ്രാഫി';
 
   @override
   String get appearanceTypographySubtitle =>
-      'Customize body font family and reading size';
+      'ഫോണ്ട് ശൈലിയും വലിപ്പവും ഇഷ്ടാനുസൃതമാക്കുക';
 
   @override
-  String get appearanceFontFamily => 'Body Font Family';
+  String get appearanceFontFamily => 'ഫോണ്ട് ശൈലി';
 
   @override
-  String get appearanceFontSize => 'Body Font Size';
+  String get appearanceFontSize => 'ഫോണ്ട് വലിപ്പം';
 
   @override
-  String get appearanceFontFamilySans => 'Sans-Serif';
+  String get appearanceFontFamilySans => 'സാൻസ്-സെരിഫ്';
 
   @override
-  String get appearanceFontFamilySansDesc =>
-      'Clean and contemporary modern typeface';
+  String get appearanceFontFamilySansDesc => 'വൃത്തിയുള്ള ആധുനിക ടൈപ്പ്ഫേസ്';
 
   @override
-  String get appearanceFontFamilySerif => 'Book Serif';
+  String get appearanceFontFamilySerif => 'ബുക്ക് സെരിഫ്';
 
   @override
-  String get appearanceFontFamilySerifDesc =>
-      'Classic editorial and literary book feel';
+  String get appearanceFontFamilySerifDesc => 'ക്ലാസിക് പുസ്തക വായനാ ശൈലി';
 
   @override
-  String get appearanceFontFamilyMonospace => 'Monospace';
+  String get appearanceFontFamilyMonospace => 'മോണോസ്പേസ്';
 
   @override
   String get appearanceFontFamilyMonospaceDesc =>
-      'Fixed-width typewriter and Markdown aesthetic';
+      'ടൈപ്പ്റൈറ്റർ ശൈലിയിലുള്ള ഫിക്സഡ് വിഡ്ത്ത് ഫോണ്ട്';
 
   @override
-  String get appearanceFontSizeSmall => 'Small';
+  String get appearanceFontSizeSmall => 'ചെറുത്';
 
   @override
-  String get appearanceFontSizeDefault => 'Default';
+  String get appearanceFontSizeDefault => 'സാധാരണ';
 
   @override
-  String get appearanceFontSizeMedium => 'Medium';
+  String get appearanceFontSizeMedium => 'ഇടത്തരം';
 
   @override
-  String get appearanceFontSizeLarge => 'Large';
+  String get appearanceFontSizeLarge => 'വലുത്';
 
   @override
-  String get appearanceFontSizeExtraLarge => 'X-Large';
+  String get appearanceFontSizeExtraLarge => 'വളരെ വലുത്';
 
   @override
-  String get appearanceSampleHeadline => 'Quiet Reflections';
+  String get appearanceSampleHeadline => 'ശാന്തമായ ചിന്തകൾ';
 
   @override
   String get appearanceSampleBody =>
-      'The journal is a quiet space to slow down and reflect. Every thought, memory, and sketch is securely preserved in your private vault.';
+      'ചിന്തിക്കാനും മനസ്സമാധാനത്തോടെ എഴുതാനുമുള്ള സ്വകാര്യ ഇടമാണിത്. നിങ്ങളുടെ ഓരോ ചിന്തകളും ഓർമ്മകളും ഇതിൽ സുരക്ഷിതമായി സൂക്ഷിക്കപ്പെടുന്നു.';
 
   @override
-  String get appearanceTypographyUpdated => 'Typography settings updated.';
+  String get appearanceTypographyUpdated =>
+      'ടൈപ്പോഗ്രാഫി ക്രമീകരണങ്ങൾ പുതുക്കി.';
 
   @override
-  String get appearanceTypographyReset => 'Typography reset to default.';
+  String get appearanceTypographyReset => 'ടൈപ്പോഗ്രാഫി പഴയപടിയാക്കി.';
 
   @override
   String get featuresCatJournaling => 'എഴുത്തും എഡിറ്ററും';
@@ -3239,215 +3238,359 @@ class AppLocalizationsMl extends AppLocalizations {
       'എയർക്യുആർ ക്യാമറയും സ്ക്രീനും വഴി മാത്രമേ പ്രവർത്തിക്കൂ. വൈ-ഫൈ, ബ്ലൂടൂത്ത്, ഇന്റർനെറ്റ് എന്നിവ ആവശ്യമില്ല.';
 
   @override
-  String get timeCapsuleActionSeal => 'Seal as Time Capsule';
+  String get timeCapsuleActionSeal => 'ടൈം കാപ്സ്യൂളായി പൂട്ടുക';
 
   @override
-  String get timeCapsuleSealTitle => 'Seal as Time Capsule';
+  String get timeCapsuleSealTitle => 'ടൈം കാപ്സ്യൂളായി പൂട്ടുക';
 
   @override
   String get timeCapsuleSealDescription =>
-      'Cryptographically seals this entry until a future date. The decryption key will not be released until that date arrives.';
+      'ഒരു നിശ്ചിത തീയതി വരെ ഈ കുറിപ്പ് എൻക്രിപ്റ്റ് ചെയ്ത് പൂട്ടുന്നു. ആ തീയതി എത്തുന്നതുവരെ ഇത് തുറക്കാൻ കഴിയില്ല.';
 
   @override
-  String get timeCapsuleUnlockDateLabel => 'Unlock Date';
+  String get timeCapsuleUnlockDateLabel => 'തുറക്കേണ്ട തീയതി';
 
   @override
-  String get timeCapsuleTeaserHint => 'Note to future self (optional teaser)';
+  String get timeCapsuleTeaserHint =>
+      'ഭാവിയിലെ നിങ്ങൾക്കായൊരു കുറിപ്പ് (ഓപ്ഷണൽ സൂചന)';
 
   @override
-  String get timeCapsulePreset1Month => '1 Month';
+  String get timeCapsulePreset1Month => '1 മാസം';
 
   @override
-  String get timeCapsulePreset6Months => '6 Months';
+  String get timeCapsulePreset6Months => '6 മാസം';
 
   @override
-  String get timeCapsulePreset1Year => '1 Year';
+  String get timeCapsulePreset1Year => '1 വർഷം';
 
   @override
-  String get timeCapsulePreset3Years => '3 Years';
+  String get timeCapsulePreset3Years => '3 വർഷം';
 
   @override
-  String get timeCapsulePreset5Years => '5 Years';
+  String get timeCapsulePreset5Years => '5 വർഷം';
 
   @override
-  String get timeCapsulePresetCustom => 'Custom Date';
+  String get timeCapsulePresetCustom => 'മറ്റൊരു തീയതി';
 
   @override
-  String get timeCapsuleSealConfirm => 'Seal Capsule';
+  String get timeCapsuleSealConfirm => 'കാപ്സ്യൂൾ പൂട്ടുക';
 
   @override
-  String get timeCapsuleSealedBadge => 'Sealed Time Capsule';
+  String get timeCapsuleSealedBadge => 'പൂട്ടിയ ടൈം കാപ്സ്യൂൾ';
 
   @override
   String timeCapsuleSealedUntil(String date) {
-    return 'Sealed until $date';
+    return '$date വരെ പൂട്ടിയിരിക്കുന്നു';
   }
 
   @override
   String timeCapsuleOpensInDays(int days) {
-    return 'Opens in $days days';
+    return '$days ദിവസത്തിനുള്ളിൽ തുറക്കും';
   }
 
   @override
   String timeCapsuleOpensInHours(int hours) {
-    return 'Opens in $hours hours';
+    return '$hours മണിക്കൂറിനുള്ളിൽ തുറക്കും';
   }
 
   @override
-  String get timeCapsuleOpensToday => 'Opens today!';
+  String get timeCapsuleOpensToday => 'ഇന്ന് തുറക്കാം!';
 
   @override
-  String get timeCapsuleReadyToOpen => 'Ready to Open';
+  String get timeCapsuleReadyToOpen => 'തുറക്കാൻ തയ്യാറാണ്';
 
   @override
   String get timeCapsuleLockedExplanation =>
-      'This entry is cryptographically sealed under AES-256-GCM. The app\'s date-gated vault engine will not release the decryption key until the unlock date.';
+      'ഈ കുറിപ്പ് AES-256-GCM സാങ്കേതികവിദ്യ ഉപയോഗിച്ച് സുരക്ഷിതമായി പൂട്ടിയിരിക്കുന്നു. നിശ്ചിത തീയതി എത്തുന്നതുവരെ ഇത് തുറക്കാനാകില്ല.';
 
   @override
-  String get timeCapsuleUnsealButton => 'Unseal Time Capsule';
+  String get timeCapsuleUnsealButton => 'ടൈം കാപ്സ്യൂൾ തുറക്കുക';
 
   @override
   String timeCapsuleUnsealLockedPrompt(String date) {
-    return 'Locked until $date';
+    return '$date വരെ പൂട്ടിയിരിക്കുന്നു';
   }
 
   @override
   String timeCapsuleSealedSuccess(String date) {
-    return 'Entry sealed into a time capsule until $date.';
+    return '$date വരെ കുറിപ്പ് ടൈം കാപ്സ്യൂളായി പൂട്ടി.';
   }
 
   @override
   String get timeCapsuleUnsealedSuccess =>
-      'Time capsule successfully unsealed! Welcome back to your words.';
+      'ടൈം കാപ്സ്യൂൾ വിജയകരമായി തുറന്നു! നിങ്ങളുടെ വാക്കുകളിലേക്ക് സ്വാഗതം.';
 
   @override
   String get timeCapsuleClockTamperError =>
-      'Device clock rollback detected. The capsule cannot be unlocked while the device time is behind the recorded seal timestamp.';
+      'ഉപകരണത്തിലെ സമയം മാറ്റിയതായി കണ്ടെത്തി. സിസ്റ്റം സമയം ശരിയാക്കാതെ ഈ കാപ്സ്യൂൾ തുറക്കാൻ കഴിയില്ല.';
 
   @override
-  String get timeCapsuleTitle => 'Time Capsules';
+  String get timeCapsuleTitle => 'ടൈം കാപ്സ്യൂളുകൾ';
 
   @override
   String get timeCapsuleSubtitle =>
-      'Letters and entries sealed for your future self';
+      'നിങ്ങളുടെ ഭാവികാലത്തിനായി പൂട്ടി സൂക്ഷിച്ച കുറിപ്പുകൾ';
 
   @override
   String get timeCapsuleEmptyState =>
-      'No time capsules yet. Create an entry and seal it for your future self.';
+      'ടൈം കാപ്സ്യൂളുകളൊന്നും ഇതുവരെയില്ല. ഒരു പുതിയ കുറിപ്പെഴുതി ഭാവിയിലേക്ക് സൂക്ഷിക്കൂ.';
 
   @override
-  String get timeCapsuleBannerTitle => 'Time Capsule Ready!';
+  String get timeCapsuleBannerTitle => 'ടൈം കാപ്സ്യൂൾ തയ്യാറാണ്!';
 
   @override
   String timeCapsuleBannerBody(int count) {
-    return 'You have $count sealed capsule ready to open today.';
+    return 'ഇന്ന് തുറക്കാനായി $count ടൈം കാപ്സ്യൂൾ തയ്യാറാണ്.';
   }
 
   @override
   String timeCapsuleBannerBodyPlural(int count) {
-    return 'You have $count sealed capsules ready to open today.';
+    return 'ഇന്ന് തുറക്കാനായി $count ടൈം കാപ്സ്യൂളുകൾ തയ്യാറാണ്.';
   }
 
   @override
-  String get timeCapsuleCategorySealed => 'Sealed Capsules';
+  String get timeCapsuleCategorySealed => 'പൂട്ടിയിരിക്കുന്നവ';
 
   @override
-  String get timeCapsuleCategoryReady => 'Ready to Open';
+  String get timeCapsuleCategoryReady => 'തുറക്കാവുന്നവ';
 
   @override
-  String get timeCapsuleCategoryOpened => 'Opened Capsules';
+  String get timeCapsuleCategoryOpened => 'തുറന്നവ';
 
   @override
-  String get ritualCreateCardTitle => 'Create Card';
+  String get ritualCreateCardTitle => 'കാർഡ് നിർമ്മിക്കുക';
 
   @override
-  String get ritualEditCardTitle => 'Edit Card';
+  String get ritualEditCardTitle => 'കാർഡ് എഡിറ്റ് ചെയ്യുക';
 
   @override
-  String get ritualCreateCardButton => 'New Card';
+  String get ritualCreateCardButton => 'പുതിയ കാർഡ്';
 
   @override
-  String get ritualCardThemeLabel => 'Theme';
+  String get ritualCardThemeLabel => 'തീം';
 
   @override
-  String get ritualCardTitleLabel => 'Title';
+  String get ritualCardTitleLabel => 'തലക്കെട്ട്';
 
   @override
-  String get ritualCardTitleHint => 'e.g. The Light of Self-Knowledge';
+  String get ritualCardTitleHint => 'ഉദാ: ആത്മജ്ഞാനത്തിന്റെ വെളിച്ചം';
 
   @override
-  String get ritualCardTitleRequired => 'A title is required.';
+  String get ritualCardTitleRequired => 'തലക്കെട്ട് നൽകേണ്ടതുണ്ട്.';
 
   @override
-  String get ritualCardPromptLabel => 'Reflection Question';
+  String get ritualCardPromptLabel => 'ചിന്താ വിഷയം';
 
   @override
   String get ritualCardPromptHint =>
-      'A question to reflect upon during practice...';
+      'ധ്യാനവേളയിൽ ചിന്തിക്കാനുള്ള ഒരു ചോദ്യം...';
 
   @override
-  String get ritualCardPromptRequired => 'A reflection question is required.';
+  String get ritualCardPromptRequired => 'ചിന്താ വിഷയം നൽകേണ്ടതുണ്ട്.';
 
   @override
-  String get ritualCardQuoteLabel => 'Teaching or Quote';
+  String get ritualCardQuoteLabel => 'ഉദ്ധരണി അല്ലെങ്കിൽ തത്വം';
 
   @override
-  String get ritualCardQuoteHint => 'A verse, shloka, or teaching...';
+  String get ritualCardQuoteHint => 'ഒരു വരി, ശ്ലോകം അല്ലെങ്കിൽ വചനം...';
 
   @override
-  String get ritualCardQuoteRequired => 'A teaching or quote is required.';
+  String get ritualCardQuoteRequired => 'ഉദ്ധരണി നൽകേണ്ടതുണ്ട്.';
 
   @override
-  String get ritualCardAuthorLabel => 'Source (optional)';
+  String get ritualCardAuthorLabel => 'ഉറവിടം (ഓപ്ഷണൽ)';
 
   @override
-  String get ritualCardAuthorHint => 'e.g. Bhagavad Gita 2.47';
+  String get ritualCardAuthorHint => 'ഉദാ: ഭഗവദ്ഗീത 2.47';
 
   @override
-  String get ritualCardPreviewLabel => 'Preview';
+  String get ritualCardPreviewLabel => 'പ്രിവ്യൂ';
 
   @override
-  String get ritualSaveCardCreate => 'Create Card';
+  String get ritualSaveCardCreate => 'കാർഡ് നിർമ്മിക്കുക';
 
   @override
-  String get ritualSaveCardEdit => 'Save Changes';
+  String get ritualSaveCardEdit => 'മാറ്റങ്ങൾ സേവ് ചെയ്യുക';
 
   @override
-  String get ritualCardCreatedMessage => 'Card created.';
+  String get ritualCardCreatedMessage => 'കാർഡ് നിർമ്മിച്ചു.';
 
   @override
-  String get ritualCardUpdatedMessage => 'Card updated.';
+  String get ritualCardUpdatedMessage => 'കാർഡ് പുതുക്കി.';
 
   @override
   String get ritualCardSaveError =>
-      'Could not save the card. Please try again.';
+      'കാർഡ് സേവ് ചെയ്യാനായില്ല. വീണ്ടും ശ്രമിക്കുക.';
 
   @override
-  String get ritualUserCardBadge => 'MY CARD';
+  String get ritualUserCardBadge => 'എന്റെ കാർഡ്';
 
   @override
-  String get ritualEditCardAction => 'Edit';
+  String get ritualEditCardAction => 'തിരുത്തുക';
 
   @override
-  String get ritualDeleteCardAction => 'Delete';
+  String get ritualDeleteCardAction => 'ഡിലീറ്റ് ചെയ്യുക';
 
   @override
-  String get ritualDeleteCardTitle => 'Delete Card';
+  String get ritualDeleteCardTitle => 'കാർഡ് ഡിലീറ്റ് ചെയ്യുക';
 
   @override
   String ritualDeleteCardConfirm(String title) {
-    return 'Are you sure you want to delete \"$title\"? This cannot be undone.';
+    return '\"$title\" ഡിലീറ്റ് ചെയ്യണമെന്ന് ഉറപ്പാണോ? ഇത് പഴയപടിയാക്കാൻ കഴിയില്ല.';
   }
 
   @override
-  String get ritualCardDeletedMessage => 'Card deleted.';
+  String get ritualCardDeletedMessage => 'കാർഡ് ഡിലീറ്റ് ചെയ്തു.';
 
   @override
-  String get ritualNoJournalError => 'Please create a journal first.';
+  String get ritualNoJournalError => 'ദയവായി ആദ്യം ഒരു ജേണൽ നിർമ്മിക്കുക.';
 
   @override
   String get editorGotoLineStart => '⇤';
 
   @override
   String get editorGotoLineEnd => '⇥';
+
+  @override
+  String get ocrCameraTitle => 'ഡോക്യുമെന്റ് സ്കാൻ ചെയ്യുക';
+
+  @override
+  String get ocrCameraPermissionDenied =>
+      'ടെക്സ്റ്റ് തിരിച്ചറിയുന്നതിനായി ഫോട്ടോ എടുക്കാൻ ക്യാമറ അനുമതി ആവശ്യമാണ്.';
+
+  @override
+  String get ocrCameraOpenSettings => 'ക്രമീകരണങ്ങൾ തുറക്കുക';
+
+  @override
+  String get ocrCameraNoCameras => 'ഈ ഉപകരണത്തിൽ ക്യാമറ ലഭ്യമല്ല.';
+
+  @override
+  String get ocrCameraFlashOff => 'ഫ്ലാഷ് ഓഫ്';
+
+  @override
+  String get ocrCameraFlashAuto => 'ഫ്ലാഷ് ഓട്ടോ';
+
+  @override
+  String get ocrCameraFlashOn => 'ഫ്ലാഷ് ഓൺ';
+
+  @override
+  String get ocrCameraFlashTorch => 'ടോർച്ച് ഓൺ';
+
+  @override
+  String get ocrCameraGridToggle => 'ഫ്രെയിമിംഗ് ഗ്രിഡ്';
+
+  @override
+  String get ocrCameraSwitch => 'ക്യാമറ മാറ്റുക';
+
+  @override
+  String get ocrCameraCaptureHint =>
+      'ഫോക്കസ് ചെയ്യാൻ ടാപ്പ് ചെയ്യുക • സൂം ചെയ്യാൻ പിഞ്ച് ചെയ്യുക';
+
+  @override
+  String get ocrCameraCapture => 'ഫോട്ടോ എടുക്കുക';
+
+  @override
+  String get ocrCameraGallery => 'ഗ്യാലറിയിൽ നിന്ന് തിരഞ്ഞെടുക്കുക';
+
+  @override
+  String get ocrCameraExposure => 'എക്സ്പോഷർ';
+
+  @override
+  String get ocrCameraZoom => 'സൂം';
+
+  @override
+  String get ocrCameraFocusAuto => 'ഓട്ടോ ഫോക്കസ്';
+
+  @override
+  String get ocrCameraFocusLocked => 'ഫോക്കസ് ലോക്ക് ചെയ്തു';
+
+  @override
+  String get ocrCameraExposureAuto => 'ഓട്ടോ എക്സ്പോഷർ';
+
+  @override
+  String get ocrCameraExposureLocked => 'എക്സ്പോഷർ ലോക്ക് ചെയ്തു';
+
+  @override
+  String get ocrCameraControls => 'ക്യാമറ ക്രമീകരണങ്ങൾ';
+
+  @override
+  String get ocrCameraReset => 'റീസെറ്റ്';
+
+  @override
+  String get ocrEnhanceTitle => 'മെച്ചപ്പെടുത്തുക & സ്കാൻ ചെയ്യുക';
+
+  @override
+  String get ocrEnhanceRotate => 'തിരിക്കുക';
+
+  @override
+  String get ocrEnhanceRotateLeft => 'ഇടത്തോട്ട് തിരിക്കുക';
+
+  @override
+  String get ocrEnhanceRotateRight => 'വലത്തോട്ട് തിരിക്കുക';
+
+  @override
+  String get ocrEnhanceCrop => 'ക്രോപ്പ് ചെയ്യുക';
+
+  @override
+  String get ocrEnhanceFilter => 'ഫിൽട്ടർ';
+
+  @override
+  String get ocrEnhanceInvert => 'നിറം മറിക്കുക';
+
+  @override
+  String get ocrEnhanceFilterOriginal => 'യഥാർത്ഥം';
+
+  @override
+  String get ocrEnhanceFilterDocument => 'ഡോക്യുമെന്റ്';
+
+  @override
+  String get ocrEnhanceFilterGrayscale => 'ഗ്രേസ്കെയിൽ';
+
+  @override
+  String get ocrEnhanceFilterEnhance => 'ഹൈ കോൺട്രാസ്റ്റ്';
+
+  @override
+  String get ocrEnhanceBrightness => 'തെളിച്ചം';
+
+  @override
+  String get ocrEnhanceContrast => 'കോൺട്രാസ്റ്റ്';
+
+  @override
+  String get ocrEnhanceAdjust => 'ക്രമീകരിക്കുക';
+
+  @override
+  String get ocrEnhanceLiveText => 'തിരിച്ചറിഞ്ഞ ടെക്സ്റ്റ്';
+
+  @override
+  String get ocrEnhanceLiveTextNone =>
+      'ടെക്സ്റ്റ് കണ്ടെത്തിയില്ല. കോൺട്രാസ്റ്റ് ക്രമീകരിക്കുകയോ ചിത്രം തിരിക്കുകയോ ചെയ്യുക.';
+
+  @override
+  String ocrEnhanceLiveWordCount(int count) {
+    return '$count വാക്കുകൾ കണ്ടെത്തി';
+  }
+
+  @override
+  String get ocrEnhanceInsertText => 'എൻട്രിയിലേക്ക് ചേർക്കുക';
+
+  @override
+  String get ocrEnhanceRetake => 'വീണ്ടും എടുക്കുക';
+
+  @override
+  String get ocrEnhanceProcessing => 'ചിത്രം മെച്ചപ്പെടുത്തുന്നു...';
+
+  @override
+  String get ocrEnhanceLiveScanning => 'ടെക്സ്റ്റ് സ്കാൻ ചെയ്യുന്നു...';
+
+  @override
+  String get ocrLanguageAll => 'ഇംഗ്ലീഷ് + മലയാളം';
+
+  @override
+  String get ocrLanguageMalayalam => 'മലയാളം';
+
+  @override
+  String get ocrLanguageEnglish => 'ഇംഗ്ലീഷ്';
+
+  @override
+  String get ocrLanguageSelectTooltip => 'OCR ഭാഷ തിരഞ്ഞെടുക്കുക';
 }

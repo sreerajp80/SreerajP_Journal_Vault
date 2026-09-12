@@ -74,15 +74,15 @@ bool prepareOcrImageIsolate(OcrPreprocessArgs args) {
       image,
       width: (image.width * scale).round(),
       height: (image.height * scale).round(),
-      interpolation: img.Interpolation.cubic,
+      interpolation: img.Interpolation.linear,
     );
   }
 
   image = img.grayscale(image);
   image = img.contrast(image, contrast: kOcrContrastLevel);
 
-  // PNG, not JPEG: JPEG blur eats the one-pixel strokes we are trying to save.
-  File(args.targetPath).writeAsBytesSync(img.encodePng(image));
+  // Fast lossless PNG: level 1 saves significant time.
+  File(args.targetPath).writeAsBytesSync(img.encodePng(image, level: 1));
   return true;
 }
 

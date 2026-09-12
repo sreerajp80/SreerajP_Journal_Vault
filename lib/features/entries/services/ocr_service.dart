@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'dart:ui' show Rect;
 
+import 'package:flutter/services.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:sreerajp_journal_vault/core/logging/app_logger.dart';
 import 'package:sreerajp_journal_vault/features/entries/services/ocr_image_preprocessor.dart';
@@ -12,8 +12,97 @@ import 'package:sreerajp_journal_vault/features/entries/services/ocr_image_prepr
 abstract class OcrService {
   /// Extracts plain text from the image located at [imagePath].
   ///
+  /// The [language] can be `'eng+mal'` (bilingual, default), `'mal'`
+  /// (Malayalam), or `'eng'` (English).
+  ///
   /// Returns an empty string if no text was found.
-  Future<String> extractTextFromImage(String imagePath);
+  ///
+  /// [requestId] labels the call so it can later be dropped with
+  /// [cancelRequests]. Callers that never cancel can leave it out.
+  Future<String> extractTextFromImage(
+    String imagePath, {
+    String language = 'eng+mal',
+    int? requestId,
+  });
+
+  /// Asks the platform to drop recognition work started with these ids.
+  ///
+  /// Recognition runs one job at a time, so a request can still be waiting in
+  /// the queue after the screen that asked for it has closed. Cancelling frees
+  /// the processor for whatever the user is doing now.
+  Future<void> cancelRequests(List<int> requestIds) async {}
+}
+
+/// On-device OCR implementation backed by native Tesseract 5 (Tesseract4Android)
+/// via MethodChannel, providing accurate Malayalam and English text recognition.
+class NativeOcrService implements OcrService {
+  const NativeOcrService({
+    this.channel = _defaultChannel,
+    this.fallbackService = const MlKitOcrService(),
+  });
+
+  static const MethodChannel _defaultChannel = MethodChannel(
+    'sreerajp.journal_vault/ocr',
+  );
+
+  final MethodChannel channel;
+  final OcrService fallbackService;
+
+  @override
+  Future<String> extractTextFromImage(
+    String imagePath, {
+    String language = 'eng+mal',
+    int? requestId,
+  }) async {
+    try {
+      final String? result = await channel.invokeMethod<String>(
+        'extractText',
+        <String, dynamic>{
+          'imagePath': imagePath,
+          'language': language,
+          'requestId': requestId ?? 0,
+        },
+      );
+      final text = result?.trim() ?? '';
+      AppLogger.info(
+        'NativeOcrService: recognition complete, length=${text.length}',
+      );
+      return text;
+    } on MissingPluginException catch (_) {
+      // In host test environments where the Android platform channel is not active,
+      // fallback smoothly to ML Kit or fallback service.
+      return fallbackService.extractTextFromImage(
+        imagePath,
+        language: language,
+        requestId: requestId,
+      );
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'NativeOcrService: recognition failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> cancelRequests(List<int> requestIds) async {
+    if (requestIds.isEmpty) return;
+    try {
+      await channel.invokeMethod<void>('cancelOcr', <String, dynamic>{
+        'requestIds': requestIds,
+      });
+    } on MissingPluginException catch (_) {
+      // No native side in host tests; nothing is queued there either.
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'NativeOcrService: cancel failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
+  }
 }
 
 /// Rebuilds readable text from the lines the recognizer found.
@@ -89,13 +178,22 @@ class MlKitOcrService implements OcrService {
   final OcrImagePreprocessor preprocessor;
 
   @override
-  Future<String> extractTextFromImage(String imagePath) async {
+  Future<String> extractTextFromImage(
+    String imagePath, {
+    String language = 'eng+mal',
+    int? requestId,
+  }) async {
     final activeRecognizer = recognizer ?? TextRecognizer();
     final isCustomRecognizer = recognizer != null;
 
     String? preparedPath;
     try {
-      preparedPath = await preprocessor.prepare(imagePath);
+      // If the image was already enhanced by OcrEnhanceScreen, avoid repeating
+      // the expensive image transformation.
+      final isAlreadyEnhanced = imagePath.contains('ocr_enh_');
+      if (!isAlreadyEnhanced) {
+        preparedPath = await preprocessor.prepare(imagePath);
+      }
 
       // First pass on the prepared image, which is where the small signs
       // survive. If it finds nothing, fall back to the untouched photo, and
@@ -133,6 +231,12 @@ class MlKitOcrService implements OcrService {
         await activeRecognizer.close();
       }
     }
+  }
+
+  @override
+  Future<void> cancelRequests(List<int> requestIds) async {
+    // ML Kit runs one recognition per call with no queue of its own, so there
+    // is nothing waiting to drop.
   }
 
   Future<String> _recognize(TextRecognizer recognizer, String path) async {

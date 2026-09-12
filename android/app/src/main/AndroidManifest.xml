@@ -75,10 +75,13 @@
                 <data android:pathPattern=".*\\.jvbk"/>
             </intent-filter>
         </activity>
-        <!-- Required by image_cropper for the crop & rotate UI (uCrop). -->
+        <!-- Required by image_cropper for the crop & rotate UI (uCrop).
+             No screenOrientation is set, so the editor follows the device the
+             way the rest of this app does. Forcing portrait here letterboxes a
+             landscape photo of a wide page into a small viewport, which is the
+             one crop the user most needs room for. -->
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
-            android:screenOrientation="portrait"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

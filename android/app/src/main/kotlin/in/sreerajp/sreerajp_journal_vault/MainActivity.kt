@@ -5,6 +5,13 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
+import android.graphics.Paint
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -32,11 +39,26 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import kotlin.random.Random
+import com.googlecode.tesseract.android.TessBaseAPI
+import java.util.concurrent.Executors
 
 class MainActivity : FlutterFragmentActivity() {
     private var pendingStorageTreeResult: MethodChannel.Result? = null
     private var shareChannel: MethodChannel? = null
     private var pendingSharePayload: Map<String, Any?>? = null
+    private val ocrExecutor = Executors.newSingleThreadExecutor()
+
+    /** Ids of recognition requests whose caller has gone away. */
+    private val cancelledOcrRequests = mutableSetOf<Int>()
+    private var activeTessApi: TessBaseAPI? = null
+    private var activeTessLang: String? = null
+
+    override fun onDestroy() {
+        activeTessApi?.recycle()
+        activeTessApi = null
+        ocrExecutor.shutdown()
+        super.onDestroy()
+    }
 
     private val storageTreePicker = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
@@ -578,6 +600,63 @@ class MainActivity : FlutterFragmentActivity() {
                 else -> result.notImplemented()
             }
         }
+
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            TESSERACT_OCR_CHANNEL,
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "extractText" -> {
+                    val imagePath = call.argument<String>("imagePath")
+                    val language = call.argument<String>("language") ?: "eng+mal"
+                    val requestId = call.argument<Int>("requestId") ?: 0
+                    if (imagePath.isNullOrBlank()) {
+                        result.error("invalid_args", "imagePath is required", null)
+                        return@setMethodCallHandler
+                    }
+                    val imageFile = File(imagePath)
+                    if (!imageFile.exists()) {
+                        result.error("file_not_found", "Image file does not exist", null)
+                        return@setMethodCallHandler
+                    }
+
+                    ocrExecutor.execute {
+                        // Recognition runs one job at a time, so a job can sit in the
+                        // queue long after the screen that asked for it has gone. Drop
+                        // it instead of spending the CPU on an answer nobody wants.
+                        if (isOcrRequestCancelled(requestId)) {
+                            runOnUiThread { result.success("") }
+                            return@execute
+                        }
+                        try {
+                            ensureTessData(applicationContext)
+                            val text = performTesseractOcr(applicationContext, imageFile, language)
+                            runOnUiThread {
+                                result.success(text)
+                            }
+                        } catch (e: Exception) {
+                            runOnUiThread {
+                                result.error("ocr_failure", e.message, null)
+                            }
+                        } finally {
+                            clearCancelledOcrRequest(requestId)
+                        }
+                    }
+                }
+                "cancelOcr" -> {
+                    val requestIds = call.argument<List<Int>>("requestIds")
+                    if (requestIds == null) {
+                        result.error("invalid_args", "requestIds is required", null)
+                        return@setMethodCallHandler
+                    }
+                    synchronized(cancelledOcrRequests) {
+                        cancelledOcrRequests.addAll(requestIds)
+                    }
+                    result.success(null)
+                }
+                else -> result.notImplemented()
+            }
+        }
     }
 
     private fun openStorageTreePicker(result: MethodChannel.Result) {
@@ -594,6 +673,310 @@ class MainActivity : FlutterFragmentActivity() {
             addFlags(Intent.FLAG_GRANT_PREFIX_URI_PERMISSION)
         }
         storageTreePicker.launch(intent)
+    }
+
+    /**
+     * Adds a clean white quiet-zone border around [src] so that dark edges or characters
+     * touching the crop boundary do not confuse Tesseract's Leptonica binarizer.
+     */
+    private fun addQuietZonePadding(src: Bitmap, paddingPx: Int = 32): Bitmap {
+        val paddedWidth = src.width + paddingPx * 2
+        val paddedHeight = src.height + paddingPx * 2
+        val output = Bitmap.createBitmap(paddedWidth, paddedHeight, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(output)
+        canvas.drawColor(Color.WHITE)
+        canvas.drawBitmap(src, paddingPx.toFloat(), paddingPx.toFloat(), null)
+        return output
+    }
+
+    /**
+     * Returns a colour-inverted copy of [src].
+     *
+     * Tesseract and its Leptonica binarizer assume dark ink on light paper. Light
+     * lettering on a dark band — a newspaper masthead, a titled banner, a slide —
+     * is treated as background and dropped entirely. Recognising the inverted copy
+     * as well is the only way that text is ever seen.
+     */
+    private fun invertBitmap(src: Bitmap): Bitmap {
+        val output = Bitmap.createBitmap(src.width, src.height, Bitmap.Config.ARGB_8888)
+        val matrix = ColorMatrix(
+            floatArrayOf(
+                -1f, 0f, 0f, 0f, 255f,
+                0f, -1f, 0f, 0f, 255f,
+                0f, 0f, -1f, 0f, 255f,
+                0f, 0f, 0f, 1f, 0f,
+            ),
+        )
+        val paint = Paint().apply { colorFilter = ColorMatrixColorFilter(matrix) }
+        Canvas(output).drawBitmap(src, 0f, 0f, paint)
+        return output
+    }
+
+    /**
+     * Mean luminance of [src] on a 0..255 scale, measured on a small sampled copy
+     * so a full-resolution photo is not walked pixel by pixel.
+     */
+    private fun meanLuminance(src: Bitmap): Int {
+        val sample = Bitmap.createScaledBitmap(src, SAMPLE_EDGE, SAMPLE_EDGE, true)
+        return try {
+            val pixels = IntArray(SAMPLE_EDGE * SAMPLE_EDGE)
+            sample.getPixels(pixels, 0, SAMPLE_EDGE, 0, 0, SAMPLE_EDGE, SAMPLE_EDGE)
+            var total = 0L
+            for (pixel in pixels) {
+                val r = (pixel shr 16) and 0xFF
+                val g = (pixel shr 8) and 0xFF
+                val b = pixel and 0xFF
+                total += (r * 299 + g * 587 + b * 114) / 1000
+            }
+            (total / pixels.size).toInt()
+        } finally {
+            if (sample !== src) sample.recycle()
+        }
+    }
+
+    /** One recognised word, with what we need to keep it and place it. */
+    private data class RecognisedWord(
+        val text: String,
+        val confidence: Float,
+        val hasMalayalam: Boolean,
+        val endsLine: Boolean,
+        val lineLeft: Int,
+        val lineTop: Int,
+        val lineRight: Int,
+        val lineBottom: Int,
+    )
+
+    /** True when [text] contains at least one letter from the Malayalam block. */
+    private fun hasMalayalamLetter(text: String): Boolean {
+        return text.any { it in MALAYALAM_BLOCK_START..MALAYALAM_BLOCK_END }
+    }
+
+    /**
+     * Rebuilds the recognised text, dropping only words the recognizer was unsure
+     * about *and* that are the wrong script for the page, then putting the
+     * surviving lines into reading order.
+     *
+     * Running two languages at once means that when Tesseract meets a shape that
+     * is not a letter at all — a printed ornament, a rule, a logo mark — it still
+     * tries to name it, and a Latin letter is the easiest fit. Those are the words
+     * worth dropping.
+     *
+     * A single confidence floor cannot express that. Real Malayalam photographed
+     * off newsprint scores low too, and deleting a correct word is worse than
+     * keeping a slightly wrong one: a reader can mend a wrong letter, but cannot
+     * recover a word that is not there. So Malayalam words face a low floor and
+     * keep almost everything, while a non-Malayalam word on a Malayalam page —
+     * the ornament case, and only that — faces a high one.
+     *
+     * Returns `null` when there is nothing to walk, so the caller can fall back.
+     */
+    private fun collectConfidentText(tess: TessBaseAPI): String? {
+        val iterator = tess.resultIterator ?: return null
+        val words = mutableListOf<RecognisedWord>()
+        try {
+            iterator.begin()
+            do {
+                val word = iterator
+                    .getUTF8Text(TessBaseAPI.PageIteratorLevel.RIL_WORD)
+                    ?.trim()
+                    .orEmpty()
+                val endsLine = iterator.isAtFinalElement(
+                    TessBaseAPI.PageIteratorLevel.RIL_TEXTLINE,
+                    TessBaseAPI.PageIteratorLevel.RIL_WORD,
+                )
+                if (word.isNotEmpty()) {
+                    // Left, top, right, bottom of the line this word sits on.
+                    val box = iterator.getBoundingBox(
+                        TessBaseAPI.PageIteratorLevel.RIL_TEXTLINE,
+                    )
+                    words.add(
+                        RecognisedWord(
+                            text = word,
+                            confidence = iterator.confidence(
+                                TessBaseAPI.PageIteratorLevel.RIL_WORD,
+                            ),
+                            hasMalayalam = hasMalayalamLetter(word),
+                            endsLine = endsLine,
+                            lineLeft = box[0],
+                            lineTop = box[1],
+                            lineRight = box[2],
+                            lineBottom = box[3],
+                        ),
+                    )
+                } else if (endsLine && words.isNotEmpty()) {
+                    words[words.size - 1] = words.last().copy(endsLine = true)
+                }
+            } while (iterator.next(TessBaseAPI.PageIteratorLevel.RIL_WORD))
+        } finally {
+            iterator.delete()
+        }
+
+        if (words.isEmpty()) return ""
+
+        // Decide what kind of page this is, counting only words that clear the low
+        // floor so that junk cannot vote. An English page must behave exactly as it
+        // did before this filter existed, so the high floor applies to Malayalam
+        // pages only.
+        val readable = words.filter { it.confidence >= MALAYALAM_CONFIDENCE_FLOOR }
+        val malayalamCount = readable.count { it.hasMalayalam }
+        val pageIsMalayalam = malayalamCount > (readable.size - malayalamCount)
+
+        val lines = mutableListOf<TextLineBox>()
+        val lineText = StringBuilder()
+        var left = 0
+        var top = 0
+        var right = 0
+        var bottom = 0
+        var started = false
+
+        fun flushLine() {
+            if (lineText.isEmpty()) return
+            lines.add(TextLineBox(left, top, right, bottom, lineText.toString()))
+            lineText.clear()
+            started = false
+        }
+
+        for (word in words) {
+            val floor = if (word.hasMalayalam || !pageIsMalayalam) {
+                MALAYALAM_CONFIDENCE_FLOOR
+            } else {
+                FOREIGN_CONFIDENCE_FLOOR
+            }
+            if (word.confidence >= floor) {
+                if (lineText.isNotEmpty()) lineText.append(' ')
+                lineText.append(word.text)
+                if (started) {
+                    left = minOf(left, word.lineLeft)
+                    top = minOf(top, word.lineTop)
+                    right = maxOf(right, word.lineRight)
+                    bottom = maxOf(bottom, word.lineBottom)
+                } else {
+                    left = word.lineLeft
+                    top = word.lineTop
+                    right = word.lineRight
+                    bottom = word.lineBottom
+                    started = true
+                }
+            }
+            if (word.endsLine) flushLine()
+        }
+        flushLine()
+
+        return orderLinesForReading(lines).joinToString("\n") { it.text }.trim()
+    }
+
+    /**
+     * Scores one recognition result. A pass is better when it is both confident and
+     * finds more words, so a stray high-confidence fragment cannot beat a full line
+     * of slightly less certain text.
+     */
+    private fun scoreRecognition(text: String, confidence: Int): Int {
+        if (text.isBlank()) return 0
+        val words = text.split(Regex("\\s+")).count { it.isNotBlank() }
+        return confidence * words
+    }
+
+    /** One recognition attempt: a page segmentation mode against a given bitmap. */
+    private fun isOcrRequestCancelled(requestId: Int): Boolean =
+        synchronized(cancelledOcrRequests) { cancelledOcrRequests.contains(requestId) }
+
+    private fun clearCancelledOcrRequest(requestId: Int) {
+        synchronized(cancelledOcrRequests) { cancelledOcrRequests.remove(requestId) }
+    }
+
+    private data class OcrPass(val bitmap: Bitmap, val pageSegMode: Int)
+
+    @Synchronized
+    private fun performTesseractOcr(
+        context: Context,
+        imageFile: File,
+        language: String,
+    ): String {
+        val datapath = context.filesDir.absolutePath
+        val tess = activeTessApi ?: TessBaseAPI().also {
+            activeTessApi = it
+        }
+
+        if (activeTessLang != language) {
+            val success = tess.init(datapath, language)
+            if (!success) {
+                val fallbackLang = if (language.contains("eng")) "eng" else "mal"
+                val fallbackSuccess = tess.init(datapath, fallbackLang)
+                if (!fallbackSuccess) {
+                    throw IllegalStateException("Failed to initialize Tesseract with language: $language")
+                }
+                activeTessLang = fallbackLang
+            } else {
+                activeTessLang = language
+            }
+        }
+
+        // Our images are resized PNGs with no DPI metadata, so Tesseract's own
+        // resolution guess is wrong and the LSTM line model loses accuracy on
+        // vowel signs and ligatures. Telling it the effective DPI fixes that.
+        tess.setVariable("user_defined_dpi", "300")
+        tess.setVariable("preserve_interword_spaces", "1")
+
+        val rawBitmap = BitmapFactory.decodeFile(imageFile.absolutePath)
+            ?: throw IllegalArgumentException("Could not decode image file: ${imageFile.name}")
+
+        // Add a clean white quiet-zone padding around the image. Tight crops often have
+        // dark borders or character strokes that touch the edge, causing Leptonica to treat
+        // them as page frames/borders and discard all text lines.
+        val bitmap = addQuietZonePadding(rawBitmap, paddingPx = 32)
+        if (bitmap !== rawBitmap) {
+            rawBitmap.recycle()
+        }
+
+        // A dark-dominant image is very likely light text on a dark ground. Recognise
+        // the inverted copy too and let the scoring below decide which reading wins.
+        // A normal light page skips this entirely and stays as fast as before.
+        val inverted = if (meanLuminance(bitmap) < DARK_IMAGE_LUMINANCE) {
+            invertBitmap(bitmap)
+        } else {
+            null
+        }
+
+        return try {
+            val passes = mutableListOf<OcrPass>()
+            for (mode in PAGE_SEG_MODES) {
+                passes.add(OcrPass(bitmap, mode))
+            }
+            if (inverted != null) {
+                for (mode in PAGE_SEG_MODES) {
+                    passes.add(OcrPass(inverted, mode))
+                }
+            }
+
+            var bestText = ""
+            var bestScore = 0
+            for (pass in passes) {
+                tess.pageSegMode = pass.pageSegMode
+                tess.setImage(pass.bitmap)
+                val rawText = tess.utF8Text?.trim() ?: ""
+                // Prefer the confidence-filtered reading. If the floor stripped
+                // everything but the recognizer did find words, keep the unfiltered
+                // text — a tuning value must never turn a working scan blank.
+                val filtered = collectConfidentText(tess)
+                val text = if (filtered.isNullOrEmpty()) rawText else filtered
+                if (text.isNotEmpty()) {
+                    val score = scoreRecognition(text, tess.meanConfidence())
+                    if (score > bestScore) {
+                        bestScore = score
+                        bestText = text
+                    }
+                    // A clean page is read well on its first pass. Stop there rather
+                    // than spending three more passes to confirm it.
+                    if (score >= CONFIDENT_SCORE) break
+                }
+            }
+
+            tess.clear()
+            bestText
+        } finally {
+            inverted?.recycle()
+            bitmap.recycle()
+        }
     }
 }
 
@@ -1002,6 +1385,72 @@ private const val HTML_PDF_CHANNEL = "sreerajp.journal_vault/html_pdf"
 private const val SCREEN_SECURITY_CHANNEL = "sreerajp.journal_vault/screen_security"
 private const val SHARE_INTENT_CHANNEL = "sreerajp.journal_vault/share_intent"
 private const val NOTIFICATIONS_CHANNEL = "sreerajp.journal_vault/notifications"
+private const val TESSERACT_OCR_CHANNEL = "sreerajp.journal_vault/ocr"
+
+/**
+ * Identifies the set of language models currently shipped in assets.
+ *
+ * `ensureTessData` copies the models to internal storage once and then leaves
+ * them alone, so an app update carrying a new model would never replace the old
+ * copy. Bumping this string forces one re-copy. Change it whenever any file in
+ * `assets/tessdata/` changes.
+ */
+private const val TESSDATA_VERSION = "2026-09-12-mal-best"
+
+/** Name of the marker file recording which model set is on disk. */
+private const val TESSDATA_VERSION_FILE = ".model_version"
+
+/** First character of the Unicode Malayalam block. */
+private const val MALAYALAM_BLOCK_START = '\u0D00'
+
+/** Last character of the Unicode Malayalam block. */
+private const val MALAYALAM_BLOCK_END = '\u0D7F'
+
+/**
+ * Word confidence (0..100) below which a word in the page's own script is
+ * discarded.
+ *
+ * Deliberately low. Malayalam photographed off newsprint often scores in the
+ * forties, and losing a correct word costs the reader more than keeping a
+ * slightly wrong one.
+ */
+private const val MALAYALAM_CONFIDENCE_FLOOR = 30f
+
+/**
+ * Word confidence (0..100) below which a word that is *not* in the page's script
+ * is discarded — a Latin word on a Malayalam page.
+ *
+ * Ornaments, rules and logo marks are reported this way and score well under 40.
+ * Raise this, never the floor above, if such junk starts appearing again.
+ */
+private const val FOREIGN_CONFIDENCE_FLOOR = 60f
+
+/** Edge length of the downscaled copy used to measure average brightness. */
+private const val SAMPLE_EDGE = 32
+
+/**
+ * Mean luminance (0..255) below which an image counts as dark-dominant and is
+ * also recognised inverted.
+ */
+private const val DARK_IMAGE_LUMINANCE = 110
+
+/**
+ * Score (mean confidence x word count) above which a pass is considered good
+ * enough to stop trying the remaining page segmentation modes.
+ */
+private const val CONFIDENT_SCORE = 1600
+
+/**
+ * Page segmentation modes tried in order: a full page first, then a single
+ * uniform block for crops and columns, then sparse text for banners, headers
+ * and scattered words. Every mode is scored and the best reading wins — an
+ * earlier mode returning *some* text no longer blocks the later ones.
+ */
+private val PAGE_SEG_MODES = listOf(
+    TessBaseAPI.PageSegMode.PSM_AUTO,
+    TessBaseAPI.PageSegMode.PSM_SINGLE_BLOCK,
+    TessBaseAPI.PageSegMode.PSM_SPARSE_TEXT,
+)
 private const val SCREEN_SECURITY_PREFS = "screen_security"
 private const val SCREEN_SECURITY_KEY_ENABLED = "enabled"
 private const val ANDROID_KEY_STORE = "AndroidKeyStore"
@@ -1130,4 +1579,59 @@ private fun resolveMediaItem(context: Context, uri: Uri): Map<String, Any?>? {
     }
 }
 
+private fun ensureTessData(context: Context) {
+    val tessDataDir = File(context.filesDir, "tessdata")
+    if (!tessDataDir.exists()) {
+        tessDataDir.mkdirs()
+    }
 
+    // The models on disk are only replaced when the shipped set changes. Without
+    // this check an app update carrying a new model would keep using the old copy
+    // for everyone who already had the app installed.
+    val versionFile = File(tessDataDir, TESSDATA_VERSION_FILE)
+    val installedVersion = try {
+        if (versionFile.exists()) versionFile.readText().trim() else null
+    } catch (_: Exception) {
+        null
+    }
+    val needsRefresh = installedVersion != TESSDATA_VERSION
+
+    for (lang in listOf("eng", "mal")) {
+        val targetFile = File(tessDataDir, "$lang.traineddata")
+        val possibleAssetPaths = listOf(
+            "flutter_assets/assets/tessdata/$lang.traineddata",
+            "assets/tessdata/$lang.traineddata",
+        )
+        if (needsRefresh || !targetFile.exists() || targetFile.length() == 0L) {
+            for (assetPath in possibleAssetPaths) {
+                try {
+                    context.assets.open(assetPath).use { input ->
+                        FileOutputStream(targetFile).use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    if (targetFile.exists() && targetFile.length() > 0L) {
+                        break
+                    }
+                } catch (_: Exception) {
+                    // Try next path
+                }
+            }
+        }
+    }
+
+    // Record the version only once every model is actually on disk, so a copy that
+    // failed part way is retried on the next run instead of being marked done.
+    if (needsRefresh) {
+        val allPresent = listOf("eng", "mal").all { lang ->
+            File(tessDataDir, "$lang.traineddata").let { it.exists() && it.length() > 0L }
+        }
+        if (allPresent) {
+            try {
+                versionFile.writeText(TESSDATA_VERSION)
+            } catch (_: Exception) {
+                // Losing the marker only costs one extra copy on the next launch.
+            }
+        }
+    }
+}
