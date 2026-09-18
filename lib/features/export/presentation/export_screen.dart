@@ -9,7 +9,7 @@ import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
 import 'package:sreerajp_journal_vault/core/logging/app_logger.dart';
 import 'package:sreerajp_journal_vault/core/security/vault_envelope.dart';
-import 'package:sreerajp_journal_vault/features/export/export_strings.dart';
+import 'package:sreerajp_journal_vault/features/export/presentation/export_text.dart';
 import 'package:sreerajp_journal_vault/features/export/providers/export_providers.dart';
 import 'package:sreerajp_journal_vault/features/export/services/export_format.dart';
 import 'package:sreerajp_journal_vault/features/export/services/export_html_builder.dart';
@@ -17,6 +17,8 @@ import 'package:sreerajp_journal_vault/features/export/services/export_scope.dar
 import 'package:sreerajp_journal_vault/features/export/services/export_service.dart';
 import 'package:sreerajp_journal_vault/features/export/services/html_pdf_service.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
+
+part 'export_screen_actions.dart';
 
 /// Lets the user take entries out of the vault as a file.
 ///
@@ -46,6 +48,10 @@ class ExportScreen extends ConsumerStatefulWidget {
 }
 
 class _ExportScreenState extends ConsumerState<ExportScreen> {
+  /// Lets the extensions in this library's part files rebuild the
+  /// widget: `setState` is protected, so they cannot call it directly.
+  void _rebuild(VoidCallback fn) => setState(fn);
+
   late ExportScopeKind _scopeKind;
   ExportFormat _format = ExportFormat.markdown;
   bool _includeAttachments = false;
@@ -84,17 +90,17 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
     final pdfAvailable = ref.watch(pdfExportAvailableProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text(ExportStrings.screenTitle)),
+      appBar: AppBar(title: Text(l10n.titleExport)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
         children: [
           Text(
-            ExportStrings.fromJournal(widget.journalTitle),
+            l10n.descExportFromJournal(widget.journalTitle),
             style: theme.textTheme.titleMedium,
           ),
           const SizedBox(height: 16),
 
-          const _SectionHeader(ExportStrings.sectionWhat),
+          _SectionHeader(l10n.titleExportSectionWhat),
           RadioGroup<ExportScopeKind>(
             groupValue: _scopeKind,
             // RadioGroup takes a non-null callback, so "disabled while
@@ -109,7 +115,7 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
                   RadioListTile<ExportScopeKind>(
                     key: const Key('export-scope-entry'),
                     value: ExportScopeKind.singleEntry,
-                    title: const Text(ExportStrings.scopeThisEntry),
+                    title: Text(l10n.labelExportScopeThisEntry),
                     subtitle: widget.entryTitle == null
                         ? null
                         : Text(
@@ -118,19 +124,19 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
                             overflow: TextOverflow.ellipsis,
                           ),
                   ),
-                const RadioListTile<ExportScopeKind>(
-                  key: Key('export-scope-journal'),
+                RadioListTile<ExportScopeKind>(
+                  key: const Key('export-scope-journal'),
                   value: ExportScopeKind.wholeJournal,
-                  title: Text(ExportStrings.scopeWholeJournal),
+                  title: Text(l10n.labelExportScopeWholeJournal),
                 ),
                 RadioListTile<ExportScopeKind>(
                   key: const Key('export-scope-range'),
                   value: ExportScopeKind.dateRange,
-                  title: const Text(ExportStrings.scopeDateRange),
+                  title: Text(l10n.labelExportScopeDateRange),
                   subtitle: Text(
                     _dateRange == null
-                        ? ExportStrings.dateRangeNotSet
-                        : ExportStrings.dateRangeLabel(
+                        ? l10n.descExportDateRangeNotSet
+                        : l10n.descExportDateRange(
                             formatDateOnly(_dateRange!.start),
                             formatDateOnly(_dateRange!.end),
                           ),
@@ -146,12 +152,12 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
                 key: const Key('export-pick-dates'),
                 onPressed: _isExporting ? null : _pickDateRange,
                 icon: const Icon(Icons.date_range),
-                label: const Text(ExportStrings.pickDateRange),
+                label: Text(l10n.actionExportPickDateRange),
               ),
             ),
 
           const Divider(height: 32),
-          const _SectionHeader(ExportStrings.sectionFormat),
+          _SectionHeader(l10n.titleExportSectionFormat),
           RadioGroup<ExportFormat>(
             groupValue: _format,
             onChanged: (value) {
@@ -161,18 +167,18 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
             child: Column(
               children: [
                 for (final format in ExportFormat.values)
-                  _formatTile(format, pdfAvailable),
+                  _formatTile(l10n, format, pdfAvailable),
               ],
             ),
           ),
 
           const Divider(height: 32),
-          const _SectionHeader(ExportStrings.sectionOptions),
+          _SectionHeader(l10n.titleExportSectionOptions),
           SwitchListTile(
             key: const Key('export-include-attachments'),
             value: _includeAttachments,
-            title: const Text(ExportStrings.includeAttachments),
-            subtitle: const Text(ExportStrings.includeAttachmentsHint),
+            title: Text(l10n.labelExportIncludeAttachments),
+            subtitle: Text(l10n.descExportIncludeAttachments),
             onChanged: _isExporting
                 ? null
                 : (value) => setState(() => _includeAttachments = value),
@@ -180,8 +186,8 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
           SwitchListTile(
             key: const Key('export-include-metadata'),
             value: _includeMetadata,
-            title: const Text(ExportStrings.includeMetadata),
-            subtitle: const Text(ExportStrings.includeMetadataHint),
+            title: Text(l10n.labelExportIncludeMetadata),
+            subtitle: Text(l10n.descExportIncludeMetadata),
             onChanged: _isExporting
                 ? null
                 : (value) => setState(() => _includeMetadata = value),
@@ -190,8 +196,8 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
           SwitchListTile(
             key: const Key('export-encrypt'),
             value: _encrypt,
-            title: Text(l10n.exportProtectTitle),
-            subtitle: Text(l10n.exportProtectHint),
+            title: Text(l10n.titleExportProtect),
+            subtitle: Text(l10n.descExportProtect),
             onChanged: _isExporting
                 ? null
                 : (value) => setState(() => _encrypt = value),
@@ -206,9 +212,9 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
               enabled: !_isExporting,
               onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
-                labelText: l10n.exportPasswordLabel,
+                labelText: l10n.labelExportPassword,
                 errorText: _passwordTooShort
-                    ? l10n.exportPasswordTooShort(minimumVaultPasswordLength)
+                    ? l10n.errorExportPassword(minimumVaultPasswordLength)
                     : null,
                 border: const OutlineInputBorder(),
               ),
@@ -221,9 +227,9 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
               enabled: !_isExporting,
               onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
-                labelText: l10n.exportPasswordConfirmLabel,
+                labelText: l10n.labelExportPasswordConfirm,
                 errorText: _passwordsDiffer
-                    ? l10n.exportPasswordMismatch
+                    ? l10n.errorExportPasswordMismatch
                     : null,
                 border: const OutlineInputBorder(),
               ),
@@ -251,8 +257,8 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
                   Expanded(
                     child: Text(
                       _encrypt
-                          ? l10n.exportEncryptedNotice
-                          : ExportStrings.notEncryptedWarning,
+                          ? l10n.bodyExportEncryptedNotice
+                          : l10n.bodyExportNotEncrypted,
                       style: theme.textTheme.bodySmall,
                     ),
                   ),
@@ -273,15 +279,13 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
                   )
                 : const Icon(Icons.save_alt),
             label: Text(
-              _isExporting
-                  ? ExportStrings.exporting
-                  : ExportStrings.exportAction,
+              _isExporting ? l10n.bodyExportExporting : l10n.actionExport,
             ),
           ),
 
           if (_skipped != null && _skipped!.isNotEmpty) ...[
             const SizedBox(height: 24),
-            const _SectionHeader(ExportStrings.skippedHeading),
+            _SectionHeader(l10n.titleExportSkipped),
             for (final omission in _skipped!)
               ListTile(
                 dense: true,
@@ -289,254 +293,12 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
                   Icons.remove_circle_outline,
                   color: theme.colorScheme.error,
                 ),
-                title: Text(omission.message),
+                title: Text(omission.textIn(l10n)),
               ),
           ],
         ],
       ),
     );
-  }
-
-  Widget _formatTile(ExportFormat format, AsyncValue<bool> pdfAvailable) {
-    // PDF is the only format that can be unavailable — the other three are
-    // produced in pure Dart. It is shown disabled with a reason rather than
-    // hidden, so the user knows it exists and why they cannot have it.
-    final unavailable =
-        format.needsNativeRenderer &&
-        pdfAvailable.maybeWhen(data: (value) => !value, orElse: () => false);
-
-    return RadioListTile<ExportFormat>(
-      key: Key('export-format-${format.name}'),
-      value: format,
-      title: Text(format.label),
-      subtitle: Text(unavailable ? ExportStrings.pdfUnavailable : format.hint),
-      // An unavailable format is greyed out here, individually, rather than by
-      // the group — the other three formats stay usable.
-      enabled: !unavailable,
-    );
-  }
-
-  bool get _canExport {
-    if (_isExporting) return false;
-    // A date range with no dates chosen cannot be exported.
-    if (_scopeKind == ExportScopeKind.dateRange && _dateRange == null) {
-      return false;
-    }
-    if (_encrypt && !_passwordIsUsable) return false;
-    return true;
-  }
-
-  /// The password rule is the backup's rule — one length for the whole app.
-  bool get _passwordIsUsable =>
-      _passwordController.text.length >= minimumVaultPasswordLength &&
-      _passwordController.text == _confirmController.text;
-
-  /// Only complain once something has been typed. An empty field nobody has
-  /// touched yet is not an error.
-  bool get _passwordTooShort =>
-      _passwordController.text.isNotEmpty &&
-      _passwordController.text.length < minimumVaultPasswordLength;
-
-  bool get _passwordsDiffer =>
-      _confirmController.text.isNotEmpty &&
-      _confirmController.text != _passwordController.text;
-
-  void _setScope(ExportScopeKind? kind) {
-    if (kind == null) return;
-    setState(() => _scopeKind = kind);
-  }
-
-  Future<void> _pickDateRange() async {
-    final now = DateTime.now();
-    final picked = await showDateRangePicker(
-      context: context,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(now.year + 1),
-      initialDateRange: _dateRange,
-    );
-    if (picked != null && mounted) {
-      setState(() => _dateRange = picked);
-    }
-  }
-
-  ExportScope _buildScope() {
-    switch (_scopeKind) {
-      case ExportScopeKind.singleEntry:
-        return ExportScope.singleEntry(
-          journalId: widget.journalId,
-          entryId: widget.entryId!,
-          includeAttachments: _includeAttachments,
-          includeMetadata: _includeMetadata,
-        );
-      case ExportScopeKind.wholeJournal:
-        return ExportScope.wholeJournal(
-          journalId: widget.journalId,
-          includeAttachments: _includeAttachments,
-          includeMetadata: _includeMetadata,
-        );
-      case ExportScopeKind.dateRange:
-        return ExportScope.dateRange(
-          journalId: widget.journalId,
-          from: _dateRange!.start,
-          to: _dateRange!.end,
-          includeAttachments: _includeAttachments,
-          includeMetadata: _includeMetadata,
-        );
-    }
-  }
-
-  Future<void> _runExport() async {
-    // Captured before the first await so no stale context is touched later.
-    final messenger = ScaffoldMessenger.of(context);
-
-    setState(() {
-      _isExporting = true;
-      _skipped = null;
-    });
-
-    try {
-      final scope = _buildScope();
-      final bundle = await ref.read(exportCollectorProvider).collect(scope);
-
-      if (bundle.isEmpty) {
-        messenger.showSnackBar(
-          const SnackBar(content: Text(ExportStrings.nothingToExport)),
-        );
-        return;
-      }
-
-      // `docs/security.md` section 14: a plaintext export needs an explicit
-      // confirmation step. It is asked here, once the entry count is known, so
-      // the question can say exactly how much is about to leave the vault.
-      // A password-protected export is not a plaintext export, so it does
-      // not ask — turning the switch on was the deliberate act.
-      final confirmed =
-          _encrypt || await _confirmUnencryptedExport(bundle.entryCount);
-      if (!confirmed) {
-        if (!mounted) return;
-        messenger.showSnackBar(
-          const SnackBar(content: Text(ExportStrings.exportCancelled)),
-        );
-        return;
-      }
-
-      final result = await ref
-          .read(exportServiceProvider)
-          .build(
-            bundle,
-            format: _format,
-            includeAttachments: _includeAttachments,
-            includeMetadata: _includeMetadata,
-            password: _encrypt ? _passwordController.text : null,
-          );
-
-      // The system save dialog: scoped storage, no permission needed, and it
-      // preserves a Unicode file name. Sharing through a content URI would
-      // percent-encode a Malayalam name and garble it.
-      final savedPath = await FilePicker.saveFile(
-        dialogTitle: ExportStrings.saveDialogTitle,
-        fileName: result.fileName,
-        bytes: result.bytes,
-      );
-
-      if (!mounted) return;
-
-      if (savedPath == null) {
-        messenger.showSnackBar(
-          const SnackBar(content: Text(ExportStrings.exportCancelled)),
-        );
-        return;
-      }
-
-      await _logExport(scope: scope, result: result);
-
-      setState(() => _skipped = result.skipped);
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(ExportStrings.exportedEntries(result.entryCount)),
-        ),
-      );
-    } on HtmlPdfException catch (error) {
-      messenger.showSnackBar(SnackBar(content: Text(error.message)));
-    } on ExportException catch (error) {
-      messenger.showSnackBar(SnackBar(content: Text(error.message)));
-    } catch (error) {
-      AppLogger.error('export: run failed', error: AppLogger.redact(error));
-      messenger.showSnackBar(
-        const SnackBar(content: Text(ExportStrings.exportFailed)),
-      );
-    } finally {
-      if (mounted) setState(() => _isExporting = false);
-    }
-  }
-
-  /// Asks the user to confirm writing their journal out unencrypted.
-  ///
-  /// Required by `docs/security.md` section 14. Returns false if the user backs
-  /// out or dismisses the dialog, and the export is then abandoned before any
-  /// file is built.
-  Future<bool> _confirmUnencryptedExport(int entryCount) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        key: const Key('export-confirm-dialog'),
-        title: const Text(ExportStrings.confirmTitle),
-        content: Text(ExportStrings.confirmBody(entryCount, _format.label)),
-        actions: [
-          TextButton(
-            key: const Key('export-confirm-cancel'),
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text(ExportStrings.cancel),
-          ),
-          FilledButton(
-            key: const Key('export-confirm-accept'),
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text(ExportStrings.confirmAction),
-          ),
-        ],
-      ),
-    );
-    return confirmed ?? false;
-  }
-
-  /// Records the export in the audit log.
-  ///
-  /// `export_attempt` is a type the `SecurityEvents` table already documents
-  /// but that nothing wrote until now. It records **what shape** the export
-  /// was, never any entry content — no titles, no text, no file names.
-  Future<void> _logExport({
-    required ExportScope scope,
-    required ExportResult result,
-  }) async {
-    try {
-      await ref
-          .read(appDatabaseProvider)
-          .securityEventsDao
-          .logEvent(
-            SecurityEventsCompanion.insert(
-              eventType: 'export_attempt',
-              severity: const Value('info'),
-              description: 'Journal data exported',
-              metadata: Value(
-                jsonEncode({
-                  'scope': scope.kind.name,
-                  'format': _format.name,
-                  'journalId': scope.journalId,
-                  'entryCount': result.entryCount,
-                  'includedAttachments': _includeAttachments,
-                  'encrypted': result.isEncrypted,
-                  'skippedCount': result.skipped.length,
-                }),
-              ),
-            ),
-          );
-    } catch (error) {
-      // Losing an audit line must never lose the user their export.
-      AppLogger.warning(
-        'export: could not write the audit event',
-        error: AppLogger.redact(error),
-      );
-    }
   }
 }
 

@@ -5,6 +5,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 
 import 'package:sreerajp_journal_vault/core/security/screen_security_controller.dart';
 import 'package:sreerajp_journal_vault/features/airqr/domain/airqr_payload.dart';
+import 'package:sreerajp_journal_vault/features/airqr/presentation/airqr_payload_text.dart';
 import 'package:sreerajp_journal_vault/features/airqr/services/airqr_codec.dart';
 import 'package:sreerajp_journal_vault/features/airqr/services/airqr_sender.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
@@ -44,12 +45,13 @@ class _AirqrSendScreenState extends ConsumerState<AirqrSendScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.airqrSendTitle)),
+      appBar: AppBar(title: Text(l10n.titleAirqrSend)),
       body: ListenableBuilder(
         listenable: _controller,
         builder: (context, _) {
-          final error = _controller.errorMessage;
-          if (error != null) {
+          // The controller's message is internal detail; the user gets a
+          // fixed sentence in their own language.
+          if (_controller.errorMessage != null) {
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(24),
@@ -62,11 +64,11 @@ class _AirqrSendScreenState extends ConsumerState<AirqrSendScreen> {
                       size: 48,
                     ),
                     const SizedBox(height: 16),
-                    Text(error, textAlign: TextAlign.center),
+                    Text(l10n.errorAirqrEncode, textAlign: TextAlign.center),
                     const SizedBox(height: 16),
                     FilledButton(
                       onPressed: () => _controller.start(),
-                      child: const Text('Retry'),
+                      child: Text(l10n.errorCommonRetry),
                     ),
                   ],
                 ),
@@ -75,13 +77,13 @@ class _AirqrSendScreenState extends ConsumerState<AirqrSendScreen> {
           }
 
           if (_controller.isEncoding) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('Encoding payload...'),
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 16),
+                  Text(l10n.bodyAirqrEncoding),
                 ],
               ),
             );
@@ -116,13 +118,16 @@ class _AirqrSendScreenState extends ConsumerState<AirqrSendScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _controller.payload.title,
+                            _controller.payload.titleIn(l10n),
                             style: theme.textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           Text(
-                            '${_controller.encoded?.payloadBytes ?? 0} bytes • ${_controller.totalDataFrames} data frames',
+                            l10n.descAirqrPayloadSize(
+                              _controller.encoded?.payloadBytes ?? 0,
+                              _controller.totalDataFrames,
+                            ),
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurfaceVariant,
                             ),
@@ -175,8 +180,11 @@ class _AirqrSendScreenState extends ConsumerState<AirqrSendScreen> {
                   ),
                   child: Text(
                     _controller.isManifestFrame
-                        ? 'Manifest Header'
-                        : 'Frame ${_controller.currentFrameIndex} of ${_controller.totalDataFrames}',
+                        ? l10n.labelAirqrManifestFrame
+                        : l10n.labelAirqrFrameOf(
+                            _controller.currentFrameIndex,
+                            _controller.totalDataFrames,
+                          ),
                     style: theme.textTheme.labelMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -206,7 +214,7 @@ class _AirqrSendScreenState extends ConsumerState<AirqrSendScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              l10n.syncPairingCodeLabel,
+                              l10n.labelSyncPairingCode,
                               style: theme.textTheme.labelSmall?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
@@ -224,6 +232,7 @@ class _AirqrSendScreenState extends ConsumerState<AirqrSendScreen> {
                         ),
                         IconButton.filledTonal(
                           icon: const Icon(Icons.copy_rounded, size: 18),
+                          tooltip: l10n.tooltipCopyPairingCode,
                           onPressed: () {
                             Clipboard.setData(
                               ClipboardData(
@@ -234,7 +243,7 @@ class _AirqrSendScreenState extends ConsumerState<AirqrSendScreen> {
                             );
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(l10n.syncPairingCodeCopied),
+                                content: Text(l10n.bodySyncPairingCodeCopied),
                                 duration: const Duration(seconds: 2),
                               ),
                             );
@@ -251,7 +260,7 @@ class _AirqrSendScreenState extends ConsumerState<AirqrSendScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Speed: ${_controller.fps} FPS',
+                    l10n.labelAirqrSpeed(_controller.fps),
                     style: theme.textTheme.labelMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -260,6 +269,7 @@ class _AirqrSendScreenState extends ConsumerState<AirqrSendScreen> {
                     children: [
                       IconButton.outlined(
                         icon: const Icon(Icons.remove, size: 16),
+                        tooltip: l10n.tooltipSlower,
                         onPressed: _controller.fps > 2
                             ? () => _controller.setFps(_controller.fps - 1)
                             : null,
@@ -267,6 +277,7 @@ class _AirqrSendScreenState extends ConsumerState<AirqrSendScreen> {
                       const SizedBox(width: 8),
                       IconButton.outlined(
                         icon: const Icon(Icons.add, size: 16),
+                        tooltip: l10n.tooltipFaster,
                         onPressed: _controller.fps < 12
                             ? () => _controller.setFps(_controller.fps + 1)
                             : null,

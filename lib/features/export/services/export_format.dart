@@ -1,7 +1,8 @@
 /// The formats an export can be written in.
+///
+/// The visible name and hint of each format are localized in
+/// `presentation/export_text.dart`.
 library;
-
-import 'package:sreerajp_journal_vault/features/export/export_strings.dart';
 
 /// A format the user can export to.
 enum ExportFormat {
@@ -35,34 +36,6 @@ enum ExportFormat {
         return 'text/plain';
       case ExportFormat.pdf:
         return 'application/pdf';
-    }
-  }
-
-  /// The name shown to the user.
-  String get label {
-    switch (this) {
-      case ExportFormat.markdown:
-        return ExportStrings.formatMarkdown;
-      case ExportFormat.html:
-        return ExportStrings.formatHtml;
-      case ExportFormat.plainText:
-        return ExportStrings.formatPlainText;
-      case ExportFormat.pdf:
-        return ExportStrings.formatPdf;
-    }
-  }
-
-  /// One line telling the user what they get.
-  String get hint {
-    switch (this) {
-      case ExportFormat.markdown:
-        return ExportStrings.formatMarkdownHint;
-      case ExportFormat.html:
-        return ExportStrings.formatHtmlHint;
-      case ExportFormat.plainText:
-        return ExportStrings.formatPlainTextHint;
-      case ExportFormat.pdf:
-        return ExportStrings.formatPdfHint;
     }
   }
 

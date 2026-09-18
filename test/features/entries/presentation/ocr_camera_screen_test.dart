@@ -232,9 +232,11 @@ void main() {
         expect(find.text('2×'), findsOneWidget);
 
         // Tap flash toggle
+        // Flash starts off, because flash glare hides words on paper, so
+        // the first tap moves it to auto.
         await tester.tap(find.byKey(const Key('ocr-camera-flash-btn')));
         await tester.pumpAndSettle();
-        expect(fakeController.lastFlashMode, FlashMode.always);
+        expect(fakeController.lastFlashMode, FlashMode.auto);
 
         // Tap 2x zoom button
         await tester.tap(find.text('2×'));

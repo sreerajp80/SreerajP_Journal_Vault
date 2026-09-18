@@ -1,6 +1,6 @@
 # Plan — Drop low-confidence junk words and upgrade the Malayalam model
 
-**Status:** Awaiting approval
+**Status:** completed
 
 Supersedes `plans/20260912_154629_upgrade_malayalam_traineddata_to_best.md`,
 which covered only the model swap. That plan should be marked superseded.

@@ -116,7 +116,7 @@ Files: `lib/features/entries/presentation/entry_editor_screen.dart`,
 ### 5. `minSdk` was 24, not the required 28
 
 `android/app/build.gradle.kts` used `minSdk = flutter.minSdkVersion`, resolving to 24. `AGENTS.md`
-requires API 28, and `Remediation_Plan.md` slice A2 chose Keystore-backed secret storage assuming
+requires API 28, and `20260725_000000_remediation-plan.md` slice A2 chose Keystore-backed secret storage assuming
 API 28+.
 
 - Pinned `minSdk = 28`.

@@ -12,7 +12,7 @@ class PermissionsSettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.settingsSectionPermissions)),
+      appBar: AppBar(title: Text(l10n.titleSettingsSectionPermissions)),
       body: ListView(
         key: const Key('settings-permissions-list'),
         children: const [PermissionsSection()],
@@ -50,12 +50,12 @@ class _PermissionsSectionState extends ConsumerState<PermissionsSection> {
 
   String _summary(AppLocalizations l10n) {
     final s = _snapshot;
-    if (s == null) return l10n.storageUnknown;
+    if (s == null) return l10n.bodyStorageUnknown;
     final all = [...s.explicitPermissions, ...s.implicitPermissions];
     final granted = all
         .where((p) => p.status == AppPermissionState.granted)
         .length;
-    return l10n.permissionsGrantedSummary(granted, all.length);
+    return l10n.descPermissionsGranted(granted, all.length);
   }
 
   @override
@@ -65,12 +65,12 @@ class _PermissionsSectionState extends ConsumerState<PermissionsSection> {
       children: [
         ListTile(
           key: const Key('settings-permissions-status'),
-          title: Text(l10n.permissionStatusRow),
+          title: Text(l10n.labelPermissionStatusRow),
           subtitle: Text(_summary(l10n)),
         ),
         ListTile(
           key: const Key('settings-manage-permissions'),
-          title: Text(l10n.permissionsManage),
+          title: Text(l10n.labelPermissionsManage),
           trailing: const Icon(Icons.chevron_right),
           onTap: () async {
             await Navigator.push(
@@ -84,7 +84,7 @@ class _PermissionsSectionState extends ConsumerState<PermissionsSection> {
         ),
         ListTile(
           key: const Key('settings-open-system-settings'),
-          title: Text(l10n.permissionsOpenSystem),
+          title: Text(l10n.labelPermissionsOpenSystem),
           trailing: const Icon(Icons.open_in_new),
           onTap: () async {
             try {

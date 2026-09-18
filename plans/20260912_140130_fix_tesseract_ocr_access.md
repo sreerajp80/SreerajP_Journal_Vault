@@ -1,6 +1,6 @@
 # Plan: Fix Tesseract OCR Private Member Access in MainActivity
 
-**Status:** Completed  
+**Status:** completed  
 **Created:** 2026-09-12 14:01:30 IST  
 **Scope:** `android/app/src/main/kotlin/in/sreerajp/sreerajp_journal_vault/MainActivity.kt`
 

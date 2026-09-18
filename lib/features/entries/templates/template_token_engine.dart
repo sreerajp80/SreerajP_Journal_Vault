@@ -1,23 +1,19 @@
 import 'dart:convert';
 import 'package:intl/intl.dart';
 
+import 'package:sreerajp_journal_vault/core/l10n/formatting_locale.dart';
+
 /// Information about a dynamic date token supported in entry templates.
+///
+/// It carries no words of its own. The token tag is code, the example is a
+/// formatted date, and the sentence that explains the token lives in
+/// `TemplateTokenText` in the presentation layer, so this engine stays free of
+/// user-visible text.
 class TemplateTokenInfo {
-  const TemplateTokenInfo({
-    required this.token,
-    required this.label,
-    required this.description,
-    required this.example,
-  });
+  const TemplateTokenInfo({required this.token, required this.example});
 
   /// The token tag as written in templates, e.g. `{{today}}`.
   final String token;
-
-  /// Short human-readable label for UI chips.
-  final String label;
-
-  /// Detailed description for tooltips and help text.
-  final String description;
 
   /// Example output formatted for the current date/time.
   final String example;
@@ -36,48 +32,36 @@ class TemplateTokenEngine {
     String? locale,
   }) {
     final dt = now ?? DateTime.now();
+    // intl has no Sanskrit data; format with English patterns instead.
+    final fmt = formattingLocaleTag(locale);
     return [
       TemplateTokenInfo(
         token: '{{today}}',
-        label: 'Today',
-        description: 'Standard date (YYYY-MM-DD)',
-        example: DateFormat('yyyy-MM-dd', locale).format(dt),
+        example: DateFormat('yyyy-MM-dd', fmt).format(dt),
       ),
       TemplateTokenInfo(
         token: '{{weekday}}',
-        label: 'Weekday',
-        description: 'Full day of week (e.g. Monday)',
-        example: DateFormat('EEEE', locale).format(dt),
+        example: DateFormat('EEEE', fmt).format(dt),
       ),
       TemplateTokenInfo(
         token: '{{date}}',
-        label: 'Full Date',
-        description: 'Formatted full date (e.g. August 23, 2026)',
-        example: DateFormat.yMMMMd(locale).format(dt),
+        example: DateFormat.yMMMMd(fmt).format(dt),
       ),
       TemplateTokenInfo(
         token: '{{time}}',
-        label: 'Time',
-        description: 'Current time (e.g. 2:30 PM)',
-        example: DateFormat.jm(locale).format(dt),
+        example: DateFormat.jm(fmt).format(dt),
       ),
       TemplateTokenInfo(
         token: '{{year}}',
-        label: 'Year',
-        description: '4-digit year (e.g. 2026)',
-        example: DateFormat('yyyy', locale).format(dt),
+        example: DateFormat('yyyy', fmt).format(dt),
       ),
       TemplateTokenInfo(
         token: '{{month}}',
-        label: 'Month',
-        description: 'Full month name (e.g. August)',
-        example: DateFormat('MMMM', locale).format(dt),
+        example: DateFormat('MMMM', fmt).format(dt),
       ),
       TemplateTokenInfo(
         token: '{{day}}',
-        label: 'Day',
-        description: 'Day of month (1-31)',
-        example: DateFormat('d', locale).format(dt),
+        example: DateFormat('d', fmt).format(dt),
       ),
     ];
   }
@@ -87,14 +71,16 @@ class TemplateTokenEngine {
     if (input.isEmpty || !input.contains('{{')) return input;
 
     final dt = now ?? DateTime.now();
+    // intl has no Sanskrit data; format with English patterns instead.
+    final fmt = formattingLocaleTag(locale);
 
-    final todayStr = DateFormat('yyyy-MM-dd', locale).format(dt);
-    final weekdayStr = DateFormat('EEEE', locale).format(dt);
-    final dateStr = DateFormat.yMMMMd(locale).format(dt);
-    final timeStr = DateFormat.jm(locale).format(dt);
-    final yearStr = DateFormat('yyyy', locale).format(dt);
-    final monthStr = DateFormat('MMMM', locale).format(dt);
-    final dayStr = DateFormat('d', locale).format(dt);
+    final todayStr = DateFormat('yyyy-MM-dd', fmt).format(dt);
+    final weekdayStr = DateFormat('EEEE', fmt).format(dt);
+    final dateStr = DateFormat.yMMMMd(fmt).format(dt);
+    final timeStr = DateFormat.jm(fmt).format(dt);
+    final yearStr = DateFormat('yyyy', fmt).format(dt);
+    final monthStr = DateFormat('MMMM', fmt).format(dt);
+    final dayStr = DateFormat('d', fmt).format(dt);
 
     var result = input;
     result = result.replaceAll(

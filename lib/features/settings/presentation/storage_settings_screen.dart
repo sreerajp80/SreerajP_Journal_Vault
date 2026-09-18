@@ -5,13 +5,14 @@ import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
 import 'package:sreerajp_journal_vault/features/attachments/providers/attachment_providers.dart';
 import 'package:sreerajp_journal_vault/features/attachments/services/attachment_crypto_storage.dart';
 import 'package:sreerajp_journal_vault/features/backup/presentation/backup_health_screen.dart';
-import 'package:sreerajp_journal_vault/features/export/export_strings.dart';
 import 'package:sreerajp_journal_vault/features/export/presentation/export_screen.dart';
 import 'package:sreerajp_journal_vault/features/export/presentation/open_encrypted_export_screen.dart';
 import 'package:sreerajp_journal_vault/features/import/presentation/import_screen.dart';
 import 'package:sreerajp_journal_vault/features/journal_lock/providers/journal_lock_providers.dart';
 import 'package:sreerajp_journal_vault/features/sync/presentation/sync_landing_screen.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
+
+part 'migration_progress_dialog.dart';
 
 class StorageSettingsScreen extends StatelessWidget {
   const StorageSettingsScreen({super.key});
@@ -20,7 +21,7 @@ class StorageSettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.settingsSectionStorage)),
+      appBar: AppBar(title: Text(l10n.titleSettingsSectionStorage)),
       body: ListView(
         key: const Key('settings-storage-list'),
         children: const [StorageSection()],
@@ -63,35 +64,43 @@ class _StorageSectionState extends ConsumerState<StorageSection> {
     final loc = AttachmentStorageLocation.fromSettingsValue(
       s.attachmentStorageLocation,
     );
-    if (loc != AttachmentStorageLocation.sdCard) return l10n.storageAppPrivate;
+    if (loc != AttachmentStorageLocation.sdCard) {
+      return l10n.labelStorageAppPrivate;
+    }
     final label = s.attachmentStorageTreeLabel;
-    return label == null ? l10n.storageSdCard : l10n.storageSdCardNamed(label);
+    return label == null
+        ? l10n.labelStorageSdCard
+        : l10n.labelStorageSdCardNamed(label);
   }
 
   /// `attachmentMigrationStatus` is a database code, not text for the user.
   String _migrationStatusLabel(AppLocalizations l10n, AppSetting s) {
     switch (s.attachmentMigrationStatus) {
       case 'running':
-        return l10n.storageMigrationRunning(
+        return l10n.descStorageMigrationRunning(
           s.attachmentMigrationProcessedCount,
           s.attachmentMigrationTotalCount,
         );
       case 'failed':
-        return s.attachmentMigrationFailure ?? l10n.storageMigrationFailedShort;
+        // The stored reason is an internal note written when the move failed.
+        // The user gets the same sentence in their own language instead.
+        return l10n.descStorageMigrationFailedShort;
       default:
-        return l10n.storageMigrationIdle;
+        return l10n.labelStorageMigrationIdle;
     }
   }
 
   String _formatBytes(AppLocalizations l10n, int bytes) {
-    if (bytes < 1024) return l10n.storageBytes(bytes);
+    if (bytes < 1024) return l10n.labelStorageBytes(bytes);
     if (bytes < 1024 * 1024) {
-      return l10n.storageKilobytes((bytes / 1024).toStringAsFixed(1));
+      return l10n.labelStorageKilobytes((bytes / 1024).toStringAsFixed(1));
     }
     if (bytes < 1024 * 1024 * 1024) {
-      return l10n.storageMegabytes((bytes / (1024 * 1024)).toStringAsFixed(1));
+      return l10n.labelStorageMegabytes(
+        (bytes / (1024 * 1024)).toStringAsFixed(1),
+      );
     }
-    return l10n.storageGigabytes(
+    return l10n.labelStorageGigabytes(
       (bytes / (1024 * 1024 * 1024)).toStringAsFixed(2),
     );
   }
@@ -117,22 +126,22 @@ class _StorageSectionState extends ConsumerState<StorageSection> {
       builder: (dialogContext) {
         final l10n = AppLocalizations.of(dialogContext);
         return AlertDialog(
-          title: Text(l10n.storageMigrateTitle),
+          title: Text(l10n.bodyStorageMigrate),
           content: Text(
-            l10n.storageMigrateBody(
+            l10n.bodyStorageMigrateBody(
               target == AttachmentStorageLocation.sdCard
-                  ? l10n.storageSdCard
-                  : l10n.storageAppPrivate,
+                  ? l10n.labelStorageSdCard
+                  : l10n.labelStorageAppPrivate,
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
-              child: Text(l10n.commonCancel),
+              child: Text(l10n.actionCommonCancel),
             ),
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, true),
-              child: Text(l10n.storageMigrateAction),
+              child: Text(l10n.actionStorageMigrate),
             ),
           ],
         );
@@ -182,15 +191,15 @@ class _StorageSectionState extends ConsumerState<StorageSection> {
     final messenger = ScaffoldMessenger.of(context);
     if (cancelled) {
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.storageMigrationCancelled)),
+        SnackBar(content: Text(l10n.bodyStorageMigrationCancelled)),
       );
     } else if (errorMessage != null) {
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.storageMigrationFailed(errorMessage))),
+        SnackBar(content: Text(l10n.errorStorageMigrationFailed)),
       );
     } else {
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.storageMigrationComplete)),
+        SnackBar(content: Text(l10n.bodyStorageMigrationComplete)),
       );
     }
   }
@@ -224,7 +233,7 @@ class _StorageSectionState extends ConsumerState<StorageSection> {
       children: [
         ListTile(
           key: const Key('settings-attachment-storage-location'),
-          title: Text(l10n.storageLocationTitle),
+          title: Text(l10n.titleStorageLocation),
           subtitle: Text(_locationLabel(l10n, settings)),
           trailing: const Icon(Icons.chevron_right),
           onTap: () async {
@@ -233,7 +242,7 @@ class _StorageSectionState extends ConsumerState<StorageSection> {
               builder: (dialogContext) {
                 final l10n = AppLocalizations.of(dialogContext);
                 return SimpleDialog(
-                  title: Text(l10n.storageLocationDialogTitle),
+                  title: Text(l10n.titleStorageLocationDialogTitle),
                   children: [
                     SimpleDialogOption(
                       key: const Key('storage-location-app-private'),
@@ -241,7 +250,7 @@ class _StorageSectionState extends ConsumerState<StorageSection> {
                         dialogContext,
                         AttachmentStorageLocation.appPrivate,
                       ),
-                      child: Text(l10n.storageAppPrivate),
+                      child: Text(l10n.labelStorageAppPrivate),
                     ),
                     SimpleDialogOption(
                       key: const Key('storage-location-sd-card'),
@@ -249,7 +258,7 @@ class _StorageSectionState extends ConsumerState<StorageSection> {
                         dialogContext,
                         AttachmentStorageLocation.sdCard,
                       ),
-                      child: Text(l10n.storageSdCard),
+                      child: Text(l10n.labelStorageSdCard),
                     ),
                   ],
                 );
@@ -260,28 +269,28 @@ class _StorageSectionState extends ConsumerState<StorageSection> {
         ),
         ListTile(
           key: const Key('settings-migrate-storage'),
-          title: Text(l10n.storageMigrateRow),
+          title: Text(l10n.labelStorageMigrateRow),
           subtitle: Text(_migrationStatusLabel(l10n, settings)),
           trailing: canRetry
               ? TextButton(
                   key: const Key('settings-migrate-storage-retry'),
                   onPressed: _retryMigration,
-                  child: Text(l10n.commonRetry),
+                  child: Text(l10n.errorCommonRetry),
                 )
               : null,
         ),
         ListTile(
           key: const Key('settings-storage-usage'),
-          title: Text(l10n.storageUsage),
+          title: Text(l10n.labelStorageUsage),
           subtitle: Text(
             _totalBytes == null
-                ? l10n.storageUnknown
+                ? l10n.bodyStorageUnknown
                 : _formatBytes(l10n, _totalBytes!),
           ),
         ),
         ListTile(
           key: const Key('settings-backup-health'),
-          title: Text(l10n.storageBackupHealth),
+          title: Text(l10n.labelStorageBackupHealth),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => Navigator.push(
             context,
@@ -290,19 +299,19 @@ class _StorageSectionState extends ConsumerState<StorageSection> {
         ),
         ListTile(
           key: const Key('settings-import-data'),
-          title: Text(l10n.storageImportData),
+          title: Text(l10n.labelStorageImportData),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => _pickImportTarget(context, ref),
         ),
         ListTile(
           key: const Key('settings-export-data'),
-          title: const Text(ExportStrings.exportDataTile),
+          title: Text(AppLocalizations.of(context).labelExportData),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => _pickExportTarget(context, ref),
         ),
         ListTile(
           key: const Key('settings-open-encrypted-export'),
-          title: Text(l10n.settingsOpenEncryptedExport),
+          title: Text(l10n.actionSettingsOpenEncryptedExport),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => Navigator.push(
             context,
@@ -313,8 +322,8 @@ class _StorageSectionState extends ConsumerState<StorageSection> {
         ),
         ListTile(
           key: const Key('settings-device-sync'),
-          title: Text(l10n.syncLandingTitle),
-          subtitle: Text(l10n.syncLandingSubtitle),
+          title: Text(l10n.titleSyncLanding),
+          subtitle: Text(l10n.descSyncLanding),
           trailing: const Icon(Icons.chevron_right),
           onTap: () => Navigator.push(
             context,
@@ -332,7 +341,9 @@ class _StorageSectionState extends ConsumerState<StorageSection> {
     if (journals.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppLocalizations.of(context).storageImportNeedsJournal),
+          content: Text(
+            AppLocalizations.of(context).bodyStorageImportNeedsJournal,
+          ),
         ),
       );
       return;
@@ -342,7 +353,7 @@ class _StorageSectionState extends ConsumerState<StorageSection> {
       context: context,
       builder: (dialogContext) => SimpleDialog(
         title: Text(
-          AppLocalizations.of(dialogContext).storageImportChooseJournal,
+          AppLocalizations.of(dialogContext).titleStorageImportChooseJournal,
         ),
         children: [
           for (final j in journals)
@@ -379,7 +390,9 @@ class _StorageSectionState extends ConsumerState<StorageSection> {
 
     if (journals.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(ExportStrings.noJournalsToExport)),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).bodyExportNoJournals),
+        ),
       );
       return;
     }
@@ -391,7 +404,9 @@ class _StorageSectionState extends ConsumerState<StorageSection> {
 
     if (available.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text(ExportStrings.allJournalsLocked)),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).bodyExportAllLocked),
+        ),
       );
       return;
     }
@@ -399,7 +414,7 @@ class _StorageSectionState extends ConsumerState<StorageSection> {
     final selected = await showDialog<Journal>(
       context: context,
       builder: (_) => SimpleDialog(
-        title: const Text(ExportStrings.chooseJournalToExport),
+        title: Text(AppLocalizations.of(context).titleExportChooseJournal),
         children: [
           for (final j in available)
             SimpleDialogOption(
@@ -418,102 +433,6 @@ class _StorageSectionState extends ConsumerState<StorageSection> {
         builder: (_) =>
             ExportScreen(journalId: selected.id, journalTitle: selected.title),
       ),
-    );
-  }
-}
-
-class MigrationProgressController extends ChangeNotifier {
-  int _processed = 0;
-  int _total = 0;
-  bool _cancelRequested = false;
-  bool _completed = false;
-
-  int get processed => _processed;
-  int get total => _total;
-  bool get cancelRequested => _cancelRequested;
-  bool get completed => _completed;
-
-  void update(int processed, int total) {
-    _processed = processed;
-    _total = total;
-    notifyListeners();
-  }
-
-  void cancel() {
-    if (_cancelRequested) return;
-    _cancelRequested = true;
-    notifyListeners();
-  }
-
-  void complete() {
-    if (_completed) return;
-    _completed = true;
-    notifyListeners();
-  }
-}
-
-class MigrationProgressDialog extends StatefulWidget {
-  const MigrationProgressDialog({super.key, required this.controller});
-
-  final MigrationProgressController controller;
-
-  @override
-  State<MigrationProgressDialog> createState() =>
-      _MigrationProgressDialogState();
-}
-
-class _MigrationProgressDialogState extends State<MigrationProgressDialog> {
-  @override
-  void initState() {
-    super.initState();
-    widget.controller.addListener(_handleChange);
-  }
-
-  @override
-  void dispose() {
-    widget.controller.removeListener(_handleChange);
-    super.dispose();
-  }
-
-  void _handleChange() {
-    if (!mounted) return;
-    if (widget.controller.completed) {
-      Navigator.of(context).pop();
-    } else {
-      setState(() {});
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final c = widget.controller;
-    final progress = c.total == 0 ? null : c.processed / c.total;
-    return AlertDialog(
-      title: Text(l10n.migrationDialogTitle),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          LinearProgressIndicator(value: progress),
-          const SizedBox(height: 12),
-          Text(
-            c.cancelRequested
-                ? l10n.migrationCancelling
-                : l10n.migrationProgress(
-                    '${c.processed}',
-                    c.total == 0 ? l10n.migrationUnknownTotal : '${c.total}',
-                  ),
-          ),
-        ],
-      ),
-      actions: [
-        TextButton(
-          key: const Key('migration-cancel-button'),
-          onPressed: c.cancelRequested ? null : c.cancel,
-          child: Text(l10n.commonCancel),
-        ),
-      ],
     );
   }
 }

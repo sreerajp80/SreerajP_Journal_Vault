@@ -82,7 +82,10 @@ the Production and Sensitive Data sections of the engineering standard.
 5. **A schema change needs a migration.** Check the current version in
    `lib/core/database/app_database.dart` first, then add a migration and a test for it.
 6. **Keep changes small and scoped.** No unrelated refactors. Preserve existing behaviour unless
-   the task explicitly changes it.
+   the task explicitly changes it. Split work into small, testable slices with acceptance criteria.
+7. **Re-test earlier work.** After finishing a task, check that previously built features still
+   work. When a numbered prompt is finished, mark it `[COMPLETED]` in
+   [`docs/ai_development_prompts.md`](docs/ai_development_prompts.md).
 
 ---
 
@@ -114,10 +117,15 @@ flutter test                           # run all tests
 flutter gen-l10n                       # regenerate AppLocalizations after editing any .arb
 dart run build_runner build --delete-conflicting-outputs   # after changing Drift tables
 dart format lib test integration_test  # format before committing
+sh tool/check_sanskrit_markers.sh      # Sanskrit must contain no Hindi markers
 
 # Production release APK, split per ABI (sideload distribution)
 flutter build apk --flavor prod --release \
   --obfuscate --split-debug-info=build/symbols/android-prod-<version>/ --split-per-abi
+
+# Production App Bundle (Google Play)
+flutter build appbundle --flavor prod --release \
+  --obfuscate --split-debug-info=build/symbols/android-prod-<version>/
 ```
 
 > This app defines flavors, so a bare `flutter run` fails — always pass `--flavor`.
@@ -166,19 +174,46 @@ and defaults to `prod`. Never use `kDebugMode` or `kReleaseMode` as a stand-in f
 - `android:allowBackup="false"` and `res/xml/data_extraction_rules.xml` must stay in the
   manifest. `FLAG_SECURE` must stay applied in `MainActivity.onCreate` by default; the only
   thing that may clear it is the user's own "Block Screenshots" switch in Settings.
-- Release builds must keep `--obfuscate --split-debug-info` and R8. Symbols are git-ignored and
-  archived per release.
+- Release builds must keep `--release --obfuscate --split-debug-info` and R8. Symbols are
+  git-ignored and archived per release.
+- `bundle { language { enableSplit = false } }` must stay in `android/app/build.gradle.kts`, or
+  Play installs would miss the Malayalam and Sanskrit resources the in-app picker needs.
+- No store upload until the Google Play readiness gate in
+  [`docs/release_process.md`](docs/release_process.md) section 9A passes.
 - Full threat model and OWASP checklist: [`docs/security.md`](docs/security.md).
 
 ---
 
 ## Localization rules
 
+- This app ships three languages: **English (`en`), Malayalam (`ml`), Sanskrit (`sa`)**. Every
+  feature and every screen works in all three.
 - All user-visible text comes from `lib/l10n/*.arb` through `AppLocalizations` — never a raw
-  string literal in a widget. This applies even though the app ships only English.
-- `l10n.yaml` (project root) and `lib/l10n/app_en.arb` must exist. Run `flutter gen-l10n` after
-  editing any `.arb` file.
-- Every ARB key needs an `@key` description entry, so a future translator has context.
+  string literal in a widget.
+- `l10n.yaml` (project root) and all three ARB files (`app_en.arb`, `app_ml.arb`, `app_sa.arb`)
+  must exist. Run `flutter gen-l10n` after editing any `.arb` file.
+- Every new key goes into **all three** files with a real translation. Never leave the English
+  value sitting in `app_ml.arb` or `app_sa.arb`. `test/l10n/translation_parity_test.dart`
+  enforces this.
+- Every ARB key needs an `@key` description entry in the template file.
+- **Sanskrit means Sanskrit, not Hindi in Devanagari.** No Hindi copulas, postpositions or verb
+  endings (`है`, `करें`, `नहीं`, `सेटिंग्स`), no nukta letters. Use the glossary in the engineering
+  standard §8.5 and flag anything you are unsure of for human review.
+  `tool/check_sanskrit_markers.sh` enforces the marker list.
+- `supportedLocales` is `en`, `ml`, `sa`, and the Sanskrit Material/Cupertino/Widgets fallback
+  delegates in `lib/core/l10n/sa_framework_localizations.dart` are registered first — Flutter ships
+  no Sanskrit framework translation. Format dates and numbers with `formattingLocale(...)`
+  (`lib/core/l10n/formatting_locale.dart`), never `DateFormat(..., 'sa')`.
+- The language is user-selectable in Settings (System default / English / മലയാളം / संस्कृतम्),
+  persisted under the `app_language` preference, and applied without restarting the app.
+- Menu, button, label, tab and tooltip strings stay short in all three languages (§8.6). Key
+  prefixes show the category: `action…`, `label…`, `title…`, `tab…`, `nav…`, `tooltip…` are short;
+  only `desc…`, `help…`, `empty…`, `error…`, `body…` and `aboutDetail…` keys may be long.
+  `test/l10n/label_length_test.dart` enforces the budget.
+- Every icon-only control has a localized `tooltip:` (§7.8).
+- The About screen is data-driven, localized, and ends with the "Made with ❤️ from India" badge.
+- A new or changed Malayalam or Sanskrit term is listed as "needs native-reader review" in the
+  change log until a fluent reader approves it.
 - Literals are allowed only for log messages, non-UI exception messages, asset paths, route
   names, and map/JSON keys.
 
@@ -231,7 +266,8 @@ lib/                 # app source (app/, core/, features/, l10n/, main.dart)
 test/                # unit and widget tests, mirroring lib/
 integration_test/    # end-to-end tests
 android/             # Android host, signing, native Keystore and print code
-assets/config/       # app_config.json — the About screen source of truth
+assets/config/       # app_config.json — the About screen source of truth (en/ml/sa)
+assets/fonts/        # bundled Noto Sans Malayalam and Devanagari (OFL)
 tool/                # repository scripts
 ```
 
@@ -290,7 +326,7 @@ genuinely needs an absolute path, put `allow-abs-path` in a comment on that line
 
 **Always:** read this file and the relevant `docs/` file first; write a plan and wait for
 approval; state which layer a new class belongs to; keep `main.dart` thin; use `AppLogger`; put
-user-visible text in `app_en.arb`; run `flutter analyze` and `flutter test` after a change; add a
+user-visible text in all three ARB files (`app_en.arb`, `app_ml.arb`, `app_sa.arb`); run `flutter analyze` and `flutter test` after a change; add a
 migration with every schema change.
 
 **Never:** put business logic in a widget; call a DAO from a widget; edit `*.g.dart` by hand; add

@@ -4,15 +4,15 @@ import 'package:sreerajp_journal_vault/core/config/app_config.dart';
 import 'package:sreerajp_journal_vault/core/config/config_service.dart';
 import 'package:sreerajp_journal_vault/core/constants/build_date.g.dart';
 
-/// Label shown when the build timestamp define is absent or empty.
-const String missingBuildTimestampLabel = 'Build date unavailable';
-
 /// Formatted metadata shown on the About screen.
 ///
 /// Per guideline.md section 1.6 the attribution rows live in [details] and are
 /// rendered by looping the map. This class must NOT gain named fields like
 /// `author` or `ideUsed` — adding a row is a change to
 /// `assets/config/app_config.json`, not to Dart.
+///
+/// Layer: application. It holds no UI strings; text that needs a language is
+/// kept as [LocalizedText] and resolved by the screen.
 class AboutMetadata {
   const AboutMetadata({
     required this.appName,
@@ -22,17 +22,18 @@ class AboutMetadata {
     this.details = const {},
   });
 
-  final String appName;
-  final String description;
+  final LocalizedText appName;
+  final LocalizedText description;
 
   /// e.g. "1.0.1 (build 1)"
   final String versionBuild;
 
-  /// Formatted build timestamp or [missingBuildTimestampLabel].
-  final String lastBuildTimestamp;
+  /// Formatted build timestamp, or `null` when it is not available. The screen
+  /// shows a localized "unavailable" text for `null`.
+  final String? lastBuildTimestamp;
 
-  /// Label/value rows straight from the config, in file order.
-  final Map<String, String> details;
+  /// Rows straight from the config, in file order.
+  final Map<String, LocalizedText> details;
 }
 
 /// Provider for the [ConfigService] used to load About values.
@@ -42,12 +43,12 @@ final configServiceProvider = Provider<ConfigService>((ref) {
   return ConfigService();
 });
 
-/// Formats a raw build timestamp or date string into a human-readable date.
+/// Formats a raw build timestamp or date string into a readable date.
 ///
-/// Returns [missingBuildTimestampLabel] when the input is blank or unparseable.
-String formatBuildTimestamp(String raw) {
+/// Returns `null` when the input is blank or cannot be parsed.
+String? formatBuildTimestamp(String raw) {
   final trimmed = raw.trim();
-  if (trimmed.isEmpty) return missingBuildTimestampLabel;
+  if (trimmed.isEmpty) return null;
   if (RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(trimmed)) {
     return trimmed;
   }
@@ -60,7 +61,7 @@ String formatBuildTimestamp(String raw) {
     final mi = dt.minute.toString().padLeft(2, '0');
     return '$y-$mo-$d $h:$mi';
   } catch (_) {
-    return missingBuildTimestampLabel;
+    return null;
   }
 }
 

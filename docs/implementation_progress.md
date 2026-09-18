@@ -6,8 +6,9 @@ record — add a new dated section rather than rewriting an old one.
 **Date:** 2026-08-18
 **Scope:** every numbered prompt in [`ai_development_prompts.md`](ai_development_prompts.md), plus
 the post-V1 slices.
-**Result:** V1 and V2 complete. V3 complete except sync, which has no transport. Guidelines
-conformance work in progress.
+**Result:** V1 and V2 complete. V3 complete except sync, which has no transport. Strict
+guidelines conformance (C2) complete in code; native-reader review of the translations is still
+open.
 
 Read first: [`implementation_plan.md`](implementation_plan.md) ·
 [`architecture.md`](architecture.md) section 21
@@ -70,6 +71,10 @@ Test suite as of the last full run: **555 passing, 0 failing** (2026-08-18).
 - [x] A4.2 — Encrypting the exported file — built 2026-08-18. The envelope moved to
       `lib/core/security/`, so the backup archive and an encrypted export share one
       versioned format. Settings can open a sealed export again.
+- [x] On-device dictation (speech to text) in the entry editor — built 2026-09-16. Plan:
+      `plans/20260916_194242_on-device-dictation.md`. Voice notes dropped their unreliable live
+      transcription. Needs a manual airplane-mode check on a real phone, and a fluent reader's
+      review of the new Malayalam and Sanskrit strings.
 - [x] C3 — Time capsules and letters to your future self (cryptographic date-gated key release, cleartext wiping, monotonic clock rollback protection, countdown timer, overview catalogue) — built 2026-08-24.
 
 ### C — guidelines conformance (2026-08-18)
@@ -81,6 +86,30 @@ Test suite as of the last full run: **555 passing, 0 failing** (2026-08-18).
       `lib/l10n/app_en.arb` with 372 described keys, 20 source files converted.
       **Two pockets remain** — the entry template catalogue and the export feature's
       service-produced strings. See section 4.
+
+### C2 — strict guidelines conformance (opened 2026-09-15)
+
+Against guidelines commit `7ed5a36`. Plan:
+`plans/20260915_200933_strict-guidelines-conformance.md`. Baseline before any change:
+`flutter analyze` clean, 840 tests passing.
+
+- [x] Phase 1 — docs: `CLAUDE.md`, `AGENTS.md`, `GUIDELINES_MANIFEST.md`, `release_process.md`
+      (§6.4–§6.7, §8, §9, §9A), `security.md`, `architecture.md`, `workflow_rules.md`,
+      `dependencies.md`, `project_structure.md`
+- [x] Phase 2 — Android `enableSplit = false`, `@string/app_name`, plan file rename, stray folder
+- [x] Phase 3 — Sanskrit delegates, `formattingLocale`, Devanagari font, language picker
+- [x] Phase 4 — localized About config and the "Made with ❤️ from India" badge
+- [x] Phase 5 — tooltips on every icon-only control
+- [x] Phase 6 — ARB key rename, Malayalam fixes, literal pockets (templates, export, AirQR,
+      sync, time capsules, permissions, security events and more), full Sanskrit (1,657 keys),
+      short-label pass
+- [x] Phase 7 — parity, label-length, delegate, locale and tooltip tests; Sanskrit marker gate in
+      CI and the pre-commit hook
+- [x] Phase 8 — every source and test file at or under 500 lines
+
+Result (2026-09-16): `flutter analyze` clean, **881 tests passing**, Sanskrit marker gate passing,
+absolute-path and permission guards passing. Every Malayalam and Sanskrit string still needs a
+fluent reader's review before release (§8.5.4).
 
 ---
 

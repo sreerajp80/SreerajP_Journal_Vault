@@ -315,7 +315,7 @@ handwritten notes become searchable. Must be an on-device engine only — no clo
 the zero-telemetry promise breaks.
 **Already in the family — and the author has already ruled against this.** `SreerajP_PDFApp` hard
 rule 7 puts **OCR explicitly out of scope**, and ships graceful degradation instead. That app is
-the one that specialises in documents, so its ruling carries weight here. `Remediation_Plan.md`
+the one that specialises in documents, so its ruling carries weight here. `20260725_000000_remediation-plan.md`
 also lists PDF OCR as out of scope. Either follow the ruling, or make the exception a deliberate,
 written decision — do not drift into it.
 **Effort:** L, if it is done at all.

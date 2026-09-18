@@ -360,7 +360,7 @@ void main() {
         find.byKey(const Key('attachment-viewer-unsupported')),
         findsOneWidget,
       );
-      expect(find.text('Unsupported file type'), findsOneWidget);
+      expect(find.text('Unsupported file'), findsOneWidget);
     });
   });
 

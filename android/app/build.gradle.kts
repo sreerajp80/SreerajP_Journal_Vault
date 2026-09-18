@@ -108,7 +108,7 @@ android {
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         // AGENTS.md requires Android minimum API 28. Do not fall back to
-        // flutter.minSdkVersion (currently 24) — Remediation_Plan.md slice A2
+        // flutter.minSdkVersion (currently 24) — plans/20260725_000000_remediation-plan.md slice A2
         // chose Keystore-backed secret storage on the assumption of API 28+.
         minSdk = 28
         targetSdk = flutter.targetSdkVersion
@@ -148,15 +148,24 @@ android {
         }
     }
 
+    bundle {
+        language {
+            // REQUIRED (engineering standard §8.1). Play splits App Bundles by language
+            // by default, so a phone set to English would get no Malayalam or Sanskrit
+            // resources, and the in-app language picker could not switch to them.
+            enableSplit = false
+        }
+    }
+
     flavorDimensions += "env"
     productFlavors {
+        // The app label is the @string/app_name resource in src/dev/res and src/prod/res
+        // (release_process.md §9A.1). It is a brand name, so it is not translated.
         create("dev") {
             dimension = "env"
-            manifestPlaceholders["appLabel"] = "SreerajP Journal Vault(dev)"
         }
         create("prod") {
             dimension = "env"
-            manifestPlaceholders["appLabel"] = "SreerajP Journal Vault"
         }
     }
 }

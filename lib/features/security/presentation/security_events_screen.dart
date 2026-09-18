@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/features/security/providers/security_providers.dart';
+import 'package:sreerajp_journal_vault/features/security/presentation/security_event_text.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 /// Displays a chronological log of security events with severity indicators.
@@ -19,7 +20,7 @@ class SecurityEventsScreen extends ConsumerWidget {
     final eventsAsync = ref.watch(recentSecurityEventsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.securityEventsTitle)),
+      appBar: AppBar(title: Text(l10n.titleSecurityEvents)),
       body: eventsAsync.when(
         data: (events) {
           if (events.isEmpty) {
@@ -34,7 +35,7 @@ class SecurityEventsScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    l10n.securityEventsEmpty,
+                    l10n.emptySecurityEvents,
                     style: const TextStyle(color: Colors.grey, fontSize: 16),
                   ),
                 ],
@@ -49,7 +50,7 @@ class SecurityEventsScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text(l10n.commonError(e.toString()))),
+        error: (e, _) => Center(child: Text(l10n.errorCommon(e.toString()))),
       ),
     );
   }
@@ -67,7 +68,10 @@ class _SecurityEventTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: _severityIcon(event.severity),
-        title: Text(event.description, style: theme.textTheme.bodyMedium),
+        title: Text(
+          event.descriptionIn(AppLocalizations.of(context)),
+          style: theme.textTheme.bodyMedium,
+        ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -94,6 +98,7 @@ class _SecurityEventTile extends StatelessWidget {
         trailing: event.metadata != null
             ? IconButton(
                 icon: const Icon(Icons.info_outline, size: 20),
+                tooltip: AppLocalizations.of(context).tooltipShowDetails,
                 onPressed: () => _showMetadataDialog(context),
               )
             : null,
@@ -153,7 +158,7 @@ class _SecurityEventTile extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context).securityEventDetailsTitle),
+        title: Text(AppLocalizations.of(context).titleSecurityEventDetails),
         content: SingleChildScrollView(
           child: SelectableText(
             formatted,
@@ -163,7 +168,7 @@ class _SecurityEventTile extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(AppLocalizations.of(context).commonClose),
+            child: Text(AppLocalizations.of(context).actionCommonClose),
           ),
         ],
       ),

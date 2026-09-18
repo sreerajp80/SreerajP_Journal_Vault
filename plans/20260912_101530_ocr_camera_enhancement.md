@@ -1,6 +1,6 @@
 # Plan: OCR Camera Controls & Post-Capture Image Enhancement with Live Text Preview
 
-**Status:** Completed
+**Status:** completed
 
 ## Overview
 This plan enhances the document OCR experience in SreerajP Journal Vault to meet user requirements:

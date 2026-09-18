@@ -9,7 +9,10 @@ import 'package:sreerajp_journal_vault/features/ritual/presentation/ritual_deck_
 import 'package:sreerajp_journal_vault/features/ritual/presentation/widgets/breathing_orb_widget.dart';
 import 'package:sreerajp_journal_vault/features/ritual/providers/ritual_providers.dart';
 import 'package:sreerajp_journal_vault/features/ritual/services/ritual_service.dart';
+import 'package:sreerajp_journal_vault/features/ritual/presentation/ritual_card_text.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
+
+part 'ritual_screen_steps.dart';
 
 /// The guided daily practice screen combining breath grounding, reflection prompts, and journaling.
 class RitualScreen extends ConsumerStatefulWidget {
@@ -23,6 +26,10 @@ class RitualScreen extends ConsumerStatefulWidget {
 }
 
 class _RitualScreenState extends ConsumerState<RitualScreen> {
+  /// Lets the extensions in this library's part files rebuild the
+  /// widget: `setState` is protected, so they cannot call it directly.
+  void _rebuild(VoidCallback fn) => setState(fn);
+
   late int _currentStep;
   RepetitionRating? _selectedRating;
 
@@ -41,15 +48,15 @@ class _RitualScreenState extends ConsumerState<RitualScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.ritualScreenTitle),
+        title: Text(l10n.titleRitual),
         actions: [
           IconButton(
-            tooltip: l10n.ritualDeckBrowserTitle,
+            tooltip: l10n.titleRitualDeckBrowser,
             icon: const Icon(Icons.style_outlined),
             onPressed: () => _openDeckBrowser(context),
           ),
           IconButton(
-            tooltip: l10n.ritualSettingsTitle,
+            tooltip: l10n.titleRitualSettings,
             icon: const Icon(Icons.tune_rounded),
             onPressed: () => _showSettingsDialog(context),
           ),
@@ -63,7 +70,7 @@ class _RitualScreenState extends ConsumerState<RitualScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
               child: Row(
                 children: [
-                  _buildStepDot(0, l10n.ritualStepBreathe, colorScheme),
+                  _buildStepDot(0, l10n.labelRitualStepBreathe, colorScheme),
                   Expanded(
                     child: Container(
                       height: 2,
@@ -72,7 +79,7 @@ class _RitualScreenState extends ConsumerState<RitualScreen> {
                           : colorScheme.outlineVariant,
                     ),
                   ),
-                  _buildStepDot(1, l10n.ritualStepReflect, colorScheme),
+                  _buildStepDot(1, l10n.labelRitualStepReflect, colorScheme),
                   Expanded(
                     child: Container(
                       height: 2,
@@ -81,7 +88,7 @@ class _RitualScreenState extends ConsumerState<RitualScreen> {
                           : colorScheme.outlineVariant,
                     ),
                   ),
-                  _buildStepDot(2, l10n.ritualStepWrite, colorScheme),
+                  _buildStepDot(2, l10n.labelRitualStepWrite, colorScheme),
                 ],
               ),
             ),
@@ -99,85 +106,6 @@ class _RitualScreenState extends ConsumerState<RitualScreen> {
     );
   }
 
-  Widget _buildStepDot(int stepIndex, String label, ColorScheme colorScheme) {
-    final isActive = _currentStep == stepIndex;
-    final isDone = _currentStep > stepIndex;
-
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTap: () => setState(() => _currentStep = stepIndex),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isDone
-                    ? colorScheme.primary
-                    : isActive
-                    ? colorScheme.primaryContainer
-                    : colorScheme.surfaceContainerHighest,
-                border: Border.all(
-                  color: isActive || isDone
-                      ? colorScheme.primary
-                      : colorScheme.outlineVariant,
-                  width: 1.5,
-                ),
-              ),
-              child: Center(
-                child: isDone
-                    ? Icon(
-                        Icons.check_rounded,
-                        size: 14,
-                        color: colorScheme.onPrimary,
-                      )
-                    : Text(
-                        '${stepIndex + 1}',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                          color: isActive
-                              ? colorScheme.primary
-                              : colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-              ),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                color: isActive ? colorScheme.primary : colorScheme.outline,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStepContent(
-    BuildContext context,
-    RitualState state,
-    AppLocalizations l10n,
-  ) {
-    switch (_currentStep) {
-      case 0:
-        return _buildBreathingStep(context, state, l10n);
-      case 1:
-        return _buildPromptStep(context, state, l10n);
-      case 2:
-      default:
-        return _buildJournalStep(context, state, l10n);
-    }
-  }
-
   // ──────────────────────────── STEP 1: BREATHING ────────────────────────────
 
   Widget _buildBreathingStep(
@@ -193,14 +121,15 @@ class _RitualScreenState extends ConsumerState<RitualScreen> {
       child: Column(
         children: [
           Text(
-            l10n.ritualBreatheHeading,
+            l10n.titleRitualBreathe,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 4),
           Text(
-            state.breathTechnique.displayName,
+            '${state.breathTechnique.nameIn(l10n)} '
+            '(${state.breathTechnique.rhythm})',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colorScheme.primary,
               fontWeight: FontWeight.w600,
@@ -225,11 +154,11 @@ class _RitualScreenState extends ConsumerState<RitualScreen> {
             children: [
               TextButton(
                 onPressed: () => setState(() => _currentStep = 1),
-                child: Text(l10n.ritualSkipToPrompt),
+                child: Text(l10n.actionRitualSkipToPrompt),
               ),
               FilledButton.icon(
                 icon: const Icon(Icons.arrow_forward_rounded, size: 18),
-                label: Text(l10n.ritualContinueToCard),
+                label: Text(l10n.actionRitualContinueToCard),
                 onPressed: () => setState(() => _currentStep = 1),
               ),
             ],
@@ -248,13 +177,12 @@ class _RitualScreenState extends ConsumerState<RitualScreen> {
   ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final langCode = Localizations.localeOf(context).languageCode;
     final card = state.currentCard;
-    final title = card.localizedTitle(langCode);
-    final prompt = card.localizedPrompt(langCode);
-    final quote = card.localizedQuote(langCode);
-    final quoteAuthor = card.localizedQuoteAuthor(langCode);
-    final themeName = card.theme.localizedName(langCode);
+    final title = card.titleIn(l10n);
+    final prompt = card.promptIn(l10n);
+    final quote = card.quoteIn(l10n);
+    final quoteAuthor = card.sourceIn(l10n);
+    final themeName = card.theme.nameIn(l10n);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -296,7 +224,7 @@ class _RitualScreenState extends ConsumerState<RitualScreen> {
               ),
               TextButton.icon(
                 icon: const Icon(Icons.shuffle_rounded, size: 18),
-                label: Text(l10n.ritualShuffleCard),
+                label: Text(l10n.actionRitualShuffleCard),
                 onPressed: () =>
                     ref.read(ritualNotifierProvider.notifier).shuffleCard(),
               ),
@@ -369,7 +297,7 @@ class _RitualScreenState extends ConsumerState<RitualScreen> {
           const SizedBox(height: 20),
           // Spaced repetition rating bar
           Text(
-            l10n.ritualSrsRatePrompt,
+            l10n.bodyRitualSrsRatePrompt,
             style: theme.textTheme.labelMedium?.copyWith(
               color: colorScheme.outline,
             ),
@@ -379,8 +307,8 @@ class _RitualScreenState extends ConsumerState<RitualScreen> {
             children: [
               Expanded(
                 child: _buildRatingButton(
-                  label: l10n.ritualSrsHard,
-                  subtitle: l10n.ritualSrsHardSubtitle,
+                  label: l10n.actionRitualSrsHard,
+                  subtitle: l10n.descRitualSrsHard,
                   rating: RepetitionRating.hard,
                   color: Colors.deepOrange,
                 ),
@@ -388,8 +316,8 @@ class _RitualScreenState extends ConsumerState<RitualScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: _buildRatingButton(
-                  label: l10n.ritualSrsRevision,
-                  subtitle: l10n.ritualSrsRevisionSubtitle,
+                  label: l10n.actionRitualSrsRevision,
+                  subtitle: l10n.descRitualSrsRevision,
                   rating: RepetitionRating.revision,
                   color: Colors.amber.shade700,
                 ),
@@ -397,8 +325,8 @@ class _RitualScreenState extends ConsumerState<RitualScreen> {
               const SizedBox(width: 8),
               Expanded(
                 child: _buildRatingButton(
-                  label: l10n.ritualSrsEasy,
-                  subtitle: l10n.ritualSrsEasySubtitle,
+                  label: l10n.actionRitualSrsEasy,
+                  subtitle: l10n.descRitualSrsEasy,
                   rating: RepetitionRating.easy,
                   color: Colors.green,
                 ),
@@ -414,50 +342,8 @@ class _RitualScreenState extends ConsumerState<RitualScreen> {
               ),
             ),
             icon: const Icon(Icons.arrow_forward_rounded, size: 18),
-            label: Text(l10n.ritualProceedToJournal),
+            label: Text(l10n.actionRitualProceedToJournal),
             onPressed: () => setState(() => _currentStep = 2),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRatingButton({
-    required String label,
-    required String subtitle,
-    required RepetitionRating rating,
-    required Color color,
-  }) {
-    final isSelected = _selectedRating == rating;
-
-    return OutlinedButton(
-      style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
-        side: BorderSide(
-          color: isSelected ? color : Colors.grey.withValues(alpha: 0.3),
-          width: isSelected ? 2 : 1,
-        ),
-        backgroundColor: isSelected ? color.withValues(alpha: 0.12) : null,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-      onPressed: () {
-        setState(() => _selectedRating = rating);
-        ref.read(ritualNotifierProvider.notifier).rateCurrentCard(rating);
-      },
-      child: Column(
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 13,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            subtitle,
-            style: const TextStyle(fontSize: 10, color: Colors.grey),
           ),
         ],
       ),
@@ -474,8 +360,7 @@ class _RitualScreenState extends ConsumerState<RitualScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final card = state.currentCard;
-    final langCode = Localizations.localeOf(context).languageCode;
-    final title = card.localizedTitle(langCode);
+    final title = card.titleIn(l10n);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
@@ -496,7 +381,7 @@ class _RitualScreenState extends ConsumerState<RitualScreen> {
           ),
           const SizedBox(height: 20),
           Text(
-            l10n.ritualReadyToWriteTitle,
+            l10n.titleRitualReadyToWrite,
             style: theme.textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -504,7 +389,7 @@ class _RitualScreenState extends ConsumerState<RitualScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            l10n.ritualReadyToWriteDesc(title),
+            l10n.descRitualReadyToWrite(title),
             style: theme.textTheme.bodyMedium?.copyWith(
               color: colorScheme.onSurfaceVariant,
             ),
@@ -519,7 +404,7 @@ class _RitualScreenState extends ConsumerState<RitualScreen> {
               ),
             ),
             icon: const Icon(Icons.edit_rounded),
-            label: Text(l10n.ritualBeginWritingButton),
+            label: Text(l10n.actionRitualBeginWriting),
             onPressed: () => _openJournalEditor(context, card),
           ),
           const SizedBox(height: 12),
@@ -531,138 +416,9 @@ class _RitualScreenState extends ConsumerState<RitualScreen> {
               ),
             ),
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(l10n.ritualCompletePracticeOnly),
+            child: Text(l10n.actionRitualCompletePracticeOnly),
           ),
         ],
-      ),
-    );
-  }
-
-  Future<void> _openJournalEditor(BuildContext context, RitualCard card) async {
-    final l10n = AppLocalizations.of(context);
-    final langCode = Localizations.localeOf(context).languageCode;
-    final db = ref.read(appDatabaseProvider);
-    final journals = await db.journalsDao.getAllJournals();
-    if (!mounted) return;
-
-    if (journals.isEmpty) {
-      ScaffoldMessenger.of(
-        this.context,
-      ).showSnackBar(SnackBar(content: Text(l10n.ritualNoJournalError)));
-      return;
-    }
-
-    final title = card.localizedTitle(langCode);
-    final prompt = card.localizedPrompt(langCode);
-    final quote = card.localizedQuote(langCode);
-    final quoteAuthor = card.localizedQuoteAuthor(langCode);
-    final quoteLine = quoteAuthor != null
-        ? '"$quote" — $quoteAuthor'
-        : '"$quote"';
-    final journalId = journals.first.id;
-    final initialPlainText = '$prompt\n\n$quoteLine\n\n';
-
-    await Navigator.of(this.context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => EntryEditorScreen(
-          journalId: journalId,
-          initialTitle: title,
-          initialPlainText: initialPlainText,
-        ),
-      ),
-    );
-
-    if (mounted) {
-      Navigator.of(this.context).pop();
-    }
-  }
-
-  Future<void> _openDeckBrowser(BuildContext context) async {
-    final card = await Navigator.of(this.context).push<RitualCard>(
-      MaterialPageRoute<RitualCard>(builder: (_) => const RitualDeckScreen()),
-    );
-    if (card != null && mounted) {
-      setState(() => _currentStep = 1);
-    }
-  }
-
-  Future<void> _showSettingsDialog(BuildContext context) async {
-    final l10n = AppLocalizations.of(context);
-    final notifier = ref.read(ritualNotifierProvider.notifier);
-
-    await showDialog<void>(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setDialogState) {
-          final curState = ref.watch(ritualNotifierProvider);
-
-          return AlertDialog(
-            title: Text(l10n.ritualSettingsTitle),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SwitchListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(l10n.ritualLaunchOnStartupTitle),
-                    subtitle: Text(l10n.ritualLaunchOnStartupSubtitle),
-                    value: curState.launchOnStartup,
-                    onChanged: (v) {
-                      notifier.setLaunchOnStartup(v);
-                      setDialogState(() {});
-                    },
-                  ),
-                  const Divider(),
-                  Text(
-                    l10n.ritualBreathTechniqueLabel,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 6),
-                  ...BreathTechnique.values.map((t) {
-                    // ignore: deprecated_member_use
-                    return RadioListTile<BreathTechnique>(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(t.displayName),
-                      value: t,
-                      // ignore: deprecated_member_use
-                      groupValue: curState.breathTechnique,
-                      // ignore: deprecated_member_use
-                      onChanged: (val) {
-                        if (val != null) {
-                          notifier.setBreathTechnique(val);
-                          setDialogState(() {});
-                        }
-                      },
-                    );
-                  }),
-                  const Divider(),
-                  Text(
-                    l10n.ritualBreathCyclesLabel(curState.breathCycles),
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Slider(
-                    value: curState.breathCycles.toDouble(),
-                    min: 1,
-                    max: 5,
-                    divisions: 4,
-                    label: '${curState.breathCycles}',
-                    onChanged: (v) {
-                      notifier.setBreathCycles(v.toInt());
-                      setDialogState(() {});
-                    },
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(),
-                child: Text(l10n.commonClose),
-              ),
-            ],
-          );
-        },
       ),
     );
   }

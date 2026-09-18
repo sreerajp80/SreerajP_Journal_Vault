@@ -20,7 +20,7 @@ class TimelineScreen extends ConsumerWidget {
     final entriesAsync = ref.watch(selectedDateEntriesProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.timelineTitle)),
+      appBar: AppBar(title: Text(l10n.titleTimeline)),
       body: Column(
         children: [
           countsAsync.when(
@@ -30,7 +30,7 @@ class TimelineScreen extends ConsumerWidget {
             ),
             error: (e, _) => SizedBox(
               height: 360,
-              child: Center(child: Text(l10n.commonError(e.toString()))),
+              child: Center(child: Text(l10n.errorCommon(e.toString()))),
             ),
             data: (counts) => _Calendar(
               focusedDay: focusedMonth,
@@ -49,10 +49,12 @@ class TimelineScreen extends ConsumerWidget {
             child: entriesAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (e, _) =>
-                  Center(child: Text(l10n.commonError(e.toString()))),
+                  Center(child: Text(l10n.errorCommon(e.toString()))),
               data: (entries) {
                 if (entries.isEmpty) {
-                  return Center(child: Text(l10n.timelineNoEntriesForDate));
+                  return Center(
+                    child: Text(l10n.emptyTimelineNoEntriesForDate),
+                  );
                 }
                 return _EntryList(entries: entries);
               },
@@ -93,7 +95,7 @@ class _Calendar extends StatelessWidget {
       onDaySelected: (selected, focused) => onDaySelected(selected),
       onPageChanged: onPageChanged,
       availableCalendarFormats: {
-        CalendarFormat.month: l10n.timelineCalendarFormatMonth,
+        CalendarFormat.month: l10n.labelTimelineCalendarFormatMonth,
       },
       calendarBuilders: CalendarBuilders(
         markerBuilder: (context, day, _) {
@@ -111,7 +113,7 @@ class _Calendar extends StatelessWidget {
               ),
               alignment: Alignment.center,
               child: Text(
-                count > 9 ? l10n.timelineDayCountOverflow : '$count',
+                count > 9 ? l10n.labelTimelineDayCountOverflow : '$count',
                 style: TextStyle(
                   color: theme.colorScheme.onPrimary,
                   fontSize: 10,
@@ -157,7 +159,9 @@ class _EntryList extends ConsumerWidget {
             size: 20,
           );
           subtitleWidget = Text(
-            isReady ? l10n.timeCapsuleReadyToOpen : l10n.timeCapsuleSealedBadge,
+            isReady
+                ? l10n.actionTimeCapsuleReadyToOpen
+                : l10n.labelTimeCapsuleSealedBadge,
             style: TextStyle(
               color: isReady
                   ? theme.colorScheme.primary
@@ -176,7 +180,7 @@ class _EntryList extends ConsumerWidget {
         return ListTile(
           leading: leading,
           title: Text(
-            entry.title ?? l10n.commonUntitledEntry,
+            entry.title ?? l10n.descCommonUntitledEntry,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),

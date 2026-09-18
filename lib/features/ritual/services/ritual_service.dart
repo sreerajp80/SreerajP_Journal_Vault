@@ -19,18 +19,9 @@ enum BreathTechnique {
   simpleCalm,
 }
 
+/// Timings only. The visible name is localized in
+/// `presentation/ritual_card_text.dart` — services hold no UI text.
 extension BreathTechniqueExt on BreathTechnique {
-  String get displayName {
-    switch (this) {
-      case BreathTechnique.boxBreathing:
-        return 'Box Breathing (4-4-4-4)';
-      case BreathTechnique.relaxing478:
-        return 'Relaxing Breath (4-7-8)';
-      case BreathTechnique.simpleCalm:
-        return 'Calm Rhythm (4-4)';
-    }
-  }
-
   int get inhaleSeconds => 4;
 
   int get holdInhaleSeconds {

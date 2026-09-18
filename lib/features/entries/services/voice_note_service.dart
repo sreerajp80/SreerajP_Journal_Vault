@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
-import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:uuid/uuid.dart';
 
 /// Result of a completed voice note recording.
@@ -19,7 +18,11 @@ class VoiceNoteRecordingResult {
   final int durationMs;
 }
 
-/// Service that manages voice note recording and speech-to-text transcription.
+/// Service that manages voice note recording.
+///
+/// It does not transcribe. `record` holds the microphone while recording, so a
+/// speech recogniser cannot hear at the same time. Speech to text is
+/// `DictationService`, which also makes sure recognition stays on the device.
 ///
 /// Recordings are saved as AAC-encoded M4A files in the app's temporary
 /// directory. Callers are responsible for encrypting and persisting the
@@ -28,7 +31,6 @@ class VoiceNoteService {
   VoiceNoteService();
 
   final AudioRecorder _recorder = AudioRecorder();
-  final stt.SpeechToText _speech = stt.SpeechToText();
 
   DateTime? _recordingStartTime;
   bool _isRecording = false;
@@ -93,40 +95,6 @@ class VoiceNoteService {
     }
     _currentPath = null;
     _recordingStartTime = null;
-  }
-
-  /// Transcribes audio using the device's speech-to-text engine.
-  ///
-  /// This uses the platform speech recogniser which works on live audio.
-  /// For offline file-based transcription a server-side solution would be
-  /// needed. This baseline implementation captures live speech during
-  /// recording when available.
-  ///
-  /// Returns the recognized text, or an empty string if unavailable.
-  Future<String> transcribeLive({
-    required void Function(String partial) onPartial,
-  }) async {
-    final available = await _speech.initialize();
-    if (!available) return '';
-
-    String finalResult = '';
-
-    _speech.listen(
-      onResult: (result) {
-        if (result.finalResult) {
-          finalResult = result.recognizedWords;
-        } else {
-          onPartial(result.recognizedWords);
-        }
-      },
-    );
-
-    return finalResult;
-  }
-
-  /// Stops live transcription.
-  Future<void> stopTranscription() async {
-    await _speech.stop();
   }
 
   /// Releases resources.

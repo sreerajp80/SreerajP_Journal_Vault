@@ -36,7 +36,7 @@ class SyncHealthDashboard extends ConsumerWidget {
                 Icon(Icons.sync, color: theme.colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
-                  l10n.syncHealthHeading,
+                  l10n.titleSyncHealth,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -50,18 +50,18 @@ class SyncHealthDashboard extends ConsumerWidget {
             // Last sync
             lastSyncAsync.when(
               loading: () => _MetricRow(
-                label: l10n.syncLastSync,
-                value: l10n.commonLoading,
+                label: l10n.labelSyncLastSync,
+                value: l10n.bodyCommonLoading,
               ),
               error: (_, _) => _MetricRow(
-                label: l10n.syncLastSync,
-                value: l10n.commonErrorShort,
+                label: l10n.labelSyncLastSync,
+                value: l10n.errorCommonErrorShort,
               ),
               data: (log) => _MetricRow(
-                label: l10n.syncLastSync,
+                label: l10n.labelSyncLastSync,
                 value: log != null
                     ? _formatDateTime(log.completedAt!)
-                    : l10n.syncNever,
+                    : l10n.labelSyncNever,
               ),
             ),
             const SizedBox(height: 8),
@@ -69,15 +69,15 @@ class SyncHealthDashboard extends ConsumerWidget {
             // Failures
             failureCountAsync.when(
               loading: () => _MetricRow(
-                label: l10n.syncFailures7d,
-                value: l10n.commonEllipsis,
+                label: l10n.errorSyncFailures7d,
+                value: l10n.bodyCommonEllipsis,
               ),
               error: (_, _) => _MetricRow(
-                label: l10n.syncFailures7d,
-                value: l10n.commonErrorShort,
+                label: l10n.errorSyncFailures7d,
+                value: l10n.errorCommonErrorShort,
               ),
               data: (count) => _MetricRow(
-                label: l10n.syncFailures7d,
+                label: l10n.errorSyncFailures7d,
                 value: '$count',
                 valueColor: count > 0 ? theme.colorScheme.error : Colors.green,
               ),
@@ -86,7 +86,7 @@ class SyncHealthDashboard extends ConsumerWidget {
 
             // Conflicts
             _MetricRow(
-              label: l10n.syncPendingConflicts,
+              label: l10n.labelSyncPendingConflicts,
               value: '$conflictCount',
               valueColor: conflictCount > 0 ? Colors.orange : Colors.green,
             ),
@@ -100,20 +100,23 @@ class SyncHealthDashboard extends ConsumerWidget {
                   OutlinedButton.icon(
                     onPressed: onViewConflicts,
                     icon: const Icon(Icons.warning_amber_rounded, size: 18),
-                    label: Text(l10n.syncResolveCount(conflictCount)),
+                    label: Text(l10n.actionSyncResolveCount(conflictCount)),
                   ),
                 if (conflictCount > 0) const SizedBox(width: 8),
                 FilledButton.icon(
                   onPressed: status == SyncStatus.syncing ? null : onSyncNow,
                   icon: const Icon(Icons.sync, size: 18),
-                  label: Text(l10n.syncNow),
+                  label: Text(l10n.actionSyncNow),
                 ),
               ],
             ),
             const SizedBox(height: 16),
 
             // Recent log
-            Text(l10n.syncRecentActivity, style: theme.textTheme.labelMedium),
+            Text(
+              l10n.titleSyncRecentActivity,
+              style: theme.textTheme.labelMedium,
+            ),
             const SizedBox(height: 8),
             _SyncLogList(),
           ],
@@ -136,11 +139,11 @@ class _StatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final (label, color) = switch (status) {
-      SyncStatus.idle => (l10n.syncStatusIdle, Colors.grey),
-      SyncStatus.syncing => (l10n.syncStatusSyncing, Colors.blue),
-      SyncStatus.success => (l10n.syncStatusHealthy, Colors.green),
-      SyncStatus.failed => (l10n.syncStatusFailed, Colors.red),
-      SyncStatus.conflict => (l10n.syncStatusConflicts, Colors.orange),
+      SyncStatus.idle => (l10n.labelSyncStatusIdle, Colors.grey),
+      SyncStatus.syncing => (l10n.descSyncStatusSyncing, Colors.blue),
+      SyncStatus.success => (l10n.labelSyncStatusHealthy, Colors.green),
+      SyncStatus.failed => (l10n.errorSyncStatus, Colors.red),
+      SyncStatus.conflict => (l10n.labelSyncStatusConflicts, Colors.orange),
     };
 
     return Chip(
@@ -191,13 +194,13 @@ class _SyncLogList extends ConsumerWidget {
         child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
       ),
       error: (error, _) => Text(
-        l10n.syncLogsLoadFailed(error.toString()),
+        l10n.errorSyncLogsLoad(error.toString()),
         style: theme.textTheme.bodySmall,
       ),
       data: (logs) {
         if (logs.isEmpty) {
           return Text(
-            l10n.syncNoActivity,
+            l10n.emptySyncNoActivity,
             style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey),
           );
         }
@@ -249,19 +252,19 @@ class _SyncLogRow extends StatelessWidget {
 
   String _logSummary(AppLocalizations l10n, SyncLog log) {
     if (log.status == 'failed') {
-      return log.errorMessage ?? l10n.syncLogFailed;
+      return log.errorMessage ?? l10n.errorSyncLog;
     }
     final parts = <String>[];
     if (log.recordsPushed > 0) {
-      parts.add(l10n.syncLogPushed(log.recordsPushed));
+      parts.add(l10n.labelSyncLogPushed(log.recordsPushed));
     }
     if (log.recordsPulled > 0) {
-      parts.add(l10n.syncLogPulled(log.recordsPulled));
+      parts.add(l10n.labelSyncLogPulled(log.recordsPulled));
     }
     if (log.conflictsDetected > 0) {
-      parts.add(l10n.syncLogConflicts(log.conflictsDetected));
+      parts.add(l10n.labelSyncLogConflicts(log.conflictsDetected));
     }
-    return parts.isEmpty ? l10n.syncLogNoChanges : parts.join(', ');
+    return parts.isEmpty ? l10n.labelSyncLogNoChanges : parts.join(', ');
   }
 
   String _formatTime(DateTime dt) {

@@ -10,24 +10,21 @@ import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/features/attachments/providers/attachment_providers.dart';
 import 'package:sreerajp_journal_vault/features/attachments/services/attachment_crypto_storage.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/providers/lock_gate_providers.dart';
-import 'package:sreerajp_journal_vault/features/lock_gate/services/app_pin_keystore.dart';
-import 'package:sreerajp_journal_vault/features/lock_gate/services/biometric_authenticator.dart';
-import 'package:sreerajp_journal_vault/features/permissions/domain/app_permission_models.dart';
 import 'package:sreerajp_journal_vault/features/permissions/providers/permissions_providers.dart';
-import 'package:sreerajp_journal_vault/features/permissions/services/app_permissions_service.dart';
 import 'package:sreerajp_journal_vault/features/security/providers/security_providers.dart';
+import 'settings_test_fakes.dart';
 
 void main() {
   late AppDatabase database;
-  late _FakeBiometric fakeBiometric;
-  late _InMemoryPinKeystore fakeKeystore;
-  late _FakePermissionsService fakePermissions;
+  late FakeBiometric fakeBiometric;
+  late InMemoryPinKeystore fakeKeystore;
+  late FakePermissionsService fakePermissions;
 
   setUp(() async {
     database = AppDatabase.forExecutor(NativeDatabase.memory());
-    fakeBiometric = _FakeBiometric();
-    fakeKeystore = _InMemoryPinKeystore();
-    fakePermissions = _FakePermissionsService();
+    fakeBiometric = FakeBiometric();
+    fakeKeystore = InMemoryPinKeystore();
+    fakePermissions = FakePermissionsService();
     await database.appSecurityDao.updateLockState(
       const AppSecurityCompanion(
         lockMode: Value('phone_lock'),
@@ -125,7 +122,7 @@ void main() {
     await openSection(tester, 'security');
 
     expect(find.text('Auto-Lock Timeout'), findsOneWidget);
-    expect(find.text('Attachment-Level Lock'), findsOneWidget);
+    expect(find.text('Locked attachments'), findsOneWidget);
     expect(find.text('Tamper Alerts'), findsOneWidget);
     // Tamper Alerts has its own screen; sync rows have no dead stubs when disabled.
     expect(find.text('Coming soon'), findsNothing);
@@ -254,7 +251,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Permissions'), findsWidgets);
-    expect(find.text('Attachment import'), findsOneWidget);
+    // The name comes from the ARB file now, not from the fake service.
+    expect(find.text('File access'), findsOneWidget);
   });
 
   testWidgets('Backup Health tile pushes the BackupHealthScreen', (
@@ -337,7 +335,7 @@ void main() {
       );
     }
 
-    final cryptoStorage = _SlowCryptoStorage();
+    final cryptoStorage = SlowCryptoStorage();
     await pumpApp(tester, cryptoStorage: cryptoStorage);
     await openSection(tester, 'storage');
 
@@ -367,7 +365,7 @@ void main() {
     await tester.tap(find.byKey(const Key('settings-migrate-storage-retry')));
     await tester.pump();
 
-    expect(find.text('Migrating attachments'), findsOneWidget);
+    expect(find.text('Moving attachments'), findsOneWidget);
     expect(find.byKey(const Key('migration-cancel-button')), findsOneWidget);
 
     // Cancel mid-flight.
@@ -382,152 +380,10 @@ void main() {
 
     // Snackbar acknowledges the cancellation; dialog has closed.
     expect(find.text('Migration cancelled.'), findsOneWidget);
-    expect(find.text('Migrating attachments'), findsNothing);
+    expect(find.text('Moving attachments'), findsNothing);
 
     final settings = await database.appSettingsDao.getSettings();
     expect(settings.attachmentMigrationStatus, 'failed');
     expect(settings.attachmentMigrationFailure, contains('cancelled'));
   });
-}
-
-class _FakeBiometric implements BiometricAuthenticator {
-  @override
-  Future<bool> canAuthenticate() async => true;
-
-  @override
-  Future<BiometricAuthResult> authenticate({required String reason}) async =>
-      BiometricAuthResult.success;
-}
-
-class _InMemoryPinKeystore implements AppPinKeystore {
-  AppPinCredentialPayload? _stored;
-
-  @override
-  Future<AppPinCredentialPayload?> getCredential() async => _stored;
-
-  @override
-  Future<void> setCredential({
-    required String saltBase64,
-    required String verifierBase64,
-    required int iterations,
-  }) async {
-    _stored = AppPinCredentialPayload(
-      saltBase64: saltBase64,
-      verifierBase64: verifierBase64,
-      iterations: iterations,
-    );
-  }
-
-  @override
-  Future<void> clearCredential() async {
-    _stored = null;
-  }
-}
-
-class _FakePermissionsService implements AppPermissionsService {
-  bool openSettingsCalled = false;
-
-  @override
-  Future<AppPermissionItem> getPermission(AppPermissionId id) async =>
-      _itemFor(id);
-
-  @override
-  Future<PermissionsSnapshot> getSnapshot() async {
-    return PermissionsSnapshot(
-      explicitPermissions: [_itemFor(AppPermissionId.attachmentImport)],
-      implicitPermissions: [_itemFor(AppPermissionId.documentPicker)],
-    );
-  }
-
-  @override
-  Future<AppPermissionState> requestPermission(AppPermissionId id) async =>
-      AppPermissionState.granted;
-
-  @override
-  Future<bool> shouldShowRequestRationale(AppPermissionId id) async => false;
-
-  @override
-  Future<bool> openSystemSettings() async {
-    openSettingsCalled = true;
-    return true;
-  }
-
-  AppPermissionItem _itemFor(AppPermissionId id) {
-    return AppPermissionItem(
-      id: id,
-      category: id == AppPermissionId.attachmentImport
-          ? AppPermissionCategory.explicit
-          : AppPermissionCategory.implicit,
-      title: id == AppPermissionId.attachmentImport
-          ? 'Attachment import'
-          : 'Document picker',
-      description: 'Test permission',
-      status: AppPermissionState.granted,
-    );
-  }
-}
-
-/// Records calls to `migrateStoredFile` and lets the test gate the loop so
-/// the migration dialog stays visible while we assert against it. Cancel
-/// causes the next call to throw via the `isCancelled` flag.
-class _SlowCryptoStorage implements AttachmentCryptoStorage {
-  bool holdMigration = false;
-  final List<Completer<void>> _pendingHolds = [];
-
-  void releaseAll() {
-    for (final c in _pendingHolds) {
-      if (!c.isCompleted) c.complete();
-    }
-    _pendingHolds.clear();
-  }
-
-  @override
-  Future<String> migrateStoredFile({
-    required String encryptedPath,
-    required String fileName,
-    required AttachmentStorageLocation targetLocation,
-    String? targetTreeUri,
-  }) async {
-    if (holdMigration) {
-      final c = Completer<void>();
-      _pendingHolds.add(c);
-      await c.future;
-    }
-    return 'app_private/$fileName.enc';
-  }
-
-  @override
-  bool isStoredInLocation({
-    required String encryptedPath,
-    required AttachmentStorageLocation location,
-  }) {
-    return false;
-  }
-
-  @override
-  Future<void> deleteStoredFile(String encryptedPath) async {}
-
-  @override
-  Future<void> cleanupMigrationArtifacts({
-    required AttachmentStorageLocation targetLocation,
-    String? targetTreeUri,
-  }) async {}
-
-  @override
-  Future<AttachmentTempFileHandle> decryptToTempFile({
-    required String encryptedPath,
-    required String nonceBase64,
-    required String keyReference,
-    required String fileName,
-  }) {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<StoredAttachmentPayload> encryptAndStore({
-    required List<int> sourceBytes,
-    required String sourceFileName,
-  }) {
-    throw UnimplementedError();
-  }
 }

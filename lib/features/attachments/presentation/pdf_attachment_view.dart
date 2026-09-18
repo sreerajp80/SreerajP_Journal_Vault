@@ -22,7 +22,7 @@ class PdfAttachmentView extends StatelessWidget {
         key: const Key('pdf-attachment-missing'),
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Text(l10n.attachmentPdfMissing),
+          child: Text(l10n.bodyAttachmentPdfMissing),
         ),
       );
     }
@@ -36,7 +36,7 @@ class PdfAttachmentView extends StatelessWidget {
             key: const Key('pdf-attachment-error'),
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: Text(l10n.attachmentPdfOpenFailed(error.toString())),
+              child: Text(l10n.errorAttachmentPdfOpen(error.toString())),
             ),
           );
         },

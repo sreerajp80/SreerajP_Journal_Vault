@@ -7,6 +7,7 @@ import 'package:sreerajp_journal_vault/app/vault_unavailable_app.dart';
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/core/database/database_open_failure.dart';
 import 'package:sreerajp_journal_vault/core/database/encrypted_database_opener.dart';
+import 'package:sreerajp_journal_vault/core/l10n/locale_controller.dart';
 import 'package:sreerajp_journal_vault/core/logging/app_logger.dart';
 import 'package:sreerajp_journal_vault/core/security/screen_security_controller.dart';
 import 'package:sreerajp_journal_vault/features/attachments/domain/attachment_open_router.dart';
@@ -30,6 +31,11 @@ void main() async {
   AppLogger.init();
   AppLogger.info('App starting');
 
+  // The saved language is read before the first frame, so neither app below
+  // ever flashes the wrong language at startup (standard §8.4).
+  final languageStore = await openAppLanguageStore();
+  final startupLocale = languageStore.read().locale;
+
   // The vault is encrypted at rest with a key held in the Android Keystore.
   // A journal from an older, unencrypted install is converted on the way in.
   // If it cannot be opened there is nothing safe left to do, so the app says
@@ -39,7 +45,7 @@ void main() async {
     database = await EncryptedDatabaseOpener().open();
   } on DatabaseOpenFailure catch (failure) {
     AppLogger.fatal('Startup stopped: ${failure.kind.name}');
-    runApp(VaultUnavailableApp(failure: failure));
+    runApp(VaultUnavailableApp(failure: failure, locale: startupLocale));
     return;
   } catch (error, stackTrace) {
     AppLogger.fatal(
@@ -48,8 +54,9 @@ void main() async {
       stackTrace: stackTrace,
     );
     runApp(
-      const VaultUnavailableApp(
-        failure: DatabaseOpenFailure(DatabaseOpenFailureKind.openFailed),
+      VaultUnavailableApp(
+        failure: const DatabaseOpenFailure(DatabaseOpenFailureKind.openFailed),
+        locale: startupLocale,
       ),
     );
     return;
@@ -82,6 +89,7 @@ void main() async {
     JournalVaultAppHost(
       database: database,
       overrides: [
+        appLanguageStoreProvider.overrideWithValue(languageStore),
         attachmentCryptoStorageProvider.overrideWithValue(cryptoStorage),
         // Backup decrypts attachments on the way out and encrypts them again
         // for this device on the way back in, so a restored backup opens on a

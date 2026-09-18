@@ -127,6 +127,18 @@ A change is finished only when all of these are true.
 - [ ] `flutter test` passes.
 - [ ] `dart format --set-exit-if-changed lib test integration_test` exits 0.
 - [ ] Every user-visible string added or changed comes from `AppLocalizations`, not a literal.
+- [ ] Every ARB key added or changed exists and is genuinely translated in `app_en.arb`,
+      `app_ml.arb` and `app_sa.arb`; `test/l10n/translation_parity_test.dart` passes.
+- [ ] Sanskrit strings pass `sh tool/check_sanskrit_markers.sh` and follow the glossary in
+      engineering standard §8.5.
+- [ ] Short-label keys (`action…`, `label…`, `title…`, `tab…`, `nav…`, `tooltip…`) are within the
+      length budget; `test/l10n/label_length_test.dart` passes.
+- [ ] Every icon-only control added or changed has a localized tooltip.
+- [ ] The changed screen was checked in English, Malayalam and Sanskrit — no English leaking
+      through, no overflow, no missing glyphs.
+- [ ] New or changed Malayalam or Sanskrit terms are listed in the change log as "needs
+      native-reader review".
+- [ ] If the task touched About, the screen still ends with the "Made with ❤️ from India" badge.
 - [ ] Generated files were regenerated if an annotated source changed.
 - [ ] No secrets, build output, or local machine files were staged.
 - [ ] The plan and change log were re-read once, purely to check for leaked local details.
@@ -135,6 +147,9 @@ A change is finished only when all of these are true.
 
 - [ ] The flavor builds were verified.
 - [ ] User-facing documentation was updated.
+- [ ] The Google Play readiness gate in [`release_process.md`](release_process.md) section 9A still
+      holds for any change touching the manifest, permissions, target SDK, signing, data
+      handling, or store-listed behaviour.
 
 **Also, when the change touches sensitive data:**
 

@@ -1,28 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sreerajp_journal_vault/core/l10n/locale_controller.dart';
 import 'package:sreerajp_journal_vault/features/appearance/presentation/accent_color_settings_screen.dart';
+import 'package:sreerajp_journal_vault/features/appearance/presentation/language_settings_screen.dart';
 import 'package:sreerajp_journal_vault/features/appearance/presentation/theme_mode_settings_screen.dart';
 import 'package:sreerajp_journal_vault/features/appearance/presentation/typography_settings_screen.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 /// Appearance preferences hub reached from Settings → Appearance.
-class AppearanceScreen extends StatelessWidget {
+class AppearanceScreen extends ConsumerWidget {
   const AppearanceScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final languageName = appLanguageLabel(
+      l10n,
+      ref.watch(localeControllerProvider),
+    );
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.settingsSectionAppearance)),
+      appBar: AppBar(title: Text(l10n.titleSettingsSectionAppearance)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         children: [
           _AppearanceCard(
+            key: const Key('appearance-card-language'),
+            icon: Icons.translate,
+            title: l10n.titleLanguage,
+            subtitle: languageName,
+            // Screen readers hear the current value, not just "Language".
+            semanticsLabel: l10n.labelLanguageCurrent(languageName),
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const LanguageSettingsScreen(),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _AppearanceCard(
             key: const Key('appearance-card-theme-mode'),
             icon: Icons.brightness_6_outlined,
-            title: l10n.appearanceThemeModeTitle,
-            subtitle: l10n.appearanceThemeModeSubtitle,
+            title: l10n.titleAppearanceThemeMode,
+            subtitle: l10n.descAppearanceThemeMode,
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
                 builder: (_) => const ThemeModeSettingsScreen(),
@@ -33,8 +54,8 @@ class AppearanceScreen extends StatelessWidget {
           _AppearanceCard(
             key: const Key('appearance-card-accent-color'),
             icon: Icons.color_lens_outlined,
-            title: l10n.appearanceAccentColorTitle,
-            subtitle: l10n.appearanceAccentColorSubtitle,
+            title: l10n.titleAppearanceAccentColor,
+            subtitle: l10n.descAppearanceAccentColor,
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
                 builder: (_) => const AccentColorSettingsScreen(),
@@ -45,8 +66,8 @@ class AppearanceScreen extends StatelessWidget {
           _AppearanceCard(
             key: const Key('appearance-card-typography'),
             icon: Icons.text_fields_rounded,
-            title: l10n.appearanceTypographyTitle,
-            subtitle: l10n.appearanceTypographySubtitle,
+            title: l10n.titleAppearanceTypography,
+            subtitle: l10n.descAppearanceTypography,
             onTap: () => Navigator.of(context).push(
               MaterialPageRoute<void>(
                 builder: (_) => const TypographySettingsScreen(),
@@ -66,19 +87,21 @@ class _AppearanceCard extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.semanticsLabel,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
+  final String? semanticsLabel;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final accent = theme.colorScheme.primary;
 
-    return Card(
+    final card = Card(
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: InkWell(
@@ -128,6 +151,15 @@ class _AppearanceCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+
+    if (semanticsLabel == null) return card;
+    return Semantics(
+      button: true,
+      label: semanticsLabel,
+      excludeSemantics: true,
+      onTap: onTap,
+      child: card,
     );
   }
 }

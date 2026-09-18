@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/features/security/providers/security_providers.dart';
 import 'package:sreerajp_journal_vault/features/security/services/security_event_service.dart';
+import 'package:sreerajp_journal_vault/features/security/presentation/security_event_text.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 /// Screen presenting vault tamper detection status, on-demand integrity
@@ -34,8 +35,8 @@ class _TamperAlertsScreenState extends ConsumerState<TamperAlertsScreen> {
 
       final l10n = AppLocalizations.of(context);
       final message = report.isClean
-          ? l10n.tamperAlertsScanCompleteClean
-          : l10n.tamperAlertsScanCompleteIssues(report.tamperIssues);
+          ? l10n.bodyTamperAlertsScanCompleteClean
+          : l10n.bodyTamperAlertsScanCompleteIssues(report.tamperIssues);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -48,7 +49,7 @@ class _TamperAlertsScreenState extends ConsumerState<TamperAlertsScreen> {
       setState(() => _isScanning = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppLocalizations.of(context).commonError(e.toString())),
+          content: Text(AppLocalizations.of(context).errorCommon(e.toString())),
         ),
       );
     }
@@ -61,7 +62,7 @@ class _TamperAlertsScreenState extends ConsumerState<TamperAlertsScreen> {
     final tamperEventsAsync = ref.watch(tamperEventsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.tamperAlertsTitle)),
+      appBar: AppBar(title: Text(l10n.titleTamperAlerts)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -90,7 +91,7 @@ class _TamperAlertsScreenState extends ConsumerState<TamperAlertsScreen> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          l10n.tamperAlertsHowItWorksTitle,
+                          l10n.titleTamperAlertsHowItWorks,
                           style: theme.textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -100,7 +101,7 @@ class _TamperAlertsScreenState extends ConsumerState<TamperAlertsScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    l10n.tamperAlertsHowItWorksBody,
+                    l10n.bodyTamperAlertsHowItWorks,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.textTheme.bodySmall?.color,
                     ),
@@ -113,7 +114,7 @@ class _TamperAlertsScreenState extends ConsumerState<TamperAlertsScreen> {
 
           // Tamper alert history section
           Text(
-            l10n.tamperAlertsHistoryHeader,
+            l10n.titleTamperAlertsHistory,
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -137,7 +138,7 @@ class _TamperAlertsScreenState extends ConsumerState<TamperAlertsScreen> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          l10n.tamperAlertsNoHistory,
+                          l10n.bodyTamperAlertsNoHistory,
                           textAlign: TextAlign.center,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: Colors.grey,
@@ -164,7 +165,7 @@ class _TamperAlertsScreenState extends ConsumerState<TamperAlertsScreen> {
             error: (e, _) => Center(
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: Text(l10n.commonError(e.toString())),
+                child: Text(l10n.errorCommon(e.toString())),
               ),
             ),
           ),
@@ -194,11 +195,11 @@ class _VaultStatusCard extends StatelessWidget {
     final statusColor = hasIssues ? Colors.red : Colors.green;
     final statusIcon = hasIssues ? Icons.gpp_bad_outlined : Icons.verified_user;
     final statusTitle = hasIssues
-        ? l10n.tamperAlertsStatusIssues
-        : l10n.tamperAlertsStatusVerified;
+        ? l10n.bodyTamperAlertsStatusIssues
+        : l10n.bodyTamperAlertsStatusVerified;
     final statusDetail = hasIssues
-        ? l10n.tamperAlertsStatusIssuesDetail(report!.tamperIssues)
-        : l10n.tamperAlertsStatusVerifiedDetail;
+        ? l10n.bodyTamperAlertsStatusIssuesDetail(report!.tamperIssues)
+        : l10n.descTamperAlertsStatusVerifiedDetail;
 
     return Card(
       key: const Key('tamper-alerts-status-card'),
@@ -270,8 +271,8 @@ class _VaultStatusCard extends StatelessWidget {
                     : const Icon(Icons.security, size: 18),
                 label: Text(
                   isScanning
-                      ? l10n.tamperAlertsVerifying
-                      : l10n.tamperAlertsVerifyButton,
+                      ? l10n.bodyTamperAlertsVerifying
+                      : l10n.actionTamperAlertsVerify,
                 ),
               ),
             ),
@@ -298,10 +299,17 @@ class _TamperEventTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: const Icon(Icons.error_outline, color: Colors.red),
-        title: Text(event.description, style: theme.textTheme.bodyMedium),
+        title: Text(
+          event.descriptionIn(AppLocalizations.of(context)),
+          style: theme.textTheme.bodyMedium,
+        ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // What the check actually found — which row, and how it did not
+            // match. This is diagnostic detail recorded when the event
+            // happened, not a phrase that can be translated after the fact.
+            Text(event.description, style: theme.textTheme.bodySmall),
             const SizedBox(height: 4),
             Row(
               children: [
@@ -337,6 +345,7 @@ class _TamperEventTile extends StatelessWidget {
         trailing: event.metadata != null
             ? IconButton(
                 icon: const Icon(Icons.info_outline, size: 20),
+                tooltip: AppLocalizations.of(context).tooltipShowDetails,
                 onPressed: () => _showMetadataDialog(context),
               )
             : null,
@@ -356,7 +365,7 @@ class _TamperEventTile extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context).securityEventDetailsTitle),
+        title: Text(AppLocalizations.of(context).titleSecurityEventDetails),
         content: SingleChildScrollView(
           child: SelectableText(
             formatted,
@@ -366,7 +375,7 @@ class _TamperEventTile extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(AppLocalizations.of(context).commonClose),
+            child: Text(AppLocalizations.of(context).actionCommonClose),
           ),
         ],
       ),

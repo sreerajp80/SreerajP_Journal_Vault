@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import 'package:sreerajp_journal_vault/core/l10n/formatting_locale.dart';
+
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 /// Preset duration choices for quickly setting a time capsule unlock date.
@@ -139,7 +141,10 @@ class _TimeCapsuleSealDialogState extends State<TimeCapsuleSealDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final formattedDate = DateFormat.yMMMMd().format(_selectedDate);
+    // intl has no Sanskrit data, so dates fall back to English patterns.
+    final formattedDate = DateFormat.yMMMMd(
+      formattingLocaleTag(Localizations.localeOf(context).toLanguageTag()),
+    ).format(_selectedDate);
 
     return AlertDialog(
       key: const Key('time-capsule-seal-dialog'),
@@ -153,7 +158,7 @@ class _TimeCapsuleSealDialogState extends State<TimeCapsuleSealDialog> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              l10n.timeCapsuleSealTitle,
+              l10n.titleTimeCapsuleSeal,
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -167,14 +172,14 @@ class _TimeCapsuleSealDialogState extends State<TimeCapsuleSealDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              l10n.timeCapsuleSealDescription,
+              l10n.descTimeCapsuleSeal,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
             const SizedBox(height: 16),
             Text(
-              l10n.timeCapsuleUnlockDateLabel,
+              l10n.labelTimeCapsuleUnlockDate,
               style: theme.textTheme.labelLarge?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -227,37 +232,37 @@ class _TimeCapsuleSealDialogState extends State<TimeCapsuleSealDialog> {
               children: [
                 ChoiceChip(
                   key: const Key('time-capsule-preset-1m'),
-                  label: Text(l10n.timeCapsulePreset1Month),
+                  label: Text(l10n.actionTimeCapsulePreset1Month),
                   selected: _selectedPreset == TimeCapsulePreset.oneMonth,
                   onSelected: (_) => _applyPreset(TimeCapsulePreset.oneMonth),
                 ),
                 ChoiceChip(
                   key: const Key('time-capsule-preset-6m'),
-                  label: Text(l10n.timeCapsulePreset6Months),
+                  label: Text(l10n.actionTimeCapsulePreset6Months),
                   selected: _selectedPreset == TimeCapsulePreset.sixMonths,
                   onSelected: (_) => _applyPreset(TimeCapsulePreset.sixMonths),
                 ),
                 ChoiceChip(
                   key: const Key('time-capsule-preset-1y'),
-                  label: Text(l10n.timeCapsulePreset1Year),
+                  label: Text(l10n.actionTimeCapsulePreset1Year),
                   selected: _selectedPreset == TimeCapsulePreset.oneYear,
                   onSelected: (_) => _applyPreset(TimeCapsulePreset.oneYear),
                 ),
                 ChoiceChip(
                   key: const Key('time-capsule-preset-3y'),
-                  label: Text(l10n.timeCapsulePreset3Years),
+                  label: Text(l10n.actionTimeCapsulePreset3Years),
                   selected: _selectedPreset == TimeCapsulePreset.threeYears,
                   onSelected: (_) => _applyPreset(TimeCapsulePreset.threeYears),
                 ),
                 ChoiceChip(
                   key: const Key('time-capsule-preset-5y'),
-                  label: Text(l10n.timeCapsulePreset5Years),
+                  label: Text(l10n.actionTimeCapsulePreset5Years),
                   selected: _selectedPreset == TimeCapsulePreset.fiveYears,
                   onSelected: (_) => _applyPreset(TimeCapsulePreset.fiveYears),
                 ),
                 ChoiceChip(
                   key: const Key('time-capsule-preset-custom'),
-                  label: Text(l10n.timeCapsulePresetCustom),
+                  label: Text(l10n.actionTimeCapsulePresetCustom),
                   selected: _selectedPreset == TimeCapsulePreset.custom,
                   onSelected: (_) => _pickCustomDate(),
                 ),
@@ -268,7 +273,7 @@ class _TimeCapsuleSealDialogState extends State<TimeCapsuleSealDialog> {
               key: const Key('time-capsule-teaser-field'),
               controller: _teaserController,
               decoration: InputDecoration(
-                labelText: l10n.timeCapsuleTeaserHint,
+                labelText: l10n.descTimeCapsuleTeaser,
                 border: const OutlineInputBorder(),
                 prefixIcon: const Icon(Icons.notes_rounded),
               ),
@@ -298,7 +303,7 @@ class _TimeCapsuleSealDialogState extends State<TimeCapsuleSealDialog> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      l10n.timeCapsuleLockedExplanation,
+                      l10n.descTimeCapsuleLocked,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSecondaryContainer,
                       ),
@@ -313,12 +318,12 @@ class _TimeCapsuleSealDialogState extends State<TimeCapsuleSealDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text(l10n.commonCancel),
+          child: Text(l10n.actionCommonCancel),
         ),
         FilledButton.icon(
           key: const Key('time-capsule-confirm-seal-button'),
           icon: const Icon(Icons.lock_outline_rounded, size: 18),
-          label: Text(l10n.timeCapsuleSealConfirm),
+          label: Text(l10n.bodyTimeCapsuleSeal),
           onPressed: () {
             Navigator.pop(
               context,

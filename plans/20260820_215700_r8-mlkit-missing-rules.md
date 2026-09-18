@@ -1,6 +1,6 @@
 # Fix R8 Proguard Missing Rules for ML Kit Text Recognition
 
-**Status:** Completed
+**Status:** completed
 
 ## Problem
 During release compilation (`flutter build apk --flavor prod --release --split-per-abi`), R8 fails with missing class errors:

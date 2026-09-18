@@ -30,10 +30,10 @@ void main() {
       final ids = deck.map((c) => c.id).toSet();
       expect(ids.length, 50);
 
+      // Card text lives in the ARB files; ritual_card_localization_test.dart
+      // checks it in all three languages.
       for (final card in deck) {
-        expect(card.title.isNotEmpty, isTrue);
-        expect(card.prompt.isNotEmpty, isTrue);
-        expect(card.quote.isNotEmpty, isTrue);
+        expect(card.isUserCreated, isFalse);
         expect(card.number >= 1 && card.number <= 50, isTrue);
         expect(card.id.startsWith('sd_'), isTrue);
       }

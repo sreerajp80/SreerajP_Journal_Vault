@@ -4,11 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
+import 'package:sreerajp_journal_vault/core/l10n/formatting_locale.dart';
 import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/entry_editor_screen.dart';
 import 'package:sreerajp_journal_vault/features/entries/providers/time_capsule_providers.dart';
 import 'package:sreerajp_journal_vault/features/entries/services/time_capsule_service.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
+
+part 'time_capsule_sealed_widgets.dart';
 
 /// Screen displayed when opening a sealed time capsule entry.
 ///
@@ -73,7 +76,7 @@ class _TimeCapsuleSealedScreenState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           key: const Key('capsule-unsealed-snackbar'),
-          content: Text(l10n.timeCapsuleUnsealedSuccess),
+          content: Text(l10n.bodyTimeCapsuleUnsealedSuccess),
           backgroundColor: Theme.of(context).colorScheme.primary,
         ),
       );
@@ -93,13 +96,17 @@ class _TimeCapsuleSealedScreenState
       setState(() {
         _isUnsealing = false;
         if (error is TimeCapsuleClockTamperException) {
-          _errorMessage = l10n.timeCapsuleClockTamperError;
+          _errorMessage = l10n.errorTimeCapsuleClockTamper;
         } else if (error is TimeCapsuleLockedException) {
-          _errorMessage = l10n.timeCapsuleUnsealLockedPrompt(
-            DateFormat.yMMMMd().add_jms().format(error.unlockDate),
+          _errorMessage = l10n.actionTimeCapsuleUnsealLockedPrompt(
+            DateFormat.yMMMMd(
+              formattingLocaleTag(
+                Localizations.localeOf(context).toLanguageTag(),
+              ),
+            ).add_jms().format(error.unlockDate),
           );
         } else {
-          _errorMessage = error.toString();
+          _errorMessage = l10n.errorTimeCapsuleUnseal;
         }
       });
     }
@@ -110,19 +117,19 @@ class _TimeCapsuleSealedScreenState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogCtx) => AlertDialog(
-        title: Text(l10n.entryDeleteTitle),
-        content: Text(l10n.entryDeleteBody),
+        title: Text(l10n.bodyEntryDelete),
+        content: Text(l10n.bodyEntryDeleteBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogCtx, false),
-            child: Text(l10n.commonCancel),
+            child: Text(l10n.actionCommonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(dialogCtx, true),
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(dialogCtx).colorScheme.error,
             ),
-            child: Text(l10n.commonDelete),
+            child: Text(l10n.actionCommonDelete),
           ),
         ],
       ),
@@ -147,21 +154,21 @@ class _TimeCapsuleSealedScreenState
     return Scaffold(
       key: const Key('time-capsule-sealed-screen'),
       appBar: AppBar(
-        title: Text(l10n.timeCapsuleSealedBadge),
+        title: Text(l10n.labelTimeCapsuleSealedBadge),
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_outline),
-            tooltip: l10n.entryDeleteTooltip,
+            tooltip: l10n.tooltipEntryDelete,
             onPressed: () => _deleteEntry(widget.entryId),
           ),
         ],
       ),
       body: capsuleAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text(e.toString())),
+        error: (e, _) => Center(child: Text(l10n.errorTimeCapsuleLoad)),
         data: (capsule) {
           if (capsule == null) {
-            return Center(child: Text(l10n.commonError('Capsule not found')));
+            return Center(child: Text(l10n.errorTimeCapsuleNotFound));
           }
 
           final isReady = !_now.isBefore(capsule.unlockDate);
@@ -174,12 +181,16 @@ class _TimeCapsuleSealedScreenState
           final minutes = remaining.inMinutes % 60;
           final seconds = remaining.inSeconds % 60;
 
-          final formattedUnlockDate = DateFormat.yMMMMd().add_jm().format(
-            capsule.unlockDate,
+          // intl has no Sanskrit data, so dates fall back to English patterns.
+          final fmt = formattingLocaleTag(
+            Localizations.localeOf(context).toLanguageTag(),
           );
-          final formattedSealedDate = DateFormat.yMMMMd().format(
-            capsule.sealedAt,
-          );
+          final formattedUnlockDate = DateFormat.yMMMMd(
+            fmt,
+          ).add_jm().format(capsule.unlockDate);
+          final formattedSealedDate = DateFormat.yMMMMd(
+            fmt,
+          ).format(capsule.sealedAt);
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(24),
@@ -233,8 +244,8 @@ class _TimeCapsuleSealedScreenState
                   ),
                   child: Text(
                     isReady
-                        ? l10n.timeCapsuleReadyToOpen
-                        : l10n.timeCapsuleSealedUntil(formattedUnlockDate),
+                        ? l10n.actionTimeCapsuleReadyToOpen
+                        : l10n.labelTimeCapsuleSealedUntil(formattedUnlockDate),
                     style: theme.textTheme.labelLarge?.copyWith(
                       color: isReady ? colors.primary : colors.secondary,
                       fontWeight: FontWeight.bold,
@@ -249,13 +260,25 @@ class _TimeCapsuleSealedScreenState
                     key: const Key('time-capsule-countdown-display'),
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _CountdownUnit(value: days, label: 'Days'),
+                      _CountdownUnit(
+                        value: days,
+                        label: l10n.labelTimeCapsuleDays,
+                      ),
                       const SizedBox(width: 8),
-                      _CountdownUnit(value: hours, label: 'Hours'),
+                      _CountdownUnit(
+                        value: hours,
+                        label: l10n.labelTimeCapsuleHours,
+                      ),
                       const SizedBox(width: 8),
-                      _CountdownUnit(value: minutes, label: 'Mins'),
+                      _CountdownUnit(
+                        value: minutes,
+                        label: l10n.labelTimeCapsuleMinutes,
+                      ),
                       const SizedBox(width: 8),
-                      _CountdownUnit(value: seconds, label: 'Secs'),
+                      _CountdownUnit(
+                        value: seconds,
+                        label: l10n.labelTimeCapsuleSeconds,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -285,7 +308,7 @@ class _TimeCapsuleSealedScreenState
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                'Note to Future Self',
+                                l10n.labelTimeCapsuleTeaser,
                                 style: theme.textTheme.labelMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: colors.primary,
@@ -320,13 +343,13 @@ class _TimeCapsuleSealedScreenState
                       children: [
                         _DetailRow(
                           icon: Icons.history_rounded,
-                          label: 'Sealed On',
+                          label: l10n.labelTimeCapsuleSealedOn,
                           value: formattedSealedDate,
                         ),
                         const Divider(height: 16),
                         _DetailRow(
                           icon: Icons.event_available_rounded,
-                          label: 'Unlocks On',
+                          label: l10n.labelTimeCapsuleUnlocksOn,
                           value: formattedUnlockDate,
                         ),
                       ],
@@ -358,7 +381,7 @@ class _TimeCapsuleSealedScreenState
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          l10n.timeCapsuleLockedExplanation,
+                          l10n.descTimeCapsuleLocked,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colors.onSurfaceVariant,
                           ),
@@ -407,8 +430,8 @@ class _TimeCapsuleSealedScreenState
                           ),
                     label: Text(
                       isReady
-                          ? l10n.timeCapsuleUnsealButton
-                          : l10n.timeCapsuleUnsealLockedPrompt(
+                          ? l10n.actionTimeCapsuleUnseal
+                          : l10n.actionTimeCapsuleUnsealLockedPrompt(
                               formattedUnlockDate,
                             ),
                     ),
@@ -422,82 +445,6 @@ class _TimeCapsuleSealedScreenState
           );
         },
       ),
-    );
-  }
-}
-
-class _CountdownUnit extends StatelessWidget {
-  const _CountdownUnit({required this.value, required this.label});
-
-  final int value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-
-    return Container(
-      width: 68,
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      decoration: BoxDecoration(
-        color: colors.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colors.outlineVariant),
-      ),
-      child: Column(
-        children: [
-          Text(
-            value.toString().padLeft(2, '0'),
-            style: theme.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: colors.primary,
-            ),
-          ),
-          Text(
-            label,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: colors.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _DetailRow extends StatelessWidget {
-  const _DetailRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      children: [
-        Icon(icon, size: 20, color: theme.colorScheme.primary),
-        const SizedBox(width: 12),
-        Text(
-          label,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const Spacer(),
-        Text(
-          value,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
     );
   }
 }

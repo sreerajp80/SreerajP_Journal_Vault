@@ -36,7 +36,7 @@ void main() {
   ) async {
     await pumpFor(tester, DatabaseOpenFailureKind.keyUnavailable);
 
-    expect(find.text('The vault cannot be opened'), findsOneWidget);
+    expect(find.text('Vault unavailable'), findsOneWidget);
     expect(
       find.textContaining('key that unlocks your journal'),
       findsOneWidget,

@@ -111,7 +111,7 @@ class _AudioAttachmentViewState extends State<AudioAttachmentView>
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        _error = 'This audio file could not be played.';
+        _error = AppLocalizations.of(context).errorAttachmentAudioPlay;
         _isLoading = false;
       });
     }
@@ -189,8 +189,8 @@ class _AudioAttachmentViewState extends State<AudioAttachmentView>
             onPressed: () => _isPlaying ? _handle.pause() : _handle.play(),
             icon: Icon(_isPlaying ? Icons.pause : Icons.play_arrow),
             tooltip: _isPlaying
-                ? l10n.audioPauseTooltip
-                : l10n.audioPlayTooltip,
+                ? l10n.tooltipAudioPause
+                : l10n.tooltipAudioPlay,
           ),
         ],
       ),

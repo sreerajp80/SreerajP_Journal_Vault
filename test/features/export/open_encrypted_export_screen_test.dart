@@ -92,6 +92,6 @@ void main() {
 
     // Told apart from a wrong password, because the two need different fixes.
     final l10n = await AppLocalizations.delegate.load(const Locale('en'));
-    expect(find.text(l10n.openEncryptedErrorNotSealed), findsOneWidget);
+    expect(find.text(l10n.errorOpenEncryptedErrorNotSealed), findsOneWidget);
   });
 }

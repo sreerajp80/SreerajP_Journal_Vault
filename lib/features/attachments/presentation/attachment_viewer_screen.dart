@@ -85,7 +85,7 @@ class _AttachmentViewerScreenState extends State<AttachmentViewerScreen> {
             IconButton(
               key: const Key('attachment-viewer-open-with'),
               icon: const Icon(Icons.open_in_new),
-              tooltip: l10n.attachmentOpenWith,
+              tooltip: l10n.descAttachmentOpenWith,
               onPressed: widget.onOpenExternally,
             ),
         ],
@@ -114,19 +114,19 @@ class _UnsupportedBody extends StatelessWidget {
             const Icon(Icons.help_outline, size: 48),
             const SizedBox(height: 16),
             Text(
-              l10n.attachmentUnsupportedTitle,
+              l10n.titleAttachmentUnsupported,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
             Text(
-              l10n.attachmentUnsupportedBody(fileName),
+              l10n.bodyAttachmentUnsupported(fileName),
               textAlign: TextAlign.center,
             ),
             if (onOpenExternally != null) ...[
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: onOpenExternally,
-                child: Text(l10n.attachmentOpenWith),
+                child: Text(l10n.descAttachmentOpenWith),
               ),
             ],
           ],

@@ -8,7 +8,7 @@ Two deviations, both recorded in the change log: Issue 3 took option (b) as reco
 Issue 4's chip bar went into the entry editor rather than Search, because reading the code showed
 it suggests tags for the entry being edited rather than filtering search results.
 
-Follow-up to [Remediation_Plan.md](Remediation_Plan.md), whose boxes are all ticked. This plan
+Follow-up to [20260725_000000_remediation-plan.md](20260725_000000_remediation-plan.md), whose boxes are all ticked. This plan
 covers gaps that plan did not look for: places where the data layer, the native layer, and the
 unit tests all exist and pass, but the path a real user takes is not connected.
 
@@ -216,7 +216,7 @@ Unlike sync, this one is cheap to finish — the service and the chip widget are
 `android/app/build.gradle.kts:47` uses `minSdk = flutter.minSdkVersion`, which resolves to 24. I
 confirmed `android:minSdkVersion="24"` in the merged `prodRelease` manifest under `build/`.
 
-`AGENTS.md` mandates Android minimum API 28. `Remediation_Plan.md` slice A2 also assumed API 28+
+`AGENTS.md` mandates Android minimum API 28. `20260725_000000_remediation-plan.md` slice A2 also assumed API 28+
 when it chose Keystore-backed storage.
 
 ### Fix

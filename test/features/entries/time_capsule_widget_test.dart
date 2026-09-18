@@ -194,4 +194,47 @@ void main() {
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(const Duration(seconds: 1));
   });
+
+  testWidgets('TimeCapsulesListScreen builds a long list lazily', (
+    tester,
+  ) async {
+    for (var i = 0; i < 30; i++) {
+      final entryId = await db
+          .into(db.entries)
+          .insert(
+            EntriesCompanion.insert(
+              journalId: journalId,
+              title: Value('Letter $i'),
+              contentJson: const Value('[{"insert":"Letter\n"}]'),
+              plainText: const Value('Letter'),
+            ),
+          );
+      await service.sealEntry(
+        entryId: entryId,
+        unlockDate: DateTime.now().add(Duration(days: 10 + i)),
+      );
+    }
+
+    await tester.pumpWidget(
+      _buildTestApp(
+        database: db,
+        service: service,
+        child: const TimeCapsulesListScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Letter 0'), findsOneWidget);
+    expect(find.text('Letter 29'), findsNothing);
+
+    await tester.scrollUntilVisible(
+      find.text('Letter 29'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Letter 29'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(const Duration(seconds: 1));
+  });
 }

@@ -1,6 +1,6 @@
 # Plan: A1.3 Drawing and Handwriting Blocks
 
-**Status:** Proposed
+**Status:** completed
 **Date:** 2026-08-23
 **Feature:** A1.3 Drawing and Handwriting Blocks
 

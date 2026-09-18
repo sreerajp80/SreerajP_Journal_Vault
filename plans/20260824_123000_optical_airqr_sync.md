@@ -1,6 +1,6 @@
 # Plan: Encrypted Device-to-Device Optical Air-Gap Sync (AirQR)
 
-**Status:** Planned — Awaiting Approval
+**Status:** completed
 **Date:** 2026-08-24
 **Issue:** Add optical air-gap device-to-device synchronization (animated QR frame stream + camera scanner) for settings, small journals, and individual entries with size gating warnings and 100% offline security.
 

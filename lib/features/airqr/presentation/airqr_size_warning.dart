@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sreerajp_journal_vault/features/airqr/presentation/airqr_payload_text.dart';
 import 'package:sreerajp_journal_vault/features/airqr/services/airqr_constants.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
@@ -19,14 +20,17 @@ class AirqrSizeWarning {
         context: context,
         builder: (dialogContext) => AlertDialog(
           icon: const Icon(Icons.block_rounded, color: Colors.red, size: 36),
-          title: Text(l10n.airqrTooLargeTitle),
+          title: Text(l10n.titleAirqrTooLarge),
           content: Text(
-            '${_formatSize(byteCount)} is too large for optical QR sync (Limit: ${_formatSize(AirqrConstants.hardCapBytes)}). Please use local Wi-Fi Sync instead.',
+            l10n.bodyAirqrTooLarge(
+              airqrSizeText(l10n, byteCount),
+              airqrSizeText(l10n, AirqrConstants.hardCapBytes),
+            ),
           ),
           actions: [
             FilledButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('OK'),
+              child: Text(l10n.actionCommonOk),
             ),
           ],
         ),
@@ -43,8 +47,8 @@ class AirqrSizeWarning {
     final estimateSecs = (byteCount / AirqrConstants.estimatedBytesPerSecond)
         .ceil();
     final estimateText = estimateSecs >= 60
-        ? '${(estimateSecs / 60).ceil()} minutes'
-        : '$estimateSecs seconds';
+        ? l10n.descAirqrMinutes((estimateSecs / 60).ceil())
+        : l10n.descAirqrSeconds(estimateSecs);
 
     final proceed = await showDialog<bool>(
       context: context,
@@ -54,33 +58,23 @@ class AirqrSizeWarning {
           color: Colors.orange,
           size: 36,
         ),
-        title: Text(l10n.airqrSlowTitle),
+        title: Text(l10n.titleAirqrSlow),
         content: Text(
-          'This transfer is ${_formatSize(byteCount)} and will take approximately $estimateText over optical QR. Wi-Fi Sync is much faster for larger transfers.',
+          l10n.bodyAirqrSlow(airqrSizeText(l10n, byteCount), estimateText),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(l10n.actionCommonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(l10n.airqrSendAnyway),
+            child: Text(l10n.actionAirqrSendAnyway),
           ),
         ],
       ),
     );
 
     return proceed ?? false;
-  }
-
-  static String _formatSize(int bytes) {
-    if (bytes >= 1024 * 1024) {
-      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
-    }
-    if (bytes >= 1024) {
-      return '${(bytes / 1024).round()} KB';
-    }
-    return '$bytes B';
   }
 }

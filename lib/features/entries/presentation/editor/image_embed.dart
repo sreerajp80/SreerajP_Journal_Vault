@@ -233,10 +233,10 @@ class _InlineImageBlockState extends State<_InlineImageBlock> {
   Widget _buildBody(BuildContext context, InlineImageState? state) {
     final l10n = AppLocalizations.of(context);
     return switch (state) {
-      null => const _ImagePlaceholder(
-        key: Key('vault-image-loading'),
+      null => _ImagePlaceholder(
+        key: const Key('vault-image-loading'),
         icon: Icons.image_outlined,
-        message: 'Loading image…',
+        message: l10n.descEditorImageLoading,
       ),
       InlineImageReady(:final file) => GestureDetector(
         key: const Key('vault-image-open'),
@@ -251,7 +251,7 @@ class _InlineImageBlockState extends State<_InlineImageBlock> {
             // open) must not throw a red box into the middle of the entry.
             errorBuilder: (_, _, _) => _ImagePlaceholder(
               icon: Icons.broken_image_outlined,
-              message: l10n.editorImageUnavailable,
+              message: l10n.labelEditorImageUnavailable,
             ),
           ),
         ),
@@ -259,15 +259,15 @@ class _InlineImageBlockState extends State<_InlineImageBlock> {
       InlineImageLocked() => _ImagePlaceholder(
         key: const Key('vault-image-locked'),
         icon: Icons.lock_outline,
-        message: l10n.editorImageLocked,
+        message: l10n.bodyEditorImageLocked,
         onTap: _unlock,
       ),
       InlineImageUnavailable() => _ImagePlaceholder(
         key: const Key('vault-image-unavailable'),
         icon: Icons.broken_image_outlined,
         message: widget.data.fileName.isEmpty
-            ? l10n.editorImageUnavailable
-            : l10n.editorImageUnavailableWithName(widget.data.fileName),
+            ? l10n.labelEditorImageUnavailable
+            : l10n.bodyEditorImageUnavailableWithName(widget.data.fileName),
       ),
     };
   }
@@ -280,7 +280,7 @@ class _InlineImageBlockState extends State<_InlineImageBlock> {
         if (widget.onWidthChanged != null)
           PopupMenuButton<double>(
             key: const Key('vault-image-size-menu'),
-            tooltip: l10n.editorImageSize,
+            tooltip: l10n.tooltipEditorImageSize,
             icon: Icon(
               Icons.photo_size_select_large,
               size: 18,
@@ -290,15 +290,15 @@ class _InlineImageBlockState extends State<_InlineImageBlock> {
             itemBuilder: (_) => [
               PopupMenuItem(
                 value: VaultImageData.smallWidth,
-                child: Text(l10n.editorImageSizeSmall),
+                child: Text(l10n.labelEditorImageSizeSmall),
               ),
               PopupMenuItem(
                 value: VaultImageData.mediumWidth,
-                child: Text(l10n.editorImageSizeMedium),
+                child: Text(l10n.labelEditorImageSizeMedium),
               ),
               PopupMenuItem(
                 value: VaultImageData.fullWidth,
-                child: Text(l10n.editorImageSizeFull),
+                child: Text(l10n.labelEditorImageSizeFull),
               ),
             ],
           ),
@@ -307,7 +307,7 @@ class _InlineImageBlockState extends State<_InlineImageBlock> {
             key: const Key('vault-image-delete-button'),
             icon: const Icon(Icons.close, size: 18),
             color: theme.colorScheme.onSurfaceVariant,
-            tooltip: l10n.editorRemoveImage,
+            tooltip: l10n.tooltipEditorRemoveImage,
             onPressed: widget.onDelete,
           ),
       ],
@@ -375,7 +375,7 @@ class _FullScreenImage extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(fileName.isEmpty ? l10n.imageDefaultTitle : fileName),
+        title: Text(fileName.isEmpty ? l10n.titleImageDefault : fileName),
       ),
       body: Center(
         child: InteractiveViewer(
@@ -383,7 +383,7 @@ class _FullScreenImage extends StatelessWidget {
           child: Image.file(
             file,
             errorBuilder: (context, _, _) =>
-                Text(AppLocalizations.of(context).editorImageUnavailable),
+                Text(AppLocalizations.of(context).labelEditorImageUnavailable),
           ),
         ),
       ),

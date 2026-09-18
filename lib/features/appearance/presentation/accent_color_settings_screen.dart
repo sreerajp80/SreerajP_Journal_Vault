@@ -58,11 +58,11 @@ class _AccentColorSettingsScreenState
     final onAccent = AppAccentColors.contrastOn(selectedColor);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.appearanceAccentColorTitle)),
+      appBar: AppBar(title: Text(l10n.titleAppearanceAccentColor)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
         children: [
-          _label(context, l10n.appearanceLivePreview),
+          _label(context, l10n.titleAppearanceLivePreview),
           const SizedBox(height: 14),
           Center(
             child: Container(
@@ -84,7 +84,7 @@ class _AccentColorSettingsScreenState
                   Icon(Icons.edit_note_rounded, color: onAccent, size: 20),
                   const SizedBox(width: 8),
                   Text(
-                    l10n.appearanceSampleText,
+                    l10n.labelAppearanceSampleText,
                     style: TextStyle(
                       color: onAccent,
                       fontWeight: FontWeight.w700,
@@ -96,7 +96,7 @@ class _AccentColorSettingsScreenState
             ),
           ),
           const SizedBox(height: 24),
-          _label(context, l10n.appearancePresets),
+          _label(context, l10n.tabAppearancePresets),
           const SizedBox(height: 12),
           Wrap(
             spacing: 12,
@@ -115,7 +115,7 @@ class _AccentColorSettingsScreenState
             ],
           ),
           const SizedBox(height: 24),
-          _label(context, l10n.appearanceCustomWheel),
+          _label(context, l10n.tabAppearanceCustomWheel),
           const SizedBox(height: 14),
           Center(
             child: _HueWheel(
@@ -146,13 +146,13 @@ class _AccentColorSettingsScreenState
                 _apply(defHsv);
               },
               icon: const Icon(Icons.restart_alt),
-              label: Text(l10n.appearanceResetDefault),
+              label: Text(l10n.actionAppearanceResetDefault),
             ),
           ),
           const SizedBox(height: 8),
           Center(
             child: Text(
-              l10n.appearanceContrastNote,
+              l10n.descAppearanceContrastNote,
               textAlign: TextAlign.center,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,

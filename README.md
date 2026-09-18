@@ -29,10 +29,10 @@ Everything is encrypted on your device and remains under your complete control.
 - 📷 **On-Device OCR Text Scanner**: Extract text from documents and book pages directly into entries using on-device OCR for both English and Malayalam, with built-in crop and rotation tools.
 - 🧠 **Interconnected Knowledge**: Wiki-style backlinks (`[[Entry Title]]`), smart tags with auto/custom colors, reusable entry templates with dynamic date tokens, and full-text search indexing both entries and attachments.
 - 📊 **Timeline, Calendar & Insights**: Interactive 30-day mood trends, writing streaks, word counts, tag heatmaps, and "On This Day" memory resurfacing.
-- 🧘 **Daily Journaling Ritual & Philosophy Decks**: Guided contemplation timer, 3D card-flip reveal, curated bilingual Sanathana Dharma thought cards, and custom prompt decks.
+- 🧘 **Daily Journaling Ritual & Philosophy Decks**: Guided contemplation timer, 3D card-flip reveal, curated Sanathana Dharma thought cards in three languages, and custom prompt decks.
 - 🔄 **Air-Gapped & Local Sync**: Direct device-to-device local Wi-Fi sync (E2EE with ephemeral X25519 and AES-256-GCM) and 100% optical AirQR sync using animated QR streams.
 - 📦 **Data Freedom & Multi-Format Export**: Export single entries or whole journals to Markdown, HTML, Plain Text, or standalone offline PDF (with full Malayalam font shaping). Password-protect exports with encrypted `.jvenc` containers.
-- 🎨 **Aesthetic Reading Surfaces & Bilingual Polish**: Curated Light, Paper/Sepia, Dark, and OLED True Black surfaces, typography customization, and full English and Malayalam localization.
+- 🎨 **Aesthetic Reading Surfaces & Trilingual Polish**: Curated Light, Paper/Sepia, Dark, and OLED True Black surfaces, typography customization, and full English, Malayalam and Sanskrit localization, switchable in Settings without a restart.
 
 ---
 
@@ -93,7 +93,7 @@ Everything is encrypted on your device and remains under your complete control.
 
 ### 5. Mindful Rituals & Philosophy Cards
 - **Daily Journaling Ritual**: A mindful routine featuring calming atmosphere visuals, a contemplation timer, and an interactive 3D card-flip reveal.
-- **Sanathana Dharma Thought Decks**: Inspiring prompt decks drawing from timeless philosophy, Vedic wisdom, the Bhagavad Gita, and universal ethics, fully localized in English and Malayalam.
+- **Sanathana Dharma Thought Decks**: Inspiring prompt decks drawing from timeless philosophy, Vedic wisdom, the Bhagavad Gita, and universal ethics, fully localized in English, Malayalam and Sanskrit.
 - **Custom Ritual Decks**: Compose your own prompt decks with custom introspective questions, descriptions, and accent colors.
 - **Time Capsules**: Seal entries into future-dated time capsules with countdown timers and local unlock notifications.
 
@@ -109,7 +109,7 @@ Everything is encrypted on your device and remains under your complete control.
 - **Reading Surfaces**: Choose from Light, Paper/Sepia (`#F8F3E6`), Dark, and OLED True Black (`#000000`) surfaces.
 - **Personalized Accents & Typography**: Select custom accent palettes and customize body fonts (Modern Sans, Literary Serif, Typewriter Monospace) and font sizes.
 - **Built-in Secure Viewers**: Embedded PDF reader, audio player with waveform visualization, and ZIP archive browser. Decrypted temporary files are cleaned up automatically upon exit.
-- **Bilingual Interface**: Seamless support for both English and Malayalam (`മലയാളം`).
+- **Trilingual Interface**: English, Malayalam (`മലയാളം`) and Sanskrit (`संस्कृतम्`), chosen in Settings and applied at once.
 
 ---
 
@@ -136,7 +136,7 @@ lib/
 |   |-- sync/            # Local P2P Wi-Fi Sync & Optical AirQR sync
 |   |-- tags/            # Tag management & color derivation
 |   `-- timeline/        # Timeline feed & monthly calendar heatmaps
-|-- l10n/         # Localization ARB files (English & Malayalam)
+|-- l10n/         # Localization ARB files (English, Malayalam & Sanskrit)
 `-- main.dart     # Composition root & provider overrides
 ```
 

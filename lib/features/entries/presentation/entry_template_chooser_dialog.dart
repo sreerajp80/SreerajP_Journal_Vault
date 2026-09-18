@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/entry_template_text.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/template_editor_screen.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/template_manager_screen.dart';
 import 'package:sreerajp_journal_vault/features/entries/templates/entry_templates.dart';
@@ -119,7 +120,7 @@ class _EntryTemplateChooserDialogState
                 children: [
                   Expanded(
                     child: Text(
-                      l10n.templateChooserTitle,
+                      l10n.titleTemplateChooser,
                       style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -128,7 +129,7 @@ class _EntryTemplateChooserDialogState
                   IconButton(
                     key: const Key('template-chooser-manage-button'),
                     icon: const Icon(Icons.tune, size: 20),
-                    tooltip: l10n.templateManagerTitle,
+                    tooltip: l10n.titleTemplateManager,
                     onPressed: () async {
                       await Navigator.of(context).push(
                         MaterialPageRoute<void>(
@@ -149,8 +150,8 @@ class _EntryTemplateChooserDialogState
                     ),
                     label: Text(
                       isAllExpanded
-                          ? l10n.templateCollapseAll
-                          : l10n.templateExpandAll,
+                          ? l10n.actionTemplateCollapseAll
+                          : l10n.actionTemplateExpandAll,
                       style: theme.textTheme.labelMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
@@ -213,7 +214,7 @@ class _EntryTemplateChooserDialogState
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
-                                    category.label,
+                                    category.labelIn(l10n),
                                     style: theme.textTheme.titleSmall?.copyWith(
                                       fontWeight: FontWeight.w600,
                                       color: isExpanded
@@ -278,18 +279,18 @@ class _EntryTemplateChooserDialogState
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            template.label,
+                                            template.labelIn(l10n),
                                             style: theme.textTheme.bodyMedium
                                                 ?.copyWith(
                                                   fontWeight: FontWeight.w600,
                                                 ),
                                           ),
                                           if (template
-                                              .description
+                                              .descriptionIn(l10n)
                                               .isNotEmpty) ...[
                                             const SizedBox(height: 2),
                                             Text(
-                                              template.description,
+                                              template.descriptionIn(l10n),
                                               style: theme.textTheme.bodySmall
                                                   ?.copyWith(
                                                     color: theme
@@ -328,7 +329,7 @@ class _EntryTemplateChooserDialogState
                   TextButton.icon(
                     key: const Key('create-custom-template-chooser-button'),
                     icon: const Icon(Icons.add, size: 18),
-                    label: Text(l10n.templateCreateNew),
+                    label: Text(l10n.actionTemplateCreateNew),
                     onPressed: () async {
                       final created = await Navigator.of(context).push<bool>(
                         MaterialPageRoute(
@@ -347,7 +348,7 @@ class _EntryTemplateChooserDialogState
                   TextButton(
                     key: const Key('template-chooser-cancel-button'),
                     onPressed: () => Navigator.pop(context),
-                    child: Text(l10n.commonCancel),
+                    child: Text(l10n.actionCommonCancel),
                   ),
                 ],
               ),

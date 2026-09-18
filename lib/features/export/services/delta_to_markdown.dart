@@ -9,6 +9,7 @@ library;
 
 import 'package:sreerajp_journal_vault/features/export/services/delta_document.dart';
 import 'package:sreerajp_journal_vault/features/export/services/export_document.dart';
+import 'package:sreerajp_journal_vault/features/export/services/export_labels.dart';
 
 /// Turns [blocks] into a Markdown document.
 ///
@@ -18,8 +19,12 @@ import 'package:sreerajp_journal_vault/features/export/services/export_document.
 /// (attachments were not included, or the file was locked or unreadable) is
 /// named in italics instead, because a link to a file that is not there would
 /// be worse than none.
+///
+/// [labels] supplies the words written into the file (callout names, image
+/// placeholders), in the language the user exported in.
 String renderMarkdown(
   List<ExportBlock> blocks, {
+  required ExportLabels labels,
   Set<int> linkableImageIds = const {},
 }) {
   final buffer = StringBuffer();
@@ -58,14 +63,18 @@ String renderMarkdown(
 
       case CalloutBlock():
         buffer.writeln();
-        buffer.writeln(_renderCallout(block));
+        buffer.writeln(_renderCallout(block, labels));
         previousStyle = null;
         previousIndent = 0;
 
       case ImageBlock():
         buffer.writeln();
         buffer.writeln(
-          _renderImage(block, linkableImageIds.contains(block.attachmentId)),
+          _renderImage(
+            block,
+            linkableImageIds.contains(block.attachmentId),
+            labels,
+          ),
         );
         previousStyle = null;
         previousIndent = 0;
@@ -73,7 +82,11 @@ String renderMarkdown(
       case DrawingBlock():
         buffer.writeln();
         buffer.writeln(
-          _renderDrawing(block, linkableImageIds.contains(block.attachmentId)),
+          _renderDrawing(
+            block,
+            linkableImageIds.contains(block.attachmentId),
+            labels,
+          ),
         );
         previousStyle = null;
         previousIndent = 0;
@@ -82,7 +95,7 @@ String renderMarkdown(
         // Named rather than dropped, so the export is honest that something
         // was here that this build could not write out.
         buffer.writeln();
-        buffer.writeln('> _[${block.type} block — not exportable as text]_');
+        buffer.writeln('> _[${labels.unexportableBlock(block.type)}]_');
         previousStyle = null;
         previousIndent = 0;
     }
@@ -260,9 +273,15 @@ String _renderTable(List<List<String>> rows) {
 }
 
 /// Renders an inline image, as a real Markdown image when its file came along.
-String _renderImage(ImageBlock block, bool linkToAttachments) {
-  final label = block.fileName.isEmpty ? 'Image' : block.fileName;
-  if (!linkToAttachments) return '_[Image: ${_escapeMarkdown(label)}]_';
+String _renderImage(
+  ImageBlock block,
+  bool linkToAttachments,
+  ExportLabels labels,
+) {
+  final label = block.fileName.isEmpty ? labels.image : block.fileName;
+  if (!linkToAttachments) {
+    return '_[${labels.image}: ${_escapeMarkdown(label)}]_';
+  }
 
   final path =
       'attachments/${exportAttachmentFileName(block.attachmentId, block.fileName)}';
@@ -272,9 +291,15 @@ String _renderImage(ImageBlock block, bool linkToAttachments) {
 }
 
 /// Renders an inline drawing, as a real Markdown image when its file came along.
-String _renderDrawing(DrawingBlock block, bool linkToAttachments) {
-  final label = block.fileName.isEmpty ? 'Drawing' : block.fileName;
-  if (!linkToAttachments) return '_[Drawing: ${_escapeMarkdown(label)}]_';
+String _renderDrawing(
+  DrawingBlock block,
+  bool linkToAttachments,
+  ExportLabels labels,
+) {
+  final label = block.fileName.isEmpty ? labels.drawing : block.fileName;
+  if (!linkToAttachments) {
+    return '_[${labels.drawing}: ${_escapeMarkdown(label)}]_';
+  }
 
   final path =
       'attachments/${exportAttachmentFileName(block.attachmentId, block.fileName)}';
@@ -286,28 +311,12 @@ String _renderDrawing(DrawingBlock block, bool linkToAttachments) {
 /// This is the closest thing plain Markdown has to an admonition, and it
 /// survives every renderer. GitHub's `> [!NOTE]` syntax was not used because it
 /// renders as literal text everywhere else.
-String _renderCallout(CalloutBlock block) {
-  final label = _calloutLabel(block.style);
+String _renderCallout(CalloutBlock block, ExportLabels labels) {
+  final label = labels.calloutLabel(block.style);
   final lines = block.text.split('\n');
   final buffer = StringBuffer('> **$label**');
   for (final line in lines) {
     buffer.write('\n> ${_escapeMarkdown(line)}');
   }
   return buffer.toString();
-}
-
-String _calloutLabel(String style) {
-  switch (style) {
-    case 'warning':
-      return 'Warning';
-    case 'tip':
-      return 'Tip';
-    case 'important':
-      return 'Important';
-    case 'info':
-      return 'Note';
-    default:
-      // An unknown style keeps its own name rather than being forced to 'Note'.
-      return style.isEmpty ? 'Note' : style;
-  }
 }

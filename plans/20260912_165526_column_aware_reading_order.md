@@ -1,6 +1,6 @@
 # Plan — Put two-column text back in reading order
 
-**Status:** Awaiting approval
+**Status:** completed
 
 ## The problem
 

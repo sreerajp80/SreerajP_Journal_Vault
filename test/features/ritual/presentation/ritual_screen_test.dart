@@ -104,7 +104,7 @@ void main() {
       // Verify Step 3 Journal components
       expect(find.text('Ready to Reflect'), findsOneWidget);
       expect(find.text('Begin Journaling'), findsOneWidget);
-      expect(find.text('Complete Practice Only'), findsOneWidget);
+      expect(find.text('Finish practice'), findsOneWidget);
     },
   );
 

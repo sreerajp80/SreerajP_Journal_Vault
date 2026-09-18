@@ -89,6 +89,18 @@ jobs:
       - name: Check manifest permission policy
         run: sh tool/check_no_internet_permission.sh
 
+  sanskrit-check:
+    name: Sanskrit is Sanskrit, not Hindi
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Engineering standard section 8.5.1. Devanagari script alone does not
+      # make a string Sanskrit, and a Hindi copula or postposition slipping
+      # into app_sa.arb is the failure this catches.
+      - name: Check Sanskrit for Hindi markers
+        run: sh tool/check_sanskrit_markers.sh
+
   build-dev:
     name: Build dev debug APK
     runs-on: ubuntu-latest

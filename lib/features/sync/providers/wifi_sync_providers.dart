@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
+import 'package:sreerajp_journal_vault/core/logging/app_logger.dart';
 import 'package:sreerajp_journal_vault/features/backup/providers/backup_providers.dart';
 import 'package:sreerajp_journal_vault/features/sync/providers/sync_providers.dart';
 import 'package:sreerajp_journal_vault/features/sync/services/sync_engine.dart';
@@ -35,14 +36,12 @@ class HostSessionState {
   final HostPhase phase;
   final String? pairingCode;
   final int? port;
-  final String? error;
 
   const HostSessionState({
     this.host,
     this.phase = HostPhase.stopped,
     this.pairingCode,
     this.port,
-    this.error,
   });
 
   HostSessionState copyWith({
@@ -50,14 +49,12 @@ class HostSessionState {
     HostPhase? phase,
     String? pairingCode,
     int? port,
-    String? error,
   }) {
     return HostSessionState(
       host: host ?? this.host,
       phase: phase ?? this.phase,
       pairingCode: pairingCode ?? this.pairingCode,
       port: port ?? this.port,
-      error: error,
     );
   }
 }
@@ -90,7 +87,12 @@ class WifiSyncHostNotifier extends Notifier<HostSessionState> {
         port: host.port,
       );
     } catch (e) {
-      state = HostSessionState(phase: HostPhase.error, error: e.toString());
+      // The phase is what the screen shows; the reason is only logged.
+      AppLogger.warning(
+        'wifi sync: host could not start',
+        error: AppLogger.redact(e),
+      );
+      state = const HostSessionState(phase: HostPhase.error);
     }
   }
 
@@ -119,28 +121,28 @@ enum ClientSyncStep {
 
 class ClientSyncState {
   final ClientSyncStep step;
-  final String? statusMessage;
   final SyncStatus? syncStatus;
-  final String? error;
+
+  /// True when the last attempt failed. The reason itself is logged, not
+  /// carried here: the screen words a failure in the user's language rather
+  /// than showing a socket error.
+  final bool hasFailed;
 
   const ClientSyncState({
     this.step = ClientSyncStep.idle,
-    this.statusMessage,
     this.syncStatus,
-    this.error,
+    this.hasFailed = false,
   });
 
   ClientSyncState copyWith({
     ClientSyncStep? step,
-    String? statusMessage,
     SyncStatus? syncStatus,
-    String? error,
+    bool? hasFailed,
   }) {
     return ClientSyncState(
       step: step ?? this.step,
-      statusMessage: statusMessage ?? this.statusMessage,
       syncStatus: syncStatus ?? this.syncStatus,
-      error: error,
+      hasFailed: hasFailed ?? this.hasFailed,
     );
   }
 }
@@ -154,24 +156,15 @@ class WifiSyncClientNotifier extends Notifier<ClientSyncState> {
     required int port,
     required String code,
   }) async {
-    state = const ClientSyncState(
-      step: ClientSyncStep.connecting,
-      statusMessage: 'Connecting to device...',
-    );
+    state = const ClientSyncState(step: ClientSyncStep.connecting);
 
     WifiSyncClient? client;
     try {
-      state = state.copyWith(
-        step: ClientSyncStep.authenticating,
-        statusMessage: 'Authenticating with pairing code...',
-      );
+      state = state.copyWith(step: ClientSyncStep.authenticating);
 
       client = await WifiSyncClient.connect(host: host, port: port, code: code);
 
-      state = state.copyWith(
-        step: ClientSyncStep.syncing,
-        statusMessage: 'Synchronizing entries & attachments...',
-      );
+      state = state.copyWith(step: ClientSyncStep.syncing);
 
       final protocol = WifiSyncProtocol.forClient(client);
       final db = ref.read(appDatabaseProvider);
@@ -192,7 +185,6 @@ class WifiSyncClientNotifier extends Notifier<ClientSyncState> {
 
       state = ClientSyncState(
         step: ClientSyncStep.completed,
-        statusMessage: 'Sync completed successfully.',
         syncStatus: result,
       );
 
@@ -202,11 +194,14 @@ class WifiSyncClientNotifier extends Notifier<ClientSyncState> {
 
       return result;
     } catch (e) {
-      final errorMsg = e.toString();
-      state = ClientSyncState(
+      // The reason is logged, redacted, and never put on screen raw.
+      AppLogger.warning(
+        'wifi sync: client run failed',
+        error: AppLogger.redact(e),
+      );
+      state = const ClientSyncState(
         step: ClientSyncStep.error,
-        statusMessage: 'Sync failed.',
-        error: errorMsg,
+        hasFailed: true,
       );
       return SyncStatus.failed;
     } finally {

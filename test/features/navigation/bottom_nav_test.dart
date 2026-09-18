@@ -174,8 +174,6 @@ class _FakePermissionsService implements AppPermissionsService {
     return AppPermissionItem(
       id: id,
       category: AppPermissionCategory.explicit,
-      title: id.name,
-      description: '',
       status: AppPermissionState.granted,
     );
   }

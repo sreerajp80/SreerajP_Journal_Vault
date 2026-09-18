@@ -4,31 +4,27 @@ import 'package:sreerajp_journal_vault/features/about/application/about_metadata
 
 void main() {
   const config = AppConfig(
-    appName: 'SreerajP Journal Vault',
-    description: 'A private journal.',
+    appName: LocalizedText.plain('SreerajP Journal Vault'),
+    description: LocalizedText.plain('A private journal.'),
     version: '1.0.1',
     build: '1',
-    details: {'Author': 'Sreeraj P'},
+    details: {'author': LocalizedText.plain('Sreeraj P')},
   );
 
-  test(
-    'buildAboutMetadata falls back when build timestamp define is missing',
-    () {
-      final metadata = buildAboutMetadata(
-        config: config,
-        buildTimestamp: '   ',
-      );
+  test('buildAboutMetadata leaves the build date null when it is missing', () {
+    final metadata = buildAboutMetadata(config: config, buildTimestamp: '   ');
 
-      expect(metadata.appName, 'SreerajP Journal Vault');
-      expect(metadata.versionBuild, '1.0.1 (build 1)');
-      expect(metadata.lastBuildTimestamp, missingBuildTimestampLabel);
-    },
-  );
+    expect(metadata.appName.resolve('en'), 'SreerajP Journal Vault');
+    expect(metadata.versionBuild, '1.0.1 (build 1)');
+    // The screen shows a localized "unavailable" text for null.
+    expect(metadata.lastBuildTimestamp, isNull);
+  });
 
   test('buildAboutMetadata carries the details map through unchanged', () {
     final metadata = buildAboutMetadata(config: config, buildTimestamp: '');
 
-    expect(metadata.details, {'Author': 'Sreeraj P'});
+    expect(metadata.details.keys, ['author']);
+    expect(metadata.details['author']!.resolve('ml'), 'Sreeraj P');
   });
 
   test('formatBuildTimestamp preserves YYYY-MM-DD date string', () {
@@ -38,7 +34,11 @@ void main() {
   test('formatBuildTimestamp normalizes ISO timestamps', () {
     expect(
       formatBuildTimestamp('2026-03-19T12:34:56Z'),
-      isNot(missingBuildTimestampLabel),
+      matches(RegExp(r'^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$')),
     );
+  });
+
+  test('formatBuildTimestamp returns null for unparseable input', () {
+    expect(formatBuildTimestamp('not a date'), isNull);
   });
 }

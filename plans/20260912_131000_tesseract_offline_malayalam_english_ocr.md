@@ -1,6 +1,6 @@
 # Plan: Offline Malayalam & English Tesseract OCR and Performance Optimization
 
-**Status:** Completed
+**Status:** completed
 
 ## Problem
 1. **Malayalam OCR produces junk:** Google ML Kit Text Recognition has no Malayalam model. It runs Malayalam script through its Latin classifier, returning nonsense Latin letters (e.g. `GHUT 2026 JIo 42...` for `മാതൃവാണി ആഗസ്റ്റ് 2026...`).

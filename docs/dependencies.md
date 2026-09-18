@@ -60,6 +60,7 @@ section 7.
 | Package | Used for | Where |
 |---|---|---|
 | `cryptography` | AES-256-GCM for attachment and sync payload encryption | `lib/features/attachments/services/`, `lib/features/sync/` |
+| `crypto` | SHA-256 checksum that confirms the payload AirQR rebuilds from the QR frames matches what was sent. A Dart team package with no dependencies of its own; it is not used for encryption | `lib/features/airqr/services/airqr_codec.dart` |
 | `local_auth` / `local_auth_android` | Biometric and device-credential prompts for the lock gate | `lib/features/lock_gate/`, `lib/features/journal_lock/` |
 | `permission_handler` | Runtime permission requests and the Permissions Center | `lib/features/permissions/` |
 
@@ -72,7 +73,7 @@ section 7.
 |---|---|---|
 | `flutter_quill` | The rich-text entry editor and its Delta document format | `lib/features/entries/presentation/editor/` |
 | `record` | Voice note recording | `lib/features/entries/services/voice_note_service.dart` |
-| `speech_to_text` | Dictation into the editor | `lib/features/entries/` |
+| `speech_to_text` | On-device dictation into the editor. Always called with `onDevice: true`, and only after the app's own `sreerajp.journal_vault/speech` channel confirms on-device recognition exists — the plugin otherwise falls back to the online system recogniser. Not used by voice notes | `lib/features/entries/services/speech_engine.dart`, `dictation_service.dart` |
 | `image_picker` | Gallery image selection and fallback photo capture for OCR | `lib/features/entries/presentation/entry_editor_screen.dart` |
 | `image_cropper` | Crop-and-rotate UI before OCR scanning, wraps Android uCrop (offline) | `lib/features/entries/services/image_edit_service.dart` |
 | `google_mlkit_text_recognition` | On-device fallback text extraction from images | `lib/features/entries/services/ocr_service.dart` |
@@ -81,6 +82,9 @@ section 7.
 | `just_audio` | In-app audio attachment playback | `lib/features/attachments/presentation/audio_attachment_view.dart` |
 | `pdfrx` | In-app PDF attachment viewing (PDFium-based, open source) | `.../pdf_attachment_view.dart` |
 | `table_calendar` | The timeline calendar view | `lib/features/timeline/` |
+| `camera` | The in-app OCR camera: live preview and full-resolution still capture. Wraps Android CameraX; its own dependencies are the platform packages only, no networking | `lib/features/entries/presentation/ocr_camera_screen.dart` |
+| `qr_flutter` | Draws QR codes on screen for AirQR transfer and the Wi-Fi Sync pairing code. Pure Dart (depends only on `qr`), no networking | `lib/features/airqr/presentation/airqr_send_screen.dart`, `lib/features/sync/presentation/sync_host_screen.dart` |
+| `mobile_scanner` | Reads those QR codes with the camera. Uses the **bundled** ML Kit barcode model (`com.google.mlkit:barcode-scanning`), so nothing is downloaded at runtime. Never set `dev.steenbakker.mobile_scanner.useUnbundled=true` in `android/gradle.properties` — that switches to a model fetched through Google Play Services | `lib/features/airqr/presentation/airqr_receive_screen.dart`, `lib/features/sync/presentation/sync_client_screen.dart` |
 
 #### OCR language models (`assets/tessdata/`)
 
@@ -95,10 +99,9 @@ and speed.
 | File | Build used | Size | Why |
 |---|---|---|---|
 | `mal.traineddata` | `tessdata_best` | 12.5 MB | Full-precision weights. Malayalam has stacked vowel signs and joined letter shapes, which are the first thing lost when weights are rounded, so it gains the most from this build. |
-| `eng.traineddata` | `tessdata_fast` | 4.1 MB | Rounded weights. English recognition is already reliable at this build, and `tessdata_best` would add 11.3 MB for little gain. |
+| `eng.traineddata` | `tessdata_best` | 15.4 MB | Full-precision weights. The `tessdata_fast` build (4.1 MB) was used until 2026-09-16, but it missed and garbled English words on phone photos. The owner accepted the 11.3 MB size increase for better English. |
 
-Source: `github.com/tesseract-ocr/tessdata_best` and
-`github.com/tesseract-ocr/tessdata_fast`, Apache 2.0.
+Source: `github.com/tesseract-ocr/tessdata_best`, Apache 2.0.
 
 The `tessdata` (standard) build is deliberately not used. Its extra size is the
 pre-neural engine from Tesseract 3, which this app never switches on.
@@ -107,6 +110,23 @@ pre-neural engine from Tesseract 3, which this app never switches on.
 The copy to internal storage is skipped when the files are already there, so
 without a version bump an app update would keep using the old model for everyone
 who already had the app installed.
+
+#### Bundled fonts (`assets/fonts/`)
+
+Data files, not packages. They are bundled so Malayalam and Sanskrit never render as empty boxes,
+and so export can shape both scripts offline. Runtime font fetching (for example `google_fonts`) is
+not allowed — a device offline on first launch would show boxes for two of the three languages
+(engineering standard §8.3.3 and §17.4).
+
+| File | Script | Used by | Licence |
+|---|---|---|---|
+| `NotoSansMalayalam-Regular.ttf`, `NotoSansMalayalam-Bold.ttf` | Malayalam | UI `fontFamilyFallback`, HTML and PDF export | SIL OFL 1.1 (`OFL-Noto.txt`) |
+| `NotoSansDevanagari-Regular.ttf`, `NotoSansDevanagari-Bold.ttf` | Devanagari (Sanskrit) | UI `fontFamilyFallback`, HTML and PDF export | SIL OFL 1.1 (`OFL-Noto.txt`) |
+
+`package:characters` is declared in `pubspec.yaml` and used by
+`test/l10n/label_length_test.dart` to count visible characters (grapheme clusters), not code units.
+It ships with the Dart SDK team, adds no platform code and does no I/O; it is named explicitly
+rather than relied on through Flutter so the import is a declared dependency.
 
 ### Files, attachments and export
 

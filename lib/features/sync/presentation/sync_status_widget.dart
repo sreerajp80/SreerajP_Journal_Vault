@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sreerajp_journal_vault/features/sync/presentation/sync_text.dart';
 import 'package:sreerajp_journal_vault/features/sync/providers/sync_providers.dart';
 import 'package:sreerajp_journal_vault/features/sync/services/sync_engine.dart';
+import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 /// Compact sync status indicator for use in app bars or settings.
 ///
@@ -21,7 +23,8 @@ class SyncStatusWidget extends ConsumerWidget {
         ref.watch(pendingConflictCountProvider).asData?.value ?? 0;
     final theme = Theme.of(context);
 
-    final (icon, color, label) = _statusDisplay(status, theme);
+    final (icon, color) = _statusDisplay(status, theme);
+    final label = status.textIn(AppLocalizations.of(context));
 
     return InkWell(
       onTap: onTap,
@@ -58,29 +61,16 @@ class SyncStatusWidget extends ConsumerWidget {
     );
   }
 
-  (IconData, Color, String) _statusDisplay(SyncStatus status, ThemeData theme) {
+  (IconData, Color) _statusDisplay(SyncStatus status, ThemeData theme) {
     return switch (status) {
       SyncStatus.idle => (
         Icons.cloud_outlined,
         theme.colorScheme.onSurfaceVariant,
-        'Not synced',
       ),
-      SyncStatus.syncing => (
-        Icons.sync,
-        theme.colorScheme.primary,
-        'Syncing...',
-      ),
-      SyncStatus.success => (Icons.cloud_done_outlined, Colors.green, 'Synced'),
-      SyncStatus.failed => (
-        Icons.cloud_off_outlined,
-        theme.colorScheme.error,
-        'Sync failed',
-      ),
-      SyncStatus.conflict => (
-        Icons.warning_amber_rounded,
-        Colors.orange,
-        'Conflicts',
-      ),
+      SyncStatus.syncing => (Icons.sync, theme.colorScheme.primary),
+      SyncStatus.success => (Icons.cloud_done_outlined, Colors.green),
+      SyncStatus.failed => (Icons.cloud_off_outlined, theme.colorScheme.error),
+      SyncStatus.conflict => (Icons.warning_amber_rounded, Colors.orange),
     };
   }
 }

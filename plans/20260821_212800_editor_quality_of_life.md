@@ -1,6 +1,6 @@
 # Plan: A1.5 Editor Quality of Life
 
-**Status:** Implemented
+**Status:** completed
 
 ## Overview
 Implement the A1.5 editor quality-of-life bundle for the entry editor:

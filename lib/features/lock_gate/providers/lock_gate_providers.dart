@@ -1,11 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
+import 'package:sreerajp_journal_vault/core/l10n/locale_controller.dart';
 import 'package:sreerajp_journal_vault/features/journal_lock/providers/journal_lock_providers.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/app_lock_controller.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/services/app_pin_keystore.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/services/app_pin_service.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/services/biometric_authenticator.dart';
+import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 /// Platform Keystore-backed app PIN storage. Override in tests with an
 /// in-memory fake.
@@ -116,9 +118,12 @@ class AppLockNotifier extends Notifier<AppLockState> {
     final controller = _controller;
     if (controller == null) return BiometricAuthResult.unavailable;
     final auth = ref.read(biometricAuthenticatorProvider);
-    final result = await auth.authenticate(
-      reason: 'Unlock SreerajP Journal Vault',
+    // No BuildContext here, so the language comes from the locale controller
+    // rather than Localizations.of.
+    final l10n = lookupAppLocalizations(
+      effectiveAppLocale(ref.read(localeControllerProvider)),
     );
+    final result = await auth.authenticate(reason: l10n.descBiometricReasonApp);
     if (result == BiometricAuthResult.success) {
       await controller.unlock();
       if (!_disposed) {

@@ -3,376 +3,6 @@
 part of 'app_database.dart';
 
 // ignore_for_file: type=lint
-mixin _$JournalsDaoMixin on DatabaseAccessor<AppDatabase> {
-  $JournalsTable get journals => attachedDatabase.journals;
-  JournalsDaoManager get managers => JournalsDaoManager(this);
-}
-
-class JournalsDaoManager {
-  final _$JournalsDaoMixin _db;
-  JournalsDaoManager(this._db);
-  $$JournalsTableTableManager get journals =>
-      $$JournalsTableTableManager(_db.attachedDatabase, _db.journals);
-}
-
-mixin _$EntriesDaoMixin on DatabaseAccessor<AppDatabase> {
-  $JournalsTable get journals => attachedDatabase.journals;
-  $EntriesTable get entries => attachedDatabase.entries;
-  EntriesDaoManager get managers => EntriesDaoManager(this);
-}
-
-class EntriesDaoManager {
-  final _$EntriesDaoMixin _db;
-  EntriesDaoManager(this._db);
-  $$JournalsTableTableManager get journals =>
-      $$JournalsTableTableManager(_db.attachedDatabase, _db.journals);
-  $$EntriesTableTableManager get entries =>
-      $$EntriesTableTableManager(_db.attachedDatabase, _db.entries);
-}
-
-mixin _$TagsDaoMixin on DatabaseAccessor<AppDatabase> {
-  $TagsTable get tags => attachedDatabase.tags;
-  $JournalsTable get journals => attachedDatabase.journals;
-  $EntriesTable get entries => attachedDatabase.entries;
-  $EntryTagsTable get entryTags => attachedDatabase.entryTags;
-  $JournalTagsTable get journalTags => attachedDatabase.journalTags;
-  TagsDaoManager get managers => TagsDaoManager(this);
-}
-
-class TagsDaoManager {
-  final _$TagsDaoMixin _db;
-  TagsDaoManager(this._db);
-  $$TagsTableTableManager get tags =>
-      $$TagsTableTableManager(_db.attachedDatabase, _db.tags);
-  $$JournalsTableTableManager get journals =>
-      $$JournalsTableTableManager(_db.attachedDatabase, _db.journals);
-  $$EntriesTableTableManager get entries =>
-      $$EntriesTableTableManager(_db.attachedDatabase, _db.entries);
-  $$EntryTagsTableTableManager get entryTags =>
-      $$EntryTagsTableTableManager(_db.attachedDatabase, _db.entryTags);
-  $$JournalTagsTableTableManager get journalTags =>
-      $$JournalTagsTableTableManager(_db.attachedDatabase, _db.journalTags);
-}
-
-mixin _$AttachmentTextsDaoMixin on DatabaseAccessor<AppDatabase> {
-  $JournalsTable get journals => attachedDatabase.journals;
-  $EntriesTable get entries => attachedDatabase.entries;
-  $AttachmentsTable get attachments => attachedDatabase.attachments;
-  $AttachmentTextsTable get attachmentTexts => attachedDatabase.attachmentTexts;
-  AttachmentTextsDaoManager get managers => AttachmentTextsDaoManager(this);
-}
-
-class AttachmentTextsDaoManager {
-  final _$AttachmentTextsDaoMixin _db;
-  AttachmentTextsDaoManager(this._db);
-  $$JournalsTableTableManager get journals =>
-      $$JournalsTableTableManager(_db.attachedDatabase, _db.journals);
-  $$EntriesTableTableManager get entries =>
-      $$EntriesTableTableManager(_db.attachedDatabase, _db.entries);
-  $$AttachmentsTableTableManager get attachments =>
-      $$AttachmentsTableTableManager(_db.attachedDatabase, _db.attachments);
-  $$AttachmentTextsTableTableManager get attachmentTexts =>
-      $$AttachmentTextsTableTableManager(
-        _db.attachedDatabase,
-        _db.attachmentTexts,
-      );
-}
-
-mixin _$BacklinksDaoMixin on DatabaseAccessor<AppDatabase> {
-  $JournalsTable get journals => attachedDatabase.journals;
-  $EntriesTable get entries => attachedDatabase.entries;
-  $BacklinksTable get backlinks => attachedDatabase.backlinks;
-  BacklinksDaoManager get managers => BacklinksDaoManager(this);
-}
-
-class BacklinksDaoManager {
-  final _$BacklinksDaoMixin _db;
-  BacklinksDaoManager(this._db);
-  $$JournalsTableTableManager get journals =>
-      $$JournalsTableTableManager(_db.attachedDatabase, _db.journals);
-  $$EntriesTableTableManager get entries =>
-      $$EntriesTableTableManager(_db.attachedDatabase, _db.entries);
-  $$BacklinksTableTableManager get backlinks =>
-      $$BacklinksTableTableManager(_db.attachedDatabase, _db.backlinks);
-}
-
-mixin _$EntryRevisionsDaoMixin on DatabaseAccessor<AppDatabase> {
-  $JournalsTable get journals => attachedDatabase.journals;
-  $EntriesTable get entries => attachedDatabase.entries;
-  $EntryRevisionsTable get entryRevisions => attachedDatabase.entryRevisions;
-  EntryRevisionsDaoManager get managers => EntryRevisionsDaoManager(this);
-}
-
-class EntryRevisionsDaoManager {
-  final _$EntryRevisionsDaoMixin _db;
-  EntryRevisionsDaoManager(this._db);
-  $$JournalsTableTableManager get journals =>
-      $$JournalsTableTableManager(_db.attachedDatabase, _db.journals);
-  $$EntriesTableTableManager get entries =>
-      $$EntriesTableTableManager(_db.attachedDatabase, _db.entries);
-  $$EntryRevisionsTableTableManager get entryRevisions =>
-      $$EntryRevisionsTableTableManager(
-        _db.attachedDatabase,
-        _db.entryRevisions,
-      );
-}
-
-mixin _$VoiceNotesDaoMixin on DatabaseAccessor<AppDatabase> {
-  $JournalsTable get journals => attachedDatabase.journals;
-  $EntriesTable get entries => attachedDatabase.entries;
-  $VoiceNotesTable get voiceNotes => attachedDatabase.voiceNotes;
-  VoiceNotesDaoManager get managers => VoiceNotesDaoManager(this);
-}
-
-class VoiceNotesDaoManager {
-  final _$VoiceNotesDaoMixin _db;
-  VoiceNotesDaoManager(this._db);
-  $$JournalsTableTableManager get journals =>
-      $$JournalsTableTableManager(_db.attachedDatabase, _db.journals);
-  $$EntriesTableTableManager get entries =>
-      $$EntriesTableTableManager(_db.attachedDatabase, _db.entries);
-  $$VoiceNotesTableTableManager get voiceNotes =>
-      $$VoiceNotesTableTableManager(_db.attachedDatabase, _db.voiceNotes);
-}
-
-mixin _$BackupLogsDaoMixin on DatabaseAccessor<AppDatabase> {
-  $BackupLogsTable get backupLogs => attachedDatabase.backupLogs;
-  BackupLogsDaoManager get managers => BackupLogsDaoManager(this);
-}
-
-class BackupLogsDaoManager {
-  final _$BackupLogsDaoMixin _db;
-  BackupLogsDaoManager(this._db);
-  $$BackupLogsTableTableManager get backupLogs =>
-      $$BackupLogsTableTableManager(_db.attachedDatabase, _db.backupLogs);
-}
-
-mixin _$SearchPresetsDaoMixin on DatabaseAccessor<AppDatabase> {
-  $SearchPresetsTable get searchPresets => attachedDatabase.searchPresets;
-  SearchPresetsDaoManager get managers => SearchPresetsDaoManager(this);
-}
-
-class SearchPresetsDaoManager {
-  final _$SearchPresetsDaoMixin _db;
-  SearchPresetsDaoManager(this._db);
-  $$SearchPresetsTableTableManager get searchPresets =>
-      $$SearchPresetsTableTableManager(_db.attachedDatabase, _db.searchPresets);
-}
-
-mixin _$AttachmentsDaoMixin on DatabaseAccessor<AppDatabase> {
-  $JournalsTable get journals => attachedDatabase.journals;
-  $EntriesTable get entries => attachedDatabase.entries;
-  $AttachmentsTable get attachments => attachedDatabase.attachments;
-  AttachmentsDaoManager get managers => AttachmentsDaoManager(this);
-}
-
-class AttachmentsDaoManager {
-  final _$AttachmentsDaoMixin _db;
-  AttachmentsDaoManager(this._db);
-  $$JournalsTableTableManager get journals =>
-      $$JournalsTableTableManager(_db.attachedDatabase, _db.journals);
-  $$EntriesTableTableManager get entries =>
-      $$EntriesTableTableManager(_db.attachedDatabase, _db.entries);
-  $$AttachmentsTableTableManager get attachments =>
-      $$AttachmentsTableTableManager(_db.attachedDatabase, _db.attachments);
-}
-
-mixin _$AppSettingsDaoMixin on DatabaseAccessor<AppDatabase> {
-  $AppSettingsTable get appSettings => attachedDatabase.appSettings;
-  AppSettingsDaoManager get managers => AppSettingsDaoManager(this);
-}
-
-class AppSettingsDaoManager {
-  final _$AppSettingsDaoMixin _db;
-  AppSettingsDaoManager(this._db);
-  $$AppSettingsTableTableManager get appSettings =>
-      $$AppSettingsTableTableManager(_db.attachedDatabase, _db.appSettings);
-}
-
-mixin _$AppSecurityDaoMixin on DatabaseAccessor<AppDatabase> {
-  $AppSecurityTable get appSecurity => attachedDatabase.appSecurity;
-  AppSecurityDaoManager get managers => AppSecurityDaoManager(this);
-}
-
-class AppSecurityDaoManager {
-  final _$AppSecurityDaoMixin _db;
-  AppSecurityDaoManager(this._db);
-  $$AppSecurityTableTableManager get appSecurity =>
-      $$AppSecurityTableTableManager(_db.attachedDatabase, _db.appSecurity);
-}
-
-mixin _$JournalTagsDaoMixin on DatabaseAccessor<AppDatabase> {
-  $JournalsTable get journals => attachedDatabase.journals;
-  $TagsTable get tags => attachedDatabase.tags;
-  $JournalTagsTable get journalTags => attachedDatabase.journalTags;
-  JournalTagsDaoManager get managers => JournalTagsDaoManager(this);
-}
-
-class JournalTagsDaoManager {
-  final _$JournalTagsDaoMixin _db;
-  JournalTagsDaoManager(this._db);
-  $$JournalsTableTableManager get journals =>
-      $$JournalsTableTableManager(_db.attachedDatabase, _db.journals);
-  $$TagsTableTableManager get tags =>
-      $$TagsTableTableManager(_db.attachedDatabase, _db.tags);
-  $$JournalTagsTableTableManager get journalTags =>
-      $$JournalTagsTableTableManager(_db.attachedDatabase, _db.journalTags);
-}
-
-mixin _$SyncMetadataDaoMixin on DatabaseAccessor<AppDatabase> {
-  $SyncMetadataTable get syncMetadata => attachedDatabase.syncMetadata;
-  SyncMetadataDaoManager get managers => SyncMetadataDaoManager(this);
-}
-
-class SyncMetadataDaoManager {
-  final _$SyncMetadataDaoMixin _db;
-  SyncMetadataDaoManager(this._db);
-  $$SyncMetadataTableTableManager get syncMetadata =>
-      $$SyncMetadataTableTableManager(_db.attachedDatabase, _db.syncMetadata);
-}
-
-mixin _$SyncConflictsDaoMixin on DatabaseAccessor<AppDatabase> {
-  $SyncConflictsTable get syncConflicts => attachedDatabase.syncConflicts;
-  SyncConflictsDaoManager get managers => SyncConflictsDaoManager(this);
-}
-
-class SyncConflictsDaoManager {
-  final _$SyncConflictsDaoMixin _db;
-  SyncConflictsDaoManager(this._db);
-  $$SyncConflictsTableTableManager get syncConflicts =>
-      $$SyncConflictsTableTableManager(_db.attachedDatabase, _db.syncConflicts);
-}
-
-mixin _$SyncLogsDaoMixin on DatabaseAccessor<AppDatabase> {
-  $SyncLogsTable get syncLogs => attachedDatabase.syncLogs;
-  SyncLogsDaoManager get managers => SyncLogsDaoManager(this);
-}
-
-class SyncLogsDaoManager {
-  final _$SyncLogsDaoMixin _db;
-  SyncLogsDaoManager(this._db);
-  $$SyncLogsTableTableManager get syncLogs =>
-      $$SyncLogsTableTableManager(_db.attachedDatabase, _db.syncLogs);
-}
-
-mixin _$AutoLockProfilesDaoMixin on DatabaseAccessor<AppDatabase> {
-  $AutoLockProfilesTable get autoLockProfiles =>
-      attachedDatabase.autoLockProfiles;
-  AutoLockProfilesDaoManager get managers => AutoLockProfilesDaoManager(this);
-}
-
-class AutoLockProfilesDaoManager {
-  final _$AutoLockProfilesDaoMixin _db;
-  AutoLockProfilesDaoManager(this._db);
-  $$AutoLockProfilesTableTableManager get autoLockProfiles =>
-      $$AutoLockProfilesTableTableManager(
-        _db.attachedDatabase,
-        _db.autoLockProfiles,
-      );
-}
-
-mixin _$AttachmentLocksDaoMixin on DatabaseAccessor<AppDatabase> {
-  $JournalsTable get journals => attachedDatabase.journals;
-  $EntriesTable get entries => attachedDatabase.entries;
-  $AttachmentsTable get attachments => attachedDatabase.attachments;
-  $AttachmentLocksTable get attachmentLocks => attachedDatabase.attachmentLocks;
-  AttachmentLocksDaoManager get managers => AttachmentLocksDaoManager(this);
-}
-
-class AttachmentLocksDaoManager {
-  final _$AttachmentLocksDaoMixin _db;
-  AttachmentLocksDaoManager(this._db);
-  $$JournalsTableTableManager get journals =>
-      $$JournalsTableTableManager(_db.attachedDatabase, _db.journals);
-  $$EntriesTableTableManager get entries =>
-      $$EntriesTableTableManager(_db.attachedDatabase, _db.entries);
-  $$AttachmentsTableTableManager get attachments =>
-      $$AttachmentsTableTableManager(_db.attachedDatabase, _db.attachments);
-  $$AttachmentLocksTableTableManager get attachmentLocks =>
-      $$AttachmentLocksTableTableManager(
-        _db.attachedDatabase,
-        _db.attachmentLocks,
-      );
-}
-
-mixin _$SecurityEventsDaoMixin on DatabaseAccessor<AppDatabase> {
-  $SecurityEventsTable get securityEvents => attachedDatabase.securityEvents;
-  SecurityEventsDaoManager get managers => SecurityEventsDaoManager(this);
-}
-
-class SecurityEventsDaoManager {
-  final _$SecurityEventsDaoMixin _db;
-  SecurityEventsDaoManager(this._db);
-  $$SecurityEventsTableTableManager get securityEvents =>
-      $$SecurityEventsTableTableManager(
-        _db.attachedDatabase,
-        _db.securityEvents,
-      );
-}
-
-mixin _$EntryMoodsDaoMixin on DatabaseAccessor<AppDatabase> {
-  $JournalsTable get journals => attachedDatabase.journals;
-  $EntriesTable get entries => attachedDatabase.entries;
-  $EntryMoodsTable get entryMoods => attachedDatabase.entryMoods;
-  EntryMoodsDaoManager get managers => EntryMoodsDaoManager(this);
-}
-
-class EntryMoodsDaoManager {
-  final _$EntryMoodsDaoMixin _db;
-  EntryMoodsDaoManager(this._db);
-  $$JournalsTableTableManager get journals =>
-      $$JournalsTableTableManager(_db.attachedDatabase, _db.journals);
-  $$EntriesTableTableManager get entries =>
-      $$EntriesTableTableManager(_db.attachedDatabase, _db.entries);
-  $$EntryMoodsTableTableManager get entryMoods =>
-      $$EntryMoodsTableTableManager(_db.attachedDatabase, _db.entryMoods);
-}
-
-mixin _$UserTemplatesDaoMixin on DatabaseAccessor<AppDatabase> {
-  $UserTemplatesTable get userTemplates => attachedDatabase.userTemplates;
-  UserTemplatesDaoManager get managers => UserTemplatesDaoManager(this);
-}
-
-class UserTemplatesDaoManager {
-  final _$UserTemplatesDaoMixin _db;
-  UserTemplatesDaoManager(this._db);
-  $$UserTemplatesTableTableManager get userTemplates =>
-      $$UserTemplatesTableTableManager(_db.attachedDatabase, _db.userTemplates);
-}
-
-mixin _$UserRitualCardsDaoMixin on DatabaseAccessor<AppDatabase> {
-  $UserRitualCardsTable get userRitualCards => attachedDatabase.userRitualCards;
-  UserRitualCardsDaoManager get managers => UserRitualCardsDaoManager(this);
-}
-
-class UserRitualCardsDaoManager {
-  final _$UserRitualCardsDaoMixin _db;
-  UserRitualCardsDaoManager(this._db);
-  $$UserRitualCardsTableTableManager get userRitualCards =>
-      $$UserRitualCardsTableTableManager(
-        _db.attachedDatabase,
-        _db.userRitualCards,
-      );
-}
-
-mixin _$TimeCapsulesDaoMixin on DatabaseAccessor<AppDatabase> {
-  $JournalsTable get journals => attachedDatabase.journals;
-  $EntriesTable get entries => attachedDatabase.entries;
-  $TimeCapsulesTable get timeCapsules => attachedDatabase.timeCapsules;
-  TimeCapsulesDaoManager get managers => TimeCapsulesDaoManager(this);
-}
-
-class TimeCapsulesDaoManager {
-  final _$TimeCapsulesDaoMixin _db;
-  TimeCapsulesDaoManager(this._db);
-  $$JournalsTableTableManager get journals =>
-      $$JournalsTableTableManager(_db.attachedDatabase, _db.journals);
-  $$EntriesTableTableManager get entries =>
-      $$EntriesTableTableManager(_db.attachedDatabase, _db.entries);
-  $$TimeCapsulesTableTableManager get timeCapsules =>
-      $$TimeCapsulesTableTableManager(_db.attachedDatabase, _db.timeCapsules);
-}
-
 class $JournalsTable extends Journals with TableInfo<$JournalsTable, Journal> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -20546,4 +20176,374 @@ class $AppDatabaseManager {
       $$TimeCapsulesTableTableManager(_db, _db.timeCapsules);
   $$UserRitualCardsTableTableManager get userRitualCards =>
       $$UserRitualCardsTableTableManager(_db, _db.userRitualCards);
+}
+
+mixin _$JournalsDaoMixin on DatabaseAccessor<AppDatabase> {
+  $JournalsTable get journals => attachedDatabase.journals;
+  JournalsDaoManager get managers => JournalsDaoManager(this);
+}
+
+class JournalsDaoManager {
+  final _$JournalsDaoMixin _db;
+  JournalsDaoManager(this._db);
+  $$JournalsTableTableManager get journals =>
+      $$JournalsTableTableManager(_db.attachedDatabase, _db.journals);
+}
+
+mixin _$EntriesDaoMixin on DatabaseAccessor<AppDatabase> {
+  $JournalsTable get journals => attachedDatabase.journals;
+  $EntriesTable get entries => attachedDatabase.entries;
+  EntriesDaoManager get managers => EntriesDaoManager(this);
+}
+
+class EntriesDaoManager {
+  final _$EntriesDaoMixin _db;
+  EntriesDaoManager(this._db);
+  $$JournalsTableTableManager get journals =>
+      $$JournalsTableTableManager(_db.attachedDatabase, _db.journals);
+  $$EntriesTableTableManager get entries =>
+      $$EntriesTableTableManager(_db.attachedDatabase, _db.entries);
+}
+
+mixin _$TagsDaoMixin on DatabaseAccessor<AppDatabase> {
+  $TagsTable get tags => attachedDatabase.tags;
+  $JournalsTable get journals => attachedDatabase.journals;
+  $EntriesTable get entries => attachedDatabase.entries;
+  $EntryTagsTable get entryTags => attachedDatabase.entryTags;
+  $JournalTagsTable get journalTags => attachedDatabase.journalTags;
+  TagsDaoManager get managers => TagsDaoManager(this);
+}
+
+class TagsDaoManager {
+  final _$TagsDaoMixin _db;
+  TagsDaoManager(this._db);
+  $$TagsTableTableManager get tags =>
+      $$TagsTableTableManager(_db.attachedDatabase, _db.tags);
+  $$JournalsTableTableManager get journals =>
+      $$JournalsTableTableManager(_db.attachedDatabase, _db.journals);
+  $$EntriesTableTableManager get entries =>
+      $$EntriesTableTableManager(_db.attachedDatabase, _db.entries);
+  $$EntryTagsTableTableManager get entryTags =>
+      $$EntryTagsTableTableManager(_db.attachedDatabase, _db.entryTags);
+  $$JournalTagsTableTableManager get journalTags =>
+      $$JournalTagsTableTableManager(_db.attachedDatabase, _db.journalTags);
+}
+
+mixin _$AttachmentsDaoMixin on DatabaseAccessor<AppDatabase> {
+  $JournalsTable get journals => attachedDatabase.journals;
+  $EntriesTable get entries => attachedDatabase.entries;
+  $AttachmentsTable get attachments => attachedDatabase.attachments;
+  AttachmentsDaoManager get managers => AttachmentsDaoManager(this);
+}
+
+class AttachmentsDaoManager {
+  final _$AttachmentsDaoMixin _db;
+  AttachmentsDaoManager(this._db);
+  $$JournalsTableTableManager get journals =>
+      $$JournalsTableTableManager(_db.attachedDatabase, _db.journals);
+  $$EntriesTableTableManager get entries =>
+      $$EntriesTableTableManager(_db.attachedDatabase, _db.entries);
+  $$AttachmentsTableTableManager get attachments =>
+      $$AttachmentsTableTableManager(_db.attachedDatabase, _db.attachments);
+}
+
+mixin _$AttachmentTextsDaoMixin on DatabaseAccessor<AppDatabase> {
+  $JournalsTable get journals => attachedDatabase.journals;
+  $EntriesTable get entries => attachedDatabase.entries;
+  $AttachmentsTable get attachments => attachedDatabase.attachments;
+  $AttachmentTextsTable get attachmentTexts => attachedDatabase.attachmentTexts;
+  AttachmentTextsDaoManager get managers => AttachmentTextsDaoManager(this);
+}
+
+class AttachmentTextsDaoManager {
+  final _$AttachmentTextsDaoMixin _db;
+  AttachmentTextsDaoManager(this._db);
+  $$JournalsTableTableManager get journals =>
+      $$JournalsTableTableManager(_db.attachedDatabase, _db.journals);
+  $$EntriesTableTableManager get entries =>
+      $$EntriesTableTableManager(_db.attachedDatabase, _db.entries);
+  $$AttachmentsTableTableManager get attachments =>
+      $$AttachmentsTableTableManager(_db.attachedDatabase, _db.attachments);
+  $$AttachmentTextsTableTableManager get attachmentTexts =>
+      $$AttachmentTextsTableTableManager(
+        _db.attachedDatabase,
+        _db.attachmentTexts,
+      );
+}
+
+mixin _$BacklinksDaoMixin on DatabaseAccessor<AppDatabase> {
+  $JournalsTable get journals => attachedDatabase.journals;
+  $EntriesTable get entries => attachedDatabase.entries;
+  $BacklinksTable get backlinks => attachedDatabase.backlinks;
+  BacklinksDaoManager get managers => BacklinksDaoManager(this);
+}
+
+class BacklinksDaoManager {
+  final _$BacklinksDaoMixin _db;
+  BacklinksDaoManager(this._db);
+  $$JournalsTableTableManager get journals =>
+      $$JournalsTableTableManager(_db.attachedDatabase, _db.journals);
+  $$EntriesTableTableManager get entries =>
+      $$EntriesTableTableManager(_db.attachedDatabase, _db.entries);
+  $$BacklinksTableTableManager get backlinks =>
+      $$BacklinksTableTableManager(_db.attachedDatabase, _db.backlinks);
+}
+
+mixin _$BackupLogsDaoMixin on DatabaseAccessor<AppDatabase> {
+  $BackupLogsTable get backupLogs => attachedDatabase.backupLogs;
+  BackupLogsDaoManager get managers => BackupLogsDaoManager(this);
+}
+
+class BackupLogsDaoManager {
+  final _$BackupLogsDaoMixin _db;
+  BackupLogsDaoManager(this._db);
+  $$BackupLogsTableTableManager get backupLogs =>
+      $$BackupLogsTableTableManager(_db.attachedDatabase, _db.backupLogs);
+}
+
+mixin _$SearchPresetsDaoMixin on DatabaseAccessor<AppDatabase> {
+  $SearchPresetsTable get searchPresets => attachedDatabase.searchPresets;
+  SearchPresetsDaoManager get managers => SearchPresetsDaoManager(this);
+}
+
+class SearchPresetsDaoManager {
+  final _$SearchPresetsDaoMixin _db;
+  SearchPresetsDaoManager(this._db);
+  $$SearchPresetsTableTableManager get searchPresets =>
+      $$SearchPresetsTableTableManager(_db.attachedDatabase, _db.searchPresets);
+}
+
+mixin _$AppSettingsDaoMixin on DatabaseAccessor<AppDatabase> {
+  $AppSettingsTable get appSettings => attachedDatabase.appSettings;
+  AppSettingsDaoManager get managers => AppSettingsDaoManager(this);
+}
+
+class AppSettingsDaoManager {
+  final _$AppSettingsDaoMixin _db;
+  AppSettingsDaoManager(this._db);
+  $$AppSettingsTableTableManager get appSettings =>
+      $$AppSettingsTableTableManager(_db.attachedDatabase, _db.appSettings);
+}
+
+mixin _$AppSecurityDaoMixin on DatabaseAccessor<AppDatabase> {
+  $AppSecurityTable get appSecurity => attachedDatabase.appSecurity;
+  AppSecurityDaoManager get managers => AppSecurityDaoManager(this);
+}
+
+class AppSecurityDaoManager {
+  final _$AppSecurityDaoMixin _db;
+  AppSecurityDaoManager(this._db);
+  $$AppSecurityTableTableManager get appSecurity =>
+      $$AppSecurityTableTableManager(_db.attachedDatabase, _db.appSecurity);
+}
+
+mixin _$JournalTagsDaoMixin on DatabaseAccessor<AppDatabase> {
+  $JournalsTable get journals => attachedDatabase.journals;
+  $TagsTable get tags => attachedDatabase.tags;
+  $JournalTagsTable get journalTags => attachedDatabase.journalTags;
+  JournalTagsDaoManager get managers => JournalTagsDaoManager(this);
+}
+
+class JournalTagsDaoManager {
+  final _$JournalTagsDaoMixin _db;
+  JournalTagsDaoManager(this._db);
+  $$JournalsTableTableManager get journals =>
+      $$JournalsTableTableManager(_db.attachedDatabase, _db.journals);
+  $$TagsTableTableManager get tags =>
+      $$TagsTableTableManager(_db.attachedDatabase, _db.tags);
+  $$JournalTagsTableTableManager get journalTags =>
+      $$JournalTagsTableTableManager(_db.attachedDatabase, _db.journalTags);
+}
+
+mixin _$EntryRevisionsDaoMixin on DatabaseAccessor<AppDatabase> {
+  $JournalsTable get journals => attachedDatabase.journals;
+  $EntriesTable get entries => attachedDatabase.entries;
+  $EntryRevisionsTable get entryRevisions => attachedDatabase.entryRevisions;
+  EntryRevisionsDaoManager get managers => EntryRevisionsDaoManager(this);
+}
+
+class EntryRevisionsDaoManager {
+  final _$EntryRevisionsDaoMixin _db;
+  EntryRevisionsDaoManager(this._db);
+  $$JournalsTableTableManager get journals =>
+      $$JournalsTableTableManager(_db.attachedDatabase, _db.journals);
+  $$EntriesTableTableManager get entries =>
+      $$EntriesTableTableManager(_db.attachedDatabase, _db.entries);
+  $$EntryRevisionsTableTableManager get entryRevisions =>
+      $$EntryRevisionsTableTableManager(
+        _db.attachedDatabase,
+        _db.entryRevisions,
+      );
+}
+
+mixin _$VoiceNotesDaoMixin on DatabaseAccessor<AppDatabase> {
+  $JournalsTable get journals => attachedDatabase.journals;
+  $EntriesTable get entries => attachedDatabase.entries;
+  $VoiceNotesTable get voiceNotes => attachedDatabase.voiceNotes;
+  VoiceNotesDaoManager get managers => VoiceNotesDaoManager(this);
+}
+
+class VoiceNotesDaoManager {
+  final _$VoiceNotesDaoMixin _db;
+  VoiceNotesDaoManager(this._db);
+  $$JournalsTableTableManager get journals =>
+      $$JournalsTableTableManager(_db.attachedDatabase, _db.journals);
+  $$EntriesTableTableManager get entries =>
+      $$EntriesTableTableManager(_db.attachedDatabase, _db.entries);
+  $$VoiceNotesTableTableManager get voiceNotes =>
+      $$VoiceNotesTableTableManager(_db.attachedDatabase, _db.voiceNotes);
+}
+
+mixin _$SyncMetadataDaoMixin on DatabaseAccessor<AppDatabase> {
+  $SyncMetadataTable get syncMetadata => attachedDatabase.syncMetadata;
+  SyncMetadataDaoManager get managers => SyncMetadataDaoManager(this);
+}
+
+class SyncMetadataDaoManager {
+  final _$SyncMetadataDaoMixin _db;
+  SyncMetadataDaoManager(this._db);
+  $$SyncMetadataTableTableManager get syncMetadata =>
+      $$SyncMetadataTableTableManager(_db.attachedDatabase, _db.syncMetadata);
+}
+
+mixin _$SyncConflictsDaoMixin on DatabaseAccessor<AppDatabase> {
+  $SyncConflictsTable get syncConflicts => attachedDatabase.syncConflicts;
+  SyncConflictsDaoManager get managers => SyncConflictsDaoManager(this);
+}
+
+class SyncConflictsDaoManager {
+  final _$SyncConflictsDaoMixin _db;
+  SyncConflictsDaoManager(this._db);
+  $$SyncConflictsTableTableManager get syncConflicts =>
+      $$SyncConflictsTableTableManager(_db.attachedDatabase, _db.syncConflicts);
+}
+
+mixin _$SyncLogsDaoMixin on DatabaseAccessor<AppDatabase> {
+  $SyncLogsTable get syncLogs => attachedDatabase.syncLogs;
+  SyncLogsDaoManager get managers => SyncLogsDaoManager(this);
+}
+
+class SyncLogsDaoManager {
+  final _$SyncLogsDaoMixin _db;
+  SyncLogsDaoManager(this._db);
+  $$SyncLogsTableTableManager get syncLogs =>
+      $$SyncLogsTableTableManager(_db.attachedDatabase, _db.syncLogs);
+}
+
+mixin _$AutoLockProfilesDaoMixin on DatabaseAccessor<AppDatabase> {
+  $AutoLockProfilesTable get autoLockProfiles =>
+      attachedDatabase.autoLockProfiles;
+  AutoLockProfilesDaoManager get managers => AutoLockProfilesDaoManager(this);
+}
+
+class AutoLockProfilesDaoManager {
+  final _$AutoLockProfilesDaoMixin _db;
+  AutoLockProfilesDaoManager(this._db);
+  $$AutoLockProfilesTableTableManager get autoLockProfiles =>
+      $$AutoLockProfilesTableTableManager(
+        _db.attachedDatabase,
+        _db.autoLockProfiles,
+      );
+}
+
+mixin _$AttachmentLocksDaoMixin on DatabaseAccessor<AppDatabase> {
+  $JournalsTable get journals => attachedDatabase.journals;
+  $EntriesTable get entries => attachedDatabase.entries;
+  $AttachmentsTable get attachments => attachedDatabase.attachments;
+  $AttachmentLocksTable get attachmentLocks => attachedDatabase.attachmentLocks;
+  AttachmentLocksDaoManager get managers => AttachmentLocksDaoManager(this);
+}
+
+class AttachmentLocksDaoManager {
+  final _$AttachmentLocksDaoMixin _db;
+  AttachmentLocksDaoManager(this._db);
+  $$JournalsTableTableManager get journals =>
+      $$JournalsTableTableManager(_db.attachedDatabase, _db.journals);
+  $$EntriesTableTableManager get entries =>
+      $$EntriesTableTableManager(_db.attachedDatabase, _db.entries);
+  $$AttachmentsTableTableManager get attachments =>
+      $$AttachmentsTableTableManager(_db.attachedDatabase, _db.attachments);
+  $$AttachmentLocksTableTableManager get attachmentLocks =>
+      $$AttachmentLocksTableTableManager(
+        _db.attachedDatabase,
+        _db.attachmentLocks,
+      );
+}
+
+mixin _$SecurityEventsDaoMixin on DatabaseAccessor<AppDatabase> {
+  $SecurityEventsTable get securityEvents => attachedDatabase.securityEvents;
+  SecurityEventsDaoManager get managers => SecurityEventsDaoManager(this);
+}
+
+class SecurityEventsDaoManager {
+  final _$SecurityEventsDaoMixin _db;
+  SecurityEventsDaoManager(this._db);
+  $$SecurityEventsTableTableManager get securityEvents =>
+      $$SecurityEventsTableTableManager(
+        _db.attachedDatabase,
+        _db.securityEvents,
+      );
+}
+
+mixin _$EntryMoodsDaoMixin on DatabaseAccessor<AppDatabase> {
+  $JournalsTable get journals => attachedDatabase.journals;
+  $EntriesTable get entries => attachedDatabase.entries;
+  $EntryMoodsTable get entryMoods => attachedDatabase.entryMoods;
+  EntryMoodsDaoManager get managers => EntryMoodsDaoManager(this);
+}
+
+class EntryMoodsDaoManager {
+  final _$EntryMoodsDaoMixin _db;
+  EntryMoodsDaoManager(this._db);
+  $$JournalsTableTableManager get journals =>
+      $$JournalsTableTableManager(_db.attachedDatabase, _db.journals);
+  $$EntriesTableTableManager get entries =>
+      $$EntriesTableTableManager(_db.attachedDatabase, _db.entries);
+  $$EntryMoodsTableTableManager get entryMoods =>
+      $$EntryMoodsTableTableManager(_db.attachedDatabase, _db.entryMoods);
+}
+
+mixin _$UserTemplatesDaoMixin on DatabaseAccessor<AppDatabase> {
+  $UserTemplatesTable get userTemplates => attachedDatabase.userTemplates;
+  UserTemplatesDaoManager get managers => UserTemplatesDaoManager(this);
+}
+
+class UserTemplatesDaoManager {
+  final _$UserTemplatesDaoMixin _db;
+  UserTemplatesDaoManager(this._db);
+  $$UserTemplatesTableTableManager get userTemplates =>
+      $$UserTemplatesTableTableManager(_db.attachedDatabase, _db.userTemplates);
+}
+
+mixin _$TimeCapsulesDaoMixin on DatabaseAccessor<AppDatabase> {
+  $JournalsTable get journals => attachedDatabase.journals;
+  $EntriesTable get entries => attachedDatabase.entries;
+  $TimeCapsulesTable get timeCapsules => attachedDatabase.timeCapsules;
+  TimeCapsulesDaoManager get managers => TimeCapsulesDaoManager(this);
+}
+
+class TimeCapsulesDaoManager {
+  final _$TimeCapsulesDaoMixin _db;
+  TimeCapsulesDaoManager(this._db);
+  $$JournalsTableTableManager get journals =>
+      $$JournalsTableTableManager(_db.attachedDatabase, _db.journals);
+  $$EntriesTableTableManager get entries =>
+      $$EntriesTableTableManager(_db.attachedDatabase, _db.entries);
+  $$TimeCapsulesTableTableManager get timeCapsules =>
+      $$TimeCapsulesTableTableManager(_db.attachedDatabase, _db.timeCapsules);
+}
+
+mixin _$UserRitualCardsDaoMixin on DatabaseAccessor<AppDatabase> {
+  $UserRitualCardsTable get userRitualCards => attachedDatabase.userRitualCards;
+  UserRitualCardsDaoManager get managers => UserRitualCardsDaoManager(this);
+}
+
+class UserRitualCardsDaoManager {
+  final _$UserRitualCardsDaoMixin _db;
+  UserRitualCardsDaoManager(this._db);
+  $$UserRitualCardsTableTableManager get userRitualCards =>
+      $$UserRitualCardsTableTableManager(
+        _db.attachedDatabase,
+        _db.userRitualCards,
+      );
 }

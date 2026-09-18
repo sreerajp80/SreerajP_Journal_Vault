@@ -1,13 +1,37 @@
 {
-  "appName": "SreerajP Journal Vault",
-  "description": "A private, encrypted journal with attachments, search, and insights.",
-  "version": "1.5.17",
-  "build": "24",
+  "appName": {
+    "en": "Sreeraj P Journal Vault",
+    "ml": "ശ്രീരാജ്‌ പി ജേണൽ വോൾട്ട്",
+    "sa": "श्रीराज् पी दैनन्दिनीकोषः"
+  },
+  "description": {
+    "en": "A private, encrypted journal with attachments, search, and insights.",
+    "ml": "അനുബന്ധങ്ങൾ, തിരയൽ, ഉൾക്കാഴ്ചകൾ എന്നിവയുള്ള സ്വകാര്യവും എൻക്രിപ്റ്റ് ചെയ്തതുമായ ഒരു ഡയറി.",
+    "sa": "अनुबन्धैः अन्वेषणेन अन्तर्दृष्टिभिः च युक्ता गुप्ता कूटलिखिता च दैनन्दिनी।"
+  },
+  "version": "2.0.0",
+  "build": "25",
   "details": {
-    "Author": "Sreeraj P",
-    "Email": "sreerajp@zohomail.in",
-    "License": "All libraries used are open source.",
-    "AI Used": "Claude (Anthropic) / Google Gemini",
-    "IDE Used": "VS Code / Antigravity"
+    "author": {
+      "en": "Sreeraj P",
+      "ml": "ശ്രീരാജ് പി",
+      "sa": "श्रीराज् पी"
+    },
+    "email": "sreerajp@zohomail.in",
+    "license": {
+      "en": "All libraries used are open source.",
+      "ml": "ഉപയോഗിച്ച എല്ലാ ലൈബ്രറികളും ഓപ്പൺ സോഴ്സ് ആണ്.",
+      "sa": "सर्वाणि प्रयुक्तानि पुस्तकालयानि मुक्तस्रोतानि सन्ति।"
+    },
+    "aiUsed": {
+      "en": "Claude (Anthropic) / Google Gemini",
+      "ml": "ക്ലോഡ് (ആന്ത്രോപിക്) / ഗൂഗിൾ ജെമിനി",
+      "sa": "क्लोड् (आन्थ्रोपिक्) / गूगल् जेमिनी"
+    },
+    "ideUsed": {
+      "en": "VS Code / Antigravity",
+      "ml": "വിഎസ് കോഡ് / ആന്റിഗ്രാവിറ്റി",
+      "sa": "वि.एस्. कोड् / आन्टिग्राविटी"
+    }
   }
 }

@@ -1,6 +1,6 @@
 # Plan — Stop the confidence filter deleting real Malayalam words
 
-**Status:** Awaiting approval
+**Status:** completed
 
 ## The problem, seen on a device
 

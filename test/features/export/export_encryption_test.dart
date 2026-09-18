@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:archive/archive.dart';
 import 'package:flutter_test/flutter_test.dart';
+import '../../helpers/export_labels.dart';
 
 import 'package:sreerajp_journal_vault/core/security/vault_envelope.dart';
 import 'package:sreerajp_journal_vault/core/security/vault_payload.dart';
@@ -60,6 +61,7 @@ void main() {
 
   test('no password still writes a plain, readable file', () async {
     final result = await service.build(
+      labels: englishExportLabels,
       bundleOf([doc()]),
       format: ExportFormat.markdown,
     );
@@ -71,6 +73,7 @@ void main() {
 
   test('a password seals the file and hides its name', () async {
     final result = await service.build(
+      labels: englishExportLabels,
       bundleOf([doc()]),
       format: ExportFormat.markdown,
       password: password,
@@ -89,10 +92,12 @@ void main() {
 
   test('the sealed file opens again into the original file', () async {
     final plainResult = await service.build(
+      labels: englishExportLabels,
       bundleOf([doc()]),
       format: ExportFormat.markdown,
     );
     final sealedResult = await service.build(
+      labels: englishExportLabels,
       bundleOf([doc()]),
       format: ExportFormat.markdown,
       password: password,
@@ -114,6 +119,7 @@ void main() {
 
   test('a zip bundle seals and opens the same way', () async {
     final sealedResult = await service.build(
+      labels: englishExportLabels,
       bundleOf([doc(), doc(id: 2, title: 'Second')]),
       format: ExportFormat.markdown,
       password: password,
@@ -141,6 +147,7 @@ void main() {
 
   test('the wrong password does not open a sealed export', () async {
     final sealedResult = await service.build(
+      labels: englishExportLabels,
       bundleOf([doc()]),
       format: ExportFormat.markdown,
       password: password,
@@ -164,6 +171,7 @@ void main() {
   test('a short password is refused before anything is sealed', () async {
     expect(
       () => service.build(
+        labels: englishExportLabels,
         bundleOf([doc()]),
         format: ExportFormat.markdown,
         password: 'short',

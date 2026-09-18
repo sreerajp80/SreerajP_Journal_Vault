@@ -174,7 +174,7 @@ class _CalloutBlockState extends State<_CalloutBlock> {
                       border: InputBorder.none,
                       isDense: true,
                       contentPadding: EdgeInsets.zero,
-                      hintText: AppLocalizations.of(context).editorCalloutHint,
+                      hintText: AppLocalizations.of(context).descEditorCallout,
                     ),
                     maxLines: null,
                     style: theme.textTheme.bodyMedium,
@@ -189,16 +189,24 @@ class _CalloutBlockState extends State<_CalloutBlock> {
           ),
           if (!widget.readOnly && widget.onDelete != null) ...[
             const SizedBox(width: 4),
-            InkWell(
-              key: const Key('callout-delete-button'),
-              onTap: widget.onDelete,
-              borderRadius: BorderRadius.circular(12),
-              child: Padding(
-                padding: const EdgeInsets.all(4),
-                child: Icon(
-                  Icons.close,
-                  size: 18,
-                  color: theme.colorScheme.onSurfaceVariant,
+            // Icon-only control: tooltip plus explicit semantics (§7.8).
+            Tooltip(
+              message: AppLocalizations.of(context).tooltipRemove,
+              child: Semantics(
+                button: true,
+                label: AppLocalizations.of(context).tooltipRemove,
+                child: InkWell(
+                  key: const Key('callout-delete-button'),
+                  onTap: widget.onDelete,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: Icon(
+                      Icons.close,
+                      size: 18,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                 ),
               ),
             ),

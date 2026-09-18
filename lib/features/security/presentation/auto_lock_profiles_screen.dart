@@ -81,12 +81,12 @@ class _AutoLockProfilesScreenState
     final l10n = AppLocalizations.of(context);
     final profiles = _profiles;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.autoLockTitle)),
+      appBar: AppBar(title: Text(l10n.titleAutoLock)),
       floatingActionButton: FloatingActionButton.extended(
         key: const Key('auto-lock-add-profile'),
         onPressed: () => _openForm(),
         icon: const Icon(Icons.add),
-        label: Text(l10n.autoLockNewProfile),
+        label: Text(l10n.actionAutoLockNewProfile),
       ),
       body: profiles == null
           ? const Center(child: CircularProgressIndicator())
@@ -94,7 +94,7 @@ class _AutoLockProfilesScreenState
           ? Center(
               child: Padding(
                 padding: const EdgeInsets.all(24),
-                child: Text(l10n.autoLockEmpty, textAlign: TextAlign.center),
+                child: Text(l10n.emptyAutoLock, textAlign: TextAlign.center),
               ),
             )
           : ListView.builder(
@@ -105,10 +105,12 @@ class _AutoLockProfilesScreenState
                   key: Key('auto-lock-profile-${p.id}'),
                   title: Text(p.name),
                   subtitle: Text(
-                    l10n.autoLockSummary(
+                    l10n.descAutoLock(
                       _formatTimeout(l10n, p.timeoutSeconds),
-                      p.lockOnMinimize ? l10n.autoLockSuffixLockOnMinimize : '',
-                      p.isActive ? l10n.autoLockSuffixActive : '',
+                      p.lockOnMinimize
+                          ? l10n.labelAutoLockSuffixLockOnMinimize
+                          : '',
+                      p.isActive ? l10n.labelAutoLockSuffixActive : '',
                     ),
                   ),
                   leading: Icon(
@@ -123,13 +125,13 @@ class _AutoLockProfilesScreenState
                       IconButton(
                         key: Key('auto-lock-profile-edit-${p.id}'),
                         icon: const Icon(Icons.edit),
-                        tooltip: l10n.autoLockEditProfile,
+                        tooltip: l10n.tooltipAutoLockEditProfile,
                         onPressed: () => _openForm(existing: p),
                       ),
                       IconButton(
                         key: Key('auto-lock-profile-delete-${p.id}'),
                         icon: const Icon(Icons.delete_outline),
-                        tooltip: l10n.autoLockDeleteProfile,
+                        tooltip: l10n.tooltipAutoLockDeleteProfile,
                         onPressed: () => _delete(p.id),
                       ),
                       IconButton(
@@ -138,8 +140,8 @@ class _AutoLockProfilesScreenState
                           p.isActive ? Icons.toggle_on : Icons.toggle_off,
                         ),
                         tooltip: p.isActive
-                            ? l10n.autoLockDeactivate
-                            : l10n.autoLockActivate,
+                            ? l10n.tooltipAutoLockDeactivate
+                            : l10n.tooltipAutoLockActivate,
                         onPressed: () =>
                             p.isActive ? _deactivate() : _activate(p.id),
                       ),
@@ -152,11 +154,11 @@ class _AutoLockProfilesScreenState
   }
 
   String _formatTimeout(AppLocalizations l10n, int seconds) {
-    if (seconds < 60) return l10n.autoLockTimeoutSeconds(seconds);
+    if (seconds < 60) return l10n.labelAutoLockTimeoutSeconds(seconds);
     if (seconds < 3600) {
-      return l10n.autoLockTimeoutMinutes((seconds / 60).round());
+      return l10n.labelAutoLockTimeoutMinutes((seconds / 60).round());
     }
-    return l10n.autoLockTimeoutHours((seconds / 3600).toStringAsFixed(1));
+    return l10n.labelAutoLockTimeoutHours((seconds / 3600).toStringAsFixed(1));
   }
 }
 
@@ -210,14 +212,12 @@ class _AutoLockProfileFormDialogState
     final name = _name.text.trim();
     final timeout = int.tryParse(_timeout.text.trim());
     if (name.isEmpty) {
-      setState(
-        () => _error = AppLocalizations.of(context).autoLockNameRequired,
-      );
+      setState(() => _error = AppLocalizations.of(context).errorAutoLockName);
       return;
     }
     if (timeout == null || timeout <= 0) {
       setState(
-        () => _error = AppLocalizations.of(context).autoLockTimeoutInvalid,
+        () => _error = AppLocalizations.of(context).errorAutoLockTimeout,
       );
       return;
     }
@@ -237,8 +237,8 @@ class _AutoLockProfileFormDialogState
     return AlertDialog(
       title: Text(
         widget.existing == null
-            ? l10n.autoLockNewProfile
-            : l10n.autoLockEditProfile,
+            ? l10n.actionAutoLockNewProfile
+            : l10n.tooltipAutoLockEditProfile,
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -246,17 +246,17 @@ class _AutoLockProfileFormDialogState
           TextField(
             key: const Key('auto-lock-profile-name-field'),
             controller: _name,
-            decoration: InputDecoration(labelText: l10n.autoLockNameLabel),
+            decoration: InputDecoration(labelText: l10n.labelAutoLockName),
           ),
           TextField(
             key: const Key('auto-lock-profile-timeout-field'),
             controller: _timeout,
             keyboardType: TextInputType.number,
-            decoration: InputDecoration(labelText: l10n.autoLockTimeoutLabel),
+            decoration: InputDecoration(labelText: l10n.labelAutoLockTimeout),
           ),
           SwitchListTile(
             key: const Key('auto-lock-profile-lock-on-minimize'),
-            title: Text(l10n.autoLockLockOnMinimize),
+            title: Text(l10n.labelAutoLockLockOnMinimize),
             value: _lockOnMinimize,
             onChanged: (v) => setState(() => _lockOnMinimize = v),
           ),
@@ -269,12 +269,12 @@ class _AutoLockProfileFormDialogState
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text(l10n.commonCancel),
+          child: Text(l10n.actionCommonCancel),
         ),
         TextButton(
           key: const Key('auto-lock-profile-save-button'),
           onPressed: _save,
-          child: Text(l10n.commonSave),
+          child: Text(l10n.actionCommonSave),
         ),
       ],
     );

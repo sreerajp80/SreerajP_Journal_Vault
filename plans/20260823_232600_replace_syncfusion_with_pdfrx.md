@@ -1,6 +1,6 @@
 # Replace Syncfusion PDF Viewer with pdfrx (B6)
 
-**Status:** Completed
+**Status:** completed
 
 ## Overview
 Replace the proprietary `syncfusion_flutter_pdfviewer` dependency with the open-source (MIT/BSD-style, PDFium-based) `pdfrx` package across the project. This aligns the app with the cross-app architectural rule forbidding proprietary/commercial PDF SDKs, eliminates Syncfusion licensing constraints, and unties dependency version pins.

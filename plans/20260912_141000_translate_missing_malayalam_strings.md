@@ -1,6 +1,6 @@
 # Translate 91 Missing Messages in Malayalam (ml)
 
-**Status:** Completed
+**Status:** completed
 
 ## Problem
 Running `flutter gen-l10n` reports:

@@ -1,6 +1,6 @@
 # Plan: A6.2 Receive Shared Text and Images from Other Apps
 
-**Status:** Complete
+**Status:** completed
 **Date:** 2026-08-23
 **Feature:** A6.2 Inbound Share Intents & Quick Capture
 

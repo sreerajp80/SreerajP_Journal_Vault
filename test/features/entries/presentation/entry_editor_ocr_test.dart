@@ -170,6 +170,13 @@ void main() {
     // Bottom sheet source chooser appears
     expect(find.text('Take photo'), findsOneWidget);
     expect(find.text('Choose from gallery'), findsOneWidget);
+    // The in-app camera stays available for photos that must not leave the
+    // app; "Take photo" now opens the phone's own camera app.
+    expect(
+      find.byKey(const Key('entry-ocr-source-in-app-camera')),
+      findsOneWidget,
+    );
+    expect(find.text('In-app camera'), findsOneWidget);
 
     // Tap "Take photo"
     await tester.tap(find.text('Take photo'));

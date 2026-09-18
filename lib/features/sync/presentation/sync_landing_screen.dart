@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 
+import 'package:sreerajp_journal_vault/core/l10n/formatting_locale.dart';
 import 'package:sreerajp_journal_vault/features/airqr/presentation/airqr_landing_screen.dart';
 import 'package:sreerajp_journal_vault/features/sync/presentation/conflict_resolution_screen.dart';
 import 'package:sreerajp_journal_vault/features/sync/presentation/sync_client_screen.dart';
@@ -23,7 +25,7 @@ class SyncLandingScreen extends ConsumerWidget {
     final latestSyncAsync = ref.watch(latestSuccessfulSyncProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.syncLandingTitle)),
+      appBar: AppBar(title: Text(l10n.titleSyncLanding)),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
@@ -64,7 +66,7 @@ class SyncLandingScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              l10n.syncLandingTitle,
+                              l10n.titleSyncLanding,
                               style: theme.textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -73,15 +75,15 @@ class SyncLandingScreen extends ConsumerWidget {
                             ipListAsync.when(
                               data: (ips) => Text(
                                 ips.isNotEmpty
-                                    ? 'IP: ${ips.join(', ')}'
-                                    : l10n.syncNoWifiAlert,
+                                    ? l10n.labelSyncIpList(ips.join(', '))
+                                    : l10n.descSyncNoWifiAlert,
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: ips.isNotEmpty
                                       ? theme.colorScheme.onSurfaceVariant
                                       : theme.colorScheme.error,
                                 ),
                               ),
-                              loading: () => const Text('Detecting Wi-Fi...'),
+                              loading: () => Text(l10n.bodySyncDetectingWifi),
                               error: (_, _) => const SizedBox.shrink(),
                             ),
                           ],
@@ -91,7 +93,7 @@ class SyncLandingScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    l10n.syncLandingSubtitle,
+                    l10n.descSyncLanding,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -105,8 +107,8 @@ class SyncLandingScreen extends ConsumerWidget {
           // Option 1: Send Changes (Host)
           _SyncModeCard(
             icon: Icons.upload_rounded,
-            title: l10n.syncSendTitle,
-            subtitle: l10n.syncSendSubtitle,
+            title: l10n.titleSyncSend,
+            subtitle: l10n.descSyncSend,
             color: theme.colorScheme.primary,
             onTap: () {
               Navigator.push(
@@ -120,8 +122,8 @@ class SyncLandingScreen extends ConsumerWidget {
           // Option 2: Receive Changes (Client)
           _SyncModeCard(
             icon: Icons.download_rounded,
-            title: l10n.syncReceiveTitle,
-            subtitle: l10n.syncReceiveSubtitle,
+            title: l10n.titleSyncReceive,
+            subtitle: l10n.descSyncReceive,
             color: theme.colorScheme.secondary,
             onTap: () {
               Navigator.push(
@@ -137,8 +139,8 @@ class SyncLandingScreen extends ConsumerWidget {
           // Option 3: Optical Air-Gap Sync (AirQR)
           _SyncModeCard(
             icon: Icons.qr_code_2_rounded,
-            title: l10n.airqrTitle,
-            subtitle: l10n.airqrIntro,
+            title: l10n.titleAirqr,
+            subtitle: l10n.descAirqrIntro,
             color: theme.colorScheme.tertiary,
             onTap: () {
               Navigator.push(
@@ -153,7 +155,7 @@ class SyncLandingScreen extends ConsumerWidget {
 
           // Health & History Section
           Text(
-            l10n.storageSyncHealth,
+            l10n.titleStorageSyncHealth,
             style: theme.textTheme.titleSmall?.copyWith(
               color: theme.colorScheme.primary,
               fontWeight: FontWeight.bold,
@@ -173,14 +175,24 @@ class SyncLandingScreen extends ConsumerWidget {
               children: [
                 ListTile(
                   leading: const Icon(Icons.monitor_heart_outlined),
-                  title: Text(l10n.storageSyncHealth),
+                  title: Text(l10n.titleStorageSyncHealth),
                   subtitle: latestSyncAsync.when(
                     data: (log) => Text(
                       log != null && log.completedAt != null
-                          ? '${l10n.syncLastSync}: ${log.completedAt}'
-                          : l10n.syncNever,
+                          // intl has no Sanskrit data, so the date falls back
+                          // to English patterns.
+                          ? l10n.labelSyncLastSyncAt(
+                              DateFormat.yMMMd(
+                                formattingLocaleTag(
+                                  Localizations.localeOf(
+                                    context,
+                                  ).toLanguageTag(),
+                                ),
+                              ).add_jm().format(log.completedAt!),
+                            )
+                          : l10n.labelSyncNever,
                     ),
-                    loading: () => const Text('...'),
+                    loading: () => Text(l10n.bodyCommonEllipsis),
                     error: (_, _) => const SizedBox.shrink(),
                   ),
                   trailing: const Icon(Icons.chevron_right),
@@ -189,7 +201,9 @@ class SyncLandingScreen extends ConsumerWidget {
                       context,
                       MaterialPageRoute<void>(
                         builder: (_) => Scaffold(
-                          appBar: AppBar(title: Text(l10n.storageSyncHealth)),
+                          appBar: AppBar(
+                            title: Text(l10n.titleStorageSyncHealth),
+                          ),
                           body: const SyncHealthDashboard(),
                         ),
                       ),
@@ -206,8 +220,10 @@ class SyncLandingScreen extends ConsumerWidget {
                                 Icons.warning_amber_rounded,
                                 color: theme.colorScheme.error,
                               ),
-                              title: Text(l10n.syncConflictsTitle),
-                              subtitle: Text('$count unresolved conflicts'),
+                              title: Text(l10n.titleSyncConflicts),
+                              subtitle: Text(
+                                l10n.labelSyncUnresolvedConflicts(count),
+                              ),
                               trailing: Badge(
                                 label: Text('$count'),
                                 child: const Icon(Icons.chevron_right),

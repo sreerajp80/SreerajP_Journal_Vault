@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.5.17+24
+version: 2.0.0+25
 
 environment:
   sdk: ^3.12.2
@@ -56,6 +56,10 @@ dependencies:
   file_picker: ^11.0.2
   cryptography: ^2.7.0
   crypto: ^3.0.6
+  # Counts visible characters (grapheme clusters). A Malayalam or Devanagari
+  # conjunct is one character to a reader but several code units, so the
+  # label-length rule (standard section 8.6) cannot use String.length.
+  characters: ^1.4.1
   mime: ^2.0.0
   open_filex: ^4.7.0
   archive: ^4.0.7
@@ -136,16 +140,14 @@ flutter:
   # line the JSON is not bundled and the app silently falls back to defaults.
   assets:
     - assets/config/
-    # Malayalam fonts for HTML and PDF export. Loaded with rootBundle and
-    # embedded into the exported page as base64 @font-face data URIs, so the
-    # page stays self-contained and offline — see export_html_builder.dart.
+    # Noto Sans Malayalam and Noto Sans Devanagari, SIL Open Font Licence 1.1.
+    # The licence text ships beside the fonts in OFL-Noto.txt, which the
+    # licence requires.
     #
-    # Listed under `assets`, NOT under `fonts`, on purpose: Flutter itself
-    # never renders with them. Only the export WebView does, and it needs the
-    # raw bytes.
-    #
-    # Noto Sans Malayalam, SIL Open Font Licence 1.1. The licence text ships
-    # beside the fonts in OFL-Noto.txt, which the licence requires.
+    # Listed under `assets` as well as `fonts`: export loads the raw bytes with
+    # rootBundle and embeds them into the exported page as base64 @font-face
+    # data URIs, so the page stays self-contained and offline — see
+    # export_html_builder.dart.
     - assets/fonts/
     # Offline Tesseract OCR models for English and Malayalam text recognition.
     - assets/tessdata/
@@ -156,25 +158,21 @@ flutter:
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/to/asset-from-package
 
-  # To add custom fonts to your application, add a fonts section here,
-  # in this "flutter" section. Each entry in this list should have a
-  # "family" key with the font family name, and a "fonts" key with a
-  # list giving the asset and other descriptors for the font. For
-  # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
-  #
-  # For details regarding fonts from package dependencies,
-  # see https://flutter.dev/to/font-from-package
+  # Script fonts for the UI. Every app ships Malayalam and Sanskrit, and a
+  # device without these glyphs would draw empty boxes. They are used through
+  # ThemeData.fontFamilyFallback (lib/core/theme/script_fonts.dart), never
+  # fetched at runtime. Engineering standard §8.3.3 and §17.4.
+  fonts:
+    - family: NotoSansMalayalam
+      fonts:
+        - asset: assets/fonts/NotoSansMalayalam-Regular.ttf
+        - asset: assets/fonts/NotoSansMalayalam-Bold.ttf
+          weight: 700
+    - family: NotoSansDevanagari
+      fonts:
+        - asset: assets/fonts/NotoSansDevanagari-Regular.ttf
+        - asset: assets/fonts/NotoSansDevanagari-Bold.ttf
+          weight: 700
 
 # Build hooks. `package:sqlite3` compiles or downloads the native library
 # itself; this picks the SQLCipher build over plain SQLite, on every platform

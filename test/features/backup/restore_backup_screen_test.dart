@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:sreerajp_journal_vault/features/backup/presentation/restore_backup_screen.dart';
 import 'package:sreerajp_journal_vault/features/backup/providers/backup_providers.dart';
+import 'package:sreerajp_journal_vault/features/backup/services/backup_service.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/providers/lock_gate_providers.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/services/app_pin_keystore.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/services/app_pin_service.dart';
@@ -18,6 +19,7 @@ void main() {
     WidgetTester tester, {
     required AppPinKeystore keystore,
     required BiometricAuthenticator biometric,
+    List<BackupFileInfo> backups = const [],
   }) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -26,7 +28,7 @@ void main() {
           biometricAuthenticatorProvider.overrideWithValue(biometric),
           // testWidgets runs in a fake-async zone, so real file listing never
           // completes and its spinner would keep pumpAndSettle spinning too.
-          availableBackupFilesProvider.overrideWith((ref) async => const []),
+          availableBackupFilesProvider.overrideWith((ref) async => backups),
         ],
         child: const MaterialApp(
           localizationsDelegates: [
@@ -103,6 +105,34 @@ void main() {
     expect(find.byKey(const Key('restore-pick-file')), findsOneWidget);
     // The replace / merge choice only appears once a backup has been opened.
     expect(find.byKey(const Key('restore-mode-merge')), findsNothing);
+  });
+
+  testWidgets('a long backup list builds lazily and reaches the last file', (
+    tester,
+  ) async {
+    await pumpScreen(
+      tester,
+      keystore: _InMemoryAppPinKeystore(),
+      biometric: _NoLockBiometric(),
+      backups: [
+        for (var i = 0; i < 30; i++)
+          BackupFileInfo(
+            path: 'backups/backup_$i.jvbak',
+            fileName: 'backup_$i.jvbak',
+            createdAt: DateTime(2026).add(Duration(days: i)),
+            sizeBytes: 1024,
+          ),
+      ],
+    );
+
+    expect(find.textContaining('backup_29.jvbak'), findsNothing);
+
+    await tester.scrollUntilVisible(
+      find.textContaining('backup_29.jvbak'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.textContaining('backup_29.jvbak'), findsOneWidget);
   });
 }
 

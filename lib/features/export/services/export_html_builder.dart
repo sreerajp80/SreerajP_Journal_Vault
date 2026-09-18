@@ -20,9 +20,9 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart' show rootBundle;
 
-import 'package:sreerajp_journal_vault/features/export/export_strings.dart';
 import 'package:sreerajp_journal_vault/features/export/services/delta_to_html.dart';
 import 'package:sreerajp_journal_vault/features/export/services/export_document.dart';
+import 'package:sreerajp_journal_vault/features/export/services/export_labels.dart';
 
 /// Loads a bundled asset's bytes. Swapped out in tests so the builder can be
 /// exercised without a Flutter asset bundle.
@@ -44,12 +44,15 @@ class ExportHtmlBuilder {
 
   /// Builds the page for [bundle].
   ///
+  /// [labels] are the words written into the page, in the language the user
+  /// exported in.
   /// [includeMetadata] adds the date/tags/mood header above each entry.
   /// [exportedAt] is stamped in the page footer.
   /// [imageSources] maps an attachment id to the `data:` URI of an inline
   /// image; anything missing from it is named in the page rather than drawn.
   Future<String> build(
     ExportBundle bundle, {
+    required ExportLabels labels,
     bool includeMetadata = true,
     DateTime? exportedAt,
     Map<int, String> imageSources = const {},
@@ -61,6 +64,7 @@ class ExportHtmlBuilder {
       body.write(
         _renderDocument(
           document,
+          labels: labels,
           includeMetadata: includeMetadata,
           imageSources: imageSources,
         ),
@@ -78,6 +82,7 @@ class ExportHtmlBuilder {
   /// Renders one entry, including its header and its attachment list.
   String _renderDocument(
     ExportDocument document, {
+    required ExportLabels labels,
     required bool includeMetadata,
     Map<int, String> imageSources = const {},
   }) {
@@ -86,18 +91,18 @@ class ExportHtmlBuilder {
     final title = document.title?.trim();
     buffer.write(
       '<h1 class="entry-title">'
-      '${escapeHtml(title == null || title.isEmpty ? ExportStrings.untitledEntry : title)}'
+      '${escapeHtml(title == null || title.isEmpty ? labels.untitledEntry : title)}'
       '</h1>',
     );
 
     if (includeMetadata) {
-      final meta = _renderMetadata(document);
+      final meta = _renderMetadata(document, labels);
       if (meta.isNotEmpty) buffer.write(meta);
     }
 
     buffer.write(
       '<div class="entry-body">'
-      '${renderHtml(document.blocks, imageSources: imageSources)}'
+      '${renderHtml(document.blocks, labels: labels, imageSources: imageSources)}'
       '</div>',
     );
 
@@ -105,33 +110,33 @@ class ExportHtmlBuilder {
     // are listed after the body. The transcript is written out whether or not
     // the audio came along — it is the part a reader can actually use.
     if (document.voiceNotes.isNotEmpty) {
-      buffer.write(_renderVoiceNotes(document));
+      buffer.write(_renderVoiceNotes(document, labels));
     }
 
     if (document.attachments.isNotEmpty) {
-      buffer.write(_renderAttachments(document));
+      buffer.write(_renderAttachments(document, labels));
     }
 
     buffer.write('</div>');
     return buffer.toString();
   }
 
-  String _renderMetadata(ExportDocument document) {
+  String _renderMetadata(ExportDocument document, ExportLabels labels) {
     final rows = <String>[];
 
     final date = document.effectiveDate;
     if (date != null) {
-      rows.add(_metaRow(ExportStrings.labelDate, formatDate(date)));
+      rows.add(_metaRow(labels.date, formatDate(date)));
     }
     if (document.tags.isNotEmpty) {
-      rows.add(_metaRow(ExportStrings.labelTags, document.tags.join(', ')));
+      rows.add(_metaRow(labels.tags, document.tags.join(', ')));
     }
     if (document.mood != null) {
       final note = document.moodNote?.trim();
       final value = note == null || note.isEmpty
-          ? ExportStrings.moodValue(document.mood!)
-          : '${ExportStrings.moodValue(document.mood!)} — $note';
-      rows.add(_metaRow(ExportStrings.labelMood, value));
+          ? labels.moodValue(document.mood!)
+          : '${labels.moodValue(document.mood!)} — $note';
+      rows.add(_metaRow(labels.mood, value));
     }
 
     if (rows.isEmpty) return '';
@@ -142,25 +147,25 @@ class ExportHtmlBuilder {
       '<div class="meta-row"><span class="meta-label">${escapeHtml(label)}:'
       '</span> <span class="meta-value">${escapeHtml(value)}</span></div>';
 
-  String _renderVoiceNotes(ExportDocument document) {
+  String _renderVoiceNotes(ExportDocument document, ExportLabels labels) {
     final buffer = StringBuffer('<div class="voice-notes">')
       ..write(
         '<h2 class="section-heading">'
-        '${escapeHtml(ExportStrings.labelVoiceNotes)}</h2>',
+        '${escapeHtml(labels.voiceNotes)}</h2>',
       );
 
     for (final note in document.voiceNotes) {
       buffer.write('<div class="voice-note">');
       buffer.write(
         '<p class="voice-note-name">'
-        '${escapeHtml(ExportStrings.voiceNoteDuration(note.formattedDuration))}'
+        '${escapeHtml(labels.recording(note.formattedDuration))}'
         ' — ${escapeHtml(note.fileName)}</p>',
       );
       final transcript = note.transcript?.trim();
       if (transcript != null && transcript.isNotEmpty) {
         buffer.write(
           '<p class="transcript-label">'
-          '${escapeHtml(ExportStrings.labelTranscript)}</p>'
+          '${escapeHtml(labels.transcript)}</p>'
           '<blockquote class="transcript">${escapeHtml(transcript)}'
           '</blockquote>',
         );
@@ -172,11 +177,11 @@ class ExportHtmlBuilder {
     return buffer.toString();
   }
 
-  String _renderAttachments(ExportDocument document) {
+  String _renderAttachments(ExportDocument document, ExportLabels labels) {
     final buffer = StringBuffer('<div class="attachments">')
       ..write(
         '<h2 class="section-heading">'
-        '${escapeHtml(ExportStrings.labelAttachments)}</h2><ul>',
+        '${escapeHtml(labels.attachments)}</h2><ul>',
       );
 
     for (final attachment in document.attachments) {
@@ -184,7 +189,9 @@ class ExportHtmlBuilder {
       // folder a relative link would simply be broken, and a broken link reads
       // as a bug. The file name is what the reader needs to find it in the
       // attachments folder.
-      final suffix = attachment.isLocked ? ' (locked — not included)' : '';
+      final suffix = attachment.isLocked
+          ? ' (${labels.lockedNotIncluded})'
+          : '';
       buffer.write(
         '<li>${escapeHtml(attachment.fileName)}'
         '${escapeHtml(suffix)}</li>',

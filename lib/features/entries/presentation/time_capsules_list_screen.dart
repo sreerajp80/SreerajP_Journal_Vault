@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
+import 'package:sreerajp_journal_vault/core/l10n/formatting_locale.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/entry_editor_screen.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/time_capsule_sealed_screen.dart';
 import 'package:sreerajp_journal_vault/features/entries/providers/time_capsule_providers.dart';
@@ -21,7 +22,7 @@ class TimeCapsulesListScreen extends ConsumerWidget {
 
     return Scaffold(
       key: const Key('time-capsules-list-screen'),
-      appBar: AppBar(title: Text(l10n.timeCapsuleTitle)),
+      appBar: AppBar(title: Text(l10n.titleTimeCapsule)),
       body: capsulesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text(e.toString())),
@@ -40,7 +41,7 @@ class TimeCapsulesListScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      l10n.timeCapsuleEmptyState,
+                      l10n.emptyTimeCapsule,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
@@ -67,40 +68,64 @@ class TimeCapsulesListScreen extends ConsumerWidget {
             }
           }
 
-          return ListView(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            children: [
-              if (ready.isNotEmpty) ...[
-                _SectionHeader(
-                  title: l10n.timeCapsuleCategoryReady,
-                  icon: Icons.lock_open_rounded,
-                  color: theme.colorScheme.primary,
-                  count: ready.length,
+          // Capsules have no upper bound, so each section builds lazily.
+          List<Widget> section({
+            required String title,
+            required IconData icon,
+            required Color color,
+            required List<TimeCapsule> items,
+            bool isReady = false,
+            bool isOpened = false,
+            bool gapAfter = true,
+          }) {
+            if (items.isEmpty) return const [];
+            return [
+              SliverToBoxAdapter(
+                child: _SectionHeader(
+                  title: title,
+                  icon: icon,
+                  color: color,
+                  count: items.length,
                 ),
-                for (final capsule in ready)
-                  _CapsuleTile(capsule: capsule, isReady: true),
-                const SizedBox(height: 16),
-              ],
-              if (sealed.isNotEmpty) ...[
-                _SectionHeader(
-                  title: l10n.timeCapsuleCategorySealed,
-                  icon: Icons.hourglass_bottom_rounded,
-                  color: theme.colorScheme.secondary,
-                  count: sealed.length,
+              ),
+              SliverList.builder(
+                itemCount: items.length,
+                itemBuilder: (context, index) => _CapsuleTile(
+                  capsule: items[index],
+                  isReady: isReady,
+                  isOpened: isOpened,
                 ),
-                for (final capsule in sealed) _CapsuleTile(capsule: capsule),
-                const SizedBox(height: 16),
-              ],
-              if (opened.isNotEmpty) ...[
-                _SectionHeader(
-                  title: l10n.timeCapsuleCategoryOpened,
-                  icon: Icons.mark_email_read_outlined,
-                  color: theme.colorScheme.tertiary,
-                  count: opened.length,
-                ),
-                for (final capsule in opened)
-                  _CapsuleTile(capsule: capsule, isOpened: true),
-              ],
+              ),
+              if (gapAfter)
+                const SliverToBoxAdapter(child: SizedBox(height: 16)),
+            ];
+          }
+
+          return CustomScrollView(
+            slivers: [
+              const SliverToBoxAdapter(child: SizedBox(height: 12)),
+              ...section(
+                title: l10n.titleTimeCapsuleCategoryReady,
+                icon: Icons.lock_open_rounded,
+                color: theme.colorScheme.primary,
+                items: ready,
+                isReady: true,
+              ),
+              ...section(
+                title: l10n.titleTimeCapsuleCategorySealed,
+                icon: Icons.hourglass_bottom_rounded,
+                color: theme.colorScheme.secondary,
+                items: sealed,
+              ),
+              ...section(
+                title: l10n.titleTimeCapsuleCategoryOpened,
+                icon: Icons.mark_email_read_outlined,
+                color: theme.colorScheme.tertiary,
+                items: opened,
+                isOpened: true,
+                gapAfter: false,
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 12)),
             ],
           );
         },
@@ -181,23 +206,28 @@ class _CapsuleTile extends ConsumerWidget {
     final days = remaining.inDays;
     final hours = remaining.inHours;
 
+    // intl has no Sanskrit data, so dates fall back to English patterns.
+    final dateFormat = DateFormat.yMMMMd(
+      formattingLocaleTag(Localizations.localeOf(context).toLanguageTag()),
+    );
+
     String subtitleText;
     if (isOpened) {
-      final openedDate = capsule.openedAt != null
-          ? DateFormat.yMMMMd().format(capsule.openedAt!)
-          : DateFormat.yMMMMd().format(capsule.unlockDate);
-      subtitleText = 'Opened on $openedDate';
+      final openedDate = dateFormat.format(
+        capsule.openedAt ?? capsule.unlockDate,
+      );
+      subtitleText = l10n.labelTimeCapsuleOpenedOn(openedDate);
     } else if (isReady) {
-      subtitleText = l10n.timeCapsuleReadyToOpen;
+      subtitleText = l10n.actionTimeCapsuleReadyToOpen;
     } else if (days > 1) {
-      subtitleText = l10n.timeCapsuleOpensInDays(days);
+      subtitleText = l10n.labelTimeCapsuleOpensInDays(days);
     } else if (hours > 1) {
-      subtitleText = l10n.timeCapsuleOpensInHours(hours);
+      subtitleText = l10n.labelTimeCapsuleOpensInHours(hours);
     } else {
-      subtitleText = l10n.timeCapsuleOpensToday;
+      subtitleText = l10n.descTimeCapsuleOpensToday;
     }
 
-    final unlockDateStr = DateFormat.yMMMMd().format(capsule.unlockDate);
+    final unlockDateStr = dateFormat.format(capsule.unlockDate);
 
     return FutureBuilder<Entry>(
       future: ref
@@ -208,7 +238,7 @@ class _CapsuleTile extends ConsumerWidget {
         final entry = snapshot.data;
         final title = entry?.title != null && entry!.title!.isNotEmpty
             ? entry.title!
-            : l10n.commonUntitled;
+            : l10n.descCommonUntitled;
 
         return Card(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),

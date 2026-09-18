@@ -24,6 +24,7 @@ class AttachmentsOcrHelpScreen extends StatelessWidget {
               HelpBullet(l10n.helpAttachmentsOcrBullet1),
               HelpBullet(l10n.helpAttachmentsOcrBullet2),
               HelpBullet(l10n.helpAttachmentsOcrBullet3),
+              HelpBullet(l10n.helpOcrPhoneCamera),
             ],
           ),
           HelpSection(

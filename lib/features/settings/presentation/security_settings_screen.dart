@@ -26,14 +26,14 @@ class SecuritySettingsScreen extends ConsumerWidget {
         : AppLockMode.phoneLock;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.settingsSectionSecurity)),
+      appBar: AppBar(title: Text(l10n.titleSettingsSectionSecurity)),
       body: ListView(
         key: const Key('settings-security-list'),
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
             child: Text(
-              l10n.settingsAppLockMode,
+              l10n.labelSettingsAppLockMode,
               style: theme.textTheme.titleSmall?.copyWith(
                 color: theme.colorScheme.primary,
               ),
@@ -50,14 +50,14 @@ class SecuritySettingsScreen extends ConsumerWidget {
                 RadioListTile<AppLockMode>(
                   key: const Key('settings-lock-mode-phone'),
                   value: AppLockMode.phoneLock,
-                  title: Text(l10n.lockModePhone),
-                  subtitle: Text(l10n.lockModePhoneHint),
+                  title: Text(l10n.labelLockModePhone),
+                  subtitle: Text(l10n.descLockModePhone),
                 ),
                 RadioListTile<AppLockMode>(
                   key: const Key('settings-lock-mode-app'),
                   value: AppLockMode.appLock,
-                  title: Text(l10n.lockModeApp),
-                  subtitle: Text(l10n.lockModeAppHint),
+                  title: Text(l10n.labelLockModeApp),
+                  subtitle: Text(l10n.descLockModeApp),
                 ),
               ],
             ),
@@ -65,7 +65,7 @@ class SecuritySettingsScreen extends ConsumerWidget {
           const Divider(height: 1),
           ListTile(
             key: const Key('settings-auto-lock-timeout'),
-            title: Text(l10n.settingsAutoLockTimeout),
+            title: Text(l10n.labelSettingsAutoLockTimeout),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.push(
               context,
@@ -76,7 +76,7 @@ class SecuritySettingsScreen extends ConsumerWidget {
           ),
           ListTile(
             key: const Key('settings-attachment-level-lock'),
-            title: Text(l10n.lockedAttachmentsTitle),
+            title: Text(l10n.titleLockedAttachments),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.push(
               context,
@@ -88,7 +88,7 @@ class SecuritySettingsScreen extends ConsumerWidget {
           const ScreenSecurityTile(),
           ListTile(
             key: const Key('settings-tamper-alerts'),
-            title: Text(l10n.settingsTamperAlerts),
+            title: Text(l10n.labelSettingsTamperAlerts),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.push(
               context,
@@ -101,7 +101,7 @@ class SecuritySettingsScreen extends ConsumerWidget {
           if (AppFlavorConfig.instance.enableSyncUi)
             ListTile(
               key: const Key('settings-sync-conflicts'),
-              title: Text(l10n.settingsSyncConflicts),
+              title: Text(l10n.labelSettingsSyncConflicts),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.push(
                 context,
@@ -112,7 +112,7 @@ class SecuritySettingsScreen extends ConsumerWidget {
             ),
           ListTile(
             key: const Key('settings-security-events'),
-            title: Text(l10n.settingsSecurityEvents),
+            title: Text(l10n.labelSettingsSecurityEvents),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => Navigator.push(
               context,
@@ -133,25 +133,27 @@ class SecuritySettingsScreen extends ConsumerWidget {
   ) async {
     final l10n = AppLocalizations.of(context);
     final modeLabel = mode == AppLockMode.appLock
-        ? l10n.lockModeApp
-        : l10n.lockModePhone;
+        ? l10n.labelLockModeApp
+        : l10n.labelLockModePhone;
     final disabledLabel = mode == AppLockMode.appLock
-        ? l10n.lockModePhone
-        : l10n.lockModeApp;
+        ? l10n.labelLockModePhone
+        : l10n.labelLockModeApp;
 
     final ok = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.settingsSwitchLockTitle),
-        content: Text(l10n.settingsSwitchLockBody(modeLabel, disabledLabel)),
+        title: Text(l10n.bodySettingsSwitchLock),
+        content: Text(
+          l10n.bodySettingsSwitchLockBody(modeLabel, disabledLabel),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: Text(l10n.commonCancel),
+            child: Text(l10n.actionCommonCancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(l10n.settingsSwitchAction),
+            child: Text(l10n.actionSettingsSwitch),
           ),
         ],
       ),
@@ -182,7 +184,7 @@ class SecuritySettingsScreen extends ConsumerWidget {
       final messenger = ScaffoldMessenger.of(context);
       Navigator.of(context).pop();
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.settingsLockModeUpdated(modeLabel))),
+        SnackBar(content: Text(l10n.descSettingsLockModeUpdated(modeLabel))),
       );
     }
   }
@@ -206,11 +208,11 @@ class ScreenSecurityTile extends ConsumerWidget {
 
     return Semantics(
       toggled: enabled,
-      label: l10n.settingsScreenSecurity,
+      label: l10n.labelSettingsScreenSecurity,
       child: SwitchListTile(
         key: const Key('settings-screen-security'),
-        title: Text(l10n.settingsScreenSecurity),
-        subtitle: Text(l10n.settingsScreenSecuritySubtitle),
+        title: Text(l10n.labelSettingsScreenSecurity),
+        subtitle: Text(l10n.descSettingsScreenSecurity),
         value: enabled,
         onChanged: state.isLoading
             ? null
@@ -230,17 +232,17 @@ class ScreenSecurityTile extends ConsumerWidget {
       final ok = await showDialog<bool>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          title: Text(l10n.settingsScreenSecurityOffTitle),
-          content: Text(l10n.settingsScreenSecurityOffBody),
+          title: Text(l10n.bodySettingsScreenSecurityOff),
+          content: Text(l10n.bodySettingsScreenSecurityOffBody),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: Text(l10n.commonCancel),
+              child: Text(l10n.actionCommonCancel),
             ),
             TextButton(
               key: const Key('settings-screen-security-confirm'),
               onPressed: () => Navigator.pop(dialogContext, true),
-              child: Text(l10n.settingsScreenSecurityOffAction),
+              child: Text(l10n.actionSettingsScreenSecurityOff),
             ),
           ],
         ),
@@ -253,7 +255,7 @@ class ScreenSecurityTile extends ConsumerWidget {
     } on ScreenSecurityPersistenceException {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.settingsScreenSecuritySaveFailed)),
+          SnackBar(content: Text(l10n.errorSettingsScreenSecuritySave)),
         );
       }
       return;
@@ -273,8 +275,8 @@ class ScreenSecurityTile extends ConsumerWidget {
         SnackBar(
           content: Text(
             enabled
-                ? l10n.settingsScreenSecurityUpdatedOn
-                : l10n.settingsScreenSecurityUpdatedOff,
+                ? l10n.bodySettingsScreenSecurityUpdatedOn
+                : l10n.bodySettingsScreenSecurityUpdatedOff,
           ),
         ),
       );
@@ -303,11 +305,13 @@ class _PinSetupDialogState extends State<PinSetupDialog> {
 
   void _save() {
     if (_pin.text.length < 4) {
-      setState(() => _error = AppLocalizations.of(context).lockPinTooShort);
+      setState(() => _error = AppLocalizations.of(context).errorLockPin);
       return;
     }
     if (_pin.text != _confirm.text) {
-      setState(() => _error = AppLocalizations.of(context).lockPinsDoNotMatch);
+      setState(
+        () => _error = AppLocalizations.of(context).bodyLockPinsDoNotMatch,
+      );
       return;
     }
     Navigator.pop(context, _pin.text);
@@ -317,7 +321,7 @@ class _PinSetupDialogState extends State<PinSetupDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return AlertDialog(
-      title: Text(l10n.lockPinSetupTitle),
+      title: Text(l10n.titleLockPinSetup),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -325,13 +329,13 @@ class _PinSetupDialogState extends State<PinSetupDialog> {
             key: const Key('settings-pin-field'),
             controller: _pin,
             obscureText: true,
-            decoration: InputDecoration(labelText: l10n.lockPinLabel),
+            decoration: InputDecoration(labelText: l10n.labelLockPin),
           ),
           TextField(
             key: const Key('settings-pin-confirm-field'),
             controller: _confirm,
             obscureText: true,
-            decoration: InputDecoration(labelText: l10n.lockConfirmPinLabel),
+            decoration: InputDecoration(labelText: l10n.labelLockConfirmPin),
           ),
           if (_error != null) ...[
             const SizedBox(height: 8),
@@ -342,12 +346,12 @@ class _PinSetupDialogState extends State<PinSetupDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text(l10n.commonCancel),
+          child: Text(l10n.actionCommonCancel),
         ),
         TextButton(
           key: const Key('settings-pin-save-button'),
           onPressed: _save,
-          child: Text(l10n.commonSave),
+          child: Text(l10n.actionCommonSave),
         ),
       ],
     );

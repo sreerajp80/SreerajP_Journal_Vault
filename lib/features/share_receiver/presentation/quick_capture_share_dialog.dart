@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
+import 'package:sreerajp_journal_vault/core/l10n/formatting_locale.dart';
+import 'package:sreerajp_journal_vault/core/l10n/locale_controller.dart';
 import 'package:sreerajp_journal_vault/features/attachments/providers/attachment_providers.dart';
 import 'package:sreerajp_journal_vault/features/attachments/services/attachment_picker_service.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/image_embed.dart';
@@ -59,7 +61,13 @@ class _QuickCaptureShareDialogState
     } else if (widget.payload.mediaItems.isNotEmpty) {
       initialTitle = widget.payload.mediaItems.first.fileName;
     } else {
-      initialTitle = 'Note - ${DateFormat.yMMMd().format(DateTime.now())}';
+      // Runs from initState, where Localizations.localeOf(context) is not
+      // allowed, so the language comes from the locale controller instead.
+      final locale = effectiveAppLocale(ref.read(localeControllerProvider));
+      final date = DateFormat.yMMMd(
+        formattingLocaleTag(locale.toLanguageTag()),
+      ).format(DateTime.now());
+      initialTitle = lookupAppLocalizations(locale).descShareDefaultTitle(date);
     }
 
     _titleController = TextEditingController(text: initialTitle);
@@ -160,14 +168,14 @@ class _QuickCaptureShareDialogState
       Navigator.of(context).pop();
 
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.shareSavedSuccess(journalTitle))),
+        SnackBar(content: Text(l10n.bodyShareSavedSuccess(journalTitle))),
       );
     } catch (_) {
       if (mounted) {
         setState(() => _saving = false);
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(l10n.shareSaveFailed)));
+        ).showSnackBar(SnackBar(content: Text(l10n.errorShareSave)));
       }
     }
   }
@@ -233,7 +241,7 @@ class _QuickCaptureShareDialogState
           children: [
             Icon(Icons.enhanced_encryption_rounded, color: colors.primary),
             const SizedBox(width: 10),
-            Expanded(child: Text(l10n.shareSealedFileDetected)),
+            Expanded(child: Text(l10n.titleShareSealedFileDetected)),
           ],
         ),
         content: Column(
@@ -251,7 +259,7 @@ class _QuickCaptureShareDialogState
                 sealed.fileName,
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
-              subtitle: Text('$sizeKb KB • Encrypted Vault Archive'),
+              subtitle: Text(l10n.descShareSealedFileSize(sizeKb)),
             ),
           ],
         ),
@@ -261,11 +269,11 @@ class _QuickCaptureShareDialogState
               widget.onDismissed();
               Navigator.of(context).pop();
             },
-            child: Text(l10n.shareDiscard),
+            child: Text(l10n.actionShareDiscard),
           ),
           FilledButton.icon(
             icon: const Icon(Icons.lock_open_rounded),
-            label: Text(l10n.shareOpenEncryptedExport),
+            label: Text(l10n.actionShareOpenEncryptedExport),
             onPressed: _openEncryptedFile,
           ),
         ],
@@ -301,13 +309,13 @@ class _QuickCaptureShareDialogState
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          l10n.shareQuickCaptureTitle,
+                          l10n.titleShareQuickCapture,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
-                          l10n.shareQuickCaptureSubtitle,
+                          l10n.descShareQuickCapture,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: colors.onSurfaceVariant,
                           ),
@@ -330,14 +338,14 @@ class _QuickCaptureShareDialogState
                   padding: const EdgeInsets.symmetric(vertical: 24),
                   child: Column(
                     children: [
-                      Text(l10n.shareNoJournalsFound),
+                      Text(l10n.bodyShareNoJournalsFound),
                       const SizedBox(height: 16),
                       TextButton(
                         onPressed: () {
                           widget.onDismissed();
                           Navigator.of(context).pop();
                         },
-                        child: Text(l10n.commonCancel),
+                        child: Text(l10n.actionCommonCancel),
                       ),
                     ],
                   ),
@@ -351,7 +359,7 @@ class _QuickCaptureShareDialogState
                         DropdownButtonFormField<int>(
                           initialValue: _selectedJournalId,
                           decoration: InputDecoration(
-                            labelText: l10n.shareSelectJournal,
+                            labelText: l10n.labelShareSelectJournal,
                             prefixIcon: const Icon(Icons.book_rounded),
                             border: const OutlineInputBorder(),
                           ),
@@ -371,8 +379,8 @@ class _QuickCaptureShareDialogState
                         TextField(
                           controller: _titleController,
                           decoration: InputDecoration(
-                            labelText: l10n.shareEntryTitleLabel,
-                            hintText: l10n.shareEntryTitleHint,
+                            labelText: l10n.labelShareEntryTitle,
+                            hintText: l10n.descShareEntryTitle,
                             border: const OutlineInputBorder(),
                           ),
                         ),
@@ -382,15 +390,15 @@ class _QuickCaptureShareDialogState
                           maxLines: 4,
                           minLines: 2,
                           decoration: InputDecoration(
-                            labelText: l10n.shareContentLabel,
-                            hintText: l10n.shareContentHint,
+                            labelText: l10n.labelShareContent,
+                            hintText: l10n.descShareContent,
                             border: const OutlineInputBorder(),
                           ),
                         ),
                         if (widget.payload.mediaItems.isNotEmpty) ...[
                           const SizedBox(height: 14),
                           Text(
-                            l10n.shareAttachmentsLabel(
+                            l10n.labelShareAttachments(
                               widget.payload.mediaItems.length,
                             ),
                             style: theme.textTheme.labelMedium?.copyWith(
@@ -411,7 +419,10 @@ class _QuickCaptureShareDialogState
                                       : Icons.attach_file_rounded,
                                   size: 18,
                                 ),
-                                label: Text('${m.fileName} ($sizeKb KB)'),
+                                label: Text(
+                                  '${m.fileName} '
+                                  '(${l10n.labelStorageKilobytes(sizeKb)})',
+                                ),
                               );
                             }).toList(),
                           ),
@@ -434,11 +445,11 @@ class _QuickCaptureShareDialogState
                               widget.onDismissed();
                               Navigator.of(context).pop();
                             },
-                      child: Text(l10n.shareDiscard),
+                      child: Text(l10n.actionShareDiscard),
                     ),
                     OutlinedButton(
                       onPressed: _saving ? null : _openInEditor,
-                      child: Text(l10n.shareOpenInEditor),
+                      child: Text(l10n.actionShareOpenInEditor),
                     ),
                     FilledButton(
                       onPressed: _saving ? null : _saveDirectlyToJournal,
@@ -451,7 +462,7 @@ class _QuickCaptureShareDialogState
                                 color: Colors.white,
                               ),
                             )
-                          : Text(l10n.shareSaveToJournal),
+                          : Text(l10n.actionShareSaveToJournal),
                     ),
                   ],
                 ),

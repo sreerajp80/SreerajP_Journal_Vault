@@ -62,7 +62,7 @@ void main() {
   ) async {
     await pumpLockGate(tester, lockMode: 'phone_lock');
 
-    expect(find.text('Your journal is locked'), findsOneWidget);
+    expect(find.text('Journal is locked'), findsOneWidget);
     expect(find.text('Unlock to open your entries.'), findsOneWidget);
     expect(find.text('Phone Lock'), findsOneWidget);
     expect(find.byIcon(Icons.lock_rounded), findsOneWidget);

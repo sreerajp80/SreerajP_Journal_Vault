@@ -1,6 +1,6 @@
 # Plan: C3 — Time Capsules and Letters to Your Future Self
 
-**Status:** Proposed
+**Status:** completed
 **Date:** 2026-08-24
 **Feature:** C3 Time Capsules (Cryptographically Sealed Entries)
 

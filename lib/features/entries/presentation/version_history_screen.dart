@@ -38,18 +38,18 @@ class VersionHistoryScreen extends ConsumerWidget {
     final revisionsAsync = ref.watch(entryRevisionsProvider(entryId));
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.versionHistoryTitle)),
+      appBar: AppBar(title: Text(l10n.titleVersionHistory)),
       body: revisionsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) =>
-            Center(child: Text(l10n.versionHistoryLoadFailed(e.toString()))),
+            Center(child: Text(l10n.errorVersionHistoryLoad(e.toString()))),
         data: (revisions) {
           if (revisions.isEmpty) {
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(32),
                 child: Text(
-                  l10n.versionHistoryEmpty,
+                  l10n.emptyVersionHistory,
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -90,16 +90,16 @@ class VersionHistoryScreen extends ConsumerWidget {
       builder: (dialogContext) {
         final l10n = AppLocalizations.of(dialogContext);
         return AlertDialog(
-          title: Text(l10n.versionRestoreTitle),
-          content: Text(l10n.versionRestoreBody),
+          title: Text(l10n.bodyVersionRestore),
+          content: Text(l10n.bodyVersionRestoreBody),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
-              child: Text(l10n.commonCancel),
+              child: Text(l10n.actionCommonCancel),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(dialogContext, true),
-              child: Text(l10n.commonRestore),
+              child: Text(l10n.actionCommonRestore),
             ),
           ],
         );
@@ -116,7 +116,9 @@ class VersionHistoryScreen extends ConsumerWidget {
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).versionRestored)),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).labelVersionRestored),
+        ),
       );
       Navigator.pop(context);
     }
@@ -140,7 +142,7 @@ class _RevisionTile extends StatelessWidget {
     final dateStr = _formatDate(revision.createdAt);
     final title = revision.title?.isNotEmpty == true
         ? revision.title!
-        : 'Untitled';
+        : AppLocalizations.of(context).descCommonUntitled;
     final preview = _extractPreview(revision.plainText);
 
     return ListTile(
@@ -171,12 +173,12 @@ class _RevisionTile extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.visibility_outlined),
             onPressed: onPreview,
-            tooltip: AppLocalizations.of(context).versionPreview,
+            tooltip: AppLocalizations.of(context).tooltipVersionPreview,
           ),
           IconButton(
             icon: const Icon(Icons.restore),
             onPressed: onRestore,
-            tooltip: AppLocalizations.of(context).versionRestoreTooltip,
+            tooltip: AppLocalizations.of(context).tooltipVersionRestore,
           ),
         ],
       ),
@@ -269,7 +271,7 @@ class _RevisionPreviewScreenState
   Widget build(BuildContext context) {
     final title = widget.revision.title?.isNotEmpty == true
         ? widget.revision.title!
-        : 'Untitled';
+        : AppLocalizations.of(context).descCommonUntitled;
     final typography = ref.watch(typographyProvider);
     final theme = Theme.of(context);
     final baseStyles = DefaultStyles.getInstance(context);
@@ -290,7 +292,7 @@ class _RevisionPreviewScreenState
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context).versionPreviewTitle(title)),
+        title: Text(AppLocalizations.of(context).titleVersionPreview(title)),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),

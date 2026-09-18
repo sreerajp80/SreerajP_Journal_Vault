@@ -1,7 +1,7 @@
 # Plan — Upgrade Malayalam OCR model to the `tessdata_best` build
 
-**Status:** Superseded by `plans/20260912_160456_ocr_confidence_filter_and_best_model.md`,
-which carries out this swap together with the confidence filter.
+**Status:** dropped
+**Status note:** Superseded by `plans/20260912_160456_ocr_confidence_filter_and_best_model.md`, which carries out this swap together with the confidence filter.
 
 ## Why
 

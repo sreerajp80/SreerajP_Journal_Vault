@@ -1,6 +1,6 @@
 # Plan: Fix OCR Disappearing After Image Processing and Improve Cropped Text Recognition
 
-**Status:** Completed
+**Status:** completed
 
 ## Problem
 

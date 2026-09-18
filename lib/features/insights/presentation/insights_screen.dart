@@ -5,6 +5,8 @@ import 'package:sreerajp_journal_vault/features/insights/providers/insights_prov
 import 'package:sreerajp_journal_vault/features/insights/services/insights_service.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
+part 'insights_memory_cards.dart';
+
 /// Main insights dashboard showing mood trends, streaks, tag heatmap,
 /// memories, and weekly reflection.
 class InsightsScreen extends ConsumerWidget {
@@ -13,7 +15,7 @@ class InsightsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(title: Text(AppLocalizations.of(context).insightsTitle)),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).titleInsights)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: const [
@@ -55,7 +57,7 @@ class _StreakCard extends ConsumerWidget {
                   const Icon(Icons.local_fire_department, color: Colors.orange),
                   const SizedBox(width: 8),
                   Text(
-                    l10n.insightsStreakHeading,
+                    l10n.titleInsightsStreak,
                     style: theme.textTheme.titleMedium,
                   ),
                 ],
@@ -66,13 +68,13 @@ class _StreakCard extends ConsumerWidget {
                 children: [
                   _streakStat(
                     l10n,
-                    l10n.insightsStreakCurrent,
+                    l10n.labelInsightsStreakCurrent,
                     '${streak.currentStreak}',
                     theme,
                   ),
                   _streakStat(
                     l10n,
-                    l10n.insightsStreakLongest,
+                    l10n.labelInsightsStreakLongest,
                     '${streak.longestStreak}',
                     theme,
                   ),
@@ -81,7 +83,9 @@ class _StreakCard extends ConsumerWidget {
               if (streak.lastEntryDate != null) ...[
                 const SizedBox(height: 8),
                 Text(
-                  l10n.insightsLastEntry(_formatDate(streak.lastEntryDate!)),
+                  l10n.labelInsightsLastEntry(
+                    _formatDate(streak.lastEntryDate!),
+                  ),
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: Colors.grey,
                   ),
@@ -90,7 +94,7 @@ class _StreakCard extends ConsumerWidget {
             ],
           ),
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Text(l10n.commonError(e.toString())),
+          error: (e, _) => Text(l10n.errorCommon(e.toString())),
         ),
       ),
     );
@@ -111,7 +115,7 @@ class _StreakCard extends ConsumerWidget {
           ),
         ),
         Text(
-          l10n.insightsStreakStat(label, l10n.insightsStreakUnitDays),
+          l10n.labelInsightsStreakStat(label, l10n.labelInsightsStreakUnitDays),
           style: theme.textTheme.bodySmall,
         ),
       ],
@@ -141,7 +145,7 @@ class _MoodTrendsCard extends ConsumerWidget {
                 const Icon(Icons.show_chart, color: Colors.purple),
                 const SizedBox(width: 8),
                 Text(
-                  l10n.insightsMoodHeading,
+                  l10n.titleInsightsMood,
                   style: theme.textTheme.titleMedium,
                 ),
               ],
@@ -154,7 +158,7 @@ class _MoodTrendsCard extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(vertical: 24),
                     child: Center(
                       child: Text(
-                        l10n.insightsMoodEmpty,
+                        l10n.emptyInsightsMood,
                         textAlign: TextAlign.center,
                         style: const TextStyle(color: Colors.grey),
                       ),
@@ -164,7 +168,7 @@ class _MoodTrendsCard extends ConsumerWidget {
                 return _MoodChart(data: trends);
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Text(l10n.commonError(e.toString())),
+              error: (e, _) => Text(l10n.errorCommon(e.toString())),
             ),
           ],
         ),
@@ -190,7 +194,7 @@ class _MoodChart extends StatelessWidget {
           final height = (point.averageMood / 5.0) * 100;
           return Expanded(
             child: Tooltip(
-              message: l10n.insightsMoodTooltip(
+              message: l10n.descInsightsMood(
                 _formatDate(point.date),
                 point.averageMood.toStringAsFixed(1),
                 point.entryCount,
@@ -241,7 +245,7 @@ class _TagHeatmapCard extends ConsumerWidget {
                 const Icon(Icons.grid_view, color: Colors.teal),
                 const SizedBox(width: 8),
                 Text(
-                  l10n.insightsTagHeatmapHeading,
+                  l10n.titleInsightsTagHeatmap,
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ],
@@ -254,7 +258,7 @@ class _TagHeatmapCard extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(vertical: 24),
                     child: Center(
                       child: Text(
-                        l10n.insightsTagHeatmapEmpty,
+                        l10n.emptyInsightsTagHeatmap,
                         style: const TextStyle(color: Colors.grey),
                       ),
                     ),
@@ -269,7 +273,9 @@ class _TagHeatmapCard extends ConsumerWidget {
                   children: tags.map((tag) {
                     final intensity = tag.count / maxCount;
                     return Chip(
-                      label: Text(l10n.insightsTagChip(tag.tagName, tag.count)),
+                      label: Text(
+                        l10n.labelInsightsTag(tag.tagName, tag.count),
+                      ),
                       backgroundColor: Colors.teal.withValues(
                         alpha: 0.1 + (intensity * 0.6),
                       ),
@@ -283,7 +289,7 @@ class _TagHeatmapCard extends ConsumerWidget {
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Text(l10n.commonError(e.toString())),
+              error: (e, _) => Text(l10n.errorCommon(e.toString())),
             ),
           ],
         ),
@@ -293,205 +299,3 @@ class _TagHeatmapCard extends ConsumerWidget {
 }
 
 // ──────────────── Memories Card ────────────────
-
-class _MemoriesCard extends ConsumerWidget {
-  const _MemoriesCard();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final memoriesAsync = ref.watch(memoriesProvider);
-    final theme = Theme.of(context);
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.auto_awesome, color: Colors.amber),
-                const SizedBox(width: 8),
-                Text(
-                  l10n.insightsMemoriesHeading,
-                  style: theme.textTheme.titleMedium,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            memoriesAsync.when(
-              data: (memories) {
-                if (memories.isEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 24),
-                    child: Center(
-                      child: Text(
-                        l10n.insightsMemoriesEmpty,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(color: Colors.grey),
-                      ),
-                    ),
-                  );
-                }
-                return Column(
-                  children: memories
-                      .map((m) => _MemoryTile(memory: m))
-                      .toList(),
-                );
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Text(l10n.commonError(e.toString())),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _MemoryTile extends StatelessWidget {
-  const _MemoryTile({required this.memory});
-
-  final MemoryEntry memory;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: CircleAvatar(
-        backgroundColor: Colors.amber.withValues(alpha: 0.2),
-        child: Text(
-          l10n.insightsYearsAgo(memory.yearsAgo),
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-        ),
-      ),
-      title: Text(
-        memory.title ?? l10n.commonUntitled,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      subtitle: memory.snippet != null
-          ? Text(
-              memory.snippet!,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodySmall,
-            )
-          : null,
-    );
-  }
-}
-
-// ──────────────── Weekly Reflection Card ────────────────
-
-class _WeeklyReflectionCard extends ConsumerWidget {
-  const _WeeklyReflectionCard();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final reflectionAsync = ref.watch(weeklyReflectionProvider);
-    final theme = Theme.of(context);
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.auto_stories, color: Colors.indigo),
-                const SizedBox(width: 8),
-                Text(
-                  l10n.insightsReflectionHeading,
-                  style: theme.textTheme.titleMedium,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            reflectionAsync.when(
-              data: (reflection) => Column(
-                children: [
-                  _reflectionRow(
-                    l10n.insightsReflectionPeriod,
-                    l10n.insightsDateRange(
-                      _formatDate(reflection.weekStart),
-                      _formatDate(reflection.weekEnd),
-                    ),
-                    theme,
-                  ),
-                  _reflectionRow(
-                    l10n.insightsReflectionEntries,
-                    '${reflection.totalEntries}',
-                    theme,
-                  ),
-                  _reflectionRow(
-                    l10n.insightsReflectionWords,
-                    '${reflection.totalWordCount}',
-                    theme,
-                  ),
-                  if (reflection.averageMood != null)
-                    _reflectionRow(
-                      l10n.insightsReflectionAverageMood,
-                      l10n.insightsMoodOutOfFive(
-                        reflection.averageMood!.toStringAsFixed(1),
-                      ),
-                      theme,
-                    ),
-                  if (reflection.topTags.isNotEmpty)
-                    _reflectionRow(
-                      l10n.insightsReflectionTopTags,
-                      reflection.topTags.join(', '),
-                      theme,
-                    ),
-                  _reflectionRow(
-                    l10n.insightsReflectionStreak,
-                    l10n.insightsStreakDays(
-                      reflection.streakInfo.currentStreak,
-                    ),
-                    theme,
-                  ),
-                ],
-              ),
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Text(l10n.commonError(e.toString())),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _reflectionRow(String label, String value, ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey),
-          ),
-          Flexible(
-            child: Text(
-              value,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.end,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ──────────────── Helpers ────────────────
-
-String _formatDate(DateTime dt) =>
-    '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import '../../helpers/export_labels.dart';
 import 'package:sreerajp_journal_vault/features/export/services/delta_document.dart';
 import 'package:sreerajp_journal_vault/features/export/services/delta_to_markdown.dart';
 
@@ -17,21 +18,27 @@ void main() {
   group('renderMarkdown — block styles', () {
     test('renders the three heading levels', () {
       expect(
-        renderMarkdown([_text('One', style: BlockStyle.heading1)]),
+        renderMarkdown(labels: englishExportLabels, [
+          _text('One', style: BlockStyle.heading1),
+        ]),
         '# One',
       );
       expect(
-        renderMarkdown([_text('Two', style: BlockStyle.heading2)]),
+        renderMarkdown(labels: englishExportLabels, [
+          _text('Two', style: BlockStyle.heading2),
+        ]),
         '## Two',
       );
       expect(
-        renderMarkdown([_text('Three', style: BlockStyle.heading3)]),
+        renderMarkdown(labels: englishExportLabels, [
+          _text('Three', style: BlockStyle.heading3),
+        ]),
         '### Three',
       );
     });
 
     test('renders a bullet list', () {
-      final md = renderMarkdown([
+      final md = renderMarkdown(labels: englishExportLabels, [
         _text('a', style: BlockStyle.bulletList),
         _text('b', style: BlockStyle.bulletList),
       ]);
@@ -39,7 +46,7 @@ void main() {
     });
 
     test('numbers an ordered list from one', () {
-      final md = renderMarkdown([
+      final md = renderMarkdown(labels: englishExportLabels, [
         _text('a', style: BlockStyle.orderedList),
         _text('b', style: BlockStyle.orderedList),
         _text('c', style: BlockStyle.orderedList),
@@ -48,7 +55,7 @@ void main() {
     });
 
     test('restarts numbering for a second, separate list', () {
-      final md = renderMarkdown([
+      final md = renderMarkdown(labels: englishExportLabels, [
         _text('a', style: BlockStyle.orderedList),
         _text('para'),
         _text('b', style: BlockStyle.orderedList),
@@ -59,7 +66,7 @@ void main() {
     });
 
     test('renders task list items', () {
-      final md = renderMarkdown([
+      final md = renderMarkdown(labels: englishExportLabels, [
         _text('done', style: BlockStyle.checkedList),
         _text('todo', style: BlockStyle.uncheckedList),
       ]);
@@ -68,7 +75,7 @@ void main() {
     });
 
     test('indents a nested list', () {
-      final md = renderMarkdown([
+      final md = renderMarkdown(labels: englishExportLabels, [
         _text('top', style: BlockStyle.bulletList),
         _text('nested', style: BlockStyle.bulletList, indent: 1),
       ]);
@@ -77,14 +84,16 @@ void main() {
 
     test('renders a blockquote', () {
       expect(
-        renderMarkdown([_text('quoted', style: BlockStyle.blockquote)]),
+        renderMarkdown(labels: englishExportLabels, [
+          _text('quoted', style: BlockStyle.blockquote),
+        ]),
         '> quoted',
       );
     });
 
     test('renders a code block verbatim, without escaping', () {
       // Escaping inside code would corrupt the code itself.
-      final md = renderMarkdown([
+      final md = renderMarkdown(labels: englishExportLabels, [
         _text('a * b _ c', style: BlockStyle.codeBlock),
       ]);
       expect(md, contains('a * b _ c'));
@@ -92,7 +101,7 @@ void main() {
     });
 
     test('puts a blank line between a paragraph and a list', () {
-      final md = renderMarkdown([
+      final md = renderMarkdown(labels: englishExportLabels, [
         _text('intro'),
         _text('item', style: BlockStyle.bulletList),
       ]);
@@ -103,9 +112,10 @@ void main() {
   });
 
   group('renderMarkdown — inline styles', () {
-    String render(InlineSpan span) => renderMarkdown([
-      TextBlock(spans: [span]),
-    ]);
+    String render(InlineSpan span) =>
+        renderMarkdown(labels: englishExportLabels, [
+          TextBlock(spans: [span]),
+        ]);
 
     test('renders bold, italic and strikethrough', () {
       expect(render(const InlineSpan(text: 'x', bold: true)), '**x**');
@@ -141,7 +151,7 @@ void main() {
       // "** bold **" is not emphasis in Markdown; the markers must touch text.
       // Checked mid-line, because a trailing space at the very end of the
       // document is trimmed off by the document-level cleanup.
-      final md = renderMarkdown([
+      final md = renderMarkdown(labels: englishExportLabels, [
         const TextBlock(
           spans: [
             InlineSpan(text: 'a'),
@@ -171,7 +181,7 @@ void main() {
 
   group('renderMarkdown — embeds', () {
     test('renders a table as a pipe table with a header row', () {
-      final md = renderMarkdown([
+      final md = renderMarkdown(labels: englishExportLabels, [
         const TableBlock([
           ['Name', 'Value'],
           ['a', '1'],
@@ -184,7 +194,7 @@ void main() {
     });
 
     test('escapes a pipe inside a table cell', () {
-      final md = renderMarkdown([
+      final md = renderMarkdown(labels: englishExportLabels, [
         const TableBlock([
           ['a|b'],
         ]),
@@ -193,7 +203,7 @@ void main() {
     });
 
     test('pads a short row so the columns still line up', () {
-      final md = renderMarkdown([
+      final md = renderMarkdown(labels: englishExportLabels, [
         const TableBlock([
           ['a', 'b'],
           ['c'],
@@ -203,7 +213,7 @@ void main() {
     });
 
     test('renders a callout as a labelled blockquote', () {
-      final md = renderMarkdown([
+      final md = renderMarkdown(labels: englishExportLabels, [
         const CalloutBlock(style: 'warning', text: 'be careful'),
       ]);
       expect(md, contains('> **Warning**'));
@@ -211,14 +221,16 @@ void main() {
     });
 
     test('keeps an unknown callout style as its own label', () {
-      final md = renderMarkdown([
+      final md = renderMarkdown(labels: englishExportLabels, [
         const CalloutBlock(style: 'custom', text: 't'),
       ]);
       expect(md, contains('> **custom**'));
     });
 
     test('names an unknown embed rather than dropping it', () {
-      final md = renderMarkdown([const UnknownEmbedBlock('sketch')]);
+      final md = renderMarkdown(labels: englishExportLabels, [
+        const UnknownEmbedBlock('sketch'),
+      ]);
       expect(md, contains('sketch'));
     });
   });
@@ -227,7 +239,11 @@ void main() {
     const image = ImageBlock(attachmentId: 12, fileName: 'beach photo.jpg');
 
     test('links to the attachment file when it travels with the export', () {
-      final md = renderMarkdown([image], linkableImageIds: const {12});
+      final md = renderMarkdown(
+        labels: englishExportLabels,
+        [image],
+        linkableImageIds: const {12},
+      );
 
       expect(
         md,
@@ -236,7 +252,7 @@ void main() {
     });
 
     test('names the image when its file is not in the export', () {
-      final md = renderMarkdown([image]);
+      final md = renderMarkdown(labels: englishExportLabels, [image]);
 
       expect(md, isNot(contains('](attachments/')));
       expect(md, contains('[Image: beach photo.jpg]'));
@@ -244,6 +260,7 @@ void main() {
 
     test('only links the images whose files came along', () {
       final md = renderMarkdown(
+        labels: englishExportLabels,
         [image, const ImageBlock(attachmentId: 13, fileName: 'locked.jpg')],
         linkableImageIds: const {12},
       );
@@ -255,6 +272,6 @@ void main() {
   });
 
   test('renders an empty document as an empty string', () {
-    expect(renderMarkdown(const []), '');
+    expect(renderMarkdown(labels: englishExportLabels, const []), '');
   });
 }

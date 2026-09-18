@@ -42,7 +42,9 @@ class AirqrLandingScreen extends ConsumerWidget {
     if (!context.mounted) return;
     if (journals.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No journals found to send.')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).bodyAirqrNoJournals),
+        ),
       );
       return;
     }
@@ -59,11 +61,19 @@ class AirqrLandingScreen extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 8,
+                ),
                 child: Text(
-                  'Select Journal to Sync',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  AppLocalizations.of(
+                    bottomSheetContext,
+                  ).titleAirqrSelectJournal,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
               ),
               const Divider(),
@@ -71,7 +81,12 @@ class AirqrLandingScreen extends ConsumerWidget {
                 (j) => ListTile(
                   leading: const Icon(Icons.book_outlined),
                   title: Text(j.title),
-                  subtitle: Text(j.description ?? 'No description'),
+                  subtitle: Text(
+                    j.description ??
+                        AppLocalizations.of(
+                          bottomSheetContext,
+                        ).descAirqrNoDescription,
+                  ),
                   onTap: () =>
                       Navigator.pop(bottomSheetContext, (j.id, j.title)),
                 ),
@@ -126,7 +141,7 @@ class AirqrLandingScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.airqrTitle)),
+      appBar: AppBar(title: Text(l10n.titleAirqr)),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         children: [
@@ -167,13 +182,13 @@ class AirqrLandingScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              l10n.airqrTitle,
+                              l10n.titleAirqr,
                               style: theme.textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             Text(
-                              '100% Offline • Optical Air-Gap',
+                              l10n.descAirqrOffline,
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
@@ -185,7 +200,7 @@ class AirqrLandingScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    l10n.airqrIntro,
+                    l10n.descAirqrIntro,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -199,10 +214,10 @@ class AirqrLandingScreen extends ConsumerWidget {
           // Action 1: Sync Settings (First-class feature)
           _AirqrActionCard(
             icon: Icons.settings_suggest_rounded,
-            title: l10n.airqrSyncSettingsTitle,
-            subtitle: l10n.airqrSyncSettingsSubtitle,
+            title: l10n.titleAirqrSyncSettings,
+            subtitle: l10n.descAirqrSyncSettings,
             color: theme.colorScheme.primary,
-            badgeText: '< 1 sec',
+            badgeText: l10n.labelAirqrBadgeFast,
             onTap: () => _sendSettings(context, ref),
           ),
           const SizedBox(height: 12),
@@ -210,8 +225,8 @@ class AirqrLandingScreen extends ConsumerWidget {
           // Action 2: Sync Journal
           _AirqrActionCard(
             icon: Icons.menu_book_rounded,
-            title: l10n.airqrSyncJournalTitle,
-            subtitle: l10n.airqrSyncJournalSubtitle,
+            title: l10n.titleAirqrSyncJournal,
+            subtitle: l10n.descAirqrSyncJournal,
             color: theme.colorScheme.tertiary,
             onTap: () => _sendJournal(context, ref),
           ),
@@ -220,8 +235,8 @@ class AirqrLandingScreen extends ConsumerWidget {
           // Action 3: Receive Data via Camera
           _AirqrActionCard(
             icon: Icons.qr_code_scanner_rounded,
-            title: l10n.airqrReceive,
-            subtitle: l10n.airqrReceiveSubtitle,
+            title: l10n.actionAirqrReceive,
+            subtitle: l10n.descAirqrReceive,
             color: theme.colorScheme.secondary,
             onTap: () {
               Navigator.push(
@@ -257,7 +272,7 @@ class AirqrLandingScreen extends ConsumerWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        l10n.airqrSpeedNoteTitle,
+                        l10n.titleAirqrSpeedNote,
                         style: theme.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -266,7 +281,7 @@ class AirqrLandingScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    l10n.airqrSpeedNoteBody,
+                    l10n.bodyAirqrSpeedNote,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),

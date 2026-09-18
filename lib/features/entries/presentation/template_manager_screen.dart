@@ -19,25 +19,25 @@ class TemplateManagerScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.templateManagerTitle),
+        title: Text(l10n.titleTemplateManager),
         actions: [
           IconButton(
             key: const Key('add-template-appbar-button'),
             icon: const Icon(Icons.add),
-            tooltip: l10n.templateCreateNew,
+            tooltip: l10n.actionTemplateCreateNew,
             onPressed: () => _openEditor(context),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         key: const Key('add-template-fab'),
-        tooltip: l10n.templateCreateNew,
+        tooltip: l10n.actionTemplateCreateNew,
         onPressed: () => _openEditor(context),
         child: const Icon(Icons.add),
       ),
       body: templatesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text('Error loading templates: $err')),
+        error: (err, _) => Center(child: Text(l10n.errorTemplateLoad)),
         data: (templates) {
           if (templates.isEmpty) {
             return Center(
@@ -53,7 +53,7 @@ class TemplateManagerScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      l10n.templateEmpty,
+                      l10n.emptyTemplate,
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -63,7 +63,7 @@ class TemplateManagerScreen extends ConsumerWidget {
                     FilledButton.icon(
                       key: const Key('create-first-template-button'),
                       icon: const Icon(Icons.add),
-                      label: Text(l10n.templateCreateNew),
+                      label: Text(l10n.actionTemplateCreateNew),
                       onPressed: () => _openEditor(context),
                     ),
                   ],
@@ -152,16 +152,16 @@ class _TemplateListTile extends ConsumerWidget {
       onTap: onTap,
       trailing: PopupMenuButton<_TemplateAction>(
         key: Key('template-actions-${template.id}'),
-        tooltip: l10n.tagsActionsTooltip,
+        tooltip: l10n.tooltipTagsActions,
         onSelected: (action) => _handleAction(context, ref, action),
         itemBuilder: (context) => [
           PopupMenuItem(
             value: _TemplateAction.edit,
-            child: Text(l10n.templateEdit),
+            child: Text(l10n.actionTemplateEdit),
           ),
           PopupMenuItem(
             value: _TemplateAction.delete,
-            child: Text(l10n.templateDelete),
+            child: Text(l10n.actionTemplateDelete),
           ),
         ],
       ),
@@ -183,12 +183,12 @@ class _TemplateListTile extends ConsumerWidget {
         final confirmed = await showDialog<bool>(
           context: context,
           builder: (dialogCtx) => AlertDialog(
-            title: Text(l10n.templateDeleteConfirmTitle),
-            content: Text(l10n.templateDeleteConfirmMessage(template.name)),
+            title: Text(l10n.bodyTemplateDeleteConfirm),
+            content: Text(l10n.bodyTemplateDeleteConfirmMessage(template.name)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(dialogCtx).pop(false),
-                child: Text(l10n.commonCancel),
+                child: Text(l10n.actionCommonCancel),
               ),
               FilledButton(
                 key: const Key('confirm-delete-template-button'),
@@ -197,7 +197,7 @@ class _TemplateListTile extends ConsumerWidget {
                   foregroundColor: Theme.of(context).colorScheme.onError,
                 ),
                 onPressed: () => Navigator.of(dialogCtx).pop(true),
-                child: Text(l10n.commonDelete),
+                child: Text(l10n.actionCommonDelete),
               ),
             ],
           ),
@@ -208,9 +208,9 @@ class _TemplateListTile extends ConsumerWidget {
           await db.userTemplatesDao.deleteUserTemplate(template.id);
           ref.invalidate(allUserTemplatesProvider);
           if (context.mounted) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(l10n.templateDeleteSuccess)));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.bodyTemplateDeleteSuccess)),
+            );
           }
         }
         break;

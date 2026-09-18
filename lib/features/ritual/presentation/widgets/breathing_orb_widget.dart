@@ -2,36 +2,25 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'package:sreerajp_journal_vault/features/ritual/services/ritual_service.dart';
+import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 /// Phase in a breathing cycle.
 enum BreathPhase { inhale, holdInhale, exhale, holdExhale }
 
 extension BreathPhaseExt on BreathPhase {
-  String get label {
-    switch (this) {
-      case BreathPhase.inhale:
-        return 'Inhale';
-      case BreathPhase.holdInhale:
-        return 'Hold';
-      case BreathPhase.exhale:
-        return 'Exhale';
-      case BreathPhase.holdExhale:
-        return 'Hold & Rest';
-    }
-  }
+  String labelIn(AppLocalizations l10n) => switch (this) {
+    BreathPhase.inhale => l10n.labelBreathPhaseInhale,
+    BreathPhase.holdInhale => l10n.labelBreathPhaseHold,
+    BreathPhase.exhale => l10n.labelBreathPhaseExhale,
+    BreathPhase.holdExhale => l10n.labelBreathPhaseRest,
+  };
 
-  String get guidanceText {
-    switch (this) {
-      case BreathPhase.inhale:
-        return 'Breathe in slowly through your nose...';
-      case BreathPhase.holdInhale:
-        return 'Hold gently at the top...';
-      case BreathPhase.exhale:
-        return 'Release slowly and completely...';
-      case BreathPhase.holdExhale:
-        return 'Rest in quiet stillness...';
-    }
-  }
+  String guidanceIn(AppLocalizations l10n) => switch (this) {
+    BreathPhase.inhale => l10n.descBreathGuidanceInhale,
+    BreathPhase.holdInhale => l10n.descBreathGuidanceHold,
+    BreathPhase.exhale => l10n.descBreathGuidanceExhale,
+    BreathPhase.holdExhale => l10n.descBreathGuidanceRest,
+  };
 }
 
 /// An animated, calming visual breathing circle widget with phase guidance and timer.
@@ -193,10 +182,11 @@ class _BreathingOrbWidgetState extends State<BreathingOrbWidget>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
 
     if (_isFinished) {
       return Semantics(
-        label: 'Breathing practice completed',
+        label: l10n.bodyBreathPracticeCompleted,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -216,7 +206,7 @@ class _BreathingOrbWidgetState extends State<BreathingOrbWidget>
             ),
             const SizedBox(height: 16),
             Text(
-              'Grounded & Present',
+              l10n.titleBreathGrounded,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
                 color: colorScheme.primary,
@@ -234,12 +224,15 @@ class _BreathingOrbWidgetState extends State<BreathingOrbWidget>
         final scale = 0.7 + (progress * 0.3); // Scales from 0.7 to 1.0
 
         return Semantics(
-          label: '${_currentPhase.label}, $_secondsRemaining seconds remaining',
+          label: l10n.bodyBreathPhaseRemaining(
+            _currentPhase.labelIn(l10n),
+            _secondsRemaining,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Cycle $_currentCycle of ${widget.cycles}',
+                l10n.labelBreathCycle(_currentCycle, widget.cycles),
                 style: theme.textTheme.labelMedium?.copyWith(
                   color: colorScheme.outline,
                   letterSpacing: 1.1,
@@ -297,7 +290,7 @@ class _BreathingOrbWidgetState extends State<BreathingOrbWidget>
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            _currentPhase.label.toUpperCase(),
+                            _currentPhase.labelIn(l10n).toUpperCase(),
                             style: theme.textTheme.labelMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                               letterSpacing: 1.2,
@@ -320,7 +313,7 @@ class _BreathingOrbWidgetState extends State<BreathingOrbWidget>
               ),
               const SizedBox(height: 24),
               Text(
-                _currentPhase.guidanceText,
+                _currentPhase.guidanceIn(l10n),
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,

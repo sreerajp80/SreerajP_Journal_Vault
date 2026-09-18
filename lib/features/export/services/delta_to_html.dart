@@ -14,6 +14,7 @@
 library;
 
 import 'package:sreerajp_journal_vault/features/export/services/delta_document.dart';
+import 'package:sreerajp_journal_vault/features/export/services/export_labels.dart';
 
 /// Turns [blocks] into an HTML fragment.
 ///
@@ -22,8 +23,12 @@ import 'package:sreerajp_journal_vault/features/export/services/delta_document.d
 /// exported page has to stay one self-contained file. An image with no entry in
 /// the map (locked, missing, or unreadable) is named instead of drawn; it is
 /// never silently dropped.
+///
+/// [labels] supplies the words written into the page (callout names, image
+/// placeholders), in the language the user exported in.
 String renderHtml(
   List<ExportBlock> blocks, {
+  required ExportLabels labels,
   Map<int, String> imageSources = const {},
 }) {
   final buffer = StringBuffer();
@@ -62,7 +67,7 @@ String renderHtml(
       continue;
     }
 
-    buffer.write(_renderBlock(block, imageSources));
+    buffer.write(_renderBlock(block, imageSources, labels));
     i++;
   }
   return buffer.toString();
@@ -110,7 +115,11 @@ String _renderList(List<TextBlock> items) {
   return buffer.toString();
 }
 
-String _renderBlock(ExportBlock block, Map<int, String> imageSources) {
+String _renderBlock(
+  ExportBlock block,
+  Map<int, String> imageSources,
+  ExportLabels labels,
+) {
   switch (block) {
     case TextBlock():
       final content = _renderSpans(block.spans);
@@ -144,17 +153,17 @@ String _renderBlock(ExportBlock block, Map<int, String> imageSources) {
       return _renderTable(block.rows);
 
     case CalloutBlock():
-      return _renderCallout(block);
+      return _renderCallout(block, labels);
 
     case ImageBlock():
-      return _renderImage(block, imageSources[block.attachmentId]);
+      return _renderImage(block, imageSources[block.attachmentId], labels);
 
     case DrawingBlock():
-      return _renderDrawing(block, imageSources[block.attachmentId]);
+      return _renderDrawing(block, imageSources[block.attachmentId], labels);
 
     case UnknownEmbedBlock():
-      return '<p class="unknown-embed">[${escapeHtml(block.type)} block — '
-          'not exportable as text]</p>';
+      return '<p class="unknown-embed">'
+          '[${escapeHtml(labels.unexportableBlock(block.type))}]</p>';
   }
 }
 
@@ -236,12 +245,12 @@ String _renderTable(List<List<String>> rows) {
 /// an `<img src>` in an exported page is exactly the kind of place a surprising
 /// value must not be able to reach out to the network from — the export is
 /// meant to be one self-contained file that works offline forever.
-String _renderImage(ImageBlock block, String? source) {
-  final label = block.fileName.isEmpty ? 'Image' : block.fileName;
+String _renderImage(ImageBlock block, String? source, ExportLabels labels) {
+  final label = block.fileName.isEmpty ? labels.image : block.fileName;
 
   if (source == null || !source.startsWith('data:image/')) {
     return '<p class="unknown-embed">[${escapeHtml(label)} — '
-        'image not included]</p>';
+        '${escapeHtml(labels.imageNotIncluded)}]</p>';
   }
 
   return '<figure class="inline-image">'
@@ -250,12 +259,12 @@ String _renderImage(ImageBlock block, String? source) {
 }
 
 /// Renders an inline drawing, or names it when there is no source for it.
-String _renderDrawing(DrawingBlock block, String? source) {
-  final label = block.fileName.isEmpty ? 'Drawing' : block.fileName;
+String _renderDrawing(DrawingBlock block, String? source, ExportLabels labels) {
+  final label = block.fileName.isEmpty ? labels.drawing : block.fileName;
 
   if (source == null || !source.startsWith('data:image/')) {
     return '<p class="unknown-embed">[${escapeHtml(label)} — '
-        'drawing not included]</p>';
+        '${escapeHtml(labels.drawingNotIncluded)}]</p>';
   }
 
   return '<figure class="inline-drawing">'
@@ -263,12 +272,12 @@ String _renderDrawing(DrawingBlock block, String? source) {
       '</figure>';
 }
 
-String _renderCallout(CalloutBlock block) {
+String _renderCallout(CalloutBlock block, ExportLabels labels) {
   // The style becomes a CSS class, so it is restricted to a known list. An
   // unexpected value must not be able to inject an attribute.
   const known = {'info', 'warning', 'tip', 'important'};
   final style = known.contains(block.style) ? block.style : 'info';
-  final label = _calloutLabel(block.style);
+  final label = labels.calloutLabel(block.style);
 
   final paragraphs = block.text
       .split('\n')
@@ -279,21 +288,6 @@ String _renderCallout(CalloutBlock block) {
       '<p class="callout-label">${escapeHtml(label)}</p>'
       '$paragraphs'
       '</div>';
-}
-
-String _calloutLabel(String style) {
-  switch (style) {
-    case 'warning':
-      return 'Warning';
-    case 'tip':
-      return 'Tip';
-    case 'important':
-      return 'Important';
-    case 'info':
-      return 'Note';
-    default:
-      return style.isEmpty ? 'Note' : style;
-  }
 }
 
 /// Escapes text for safe use inside HTML content.

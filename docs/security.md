@@ -86,6 +86,16 @@ Last reviewed: 2026-08-16 · Reviewer: Sreeraj P (with Claude)
 | Search index | Entry title + plain text | FTS5 tables in the same DB | Same protection as the DB — encrypted with it, page for page |
 | Backups | Full export archive | User-chosen location | AES-256-GCM encrypted ZIP |
 | Voice notes | Recorded audio | Same path as attachments | Same as attachments |
+| Dictation | Live microphone audio and the recognised text | Nowhere — the audio stays inside the on-device recogniser; the text lives only in the dictation sheet until the user inserts it into the entry | On-device recognition only (see the note below); never logged |
+
+> **Note on dictation.** `speech_to_text` wraps Android's `SpeechRecognizer`. When on-device
+> recognition is missing, the plugin silently uses the default recogniser, which on most phones
+> is an online service. So `DictationService` first asks `MainActivity` (channel
+> `sreerajp.journal_vault/speech`, `SpeechRecognizer.isOnDeviceRecognitionAvailable`, API 31+)
+> and refuses to start when the answer is no. `PluginSpeechEngine.listen` always passes
+> `onDevice: true`. Network or server errors from the recogniser end dictation and are never
+> retried. Tests: `test/features/entries/services/dictation_service_test.dart` and
+> `speech_engine_test.dart`. Voice notes no longer run speech recognition at all.
 
 > **Note on the FTS index.** `entries_fts` holds a copy of entry titles and plain text. Any
 > control applied to the entries table must be applied to the FTS tables too, or the index
@@ -267,6 +277,17 @@ Operation name, screen or flow name, error category, non-sensitive counts and id
   native side through the `sreerajp.journal_vault/screen_security` MethodChannel, which saves the
   value and applies or clears the flag on the live window at once.
 - `android:debuggable`: false in release (verified — section 8.3).
+- Cleartext traffic: off. minSdk 28 makes `usesCleartextTraffic` default to `false`, the manifest
+  does not change it, and there is no network security config. Wi-Fi Sync is a raw TCP socket
+  sealed with AES-256-GCM, not HTTP. No user-certificate trust anchors may be added.
+- Exported components: only `.MainActivity`, which must be exported for the launcher, inbound
+  share (`SEND`, `SEND_MULTIPLE`) and `VIEW` of `.jvenc` / `.jvbk` files. Shared content only reaches
+  a quick-capture dialog behind the lock gate; an opened archive still needs its password.
+  `UCropActivity` has no intent filter and is not exported. Audit steps:
+  [`release_process.md`](release_process.md) section 6.7.
+- Bundled assets: `assets/` is readable by anyone holding the APK. It holds only the About config,
+  fonts, OCR language models and icon sources — no secret, key or personal data. Audit steps:
+  [`release_process.md`](release_process.md) section 6.6.
 - Root detection: none, and none planned. Rooted devices are out of scope (section 3).
 
 ### iOS / Windows / Linux / macOS
@@ -287,7 +308,8 @@ two; the rest arrive transitively from plugins.
 | `USE_BIOMETRIC` | app | Biometric app unlock | Falls back to device credential or PIN |
 | `READ_EXTERNAL_STORAGE` (maxSdk 32) | app | Attachment import on older Android | Permissions screen explains and links to settings |
 | `READ_MEDIA_IMAGES` / `_VIDEO` / `_AUDIO` | `file_picker` | Attachment import on API 33+ | As above |
-| `RECORD_AUDIO` | `record` | Voice notes | Voice notes unavailable; rest of app works |
+| `RECORD_AUDIO` | app (also `record`) | Voice notes and on-device dictation | Voice notes and dictation unavailable; rest of app works |
+| `CAMERA` | app | Capturing a page for on-device OCR (`uses-feature` marked not required) | OCR falls back to picking an existing photo |
 | `USE_FINGERPRINT` | `local_auth` | Legacy biometric API | Falls back |
 | `ACCESS_NETWORK_STATE` | Wi-Fi Sync | **Declared** — lets Wi-Fi Sync see whether a local network is up | Wi-Fi Sync unavailable; rest of app works |
 | `WAKE_LOCK` | plugin (transitive) | **Removed** (`tools:node="remove"`) | n/a |
@@ -619,6 +641,9 @@ Complete before every release. Nothing below may be ticked from memory.
 - [ ] `--obfuscate --split-debug-info` present in the build command actually used.
 - [ ] Debug symbols archived against the released version number.
 - [ ] `android:debuggable` absent from the merged release manifest.
+- [ ] Cleartext traffic still off and no network security config or user trust anchor added.
+- [ ] Exported component audit done — only `.MainActivity` exported (`release_process.md` §6.7).
+- [ ] Asset leak audit done — no secret, key or personal data in APK `assets/` (§6.6).
 - [ ] R8 smoke tests passed on a real device (see `release_process.md`).
 - [ ] OWASP table (section 12) re-reviewed; risk acceptances still acceptable.
 - [ ] Migration test passes for the full version range.

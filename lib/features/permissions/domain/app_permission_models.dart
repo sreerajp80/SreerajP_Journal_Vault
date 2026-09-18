@@ -4,24 +4,29 @@ enum AppPermissionCategory { explicit, implicit }
 
 enum AppPermissionState { granted, denied, permanentlyDenied, userSelected }
 
+/// One permission the app uses, as a value with no words in it.
+///
+/// The name and the explanation come from `AppPermissionText` in the
+/// presentation layer, keyed by [id], so this service-level model stays free
+/// of user-visible text.
 class AppPermissionItem {
   const AppPermissionItem({
     required this.id,
     required this.category,
-    required this.title,
-    required this.description,
     required this.status,
-    this.statusDetail,
+    this.isGrantedViaFilePicker = false,
     this.canRequestAgain = false,
     this.canOpenSystemSettings = false,
   });
 
   final AppPermissionId id;
   final AppPermissionCategory category;
-  final String title;
-  final String description;
   final AppPermissionState status;
-  final String? statusDetail;
+
+  /// True on Android 13 and later, where the system file picker covers this
+  /// permission and no separate grant is needed. The screen adds a note.
+  final bool isGrantedViaFilePicker;
+
   final bool canRequestAgain;
   final bool canOpenSystemSettings;
 }

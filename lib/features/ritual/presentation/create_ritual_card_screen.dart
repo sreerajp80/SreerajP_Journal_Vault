@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sreerajp_journal_vault/features/ritual/domain/ritual_card.dart';
+import 'package:sreerajp_journal_vault/features/ritual/presentation/ritual_card_text.dart';
 import 'package:sreerajp_journal_vault/features/ritual/providers/ritual_providers.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
@@ -55,14 +56,13 @@ class _CreateRitualCardScreenState
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final langCode = Localizations.localeOf(context).languageCode;
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          _isEditMode ? l10n.ritualEditCardTitle : l10n.ritualCreateCardTitle,
+          _isEditMode ? l10n.titleRitualEditCard : l10n.titleRitualCreateCard,
         ),
       ),
       body: Form(
@@ -72,7 +72,7 @@ class _CreateRitualCardScreenState
           children: [
             // Theme picker
             Text(
-              l10n.ritualCardThemeLabel,
+              l10n.labelRitualCardTheme,
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -89,7 +89,7 @@ class _CreateRitualCardScreenState
                     size: 18,
                     color: isSelected ? colorScheme.onPrimary : t.accentColor,
                   ),
-                  label: Text(t.localizedName(langCode)),
+                  label: Text(t.nameIn(l10n)),
                   selected: isSelected,
                   selectedColor: t.accentColor,
                   labelStyle: TextStyle(
@@ -111,13 +111,13 @@ class _CreateRitualCardScreenState
               controller: _titleController,
               maxLength: 100,
               decoration: InputDecoration(
-                labelText: l10n.ritualCardTitleLabel,
-                hintText: l10n.ritualCardTitleHint,
+                labelText: l10n.labelRitualCardTitle,
+                hintText: l10n.descRitualCardTitle,
                 border: const OutlineInputBorder(),
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return l10n.ritualCardTitleRequired;
+                  return l10n.errorRitualCardTitle;
                 }
                 return null;
               },
@@ -129,14 +129,14 @@ class _CreateRitualCardScreenState
               controller: _promptController,
               maxLines: 4,
               decoration: InputDecoration(
-                labelText: l10n.ritualCardPromptLabel,
-                hintText: l10n.ritualCardPromptHint,
+                labelText: l10n.labelRitualCardPrompt,
+                hintText: l10n.descRitualCardPrompt,
                 border: const OutlineInputBorder(),
                 alignLabelWithHint: true,
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return l10n.ritualCardPromptRequired;
+                  return l10n.errorRitualCardPrompt;
                 }
                 return null;
               },
@@ -148,14 +148,14 @@ class _CreateRitualCardScreenState
               controller: _quoteController,
               maxLines: 3,
               decoration: InputDecoration(
-                labelText: l10n.ritualCardQuoteLabel,
-                hintText: l10n.ritualCardQuoteHint,
+                labelText: l10n.labelRitualCardQuote,
+                hintText: l10n.descRitualCardQuote,
                 border: const OutlineInputBorder(),
                 alignLabelWithHint: true,
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return l10n.ritualCardQuoteRequired;
+                  return l10n.errorRitualCardQuote;
                 }
                 return null;
               },
@@ -166,8 +166,8 @@ class _CreateRitualCardScreenState
             TextFormField(
               controller: _authorController,
               decoration: InputDecoration(
-                labelText: l10n.ritualCardAuthorLabel,
-                hintText: l10n.ritualCardAuthorHint,
+                labelText: l10n.labelRitualCardAuthor,
+                hintText: l10n.descRitualCardAuthor,
                 border: const OutlineInputBorder(),
               ),
             ),
@@ -192,8 +192,8 @@ class _CreateRitualCardScreenState
                   : const Icon(Icons.save_rounded),
               label: Text(
                 _isEditMode
-                    ? l10n.ritualSaveCardEdit
-                    : l10n.ritualSaveCardCreate,
+                    ? l10n.actionRitualSaveCardEdit
+                    : l10n.actionRitualSaveCardCreate,
               ),
               style: FilledButton.styleFrom(
                 minimumSize: const Size.fromHeight(50),
@@ -220,13 +220,12 @@ class _CreateRitualCardScreenState
     }
 
     final l10n = AppLocalizations.of(context);
-    final langCode = Localizations.localeOf(context).languageCode;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          l10n.ritualCardPreviewLabel,
+          l10n.labelRitualCardPreview,
           style: theme.textTheme.titleSmall?.copyWith(
             fontWeight: FontWeight.bold,
           ),
@@ -266,7 +265,7 @@ class _CreateRitualCardScreenState
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        _selectedTheme.localizedName(langCode).toUpperCase(),
+                        _selectedTheme.nameIn(l10n).toUpperCase(),
                         style: theme.textTheme.labelMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: _selectedTheme.accentColor,
@@ -354,7 +353,7 @@ class _CreateRitualCardScreenState
               : null,
         );
         messenger.showSnackBar(
-          SnackBar(content: Text(l10n.ritualCardUpdatedMessage)),
+          SnackBar(content: Text(l10n.bodyRitualCardUpdated)),
         );
       } else {
         await notifier.addUserCard(
@@ -367,12 +366,12 @@ class _CreateRitualCardScreenState
               : null,
         );
         messenger.showSnackBar(
-          SnackBar(content: Text(l10n.ritualCardCreatedMessage)),
+          SnackBar(content: Text(l10n.bodyRitualCardCreated)),
         );
       }
       navigator.pop(true);
     } catch (_) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.ritualCardSaveError)));
+      messenger.showSnackBar(SnackBar(content: Text(l10n.errorRitualCardSave)));
     } finally {
       if (mounted) {
         setState(() => _isSaving = false);

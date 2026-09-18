@@ -15,12 +15,12 @@ class ThemeModeSettingsScreen extends ConsumerWidget {
     final currentAppMode = ref.watch(appThemeModeProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.appearanceThemeModeTitle)),
+      appBar: AppBar(title: Text(l10n.titleAppearanceThemeMode)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         children: [
           Text(
-            l10n.appearanceThemeModeTitle.toUpperCase(),
+            l10n.titleAppearanceThemeMode.toUpperCase(),
             style: theme.textTheme.labelLarge?.copyWith(
               color: theme.colorScheme.primary,
               fontWeight: FontWeight.w800,
@@ -33,8 +33,8 @@ class ThemeModeSettingsScreen extends ConsumerWidget {
           _ThemeModeCard(
             key: const Key('theme-mode-option-light'),
             mode: AppThemeMode.light,
-            title: l10n.settingsThemeLight,
-            subtitle: l10n.settingsThemeLightDesc,
+            title: l10n.labelSettingsThemeLight,
+            subtitle: l10n.descSettingsThemeLight,
             icon: Icons.light_mode_outlined,
             previewBgColor: const Color(0xFFFAF9F6),
             previewTextColor: const Color(0xFF1C1B1F),
@@ -46,8 +46,8 @@ class ThemeModeSettingsScreen extends ConsumerWidget {
           _ThemeModeCard(
             key: const Key('theme-mode-option-sepia'),
             mode: AppThemeMode.sepia,
-            title: l10n.settingsThemeSepia,
-            subtitle: l10n.settingsThemeSepiaDesc,
+            title: l10n.labelSettingsThemeSepia,
+            subtitle: l10n.descSettingsThemeSepia,
             icon: Icons.auto_stories_outlined,
             previewBgColor: const Color(0xFFF8F3E6),
             previewTextColor: const Color(0xFF2C221E),
@@ -59,8 +59,8 @@ class ThemeModeSettingsScreen extends ConsumerWidget {
           _ThemeModeCard(
             key: const Key('theme-mode-option-dark'),
             mode: AppThemeMode.dark,
-            title: l10n.settingsThemeDark,
-            subtitle: l10n.settingsThemeDarkDesc,
+            title: l10n.labelSettingsThemeDark,
+            subtitle: l10n.descSettingsThemeDark,
             icon: Icons.dark_mode_outlined,
             previewBgColor: const Color(0xFF1E1E1E),
             previewTextColor: const Color(0xFFE6E1E5),
@@ -72,8 +72,8 @@ class ThemeModeSettingsScreen extends ConsumerWidget {
           _ThemeModeCard(
             key: const Key('theme-mode-option-oled'),
             mode: AppThemeMode.oled,
-            title: l10n.settingsThemeOled,
-            subtitle: l10n.settingsThemeOledDesc,
+            title: l10n.labelSettingsThemeOled,
+            subtitle: l10n.descSettingsThemeOled,
             icon: Icons.brightness_2_outlined,
             previewBgColor: const Color(0xFF000000),
             previewTextColor: const Color(0xFFFFFFFF),
@@ -85,8 +85,8 @@ class ThemeModeSettingsScreen extends ConsumerWidget {
           _ThemeModeCard(
             key: const Key('theme-mode-option-system'),
             mode: AppThemeMode.system,
-            title: l10n.settingsThemeSystem,
-            subtitle: l10n.settingsThemeSystemDesc,
+            title: l10n.labelSettingsThemeSystem,
+            subtitle: l10n.descSettingsThemeSystem,
             icon: Icons.brightness_auto_outlined,
             previewBgColor: const Color(0xFFE0E0E0),
             previewTextColor: const Color(0xFF202020),
@@ -113,7 +113,7 @@ class ThemeModeSettingsScreen extends ConsumerWidget {
                   const SizedBox(width: 14),
                   Expanded(
                     child: Text(
-                      l10n.appearanceSystemModeExplainer,
+                      l10n.descAppearanceSystemModeExplainer,
                       style: TextStyle(
                         color: theme.colorScheme.onSurfaceVariant,
                         fontSize: 13,
@@ -140,15 +140,15 @@ class ThemeModeSettingsScreen extends ConsumerWidget {
       await ref.read(appThemeModeProvider.notifier).setAppThemeMode(mode);
       if (context.mounted) {
         final label = switch (mode) {
-          AppThemeMode.dark => l10n.settingsThemeDark,
-          AppThemeMode.light => l10n.settingsThemeLight,
-          AppThemeMode.sepia => l10n.settingsThemeSepia,
-          AppThemeMode.oled => l10n.settingsThemeOled,
-          AppThemeMode.system => l10n.settingsThemeSystem,
+          AppThemeMode.dark => l10n.labelSettingsThemeDark,
+          AppThemeMode.light => l10n.labelSettingsThemeLight,
+          AppThemeMode.sepia => l10n.labelSettingsThemeSepia,
+          AppThemeMode.oled => l10n.labelSettingsThemeOled,
+          AppThemeMode.system => l10n.labelSettingsThemeSystem,
         };
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(l10n.settingsThemeUpdated(label)),
+            content: Text(l10n.descSettingsThemeUpdated(label)),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -157,7 +157,7 @@ class ThemeModeSettingsScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(l10n.settingsThemeSaveFailed)));
+        ).showSnackBar(SnackBar(content: Text(l10n.errorSettingsThemeSave)));
       }
     }
   }

@@ -7,6 +7,7 @@ import 'package:drift/drift.dart' as drift;
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
 import 'package:sreerajp_journal_vault/core/theme/typography_controller.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/template_token_text.dart';
 import 'package:sreerajp_journal_vault/features/entries/templates/template_token_engine.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
@@ -181,13 +182,13 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text(l10n.templateSaveSuccess)));
+      ).showSnackBar(SnackBar(content: Text(l10n.bodyTemplateSaveSuccess)));
       Navigator.of(context).pop(true);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Error saving template: $e')));
+      ).showSnackBar(SnackBar(content: Text(l10n.errorTemplateSave)));
     } finally {
       if (mounted) {
         setState(() => _isSaving = false);
@@ -200,16 +201,20 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final isEditing = widget.existingTemplate != null;
-    final tokens = TemplateTokenEngine.getSupportedTokens();
+    final tokens = TemplateTokenEngine.getSupportedTokens(
+      locale: Localizations.localeOf(context).toLanguageTag(),
+    );
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditing ? l10n.templateEdit : l10n.templateCreateNew),
+        title: Text(
+          isEditing ? l10n.actionTemplateEdit : l10n.actionTemplateCreateNew,
+        ),
         actions: [
           IconButton(
             key: const Key('save-template-button'),
             icon: const Icon(Icons.check),
-            tooltip: l10n.commonSave,
+            tooltip: l10n.actionCommonSave,
             onPressed: _isSaving ? null : _saveTemplate,
           ),
         ],
@@ -227,12 +232,12 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
                     key: const Key('template-name-field'),
                     controller: _nameController,
                     decoration: InputDecoration(
-                      labelText: l10n.templateNameLabel,
-                      hintText: l10n.templateNameHint,
+                      labelText: l10n.labelTemplateName,
+                      hintText: l10n.descTemplateName,
                       border: const OutlineInputBorder(),
                     ),
                     validator: (v) => (v == null || v.trim().isEmpty)
-                        ? l10n.templateNameRequired
+                        ? l10n.errorTemplateName
                         : null,
                   ),
                   const SizedBox(height: 14),
@@ -242,8 +247,8 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
                     key: const Key('template-description-field'),
                     controller: _descriptionController,
                     decoration: InputDecoration(
-                      labelText: l10n.templateDescriptionLabel,
-                      hintText: l10n.templateDescriptionHint,
+                      labelText: l10n.labelTemplateDescription,
+                      hintText: l10n.descTemplateDescription,
                       border: const OutlineInputBorder(),
                     ),
                     maxLines: 2,
@@ -256,8 +261,8 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
                     controller: _defaultTitleController,
                     focusNode: _defaultTitleFocusNode,
                     decoration: InputDecoration(
-                      labelText: l10n.templateDefaultTitleLabel,
-                      hintText: l10n.templateDefaultTitleHint,
+                      labelText: l10n.labelTemplateDefaultTitle,
+                      hintText: l10n.descTemplateDefaultTitle,
                       border: const OutlineInputBorder(),
                     ),
                   ),
@@ -288,7 +293,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              l10n.templateTokensHeading,
+                              l10n.titleTemplateTokens,
                               style: theme.textTheme.labelLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 color: theme.colorScheme.primary,
@@ -298,7 +303,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          l10n.templateTokensHelper,
+                          l10n.descTemplateTokensHelper,
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -314,7 +319,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
                               ),
                               avatar: const Icon(Icons.add, size: 14),
                               label: Text('${t.token} (${t.example})'),
-                              tooltip: t.description,
+                              tooltip: t.descriptionIn(l10n),
                               onPressed: () => _insertToken(t.token),
                             );
                           }).toList(),
@@ -326,7 +331,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
 
                   // Starter Content Header
                   Text(
-                    l10n.templateContentLabel,
+                    l10n.labelTemplateContent,
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -388,8 +393,16 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
                                 focusNode: _bodyFocusNode,
                                 scrollController: _bodyScrollController,
                                 config: QuillEditorConfig(
-                                  placeholder: l10n.templateContentHint,
+                                  placeholder: l10n.descTemplateContent,
                                   customStyles: customStyles,
+                                  // Same selection aids as the entry editor:
+                                  // room at the line edges and a magnifier
+                                  // while a handle is dragged.
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  quillMagnifierBuilder:
+                                      defaultQuillMagnifierBuilder,
                                 ),
                               ),
                             );

@@ -9,278 +9,278 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get vaultUnavailableTitle => 'The vault cannot be opened';
+  String get titleVaultUnavailable => 'Vault unavailable';
 
   @override
-  String get vaultUnavailableKeyMissing =>
+  String get descVaultUnavailableKeyMissing =>
       'The key that unlocks your journal is no longer on this device. Without it, nothing can read the vault — not even this app.';
 
   @override
-  String get vaultUnavailableCipherMissing =>
+  String get descVaultUnavailableCipherMissing =>
       'This build of the app cannot encrypt the vault, so it has stopped rather than store your journal unprotected.';
 
   @override
-  String get vaultUnavailableConversionFailed =>
+  String get errorVaultUnavailableConversion =>
       'Your journal could not be moved into encrypted storage. It has been left exactly as it was — nothing has been deleted.';
 
   @override
-  String get vaultUnavailableFileUnreadable =>
+  String get descVaultUnavailableFileUnreadable =>
       'The vault file cannot be read. It may be damaged, or it may belong to a different installation of the app.';
 
   @override
-  String get vaultUnavailableDataIntact =>
+  String get descVaultUnavailableDataIntact =>
       'Nothing has been deleted. Your entries and attachments are still on this device.';
 
   @override
-  String get vaultUnavailableNextSteps =>
+  String get descVaultUnavailableNextSteps =>
       'If you have a backup file, reinstall the app and restore from it. If not, keep this installation as it is and do not clear the app data — that would remove the vault for good.';
 
   @override
-  String get appTitle => 'SreerajP Journal Vault';
+  String get titleApp => 'SreerajP Journal Vault';
 
   @override
-  String get aboutTitle => 'About';
+  String get titleAbout => 'About';
 
   @override
-  String get aboutLoadError => 'Unable to load app metadata';
+  String get errorAboutLoad => 'Unable to load app metadata';
 
   @override
-  String get commonRetry => 'Retry';
+  String get errorCommonRetry => 'Retry';
 
   @override
-  String get aboutVersionBuildLabel => 'App Version / Build';
+  String get labelAboutVersionBuild => 'App Version / Build';
 
   @override
-  String get aboutLastBuildLabel => 'Last Build Timestamp';
+  String get labelAboutLastBuild => 'Last Build Timestamp';
 
   @override
-  String get permissionsTitle => 'Permissions';
+  String get titlePermissions => 'Permissions';
 
   @override
-  String get permissionsExplicitHeader => 'Explicit permissions';
+  String get titlePermissionsExplicit => 'Explicit permissions';
 
   @override
-  String get permissionsImplicitHeader => 'Implicit permissions';
+  String get titlePermissionsImplicit => 'Implicit permissions';
 
   @override
-  String get permissionStatusAllowed => 'Allowed';
+  String get labelPermissionStatusAllowed => 'Allowed';
 
   @override
-  String get permissionStatusDenied => 'Denied';
+  String get labelPermissionStatusDenied => 'Denied';
 
   @override
-  String get permissionStatusPermanentlyDenied => 'Permanently denied';
+  String get labelPermissionStatusPermanentlyDenied => 'Permanently denied';
 
   @override
-  String get permissionStatusUserSelected => 'User selected';
+  String get labelPermissionStatusUserSelected => 'User selected';
 
   @override
-  String get permissionsRequest => 'Request';
+  String get actionPermissionsRequest => 'Request';
 
   @override
-  String get permissionsOpenSettings => 'Open settings';
+  String get actionPermissionsOpenSettings => 'Open settings';
 
   @override
-  String get commonCancel => 'Cancel';
+  String get actionCommonCancel => 'Cancel';
 
   @override
-  String get commonDelete => 'Delete';
+  String get actionCommonDelete => 'Delete';
 
   @override
-  String get commonSave => 'Save';
+  String get actionCommonSave => 'Save';
 
   @override
-  String get tagsTitle => 'Tags';
+  String get titleTags => 'Tags';
 
   @override
-  String tagsLoadError(String error) {
+  String errorTagsLoad(String error) {
     return 'Could not load tags: $error';
   }
 
   @override
-  String get tagsEmpty =>
+  String get emptyTags =>
       'No tags yet. Add tags to a journal and they will show up here.';
 
   @override
-  String get tagsAutomaticColour => 'Automatic colour';
+  String get descTagsAutomaticColour => 'Automatic colour';
 
   @override
-  String get tagsActionsTooltip => 'Tag actions';
+  String get tooltipTagsActions => 'Tag actions';
 
   @override
-  String get tagsRename => 'Rename';
+  String get actionTagsRename => 'Rename';
 
   @override
-  String get tagsChooseColour => 'Choose colour';
+  String get actionTagsChooseColour => 'Choose colour';
 
   @override
-  String get tagsResetColour => 'Reset to automatic';
+  String get actionTagsResetColour => 'Reset to automatic';
 
   @override
-  String get tagsRenameFailed =>
+  String get errorTagsRename =>
       'That name is empty or already used by another tag.';
 
   @override
-  String tagsDeleted(String name) {
+  String bodyTagsDeleted(String name) {
     return 'Deleted #$name.';
   }
 
   @override
-  String get tagsDeleteTitle => 'Delete tag?';
+  String get bodyTagsDelete => 'Delete tag?';
 
   @override
-  String tagsDeleteBody(String name) {
+  String bodyTagsDeleteBody(String name) {
     return 'Delete \"#$name\"? It will be removed from every journal and entry that uses it.';
   }
 
   @override
-  String get tagsRenameTitle => 'Rename tag';
+  String get titleTagsRename => 'Rename tag';
 
   @override
-  String get tagsNameLabel => 'Tag name';
+  String get labelTagsName => 'Tag name';
 
   @override
-  String commonError(String message) {
+  String errorCommon(String message) {
     return 'Error: $message';
   }
 
   @override
-  String get commonUntitledEntry => 'Untitled entry';
+  String get descCommonUntitledEntry => 'Untitled entry';
 
   @override
-  String get commonUntitled => 'Untitled';
+  String get descCommonUntitled => 'Untitled';
 
   @override
-  String get timelineTitle => 'Timeline';
+  String get titleTimeline => 'Timeline';
 
   @override
-  String get timelineNoEntriesForDate => 'No entries for this date';
+  String get emptyTimelineNoEntriesForDate => 'No entries for this date';
 
   @override
-  String get timelineCalendarFormatMonth => 'Month';
+  String get labelTimelineCalendarFormatMonth => 'Month';
 
   @override
-  String get timelineDayCountOverflow => '9+';
+  String get labelTimelineDayCountOverflow => '9+';
 
   @override
-  String get insightsTitle => 'Insights';
+  String get titleInsights => 'Insights';
 
   @override
-  String get insightsStreakHeading => 'Writing Streak';
+  String get titleInsightsStreak => 'Writing Streak';
 
   @override
-  String get insightsStreakCurrent => 'Current';
+  String get labelInsightsStreakCurrent => 'Current';
 
   @override
-  String get insightsStreakLongest => 'Longest';
+  String get labelInsightsStreakLongest => 'Longest';
 
   @override
-  String get insightsStreakUnitDays => 'days';
+  String get labelInsightsStreakUnitDays => 'days';
 
   @override
-  String insightsStreakStat(String label, String unit) {
+  String labelInsightsStreakStat(String label, String unit) {
     return '$label ($unit)';
   }
 
   @override
-  String insightsLastEntry(String date) {
+  String labelInsightsLastEntry(String date) {
     return 'Last entry: $date';
   }
 
   @override
-  String get insightsMoodHeading => 'Mood Trends (30 days)';
+  String get titleInsightsMood => 'Mood — 30 days';
 
   @override
-  String get insightsMoodEmpty =>
+  String get emptyInsightsMood =>
       'No mood data yet.\nRate your mood on entries to see trends.';
 
   @override
-  String insightsMoodTooltip(String date, String mood, int count) {
+  String descInsightsMood(String date, String mood, int count) {
     return '$date\nMood: $mood\nEntries: $count';
   }
 
   @override
-  String get insightsTagHeatmapHeading => 'Tag Heatmap';
+  String get titleInsightsTagHeatmap => 'Tag Heatmap';
 
   @override
-  String get insightsTagHeatmapEmpty => 'No tags used yet.';
+  String get emptyInsightsTagHeatmap => 'No tags used yet.';
 
   @override
-  String insightsTagChip(String tag, int count) {
+  String labelInsightsTag(String tag, int count) {
     return '$tag ($count)';
   }
 
   @override
-  String get insightsMemoriesHeading => 'On This Day';
+  String get titleInsightsMemories => 'On This Day';
 
   @override
-  String get insightsMemoriesEmpty =>
+  String get emptyInsightsMemories =>
       'No memories for today.\nKeep journaling to build memories!';
 
   @override
-  String insightsYearsAgo(int years) {
+  String labelInsightsYearsAgo(int years) {
     return '${years}y';
   }
 
   @override
-  String get insightsReflectionHeading => 'Weekly Reflection';
+  String get titleInsightsReflection => 'Weekly Reflection';
 
   @override
-  String get insightsReflectionPeriod => 'Period';
+  String get labelInsightsReflectionPeriod => 'Period';
 
   @override
-  String get insightsReflectionEntries => 'Entries';
+  String get labelInsightsReflectionEntries => 'Entries';
 
   @override
-  String get insightsReflectionWords => 'Words Written';
+  String get labelInsightsReflectionWords => 'Words Written';
 
   @override
-  String get insightsReflectionAverageMood => 'Average Mood';
+  String get labelInsightsReflectionAverageMood => 'Average Mood';
 
   @override
-  String get insightsReflectionTopTags => 'Top Tags';
+  String get labelInsightsReflectionTopTags => 'Top Tags';
 
   @override
-  String get insightsReflectionStreak => 'Current Streak';
+  String get labelInsightsReflectionStreak => 'Current Streak';
 
   @override
-  String insightsDateRange(String start, String end) {
+  String labelInsightsDateRange(String start, String end) {
     return '$start – $end';
   }
 
   @override
-  String insightsMoodOutOfFive(String mood) {
+  String labelInsightsMoodOutOfFive(String mood) {
     return '$mood / 5';
   }
 
   @override
-  String insightsStreakDays(int count) {
+  String labelInsightsStreakDays(int count) {
     return '$count days';
   }
 
   @override
-  String get commonClose => 'Close';
+  String get actionCommonClose => 'Close';
 
   @override
-  String get commonUnknownError => 'Unknown error';
+  String get errorCommonUnknown => 'Unknown error';
 
   @override
-  String get importTitle => 'Import Files';
+  String get titleImport => 'Import Files';
 
   @override
-  String get importSelecting => 'Importing...';
+  String get bodyImportSelecting => 'Importing...';
 
   @override
-  String get importSelectFiles => 'Select Files to Import';
+  String get actionImportSelectFiles => 'Select files';
 
   @override
-  String get importResultsHeading => 'Import Results';
+  String get titleImportResults => 'Import Results';
 
   @override
-  String get importFileSucceeded => 'Imported successfully';
+  String get labelImportFileSucceeded => 'Imported';
 
   @override
-  String importCountSucceeded(int count) {
+  String descImportCountSucceeded(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -291,282 +291,282 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get attachmentArchiveEmpty => 'This archive is empty.';
+  String get emptyAttachmentArchive => 'This archive is empty.';
 
   @override
-  String get attachmentOpenWith => 'Open with...';
+  String get descAttachmentOpenWith => 'Open with...';
 
   @override
-  String get attachmentUnsupportedTitle => 'Unsupported file type';
+  String get titleAttachmentUnsupported => 'Unsupported file';
 
   @override
-  String attachmentUnsupportedBody(String fileName) {
+  String bodyAttachmentUnsupported(String fileName) {
     return '$fileName cannot be shown inside the app.';
   }
 
   @override
-  String get attachmentPdfMissing =>
+  String get bodyAttachmentPdfMissing =>
       'The decrypted file is no longer available.';
 
   @override
-  String attachmentPdfOpenFailed(String reason) {
+  String errorAttachmentPdfOpen(String reason) {
     return 'Could not open PDF: $reason';
   }
 
   @override
-  String get autoLockTitle => 'Auto-Lock Profiles';
+  String get titleAutoLock => 'Auto-Lock Profiles';
 
   @override
-  String get autoLockNewProfile => 'New profile';
+  String get actionAutoLockNewProfile => 'New profile';
 
   @override
-  String get autoLockEditProfile => 'Edit profile';
+  String get tooltipAutoLockEditProfile => 'Edit profile';
 
   @override
-  String get autoLockEmpty =>
+  String get emptyAutoLock =>
       'No auto-lock profiles yet. Create one to lock the app after a period of inactivity.';
 
   @override
-  String get autoLockDeleteProfile => 'Delete profile';
+  String get tooltipAutoLockDeleteProfile => 'Delete profile';
 
   @override
-  String get autoLockActivate => 'Activate';
+  String get tooltipAutoLockActivate => 'Activate';
 
   @override
-  String get autoLockDeactivate => 'Deactivate';
+  String get tooltipAutoLockDeactivate => 'Deactivate';
 
   @override
-  String autoLockSummary(String timeout, String lockOnMinimize, String active) {
+  String descAutoLock(String timeout, String lockOnMinimize, String active) {
     return '$timeout$lockOnMinimize$active';
   }
 
   @override
-  String get autoLockSuffixLockOnMinimize => ' • lock on minimize';
+  String get labelAutoLockSuffixLockOnMinimize => ' • lock on minimize';
 
   @override
-  String get autoLockSuffixActive => ' • active';
+  String get labelAutoLockSuffixActive => ' • active';
 
   @override
-  String autoLockTimeoutSeconds(int seconds) {
+  String labelAutoLockTimeoutSeconds(int seconds) {
     return '${seconds}s';
   }
 
   @override
-  String autoLockTimeoutMinutes(int minutes) {
+  String labelAutoLockTimeoutMinutes(int minutes) {
     return '${minutes}m';
   }
 
   @override
-  String autoLockTimeoutHours(String hours) {
+  String labelAutoLockTimeoutHours(String hours) {
     return '${hours}h';
   }
 
   @override
-  String get autoLockNameLabel => 'Name';
+  String get labelAutoLockName => 'Name';
 
   @override
-  String get autoLockTimeoutLabel => 'Timeout (seconds)';
+  String get labelAutoLockTimeout => 'Timeout (seconds)';
 
   @override
-  String get autoLockLockOnMinimize => 'Lock on minimize';
+  String get labelAutoLockLockOnMinimize => 'Lock on minimize';
 
   @override
-  String get autoLockNameRequired => 'Name is required.';
+  String get errorAutoLockName => 'Name is required.';
 
   @override
-  String get autoLockTimeoutInvalid => 'Timeout must be a positive integer.';
+  String get errorAutoLockTimeout => 'Timeout must be a positive integer.';
 
   @override
-  String get securityEventsTitle => 'Security Events';
+  String get titleSecurityEvents => 'Security Events';
 
   @override
-  String get securityEventsEmpty => 'No security events recorded';
+  String get emptySecurityEvents => 'No security events recorded';
 
   @override
-  String get securityEventDetailsTitle => 'Event Details';
+  String get titleSecurityEventDetails => 'Event Details';
 
   @override
-  String get syncConflictsTitle => 'Sync Conflicts';
+  String get titleSyncConflicts => 'Sync Conflicts';
 
   @override
-  String syncConflictsLoadFailed(String error) {
+  String errorSyncConflictsLoad(String error) {
     return 'Failed to load conflicts:\n$error';
   }
 
   @override
-  String get syncNoConflicts => 'No pending conflicts';
+  String get emptySyncNoConflicts => 'No pending conflicts';
 
   @override
-  String get syncAllInSync => 'All data is in sync.';
+  String get emptySyncAllInSync => 'All data is in sync.';
 
   @override
-  String syncDetectedAt(String timestamp) {
+  String labelSyncDetectedAt(String timestamp) {
     return 'Detected: $timestamp';
   }
 
   @override
-  String get syncChangedFields => 'Changed fields:';
+  String get titleSyncChangedFields => 'Changed fields:';
 
   @override
-  String get syncCompare => 'Compare';
+  String get actionSyncCompare => 'Compare';
 
   @override
-  String get syncKeepRemote => 'Keep Remote';
+  String get actionSyncKeepRemote => 'Keep Remote';
 
   @override
-  String get syncKeepLocal => 'Keep Local';
+  String get actionSyncKeepLocal => 'Keep Local';
 
   @override
-  String get syncKeepLocalTitle => 'Keep local version?';
+  String get bodySyncKeepLocal => 'Keep local version?';
 
   @override
-  String get syncKeepRemoteTitle => 'Keep remote version?';
+  String get bodySyncKeepRemote => 'Keep remote version?';
 
   @override
-  String get syncKeepLocalBody =>
+  String get bodySyncKeepLocalBody =>
       'The remote changes will be discarded. Your local version will be pushed on next sync.';
 
   @override
-  String get syncKeepRemoteBody =>
+  String get bodySyncKeepRemoteBody =>
       'Your local changes will be overwritten with the remote version.';
 
   @override
-  String get commonConfirm => 'Confirm';
+  String get bodyCommon => 'Confirm';
 
   @override
-  String get syncConflictResolved => 'Conflict resolved.';
+  String get bodySyncConflictResolved => 'Conflict resolved.';
 
   @override
-  String syncResolutionFailed(String error) {
+  String errorSyncResolution(String error) {
     return 'Resolution failed: $error';
   }
 
   @override
-  String get syncConflictDetailsTitle => 'Conflict Details';
+  String get titleSyncConflictDetails => 'Conflict Details';
 
   @override
-  String get syncColumnField => 'Field';
+  String get titleSyncColumnField => 'Field';
 
   @override
-  String get syncColumnLocal => 'Local';
+  String get titleSyncColumnLocal => 'Local';
 
   @override
-  String get syncColumnRemote => 'Remote';
+  String get titleSyncColumnRemote => 'Remote';
 
   @override
-  String get syncHealthHeading => 'Sync Health';
+  String get titleSyncHealth => 'Sync Health';
 
   @override
-  String get syncLastSync => 'Last sync';
+  String get labelSyncLastSync => 'Last sync';
 
   @override
-  String get syncFailures7d => 'Failures (7d)';
+  String get errorSyncFailures7d => 'Failures (7d)';
 
   @override
-  String get syncPendingConflicts => 'Pending conflicts';
+  String get labelSyncPendingConflicts => 'Pending conflicts';
 
   @override
-  String get commonLoading => 'Loading...';
+  String get bodyCommonLoading => 'Loading...';
 
   @override
-  String get commonErrorShort => 'Error';
+  String get errorCommonErrorShort => 'Error';
 
   @override
-  String get commonEllipsis => '...';
+  String get bodyCommonEllipsis => '...';
 
   @override
-  String get syncNever => 'Never';
+  String get labelSyncNever => 'Never';
 
   @override
-  String syncResolveCount(int count) {
+  String actionSyncResolveCount(int count) {
     return 'Resolve ($count)';
   }
 
   @override
-  String get syncNow => 'Sync Now';
+  String get actionSyncNow => 'Sync Now';
 
   @override
-  String get syncRecentActivity => 'Recent Activity';
+  String get titleSyncRecentActivity => 'Recent Activity';
 
   @override
-  String syncLogsLoadFailed(String error) {
+  String errorSyncLogsLoad(String error) {
     return 'Failed to load logs: $error';
   }
 
   @override
-  String get syncNoActivity => 'No sync activity yet.';
+  String get emptySyncNoActivity => 'No sync activity yet.';
 
   @override
-  String get syncStatusIdle => 'Idle';
+  String get labelSyncStatusIdle => 'Idle';
 
   @override
-  String get syncStatusSyncing => 'Syncing changes...';
+  String get descSyncStatusSyncing => 'Syncing changes...';
 
   @override
-  String get syncStatusHealthy => 'Healthy';
+  String get labelSyncStatusHealthy => 'Healthy';
 
   @override
-  String get syncStatusFailed => 'Failed';
+  String get errorSyncStatus => 'Failed';
 
   @override
-  String get syncStatusConflicts => 'Conflicts';
+  String get labelSyncStatusConflicts => 'Conflicts';
 
   @override
-  String get syncLogFailed => 'Sync failed';
+  String get errorSyncLog => 'Sync failed';
 
   @override
-  String syncLogPushed(int count) {
+  String labelSyncLogPushed(int count) {
     return '$count pushed';
   }
 
   @override
-  String syncLogPulled(int count) {
+  String labelSyncLogPulled(int count) {
     return '$count pulled';
   }
 
   @override
-  String syncLogConflicts(int count) {
+  String labelSyncLogConflicts(int count) {
     return '$count conflicts';
   }
 
   @override
-  String get syncLogNoChanges => 'No changes';
+  String get labelSyncLogNoChanges => 'No changes';
 
   @override
-  String get commonRefresh => 'Refresh';
+  String get tooltipCommonRefresh => 'Refresh';
 
   @override
-  String get backupTitle => 'Backup Health';
+  String get titleBackup => 'Backup Health';
 
   @override
-  String get backupNow => 'Backup Now';
+  String get actionBackupNow => 'Backup Now';
 
   @override
-  String get backupInProgressLabel => 'Backing up...';
+  String get bodyBackupInProgress => 'Backing up...';
 
   @override
-  String get backupHistoryHeading => 'Backup History';
+  String get titleBackupHistory => 'Backup History';
 
   @override
-  String get backupStatusHeading => 'Backup Status';
+  String get titleBackupStatus => 'Backup Status';
 
   @override
-  String get backupNoneYet => 'No successful backups yet';
+  String get bodyBackupNoneYet => 'No successful backups yet';
 
   @override
-  String get backupLastBackup => 'Last backup';
+  String get labelBackupLastBackup => 'Last backup';
 
   @override
-  String get backupEntries => 'Entries';
+  String get labelBackupEntries => 'Entries';
 
   @override
-  String get backupAttachments => 'Attachments';
+  String get labelBackupAttachments => 'Attachments';
 
   @override
-  String get backupSize => 'Size';
+  String get labelBackupSize => 'Size';
 
   @override
-  String backupRecentFailures(int count) {
+  String errorBackupRecentFailures(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -577,453 +577,450 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get backupScheduleHeading => 'Auto-Backup Schedule';
+  String get titleBackupSchedule => 'Auto-Backup Schedule';
 
   @override
-  String backupScheduled(String interval) {
+  String labelBackupScheduled(String interval) {
     return 'Scheduled: $interval';
   }
 
   @override
-  String get backupNotScheduled => 'Not scheduled';
+  String get bodyBackupNotScheduled => 'Not scheduled';
 
   @override
-  String get backupTimerActive => 'Active';
+  String get labelBackupTimerActive => 'Active';
 
   @override
-  String get backupTimerInactive => 'Inactive';
+  String get labelBackupTimerInactive => 'Inactive';
 
   @override
-  String get backupLastScheduledRun => 'Last scheduled run';
+  String get labelBackupLastScheduledRun => 'Last scheduled run';
 
   @override
-  String get backupDisable => 'Disable';
+  String get actionBackupDisable => 'Disable';
 
   @override
-  String get backupConfigure => 'Configure';
+  String get actionBackupConfigure => 'Configure';
 
   @override
-  String get backupChange => 'Change';
+  String get actionBackupChange => 'Change';
 
   @override
-  String get backupConfigureHeading => 'Configure Schedule';
+  String get titleBackupConfigure => 'Configure Schedule';
 
   @override
-  String get backupIntervalLabel => 'Interval';
+  String get labelBackupInterval => 'Interval';
 
   @override
-  String get backupIntervalDaily => 'Daily';
+  String get labelBackupIntervalDaily => 'Daily';
 
   @override
-  String get backupIntervalWeekly => 'Weekly';
+  String get labelBackupIntervalWeekly => 'Weekly';
 
   @override
-  String get backupIntervalMonthly => 'Monthly';
+  String get labelBackupIntervalMonthly => 'Monthly';
 
   @override
-  String get backupPasswordLabel => 'Backup encryption password';
+  String get labelBackupPassword => 'Backup password';
 
   @override
-  String get backupPasswordHelper => 'Required for encrypted backups';
+  String get labelBackupPasswordHelper => 'Needed to encrypt';
 
   @override
-  String get backupNoHistory => 'No backup history';
+  String get emptyBackupNoHistory => 'No backup history';
 
   @override
-  String backupHistoryLoadFailed(String error) {
+  String errorBackupHistoryLoad(String error) {
     return 'Error loading history: $error';
   }
 
   @override
-  String backupLogTitle(String trigger, String status) {
+  String titleBackupLog(String trigger, String status) {
     return '$trigger backup — $status';
   }
 
   @override
-  String get backupTriggerManual => 'Manual';
+  String get labelBackupTriggerManual => 'Manual';
 
   @override
-  String get backupTriggerScheduled => 'Scheduled';
+  String get labelBackupTriggerScheduled => 'Scheduled';
 
   @override
-  String get backupStatusSuccess => 'Success';
+  String get labelBackupStatusSuccess => 'Success';
 
   @override
-  String get backupStatusFailed => 'Failed';
+  String get errorBackupStatus => 'Failed';
 
   @override
-  String get backupStatusInProgress => 'In progress';
+  String get labelBackupStatusInProgress => 'In progress';
 
   @override
-  String backupLogCounts(int entries, int attachments, String size) {
+  String descBackupLogCounts(int entries, int attachments, String size) {
     return '$entries entries, $attachments attachments, $size';
   }
 
   @override
-  String get backupInProgressNote => 'In progress...';
+  String get bodyBackupInProgressNote => 'In progress...';
 
   @override
-  String get backupSucceeded => 'Backup completed successfully';
+  String get labelBackupSucceeded => 'Backup complete';
 
   @override
-  String backupFailed(String error) {
+  String errorBackup(String error) {
     return 'Backup failed: $error';
   }
 
   @override
-  String get backupPasswordTitle => 'Backup Password';
+  String get titleBackupPassword => 'Backup Password';
 
   @override
-  String get backupPasswordEnter => 'Enter encryption password';
+  String get labelBackupPasswordEnter => 'Enter password';
 
   @override
-  String get backupAction => 'Backup';
+  String get actionBackup => 'Backup';
 
   @override
-  String get backupPasswordRequired => 'Password is required';
+  String get errorBackupPassword => 'Password is required';
 
   @override
-  String get backupScheduleSaved => 'Backup schedule saved';
+  String get labelBackupScheduleSaved => 'Schedule saved';
 
   @override
-  String get backupScheduleDisabled => 'Backup schedule disabled';
+  String get labelBackupScheduleDisabled => 'Schedule turned off';
 
   @override
-  String backupBytes(int bytes) {
+  String labelBackupBytes(int bytes) {
     return '$bytes B';
   }
 
   @override
-  String backupKilobytes(String size) {
+  String labelBackupKilobytes(String size) {
     return '$size KB';
   }
 
   @override
-  String backupMegabytes(String size) {
+  String labelBackupMegabytes(String size) {
     return '$size MB';
   }
 
   @override
-  String get commonRestore => 'Restore';
+  String get actionCommonRestore => 'Restore';
 
   @override
-  String get commonInsert => 'Insert';
+  String get actionCommonInsert => 'Insert';
 
   @override
-  String get commonContinue => 'Continue';
+  String get actionCommonContinue => 'Continue';
 
   @override
-  String get commonOpenSystemSettings => 'Open system settings';
+  String get actionCommonOpenSystemSettings => 'Open system settings';
 
   @override
-  String get editorCalloutHint => 'Enter callout text...';
+  String get descEditorCallout => 'Enter callout text...';
 
   @override
-  String get editorInsertTab => 'Insert tab';
+  String get tabEditorInsert => 'Insert tab';
 
   @override
-  String get editorInsertTable => 'Insert table';
+  String get tooltipEditorInsertTable => 'Insert table';
 
   @override
-  String get editorInsertCallout => 'Insert callout';
+  String get tooltipEditorInsertCallout => 'Insert callout';
 
   @override
-  String get editorInsertImage => 'Insert image';
+  String get tooltipEditorInsertImage => 'Insert image';
 
   @override
-  String get editorImageSize => 'Image size';
+  String get tooltipEditorImageSize => 'Image size';
 
   @override
-  String get editorImageSizeSmall => 'Small';
+  String get labelEditorImageSizeSmall => 'Small';
 
   @override
-  String get editorImageSizeMedium => 'Medium';
+  String get labelEditorImageSizeMedium => 'Medium';
 
   @override
-  String get editorImageSizeFull => 'Full width';
+  String get labelEditorImageSizeFull => 'Full width';
 
   @override
-  String get editorRemoveImage => 'Remove image from the entry';
+  String get tooltipEditorRemoveImage => 'Remove image';
 
   @override
-  String get editorImageUnavailable => 'Image unavailable';
+  String get labelEditorImageUnavailable => 'Image unavailable';
 
   @override
-  String get editorMicPermissionDenied => 'Microphone permission denied';
+  String get bodyEditorMicPermissionDenied => 'Microphone permission denied';
 
   @override
-  String get editorDiscard => 'Discard';
+  String get actionEditorDiscard => 'Discard';
 
   @override
-  String get editorDone => 'Done';
+  String get actionEditorDone => 'Done';
 
   @override
-  String get versionHistoryTitle => 'Version history';
+  String get titleVersionHistory => 'Version history';
 
   @override
-  String versionHistoryLoadFailed(String error) {
+  String errorVersionHistoryLoad(String error) {
     return 'Error loading revisions: $error';
   }
 
   @override
-  String get versionRestoreTitle => 'Restore this version?';
+  String get bodyVersionRestore => 'Restore this version?';
 
   @override
-  String get versionRestored => 'Version restored';
+  String get labelVersionRestored => 'Version restored';
 
   @override
-  String get versionPreview => 'Preview';
+  String get tooltipVersionPreview => 'Preview';
 
   @override
-  String get versionRestoreTooltip => 'Restore this version';
+  String get tooltipVersionRestore => 'Restore this version';
 
   @override
-  String versionPreviewTitle(String title) {
+  String titleVersionPreview(String title) {
     return 'Preview: $title';
   }
 
   @override
-  String get entrySaved => 'Entry saved';
+  String get labelEntrySaved => 'Entry saved';
 
   @override
-  String get entryDeleteTitle => 'Delete entry?';
+  String get bodyEntryDelete => 'Delete entry?';
 
   @override
-  String get entryDeleteBody => 'This will permanently remove the entry.';
+  String get bodyEntryDeleteBody => 'This will permanently remove the entry.';
 
   @override
-  String get entryTableRows => 'Rows';
+  String get labelEntryTableRows => 'Rows';
 
   @override
-  String get entryTableColumns => 'Columns';
+  String get labelEntryTableColumns => 'Columns';
 
   @override
-  String get entryTableDimensionHelp => '1–20';
+  String get labelEntryTableDimensionHelp => '1–20';
 
   @override
-  String get entryCalloutTypeTitle => 'Callout type';
+  String get titleEntryCalloutType => 'Callout type';
 
   @override
-  String get entryCalloutInfo => 'Info';
+  String get labelEntryCalloutInfo => 'Info';
 
   @override
-  String get entryCalloutTip => 'Tip';
+  String get labelEntryCalloutTip => 'Tip';
 
   @override
-  String get entryCalloutWarning => 'Warning';
+  String get bodyEntryCallout => 'Warning';
 
   @override
-  String get entryCalloutImportant => 'Important';
+  String get labelEntryCalloutImportant => 'Important';
 
   @override
-  String entryVoiceNoteSaved(String seconds) {
+  String labelEntryVoiceNoteSaved(String seconds) {
     return 'Voice note saved (${seconds}s)';
   }
 
   @override
-  String get entryEditTitle => 'Edit entry';
+  String get titleEntryEdit => 'Edit entry';
 
   @override
-  String get entryEditTitleDirty => 'Edit entry •';
+  String get titleEntryEditTitleDirty => 'Edit entry •';
 
   @override
-  String get entryVersionHistoryTooltip => 'Version history';
+  String get tooltipEntryVersionHistory => 'Version history';
 
   @override
-  String get entryDeleteTooltip => 'Delete entry';
+  String get tooltipEntryDelete => 'Delete entry';
 
   @override
-  String get entrySaveTooltip => 'Save';
+  String get tooltipEntrySave => 'Save';
 
   @override
-  String get entryNoUnsavedChanges => 'No unsaved changes';
+  String get tooltipEntryNoUnsavedChanges => 'No unsaved changes';
 
   @override
-  String get entryTitleLabel => 'Title';
+  String get labelEntryTitle => 'Title';
 
   @override
-  String get entryPermissionTitle => 'Allow attachment import?';
+  String get bodyEntryPermission => 'Allow attachment import?';
 
   @override
-  String get entryPermissionBody =>
+  String get bodyEntryPermissionBody =>
       'This app needs permission to access your files.';
 
   @override
-  String get entryPermissionBlockedTitle => 'Attachment access blocked';
+  String get titleEntryPermissionBlocked => 'Access blocked';
 
   @override
-  String get entryPermissionBlockedBody =>
+  String get bodyEntryPermissionBlocked =>
       'Permission was permanently denied. Please enable it in system settings.';
 
   @override
-  String get entryNotAnImage =>
+  String get bodyEntryNotAnImage =>
       'That file is not an image. Add it as an attachment instead.';
 
   @override
-  String get entryImageAddFailed => 'Could not add that image.';
+  String get errorEntryImageAdd => 'Could not add that image.';
 
   @override
-  String get entryAddAttachment => 'Add attachment';
+  String get tooltipEntryAddAttachment => 'Add attachment';
 
   @override
-  String get entryRecordVoiceNote => 'Record voice note';
+  String get tooltipEntryRecordVoiceNote => 'Record voice note';
 
   @override
-  String get entryLinkedFrom => 'Linked from';
+  String get titleEntryLinkedFrom => 'Linked from';
 
   @override
-  String get entryMoodTooltip => 'Set mood';
+  String get tooltipEntryMood => 'Set mood';
 
   @override
-  String get entryMood => 'Mood';
+  String get titleEntryMood => 'Mood';
 
   @override
-  String entryMoodChip(String face, int level) {
+  String labelEntryMood(String face, int level) {
     return '$face $level';
   }
 
   @override
-  String get entryAuthRequired => 'Authentication required.';
+  String get errorEntryAuth => 'Authentication required.';
 
   @override
-  String get attachmentOpenNoApp => 'No compatible app found';
+  String get bodyAttachmentOpenNoApp => 'No compatible app found';
 
   @override
-  String get attachmentOpenDecryptFailed => 'Could not decrypt attachment';
+  String get errorAttachmentOpenDecrypt => 'Could not decrypt attachment';
 
   @override
-  String get attachmentOpenFileMissing => 'Attachment file is missing';
+  String get bodyAttachmentOpenFileMissing => 'Attachment file is missing';
 
   @override
-  String get attachmentOpenPermissionDenied =>
+  String get bodyAttachmentOpenPermissionDenied =>
       'Permission required to open attachment';
 
   @override
-  String get entryAttachments => 'Attachments';
+  String get titleEntryAttachments => 'Attachments';
 
   @override
-  String get entryRemoveAttachmentLock => 'Remove attachment lock';
+  String get tooltipEntryRemoveAttachmentLock => 'Remove lock';
 
   @override
-  String get entryLockAttachment => 'Lock attachment';
+  String get tooltipEntryLockAttachment => 'Lock attachment';
 
   @override
-  String get entryOpenAttachment => 'Open attachment';
+  String get tooltipEntryOpenAttachment => 'Open attachment';
 
   @override
-  String get versionRestoreBody =>
+  String get bodyVersionRestoreBody =>
       'Your current content will be saved as a new version before restoring.';
 
   @override
-  String get commonUnlock => 'Unlock';
+  String get actionCommonUnlock => 'Unlock';
 
   @override
-  String get commonPassword => 'Password';
+  String get labelCommonPassword => 'Password';
 
   @override
-  String get commonSaving => 'Saving...';
+  String get bodyCommonSaving => 'Saving...';
 
   @override
-  String get lockSetupTitle => 'Set up app lock';
+  String get titleLockSetup => 'Set up app lock';
 
   @override
-  String get lockSetupBody =>
+  String get bodyLockSetup =>
       'Choose how SreerajP Journal Vault should lock when it is sent to the background.';
 
   @override
-  String get lockModePhone => 'Phone Lock';
+  String get labelLockModePhone => 'Phone Lock';
 
   @override
-  String get lockModePhoneHint =>
+  String get descLockModePhone =>
       'Use the device biometric or PIN/pattern/password.';
 
   @override
-  String get lockModeApp => 'Separate App Lock';
+  String get labelLockModeApp => 'Separate App Lock';
 
   @override
-  String get lockModeAppHint =>
+  String get descLockModeApp =>
       'Use a dedicated PIN that is verified inside the app.';
 
   @override
-  String get lockPinLabel => 'PIN';
+  String get labelLockPin => 'PIN';
 
   @override
-  String get lockConfirmPinLabel => 'Confirm PIN';
+  String get labelLockConfirmPin => 'Confirm PIN';
 
   @override
-  String get lockSettingUp => 'Setting up...';
+  String get bodyLockSettingUp => 'Setting up...';
 
   @override
-  String get lockPinTooShort => 'PIN must be at least 4 characters.';
+  String get errorLockPin => 'PIN must be at least 4 characters.';
 
   @override
-  String get lockPinsDoNotMatch => 'PINs do not match.';
+  String get bodyLockPinsDoNotMatch => 'PINs do not match.';
 
   @override
-  String lockSetupSaveFailed(String error) {
+  String errorLockSetupSave(String error) {
     return 'Could not save lock setup: $error';
   }
 
   @override
-  String lockPinSaveFailed(String error) {
+  String errorLockPinSave(String error) {
     return 'Could not save PIN: $error';
   }
 
   @override
-  String get lockPinSetupTitle => 'Set app-lock PIN';
+  String get titleLockPinSetup => 'Set app-lock PIN';
 
   @override
-  String get lockPinSetupBody =>
+  String get bodyLockPinSetup =>
       'Separate App Lock requires a PIN. Set one to continue.';
 
   @override
-  String get lockGateTitle => 'App Lock Gate';
+  String get labelLockGateHeadline => 'Journal is locked';
 
   @override
-  String get lockGateHeadline => 'Your journal is locked';
+  String get descLockGate => 'Unlock to open your entries.';
 
   @override
-  String get lockGateSubtitle => 'Unlock to open your entries.';
+  String get tooltipLockGateShowPin => 'Show PIN';
 
   @override
-  String get lockGateShowPin => 'Show PIN';
+  String get tooltipLockGateHidePin => 'Hide PIN';
 
   @override
-  String get lockGateHidePin => 'Hide PIN';
+  String get labelLockGateBadge => 'Locked';
 
   @override
-  String get lockGateBadgeSemantics => 'Locked';
+  String get actionLockUnlockWithPhone => 'Use phone lock';
 
   @override
-  String get lockUnlockWithPhone => 'Unlock with Phone Lock';
+  String get errorLockAuth => 'Authentication failed. Please try again.';
 
   @override
-  String get lockAuthFailed => 'Authentication failed. Please try again.';
-
-  @override
-  String get lockAuthUnavailable =>
+  String get bodyLockAuthUnavailable =>
       'Device authentication is not available. Configure a PIN/biometric in system settings.';
 
   @override
-  String get lockEnterPin => 'Enter your PIN.';
+  String get bodyLockEnterPin => 'Enter your PIN.';
 
   @override
-  String get lockIncorrectPin => 'Incorrect PIN.';
+  String get bodyLockIncorrectPin => 'Incorrect PIN.';
 
   @override
-  String get lockedAttachmentsTitle => 'Attachment-Level Lock';
+  String get titleLockedAttachments => 'Locked attachments';
 
   @override
-  String get lockedAttachmentsEmpty =>
+  String get emptyLockedAttachments =>
       'No attachments are locked yet. Open an entry and use the lock button on an attachment to require re-authentication before opening it.';
 
   @override
-  String lockedAttachmentSince(String date) {
+  String labelLockedAttachmentSince(String date) {
     return 'Locked $date';
   }
 
   @override
-  String get lockedAttachmentRemove => 'Remove lock';
+  String get actionLockedAttachmentRemove => 'Remove lock';
 
   @override
   String get navHome => 'Home';
@@ -1041,797 +1038,784 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navSettings => 'Settings';
 
   @override
-  String get journalDeleteTitle => 'Delete journal?';
+  String get bodyJournalDelete => 'Delete journal?';
 
   @override
-  String journalDeleteBody(String title) {
+  String bodyJournalDeleteBody(String title) {
     return 'Delete \"$title\"?';
   }
 
   @override
-  String get journalManageTags => 'Manage tags';
+  String get tooltipJournalManageTags => 'Manage tags';
 
   @override
-  String get journalNew => 'New journal';
+  String get tooltipJournalNew => 'New journal';
 
   @override
-  String get journalEdit => 'Edit journal';
+  String get tooltipJournalEdit => 'Edit journal';
 
   @override
-  String get journalDelete => 'Delete journal';
+  String get tooltipJournalDelete => 'Delete journal';
 
   @override
-  String get journalEmptyTitle => 'No journals yet';
+  String get emptyJournal => 'No journals yet';
 
   @override
-  String get journalEmptyBody => 'Tap “New journal” to start writing.';
+  String get emptyJournalEmptyBody => 'Tap “New journal” to start writing.';
 
   @override
-  String get journalTitleLabel => 'Title';
+  String get labelJournalTitle => 'Title';
 
   @override
-  String get journalDescriptionLabel => 'Description';
+  String get labelJournalDescription => 'Description';
 
   @override
-  String get journalTagsLabel => 'Tags (comma separated)';
+  String get labelJournalTags => 'Comma-separated tags';
 
   @override
-  String get journalLockSwitch => 'Lock journal';
+  String get labelJournalLockSwitch => 'Lock journal';
 
   @override
-  String get journalConfirmPasswordLabel => 'Confirm password';
+  String get labelJournalConfirmPassword => 'Confirm password';
 
   @override
-  String get journalAddEntry => 'Add entry';
+  String get actionJournalAddEntry => 'Add entry';
 
   @override
-  String get journalIsLocked => 'Journal is locked';
+  String get labelJournalIsLocked => 'Journal is locked';
 
   @override
-  String get journalUnlocked => 'Unlocked';
+  String get labelJournalUnlocked => 'Unlocked';
 
   @override
-  String get journalIncorrectPassword => 'Incorrect password.';
+  String get bodyJournalIncorrectPassword => 'Incorrect password.';
 
   @override
-  String get settingsSectionSecurity => 'Security';
+  String get titleSettingsSectionSecurity => 'Security';
 
   @override
-  String get settingsSectionSecuritySubtitle =>
+  String get descSettingsSectionSecurity =>
       'Lock mode, auto-lock, screenshots and security events';
 
   @override
-  String get settingsSectionAppearance => 'Appearance';
+  String get titleSettingsSectionAppearance => 'Appearance';
 
   @override
-  String get settingsSectionAppearanceSubtitle => 'Theme and how the app looks';
+  String get descSettingsSectionAppearance => 'Theme and how the app looks';
 
   @override
-  String get settingsSectionStorage => 'Storage';
+  String get titleSettingsSectionStorage => 'Storage';
 
   @override
-  String get settingsSectionStorageSubtitle =>
+  String get descSettingsSectionStorage =>
       'Attachment location, usage, backup and import';
 
   @override
-  String get settingsSectionPermissions => 'Permissions';
+  String get titleSettingsSectionPermissions => 'Permissions';
 
   @override
-  String get settingsSectionPermissionsSubtitle =>
-      'What the app is allowed to use';
+  String get descSettingsSectionPermissions => 'What the app is allowed to use';
 
   @override
-  String get settingsSectionAbout => 'About';
+  String get titleSettingsSectionAbout => 'About';
 
   @override
-  String get settingsSectionAboutSubtitle =>
-      'Version, licences and app details';
+  String get descSettingsSectionAbout => 'Version, licences and app details';
 
   @override
-  String get settingsAppLockMode => 'App Lock Mode';
+  String get labelSettingsAppLockMode => 'App Lock Mode';
 
   @override
-  String get settingsAutoLockTimeout => 'Auto-Lock Timeout';
+  String get labelSettingsAutoLockTimeout => 'Auto-Lock Timeout';
 
   @override
-  String get settingsScreenSecurity => 'Block Screenshots';
+  String get labelSettingsScreenSecurity => 'Block Screenshots';
 
   @override
-  String get settingsScreenSecuritySubtitle =>
+  String get descSettingsScreenSecurity =>
       'Stops screenshots, screen recording and the preview shown in the recent apps list';
 
   @override
-  String get settingsScreenSecurityOffTitle => 'Turn off screenshot blocking?';
+  String get bodySettingsScreenSecurityOff => 'Turn off screenshot blocking?';
 
   @override
-  String get settingsScreenSecurityOffBody =>
+  String get bodySettingsScreenSecurityOffBody =>
       'Anyone taking a screenshot or recording the screen will be able to capture your journal content. The recent apps list will also show your last screen. You can turn this back on at any time.';
 
   @override
-  String get settingsScreenSecurityOffAction => 'Turn Off';
+  String get actionSettingsScreenSecurityOff => 'Turn Off';
 
   @override
-  String get settingsScreenSecurityUpdatedOn => 'Screenshot blocking is on';
+  String get bodySettingsScreenSecurityUpdatedOn => 'Screenshot blocking is on';
 
   @override
-  String get settingsScreenSecurityUpdatedOff => 'Screenshot blocking is off';
+  String get bodySettingsScreenSecurityUpdatedOff =>
+      'Screenshot blocking is off';
 
   @override
-  String get settingsScreenSecuritySaveFailed =>
+  String get errorSettingsScreenSecuritySave =>
       'Could not change screenshot blocking';
 
   @override
-  String get settingsTamperAlerts => 'Tamper Alerts';
+  String get labelSettingsTamperAlerts => 'Tamper Alerts';
 
   @override
-  String get settingsSyncConflicts => 'Sync Conflicts';
+  String get labelSettingsSyncConflicts => 'Sync Conflicts';
 
   @override
-  String get settingsSecurityEvents => 'Security Events';
+  String get labelSettingsSecurityEvents => 'Security Events';
 
   @override
-  String get settingsTheme => 'Theme';
+  String get labelSettingsThemeLight => 'Light';
 
   @override
-  String get settingsThemeSubtitle =>
-      'Choose how SreerajP_Journal_Vault looks.';
+  String get labelSettingsThemeDark => 'Dark';
 
   @override
-  String get settingsThemeLight => 'Light';
+  String get labelSettingsThemeSystem => 'System';
 
   @override
-  String get settingsThemeDark => 'Dark';
+  String get bodySettingsSwitchLock => 'Switch lock mode?';
 
   @override
-  String get settingsThemeSystem => 'System';
-
-  @override
-  String get settingsAbout => 'About this app';
-
-  @override
-  String get settingsComingSoon => 'Coming soon';
-
-  @override
-  String get settingsSwitchLockTitle => 'Switch lock mode?';
-
-  @override
-  String settingsSwitchLockBody(String enabled, String disabled) {
+  String bodySettingsSwitchLockBody(String enabled, String disabled) {
     return 'This will switch app protection to $enabled and disable $disabled. Continue?';
   }
 
   @override
-  String get settingsSwitchAction => 'Switch';
+  String get actionSettingsSwitch => 'Switch';
 
   @override
-  String settingsLockModeUpdated(String mode) {
+  String descSettingsLockModeUpdated(String mode) {
     return 'Lock mode updated: $mode is now active.';
   }
 
   @override
-  String get settingsThemeSaveFailed =>
+  String get errorSettingsThemeSave =>
       'Could not save theme setting. Please try again.';
 
   @override
-  String settingsThemeUpdated(String mode) {
+  String descSettingsThemeUpdated(String mode) {
     return 'Theme updated: $mode mode is now active.';
   }
 
   @override
-  String get storageMigrateTitle => 'Migrate attachments?';
+  String get bodyStorageMigrate => 'Migrate attachments?';
 
   @override
-  String storageMigrateBody(String target) {
+  String bodyStorageMigrateBody(String target) {
     return 'All attachments will be moved to $target.';
   }
 
   @override
-  String get storageMigrateAction => 'Migrate';
+  String get actionStorageMigrate => 'Migrate';
 
   @override
-  String get storageMigrationCancelled => 'Migration cancelled.';
+  String get bodyStorageMigrationCancelled => 'Migration cancelled.';
 
   @override
-  String storageMigrationFailed(String error) {
+  String errorStorageMigration(String error) {
     return 'Migration failed: $error';
   }
 
   @override
-  String get storageMigrationComplete => 'Migration complete.';
+  String get bodyStorageMigrationComplete => 'Migration complete.';
 
   @override
-  String get storageLocationTitle => 'Attachment Storage Location';
+  String get titleStorageLocation => 'Storage location';
 
   @override
-  String get storageLocationDialogTitle => 'Storage location';
+  String get titleStorageLocationDialogTitle => 'Storage location';
 
   @override
-  String get storageAppPrivate => 'App Private';
+  String get labelStorageAppPrivate => 'App Private';
 
   @override
-  String get storageSdCard => 'SD Card';
+  String get labelStorageSdCard => 'SD Card';
 
   @override
-  String storageSdCardNamed(String label) {
+  String labelStorageSdCardNamed(String label) {
     return 'SD Card ($label)';
   }
 
   @override
-  String get storageMigrateRow => 'Migrate Storage';
+  String get labelStorageMigrateRow => 'Migrate Storage';
 
   @override
-  String get storageMigrationIdle => 'Idle';
+  String get labelStorageMigrationIdle => 'Idle';
 
   @override
-  String storageMigrationRunning(int processed, int total) {
+  String descStorageMigrationRunning(int processed, int total) {
     return 'Migrating $processed of $total…';
   }
 
   @override
-  String get storageMigrationFailedShort => 'Migration failed.';
+  String get descStorageMigrationFailedShort => 'Migration failed.';
 
   @override
-  String get storageUsage => 'Storage Usage';
+  String get labelStorageUsage => 'Storage Usage';
 
   @override
-  String get storageUnknown => '—';
+  String get bodyStorageUnknown => '—';
 
   @override
-  String get storageBackupHealth => 'Backup Health';
+  String get labelStorageBackupHealth => 'Backup Health';
 
   @override
-  String get storageImportData => 'Import Data';
+  String get labelStorageImportData => 'Import Data';
 
   @override
-  String get storageSyncHealth => 'Sync Health';
+  String get titleStorageSyncHealth => 'Sync Health';
 
   @override
-  String get storageImportNeedsJournal =>
+  String get bodyStorageImportNeedsJournal =>
       'Create a journal first to import into.';
 
   @override
-  String get storageImportChooseJournal => 'Import into journal';
+  String get titleStorageImportChooseJournal => 'Import into journal';
 
   @override
-  String storageBytes(int bytes) {
+  String labelStorageBytes(int bytes) {
     return '$bytes B';
   }
 
   @override
-  String storageKilobytes(String size) {
+  String labelStorageKilobytes(String size) {
     return '$size KB';
   }
 
   @override
-  String storageMegabytes(String size) {
+  String labelStorageMegabytes(String size) {
     return '$size MB';
   }
 
   @override
-  String storageGigabytes(String size) {
+  String labelStorageGigabytes(String size) {
     return '$size GB';
   }
 
   @override
-  String get migrationDialogTitle => 'Migrating attachments';
+  String get titleMigration => 'Moving attachments';
 
   @override
-  String get migrationCancelling => 'Cancelling…';
+  String get bodyMigrationCancelling => 'Cancelling…';
 
   @override
-  String migrationProgress(String processed, String total) {
+  String labelMigrationProgress(String processed, String total) {
     return '$processed of $total';
   }
 
   @override
-  String get migrationUnknownTotal => '?';
+  String get descMigrationUnknownTotal => '?';
 
   @override
-  String get permissionStatusRow => 'Permission Status';
+  String get labelPermissionStatusRow => 'Permission Status';
 
   @override
-  String get permissionsManage => 'Manage Permissions';
+  String get labelPermissionsManage => 'Manage Permissions';
 
   @override
-  String get permissionsOpenSystem => 'Open System Settings';
+  String get labelPermissionsOpenSystem => 'Open System Settings';
 
   @override
-  String permissionsGrantedSummary(int granted, int total) {
+  String descPermissionsGranted(int granted, int total) {
     return '$granted of $total granted';
   }
 
   @override
-  String get searchHint => 'Search journals & entries...';
+  String get descSearch => 'Search journals & entries...';
 
   @override
-  String get searchTypeToSearch => 'Type to search';
+  String get actionSearchTypeToSearch => 'Type to search';
 
   @override
-  String get searchNoFilterMatches => 'No matches found for this filter.';
+  String get bodySearchNoFilterMatches => 'No matches found for this filter.';
 
   @override
-  String get searchNoResults => 'No results found';
+  String get emptySearch => 'No results found';
 
   @override
-  String get searchSectionJournals => 'Journals';
+  String get titleSearchSectionJournals => 'Journals';
 
   @override
-  String get searchSectionEntries => 'Entries';
+  String get titleSearchSectionEntries => 'Entries';
 
   @override
-  String get searchSavePresetTitle => 'Save search preset';
+  String get titleSearchSavePreset => 'Save search preset';
 
   @override
-  String get searchPresetNameLabel => 'Preset name';
+  String get labelSearchPresetName => 'Preset name';
 
   @override
-  String get restoreTitle => 'Restore from backup';
+  String get titleRestore => 'Restore from backup';
 
   @override
-  String get restoreOpenAction => 'Restore from backup';
+  String get actionRestoreOpen => 'Restore from backup';
 
   @override
-  String get restoreLockedTitle => 'Unlock to continue';
+  String get titleRestoreLocked => 'Unlock to continue';
 
   @override
-  String get restoreLockedBody =>
+  String get bodyRestoreLocked =>
       'Restoring changes your journal, so it is protected the same way the app is.';
 
   @override
-  String get restoreUnlockAction => 'Unlock';
+  String get actionRestoreUnlock => 'Unlock';
 
   @override
-  String get restoreUnlockReason => 'Unlock to restore a backup';
+  String get labelRestoreUnlockReason => 'Unlock to restore';
 
   @override
-  String get restoreUnlockFailed => 'Could not unlock. Nothing was changed.';
+  String get errorRestoreUnlock => 'Could not unlock. Nothing was changed.';
 
   @override
-  String get restoreEnterPin => 'Enter your app PIN';
+  String get labelRestoreEnterPin => 'Enter your app PIN';
 
   @override
-  String get restorePinWrong => 'That PIN is not right.';
+  String get bodyRestorePinWrong => 'That PIN is not right.';
 
   @override
-  String get restorePickHeading => 'Choose a backup';
+  String get titleRestorePick => 'Choose a backup';
 
   @override
-  String get restorePickFromDevice => 'Choose a file';
+  String get actionRestorePickFromDevice => 'Choose a file';
 
   @override
-  String get restoreNoBackupsFound =>
+  String get bodyRestoreNoBackupsFound =>
       'No backups made by this app were found. You can still choose a file.';
 
   @override
-  String restoreSelectedFile(String fileName) {
+  String labelRestoreSelectedFile(String fileName) {
     return 'Selected: $fileName';
   }
 
   @override
-  String get restorePasswordLabel => 'Backup password';
+  String get labelRestorePassword => 'Backup password';
 
   @override
-  String get restorePasswordHelper =>
+  String get bodyRestorePasswordHelper =>
       'The password used when this backup was made.';
 
   @override
-  String get restoreOpenBackupAction => 'Open backup';
+  String get actionRestoreOpenBackup => 'Open backup';
 
   @override
-  String get restorePreviewHeading => 'What this backup holds';
+  String get titleRestorePreview => 'Backup contents';
 
   @override
-  String restorePreviewCreated(String date) {
+  String labelRestorePreviewCreated(String date) {
     return 'Made on $date';
   }
 
   @override
-  String restorePreviewCounts(int journals, int entries, int attachments) {
+  String bodyRestorePreviewCounts(int journals, int entries, int attachments) {
     return '$journals journals, $entries entries, $attachments attachments';
   }
 
   @override
-  String get restoreLegacyAttachmentsWarning =>
+  String get bodyRestoreLegacyAttachments =>
       'This is an older backup. Its attachments only open on the device that made it.';
 
   @override
-  String get restoreModeHeading => 'How should it be restored?';
+  String get bodyRestoreMode => 'How should it be restored?';
 
   @override
-  String get restoreModeMerge => 'Merge';
+  String get actionRestoreModeMerge => 'Merge';
 
   @override
-  String get restoreModeMergeDetail =>
+  String get descRestoreModeMergeDetail =>
       'Add what is missing and keep everything you have now.';
 
   @override
-  String get restoreModeReplace => 'Replace';
+  String get actionRestoreModeReplace => 'Replace';
 
   @override
-  String get restoreModeReplaceDetail =>
+  String get descRestoreModeReplaceDetail =>
       'Delete what is here now and use the backup instead. A safety backup is taken first.';
 
   @override
-  String get restoreDryRunAction => 'Try it first';
+  String get actionRestoreDryRun => 'Try it first';
 
   @override
-  String get restoreDryRunHelper =>
+  String get bodyRestoreDryRunHelper =>
       'Shows what would change without changing anything.';
 
   @override
-  String get restoreAction => 'Restore';
+  String get actionRestore => 'Restore';
 
   @override
-  String get restoreConfirmReplaceTitle => 'Replace everything?';
+  String get bodyRestoreConfirmReplace => 'Replace everything?';
 
   @override
-  String get restoreConfirmReplaceBody =>
+  String get bodyRestoreConfirmReplaceBody =>
       'Every journal, entry and attachment on this device will be deleted and replaced by the backup. A safety backup of what is here now is taken first.';
 
   @override
-  String get restoreConfirmMergeTitle => 'Merge this backup?';
+  String get bodyRestoreConfirmMerge => 'Merge this backup?';
 
   @override
-  String get restoreConfirmMergeBody =>
+  String get bodyRestoreConfirmMergeBody =>
       'Anything the backup holds that is missing here will be added. Nothing is deleted.';
 
   @override
-  String get restoreDryRunResultTitle => 'What would happen';
+  String get titleRestoreDryRunResult => 'What would happen';
 
   @override
-  String get restoreResultTitle => 'Restore finished';
+  String get titleRestoreResult => 'Restore finished';
 
   @override
-  String restoreResultAdded(int count) {
+  String labelRestoreResultAdded(int count) {
     return 'Added: $count rows';
   }
 
   @override
-  String restoreResultSkipped(int count) {
+  String labelRestoreResultSkipped(int count) {
     return 'Already here: $count rows';
   }
 
   @override
-  String restoreResultFiles(int count) {
+  String descRestoreResultFiles(int count) {
     return 'Attachment files restored: $count';
   }
 
   @override
-  String restoreResultFilesFailed(int count) {
+  String errorRestoreResultFiles(int count) {
     return 'Attachment files that could not be restored: $count';
   }
 
   @override
-  String get restoreResultSafetyBackup =>
+  String get descRestoreResultSafetyBackup =>
       'A safety backup of your previous data was saved first.';
 
   @override
-  String get restoreErrorWrongPassword =>
+  String get bodyRestoreErrorWrongPassword =>
       'Wrong password, or the backup file is damaged.';
 
   @override
-  String get restoreErrorDamaged =>
+  String get bodyRestoreErrorDamaged =>
       'This file is not a backup, or it is damaged.';
 
   @override
-  String get restoreErrorTooNew =>
+  String get bodyRestoreErrorTooNew =>
       'This backup was made by a newer version of the app. Update the app and try again.';
 
   @override
-  String get restoreErrorPasswordTooShort =>
+  String get errorRestoreErrorPassword =>
       'The backup password must be at least 8 characters.';
 
   @override
-  String restoreErrorFailed(String error) {
+  String errorRestoreError(String error) {
     return 'The restore failed and nothing was changed: $error';
   }
 
   @override
-  String get restoreWorking => 'Working...';
+  String get bodyRestoreWorking => 'Working...';
 
   @override
-  String get exportProtectTitle => 'Protect with a password';
+  String get titleExportProtect => 'Password protect';
 
   @override
-  String get exportProtectHint =>
+  String get descExportProtect =>
       'The file is encrypted with your password. It can be opened again in this app, on any device.';
 
   @override
-  String get exportPasswordLabel => 'Password';
+  String get labelExportPassword => 'Password';
 
   @override
-  String get exportPasswordConfirmLabel => 'Repeat the password';
+  String get labelExportPasswordConfirm => 'Repeat the password';
 
   @override
-  String exportPasswordTooShort(int count) {
+  String errorExportPassword(int count) {
     return 'Use at least $count characters.';
   }
 
   @override
-  String get exportPasswordMismatch => 'The two passwords do not match.';
+  String get errorExportPasswordMismatch => 'The two passwords do not match.';
 
   @override
-  String get exportEncryptedNotice =>
+  String get bodyExportEncryptedNotice =>
       'Keep this password somewhere safe. Without it the exported file cannot be opened again, by anyone, including you.';
 
   @override
-  String get openEncryptedTitle => 'Open an encrypted export';
+  String get titleOpenEncrypted => 'Open encrypted file';
 
   @override
-  String get openEncryptedIntro =>
+  String get descOpenEncryptedIntro =>
       'Choose an encrypted export file, enter its password, and save the file inside it.';
 
   @override
-  String get openEncryptedPickFile => 'Choose file';
+  String get actionOpenEncryptedPickFile => 'Choose file';
 
   @override
-  String openEncryptedChosenFile(String fileName) {
+  String labelOpenEncryptedChosenFile(String fileName) {
     return 'Chosen: $fileName';
   }
 
   @override
-  String get openEncryptedPasswordLabel => 'File password';
+  String get labelOpenEncryptedPassword => 'File password';
 
   @override
-  String get openEncryptedAction => 'Open and save';
+  String get actionOpenEncrypted => 'Open and save';
 
   @override
-  String get openEncryptedWorking => 'Opening...';
+  String get bodyOpenEncryptedWorking => 'Opening...';
 
   @override
-  String get openEncryptedSaveDialogTitle => 'Save the opened file';
+  String get titleOpenEncryptedSave => 'Save the opened file';
 
   @override
-  String get openEncryptedSaved =>
+  String get descOpenEncryptedSaved =>
       'Saved. The file is no longer encrypted, so keep it somewhere safe.';
 
   @override
-  String get openEncryptedCancelled => 'Nothing was saved.';
+  String get bodyOpenEncryptedCancelled => 'Nothing was saved.';
 
   @override
-  String get openEncryptedErrorWrongPassword =>
+  String get errorOpenEncryptedErrorWrongPassword =>
       'Wrong password, or the file is damaged.';
 
   @override
-  String get openEncryptedErrorNotSealed =>
+  String get errorOpenEncryptedErrorNotSealed =>
       'This is not an encrypted export made by this app.';
 
   @override
-  String get openEncryptedErrorTooNew =>
+  String get errorOpenEncryptedErrorTooNew =>
       'This file was made by a newer version of the app. Update the app and try again.';
 
   @override
-  String get openEncryptedErrorFailed => 'The file could not be opened.';
+  String get errorOpenEncryptedError => 'The file could not be opened.';
 
   @override
-  String get settingsOpenEncryptedExport => 'Open an encrypted export';
+  String get actionSettingsOpenEncryptedExport => 'Open encrypted file';
 
   @override
-  String get templateChooserTitle => 'Choose a template';
+  String get titleTemplateChooser => 'Choose a template';
 
   @override
-  String get versionHistoryEmpty =>
+  String get emptyVersionHistory =>
       'No previous versions yet.\n\nVersions are saved automatically when you edit an entry.';
 
   @override
-  String get drawingStrokeFine => 'Fine (2px)';
+  String get labelDrawingStrokeFine => 'Fine (2px)';
 
   @override
-  String get drawingStrokeNormal => 'Normal (3.5px)';
+  String get labelDrawingStrokeNormal => 'Normal (3.5px)';
 
   @override
-  String get drawingStrokeThick => 'Thick (7px)';
+  String get labelDrawingStrokeThick => 'Thick (7px)';
 
   @override
-  String get drawingStrokeBold => 'Bold (14px)';
+  String get labelDrawingStrokeBold => 'Bold (14px)';
 
   @override
-  String get drawingDefaultTitle => 'Drawing';
+  String get titleDrawingDefault => 'Drawing';
 
   @override
-  String get imageDefaultTitle => 'Image';
+  String get titleImageDefault => 'Image';
 
   @override
-  String get editorImageLocked => 'Locked image — tap to unlock';
+  String get bodyEditorImageLocked => 'Locked image — tap to unlock';
 
   @override
-  String editorImageUnavailableWithName(String fileName) {
+  String bodyEditorImageUnavailableWithName(String fileName) {
     return 'Image unavailable — $fileName';
   }
 
   @override
-  String get audioPauseTooltip => 'Pause';
+  String get tooltipAudioPause => 'Pause';
 
   @override
-  String get audioPlayTooltip => 'Play';
+  String get tooltipAudioPlay => 'Play';
 
   @override
-  String importIntoJournal(String journalTitle) {
+  String titleImportIntoJournal(String journalTitle) {
     return 'Import into \"$journalTitle\"';
   }
 
   @override
-  String importSupportedFormats(String formats) {
+  String labelImportSupportedFormats(String formats) {
     return 'Supported formats: $formats';
   }
 
   @override
-  String importSupportedExtensions(String extensions) {
+  String labelImportSupportedExtensions(String extensions) {
     return 'Files: $extensions';
   }
 
   @override
-  String get importSelectFilesPrompt => 'Select files to import as new entries';
+  String get bodyImportSelectFilesPrompt =>
+      'Select files to import as new entries';
 
   @override
-  String get featuresCategoryJournaling => 'Journaling & Rich Text Editor';
+  String get labelFeaturesCategoryJournaling => 'Journaling & Rich Text Editor';
 
   @override
-  String get featuresCategoryJournalingSubtitle =>
+  String get descFeaturesCategoryJournaling =>
       'Expressive writing, structured templates, OCR, and rich media';
 
   @override
-  String get featuresCategorySecurity => 'Privacy, Encryption & Vault Security';
+  String get descFeaturesCategorySecurity =>
+      'Privacy, Encryption & Vault Security';
 
   @override
-  String get featuresCategorySecuritySubtitle =>
+  String get descFeaturesCategorySecuritySubtitle =>
       'Guaranteed zero-leak encryption and granular security controls';
 
   @override
-  String get featuresCategoryDiscovery => 'Search, Timeline & Insights';
+  String get labelFeaturesCategoryDiscovery => 'Search, Timeline & Insights';
 
   @override
-  String get featuresCategoryDiscoverySubtitle =>
+  String get descFeaturesCategoryDiscovery =>
       'Blazing fast search, deep calendar navigation, and writing habits';
 
   @override
-  String get featuresCategoryStorage =>
+  String get descFeaturesCategoryStorage =>
       'Storage, Backups & Multi-Format Export';
 
   @override
-  String get featuresCategoryStorageSubtitle =>
+  String get descFeaturesCategoryStorageSubtitle =>
       'Total data sovereignty with local backups and flexible exports';
 
   @override
-  String get featureQuillTitle => 'Quill Rich Text Editor';
+  String get titleFeatureQuill => 'Quill Rich Text Editor';
 
   @override
-  String get featureQuillDesc =>
+  String get descFeatureQuill =>
       'Write entries with rich formatting including headings, bulleted & numbered lists, bold, italics, underlines, and inline blockquotes.';
 
   @override
-  String get featureTemplatesTitle => 'Structured Entry Templates';
+  String get titleFeatureTemplates => 'Structured Entry Templates';
 
   @override
-  String get featureTemplatesDesc =>
+  String get descFeatureTemplates =>
       'Jumpstart your writing with 8 customizable templates: Daily Reflection, Gratitude, Dream Journal, Workout Log, Travel Diary, Meeting Notes, Bullet Journal, and Freeform.';
 
   @override
-  String get featureMediaOcrTitle => 'Encrypted Media Attachments & OCR';
+  String get bodyFeatureMediaOcr => 'Encrypted Media Attachments & OCR';
 
   @override
-  String get featureMediaOcrDesc =>
+  String get descFeatureMediaOcr =>
       'Attach photos, audio recordings, and documents encrypted on device. Extract text directly from images into your journal with offline OCR.';
 
   @override
-  String get featureTagsTitle => 'Color-Coded Tags & Tag Manager';
+  String get titleFeatureTags => 'Color-Coded Tags & Tag Manager';
 
   @override
-  String get featureTagsDesc =>
+  String get descFeatureTags =>
       'Organize entries and journals with vibrant color-coded tags. Rename, color, or bulk-manage tags effortlessly in the Tag Manager.';
 
   @override
-  String get featureMultiJournalTitle => 'Multiple Distinct Journals';
+  String get titleFeatureMultiJournal => 'Multiple Distinct Journals';
 
   @override
-  String get featureMultiJournalDesc =>
+  String get descFeatureMultiJournal =>
       'Create multiple separate journals for work, personal diaries, travel adventures, or creative projects, each with custom tags and settings.';
 
   @override
-  String get featureSqlcipherTitle => 'SQLCipher AES-256 Database Encryption';
+  String get bodyFeatureSqlcipher => 'SQLCipher AES-256 Database Encryption';
 
   @override
-  String get featureSqlcipherDesc =>
+  String get descFeatureSqlcipher =>
       'All journal data, entries, metadata, and tables are encrypted at rest using SQLCipher with AES-256-GCM. Unencrypted data is never written to disk.';
 
   @override
-  String get featureBiometricsTitle => 'Biometric & App PIN Lock';
+  String get titleFeatureBiometrics => 'Biometric & App PIN Lock';
 
   @override
-  String get featureBiometricsDesc =>
+  String get descFeatureBiometrics =>
       'Secure your vault with your device fingerprint or face unlock, or set a dedicated App PIN. The app re-locks automatically whenever you switch apps.';
 
   @override
-  String get featureJournalLockTitle => 'Per-Journal Password Locks';
+  String get titleFeatureJournalLock => 'Per-Journal Password Locks';
 
   @override
-  String get featureJournalLockDesc =>
+  String get descFeatureJournalLock =>
       'Lock specific sensitive journals behind individual passwords using PBKDF2 key derivation. Locked journals require password entry each session.';
 
   @override
-  String get featureAttachmentLockTitle => 'Attachment-Level Encryption Locks';
+  String get bodyFeatureAttachmentLock => 'Attachment-Level Encryption Locks';
 
   @override
-  String get featureAttachmentLockDesc =>
+  String get descFeatureAttachmentLock =>
       'Individually lock and hide sensitive attachments and photos with separate encryption keys, keeping them private even when browsing entries.';
 
   @override
-  String get featureScreenshotGuardTitle =>
+  String get bodyFeatureScreenshotGuard =>
       'Screenshot & Screen-Recording Guard';
 
   @override
-  String get featureScreenshotGuardDesc =>
+  String get descFeatureScreenshotGuard =>
       'Automatic FLAG_SECURE window defense blocks malicious screenshot capture, screen recording apps, and recents app switcher snapshot leaking.';
 
   @override
-  String get featureTamperAuditTitle => 'Tamper-Evident Security Audit Log';
+  String get bodyFeatureTamperAudit => 'Tamper-Evident Security Audit Log';
 
   @override
-  String get featureTamperAuditDesc =>
+  String get descFeatureTamperAudit =>
       'Monitors and logs key security events: app unlock attempts, failed biometric/PIN authentications, password changes, and export actions.';
 
   @override
-  String get featureAutoLockTitle => 'Auto-Lock Inactivity Profiles';
+  String get titleFeatureAutoLock => 'Auto-Lock Inactivity Profiles';
 
   @override
-  String get featureAutoLockDesc =>
+  String get descFeatureAutoLock =>
       'Configure custom timeout durations (immediate, 30 seconds, 1 min, 5 min) to automatically relock your journal vault when idle.';
 
   @override
-  String get featureFtsSearchTitle => 'Lightning SQLite FTS Search';
+  String get titleFeatureFtsSearch => 'Lightning SQLite FTS Search';
 
   @override
-  String get featureFtsSearchDesc =>
+  String get descFeatureFtsSearch =>
       'Instant full-text search indexing scans every entry body, title, tag, and metadata with SQLite FTS5 for sub-millisecond query results.';
 
   @override
-  String get featureSearchPresetsTitle => 'Saved Search Presets';
+  String get titleFeatureSearchPresets => 'Saved Search Presets';
 
   @override
-  String get featureSearchPresetsDesc =>
+  String get descFeatureSearchPresets =>
       'Save frequent queries with date range and tag filters as one-tap quick filter chips directly accessible from the search bar.';
 
   @override
-  String get featureTimelineTitle => 'Interactive Calendar Timeline Explorer';
+  String get bodyFeatureTimeline => 'Interactive Calendar Timeline Explorer';
 
   @override
-  String get featureTimelineDesc =>
+  String get descFeatureTimeline =>
       'Navigate your entire journal history with a smooth calendar view, visual daily entry dots, day-by-day browsing, and quick date jumping.';
 
   @override
-  String get featureInsightsTitle => 'Writing Trends & Habit Insights';
+  String get titleFeatureInsights => 'Writing Trends & Habit Insights';
 
   @override
-  String get featureInsightsDesc =>
+  String get descFeatureInsights =>
       'Track your daily writing streaks, word counts, active writing days per month, and top tag distributions with offline analytical charts.';
 
   @override
-  String get featureStorageMigrationTitle =>
+  String get bodyFeatureStorageMigration =>
       'Attachment Storage Migration (SD Card)';
 
   @override
-  String get featureStorageMigrationDesc =>
+  String get descFeatureStorageMigration =>
       'Seamlessly migrate all encrypted attachments between internal app storage and removable SD Card memory without interrupting journal access.';
 
   @override
-  String get featureEncryptedBackupsTitle => 'Encrypted Vault Backups (.jvbk)';
+  String get titleFeatureEncryptedBackups => 'Encrypted Vault Backups (.jvbk)';
 
   @override
-  String get featureEncryptedBackupsDesc =>
+  String get descFeatureEncryptedBackups =>
       'Export and restore complete password-protected .jvbk backup archives containing your database, attachments, tags, and settings.';
 
   @override
-  String get featureMultiExportTitle => 'Formatted Multi-Format Export';
+  String get titleFeatureMultiExport => 'Formatted Multi-Format Export';
 
   @override
-  String get featureMultiExportDesc =>
+  String get descFeatureMultiExport =>
       'Export individual entries or complete journals into clean formatted PDF, Markdown zip archive, or raw JSON data formats.';
 
   @override
-  String get featureEncryptedReaderTitle =>
-      'Standalone Encrypted Export Reader';
+  String get bodyFeatureEncryptedReader => 'Standalone Encrypted Export Reader';
 
   @override
-  String get featureEncryptedReaderDesc =>
+  String get descFeatureEncryptedReader =>
       'Read password-protected encrypted journal exports independently inside the app without needing to restore the full backup database.';
 
   @override
@@ -2121,7 +2105,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpFaqA3 =>
-      'Camera & Photos: To take photos or import images/attachments into your entries.\nMicrophone: To record voice notes.\nStorage/Media: To save encrypted backups and export PDFs.';
+      'Camera & Photos: To take photos or import images/attachments into your entries.\nMicrophone: To record voice notes and to dictate text (recognised on the device).\nStorage/Media: To save encrypted backups and export PDFs.';
 
   @override
   String get helpFaqQ4 => 'Can I transfer my journal to a new phone?';
@@ -2314,50 +2298,28 @@ class AppLocalizationsEn extends AppLocalizations {
       'Rename, recolor, or delete unused tags globally from Settings → Tag Manager.';
 
   @override
-  String get syncHealthTitle => 'Sync Health';
+  String get titleTamperAlerts => 'Tamper Alerts';
 
   @override
-  String get syncHealthSubtitle =>
-      'Real-time P2P sync diagnostics & connection status';
+  String get titleTamperAlertsHowItWorks => 'How this works';
 
   @override
-  String syncConnectedPeers(int count) {
-    return 'Connected Peers: $count';
-  }
-
-  @override
-  String syncBytesSent(String bytes) {
-    return 'Bytes Sent: $bytes';
-  }
-
-  @override
-  String syncBytesReceived(String bytes) {
-    return 'Bytes Received: $bytes';
-  }
-
-  @override
-  String get tamperAlertsTitle => 'Tamper Alerts';
-
-  @override
-  String get tamperAlertsHowItWorksTitle => 'How Tamper Detection Works';
-
-  @override
-  String get tamperAlertsHowItWorksBody =>
+  String get bodyTamperAlertsHowItWorks =>
       'SreerajP Journal Vault continuously verifies structural consistency, chronological timestamps, and AES-256 encrypted records.';
 
   @override
-  String get tamperAlertsNoHistory =>
+  String get bodyTamperAlertsNoHistory =>
       'No tamper alerts recorded. Your vault entries are secure.';
 
   @override
-  String get tamperAlertsHistoryHeader => 'Tamper Alert History';
+  String get titleTamperAlertsHistory => 'Tamper Alert History';
 
   @override
-  String get tamperAlertsScanCompleteClean =>
+  String get bodyTamperAlertsScanCompleteClean =>
       'Vault scan complete: all entries verified clean.';
 
   @override
-  String tamperAlertsScanCompleteIssues(int count) {
+  String bodyTamperAlertsScanCompleteIssues(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -2368,10 +2330,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get tamperAlertsStatusIssues => 'Warning — Integrity Issues Detected';
+  String get bodyTamperAlertsStatusIssues =>
+      'Warning — Integrity Issues Detected';
 
   @override
-  String tamperAlertsStatusIssuesDetail(int count) {
+  String bodyTamperAlertsStatusIssuesDetail(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -2382,187 +2345,178 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get tamperAlertsStatusVerified => 'Vault Integrity Verified';
+  String get bodyTamperAlertsStatusVerified => 'Vault Integrity Verified';
 
   @override
-  String get tamperAlertsStatusVerifiedDetail =>
+  String get descTamperAlertsStatusVerifiedDetail =>
       'All database tables and encryption seals verified successfully.';
 
   @override
-  String get tamperAlertsVerifyButton => 'Verify Vault Integrity';
+  String get actionTamperAlertsVerify => 'Verify vault';
 
   @override
-  String get tamperAlertsVerifying => 'Verifying vault integrity...';
+  String get bodyTamperAlertsVerifying => 'Verifying vault integrity...';
 
   @override
-  String get shareQuickCaptureTitle => 'Quick Capture';
+  String get titleShareQuickCapture => 'Quick Capture';
 
   @override
-  String get shareQuickCaptureSubtitle =>
+  String get descShareQuickCapture =>
       'Save incoming content as a new journal entry';
 
   @override
-  String get shareNoJournalsFound =>
+  String get bodyShareNoJournalsFound =>
       'No journals found. Create a journal first.';
 
   @override
-  String get shareSelectJournal => 'Select Journal';
+  String get labelShareSelectJournal => 'Select Journal';
 
   @override
-  String get shareEntryTitleLabel => 'Entry Title';
+  String get labelShareEntryTitle => 'Entry Title';
 
   @override
-  String get shareEntryTitleHint => 'Enter title (optional)';
+  String get descShareEntryTitle => 'Enter title (optional)';
 
   @override
-  String get shareContentLabel => 'Content';
+  String get labelShareContent => 'Content';
 
   @override
-  String get shareContentHint => 'Shared note, quote, or link...';
+  String get descShareContent => 'Shared note, quote, or link...';
 
   @override
-  String shareAttachmentsLabel(int count) {
+  String labelShareAttachments(int count) {
     return 'Attachments ($count)';
   }
 
   @override
-  String get shareDiscard => 'Discard';
+  String get actionShareDiscard => 'Discard';
 
   @override
-  String get shareOpenInEditor => 'Open in Editor';
+  String get actionShareOpenInEditor => 'Open in Editor';
 
   @override
-  String get shareSaveToJournal => 'Save to Journal';
+  String get actionShareSaveToJournal => 'Save to Journal';
 
   @override
-  String get shareSaveFailed => 'Could not save shared note.';
+  String get errorShareSave => 'Could not save shared note.';
 
   @override
-  String shareSavedSuccess(String journalTitle) {
+  String bodyShareSavedSuccess(String journalTitle) {
     return 'Shared note saved to \"$journalTitle\"';
   }
 
   @override
-  String get shareSealedFileDetected => 'Encrypted file detected';
+  String get titleShareSealedFileDetected => 'Encrypted file';
 
   @override
-  String get shareOpenEncryptedExport => 'Open Encrypted File';
+  String get actionShareOpenEncryptedExport => 'Open Encrypted File';
 
   @override
-  String get templateCategoryCustom => 'Custom Templates';
+  String get labelTemplateCategoryCustom => 'My templates';
 
   @override
-  String get templateChooserManage => 'Manage';
+  String get actionTemplateCollapseAll => 'Collapse all';
 
   @override
-  String get templateChooserNew => 'New Template';
+  String get actionTemplateExpandAll => 'Expand all';
 
   @override
-  String get templateCollapseAll => 'Collapse all';
+  String get actionTemplateCreateNew => 'New Template';
 
   @override
-  String get templateExpandAll => 'Expand all';
+  String get titleTemplateManager => 'Custom Templates';
 
   @override
-  String get templateCreateNew => 'New Template';
+  String get actionTemplateEdit => 'Edit Template';
 
   @override
-  String get templateManagerTitle => 'Custom Templates';
+  String get actionTemplateDelete => 'Delete Template';
 
   @override
-  String get templateEdit => 'Edit Template';
+  String get bodyTemplateDeleteConfirm => 'Delete template?';
 
   @override
-  String get templateDelete => 'Delete Template';
-
-  @override
-  String get templateDeleteConfirmTitle => 'Delete template?';
-
-  @override
-  String templateDeleteConfirmMessage(String name) {
+  String bodyTemplateDeleteConfirmMessage(String name) {
     return 'Are you sure you want to delete \"$name\"? This action cannot be undone.';
   }
 
   @override
-  String get templateDeleteSuccess => 'Template deleted';
+  String get bodyTemplateDeleteSuccess => 'Template deleted';
 
   @override
-  String get templateEmpty =>
+  String get emptyTemplate =>
       'No custom templates yet. Create one to reuse your favorite journaling layouts.';
 
   @override
-  String get templateNameLabel => 'Template name';
+  String get labelTemplateName => 'Template name';
 
   @override
-  String get templateNameHint => 'e.g., Daily Standup, Workout Note';
+  String get descTemplateName => 'e.g., Daily Standup, Workout Note';
 
   @override
-  String get templateNameRequired => 'Please enter a template name.';
+  String get errorTemplateName => 'Please enter a template name.';
 
   @override
-  String get templateDescriptionLabel => 'Description';
+  String get labelTemplateDescription => 'Description';
 
   @override
-  String get templateDescriptionHint =>
+  String get descTemplateDescription =>
       'Brief summary of what this template is for';
 
   @override
-  String get templateDefaultTitleLabel => 'Default entry title';
+  String get labelTemplateDefaultTitle => 'Default entry title';
 
   @override
-  String get templateDefaultTitleHint => 'e.g., Standup - today';
+  String get descTemplateDefaultTitle => 'e.g., Standup - today';
 
   @override
-  String get templateContentLabel => 'Starter content';
+  String get labelTemplateContent => 'Starter content';
 
   @override
-  String get templateContentHint => 'Type your starter prompt or outline...';
+  String get descTemplateContent => 'Type your starter prompt or outline...';
 
   @override
-  String get templateInsertTokenTooltip => 'Insert dynamic date token';
+  String get titleTemplateTokens => 'Dynamic Date Tokens';
 
   @override
-  String get templateTokensHeading => 'Dynamic Date Tokens';
-
-  @override
-  String get templateTokensHelper =>
+  String get descTemplateTokensHelper =>
       'Dynamic date tokens automatically populate when creating a new entry.';
 
   @override
-  String get templateSaveSuccess => 'Template saved';
+  String get bodyTemplateSaveSuccess => 'Template saved';
 
   @override
-  String get templateSaveAsTemplate => 'Save as template';
+  String get actionTemplateSaveAsTemplate => 'Save as template';
 
   @override
-  String get templateSaveAsTemplateTitle => 'New Template';
+  String get titleTemplateSaveAsTemplate => 'New Template';
 
   @override
-  String get templateSaveAsTemplateDesc =>
+  String get descTemplateSaveAsTemplate =>
       'Save this entry\'s layout as a reusable template.';
 
   @override
-  String get settingsSectionHelp => 'Help';
+  String get titleSettingsSectionHelp => 'Help';
 
   @override
-  String get settingsSectionHelpSubtitle => 'Guides, encryption details & FAQs';
+  String get descSettingsSectionHelp => 'Guides, encryption details & FAQs';
 
   @override
-  String get settingsSectionFeatures => 'Features';
+  String get titleSettingsSectionFeatures => 'Features';
 
   @override
-  String get settingsSectionFeaturesSubtitle =>
+  String get descSettingsSectionFeatures =>
       'Explore all features and security tools';
 
   @override
-  String get featuresHeaderTitle => 'SreerajP Journal Vault Features';
+  String get titleFeaturesHeader => 'SreerajP Journal Vault Features';
 
   @override
-  String get featuresHeaderSubtitle =>
+  String get descFeaturesHeader =>
       'Zero-leak offline architecture, military-grade encryption, and expressive journaling.';
 
   @override
-  String entryWordCount(int count) {
+  String descEntryWordCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -2573,7 +2527,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String entryCharCount(int count) {
+  String descEntryCharCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -2584,215 +2538,181 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String entryStatsSummary(String words, String chars) {
+  String descEntryStats(String words, String chars) {
     return '$words • $chars';
   }
 
   @override
-  String get entryDistractionFreeEnter => 'Distraction-free mode';
+  String get actionEntryDistractionFreeEnter => 'Focus mode';
 
   @override
-  String get entryDistractionFreeExit => 'Exit distraction-free mode';
+  String get actionEntryDistractionFreeExit => 'Exit focus mode';
 
   @override
-  String get entryFocusParagraphOn => 'Focus paragraph: on';
+  String get descEntryFocusParagraphOn => 'Focus paragraph: on';
 
   @override
-  String get entryFocusParagraphOff => 'Focus paragraph: off';
+  String get descEntryFocusParagraphOff => 'Focus paragraph: off';
 
   @override
-  String get entryAutoSaving => 'Saving…';
+  String get labelEntryAutoSaving => 'Saving…';
 
   @override
-  String entryAutoSaved(String time) {
+  String labelEntryAutoSaved(String time) {
     return 'Saved at $time';
   }
 
   @override
-  String get entryAutoSavedJustNow => 'Saved just now';
+  String get labelEntryAutoSavedJustNow => 'Saved just now';
 
   @override
-  String get entryUnsavedChanges => 'Unsaved changes';
+  String get labelEntryUnsavedChanges => 'Unsaved changes';
 
   @override
-  String get entryEditorScanText => 'Scan text from image';
+  String get tooltipEntryEditorScanText => 'Scan text from image';
 
   @override
-  String get entryEditorOcrSourceTitle => 'Scan text from';
+  String get labelEntryEditorScanSourceCamera => 'Take photo';
 
   @override
-  String get entryEditorScanSourceCamera => 'Take photo';
+  String get labelEntryEditorScanSourceGallery => 'Choose from gallery';
 
   @override
-  String get entryEditorScanSourceGallery => 'Choose from gallery';
+  String get descEntryEditorOcrScanning => 'Scanning text from image...';
 
   @override
-  String get entryEditorOcrScanning => 'Scanning text from image...';
+  String get descEntryEditorOcrNoTextFound =>
+      'No text was detected in the image.';
 
   @override
-  String get entryEditorOcrNoTextFound => 'No text was detected in the image.';
+  String get errorEntryEditorOcr => 'Failed to scan text from image.';
 
   @override
-  String get entryEditorOcrError => 'Failed to scan text from image.';
+  String get titleEntryEditorCropImage => 'Crop Image';
 
   @override
-  String get entryEditorCropImageTitle => 'Crop Image';
+  String get errorEntryEditorCropImage => 'Could not process image crop.';
 
   @override
-  String get entryEditorCropImageError => 'Could not process image crop.';
+  String get titleAppearanceThemeMode => 'Theme Mode';
 
   @override
-  String get appearanceThemeModeTitle => 'Theme Mode';
-
-  @override
-  String get appearanceThemeModeSubtitle =>
+  String get descAppearanceThemeMode =>
       'Choose System, Dark, or Light appearance';
 
   @override
-  String get appearanceAccentColorTitle => 'Accent Color';
+  String get titleAppearanceAccentColor => 'Accent Color';
 
   @override
-  String get appearanceAccentColorSubtitle =>
-      'Select primary brand color palette';
+  String get descAppearanceAccentColor => 'Select primary brand color palette';
 
   @override
-  String get appearanceLivePreview => 'Live Preview';
+  String get titleAppearanceLivePreview => 'Live Preview';
 
   @override
-  String get appearancePresets => 'Presets';
+  String get tabAppearancePresets => 'Presets';
 
   @override
-  String get appearanceCustomWheel => 'Custom Color Wheel';
+  String get tabAppearanceCustomWheel => 'Custom Color Wheel';
 
   @override
-  String get appearanceSampleText => 'Sample Journal Entry';
+  String get labelAppearanceSampleText => 'Sample Journal Entry';
 
   @override
-  String get appearanceResetDefault => 'Reset to Default';
+  String get actionAppearanceResetDefault => 'Reset to Default';
 
   @override
-  String get appearanceContrastNote =>
+  String get descAppearanceContrastNote =>
       'Text contrast is adjusted automatically for readability.';
 
   @override
-  String get appearanceSystemModeExplainer =>
+  String get descAppearanceSystemModeExplainer =>
       'System mode automatically follows your device\'s system-wide dark mode setting.';
 
   @override
-  String get settingsThemeSepia => 'Paper / Sepia';
+  String get labelSettingsThemeSepia => 'Paper / Sepia';
 
   @override
-  String get settingsThemeOled => 'OLED / True Black';
+  String get labelSettingsThemeOled => 'OLED / True Black';
 
   @override
-  String get settingsThemeSepiaDesc =>
+  String get descSettingsThemeSepia =>
       'Warm parchment paper tone that is soothing for long writing sessions.';
 
   @override
-  String get settingsThemeOledDesc =>
+  String get descSettingsThemeOled =>
       'Pure pitch black background with crisp contrast for AMOLED battery saving.';
 
   @override
-  String get settingsThemeLightDesc =>
+  String get descSettingsThemeLight =>
       'Clean and bright daylight reading surface.';
 
   @override
-  String get settingsThemeDarkDesc =>
+  String get descSettingsThemeDark =>
       'Soft charcoal dark background for low-light writing.';
 
   @override
-  String get settingsThemeSystemDesc =>
+  String get descSettingsThemeSystem =>
       'Automatically follows your device system brightness preference.';
 
   @override
-  String get appearanceTypographyTitle => 'Reading Typography';
+  String get titleAppearanceTypography => 'Reading Typography';
 
   @override
-  String get appearanceTypographySubtitle =>
+  String get descAppearanceTypography =>
       'Customize body font family and reading size';
 
   @override
-  String get appearanceFontFamily => 'Body Font Family';
+  String get titleAppearanceFontFamily => 'Body Font Family';
 
   @override
-  String get appearanceFontSize => 'Body Font Size';
+  String get titleAppearanceFontSize => 'Body Font Size';
 
   @override
-  String get appearanceFontFamilySans => 'Sans-Serif';
+  String get labelAppearanceFontFamilySans => 'Sans-Serif';
 
   @override
-  String get appearanceFontFamilySansDesc =>
+  String get descAppearanceFontFamilySans =>
       'Clean and contemporary modern typeface';
 
   @override
-  String get appearanceFontFamilySerif => 'Book Serif';
+  String get labelAppearanceFontFamilySerif => 'Book Serif';
 
   @override
-  String get appearanceFontFamilySerifDesc =>
+  String get descAppearanceFontFamilySerif =>
       'Classic editorial and literary book feel';
 
   @override
-  String get appearanceFontFamilyMonospace => 'Monospace';
+  String get labelAppearanceFontFamilyMonospace => 'Monospace';
 
   @override
-  String get appearanceFontFamilyMonospaceDesc =>
+  String get descAppearanceFontFamilyMonospace =>
       'Fixed-width typewriter and Markdown aesthetic';
 
   @override
-  String get appearanceFontSizeSmall => 'Small';
+  String get labelAppearanceFontSizeSmall => 'Small';
 
   @override
-  String get appearanceFontSizeDefault => 'Default';
+  String get labelAppearanceFontSizeDefault => 'Default';
 
   @override
-  String get appearanceFontSizeMedium => 'Medium';
+  String get labelAppearanceFontSizeMedium => 'Medium';
 
   @override
-  String get appearanceFontSizeLarge => 'Large';
+  String get labelAppearanceFontSizeLarge => 'Large';
 
   @override
-  String get appearanceFontSizeExtraLarge => 'X-Large';
+  String get labelAppearanceFontSizeExtraLarge => 'X-Large';
 
   @override
-  String get appearanceSampleHeadline => 'Quiet Reflections';
+  String get labelAppearanceSampleHeadline => 'Quiet Reflections';
 
   @override
-  String get appearanceSampleBody =>
+  String get bodyAppearanceSample =>
       'The journal is a quiet space to slow down and reflect. Every thought, memory, and sketch is securely preserved in your private vault.';
 
   @override
-  String get appearanceTypographyUpdated => 'Typography settings updated.';
-
-  @override
-  String get appearanceTypographyReset => 'Typography reset to default.';
-
-  @override
-  String get featuresCatJournaling => 'Journaling & Rich Text Editor';
-
-  @override
-  String get featuresCatJournalingSub =>
-      'Expressive writing, structured templates, OCR, and rich media';
-
-  @override
-  String get featuresCatSecurity => 'Privacy, Encryption & Vault Security';
-
-  @override
-  String get featuresCatSecuritySub =>
-      'Guaranteed zero-leak encryption and granular security controls';
-
-  @override
-  String get featuresCatSearch => 'Search, Timeline & Insights';
-
-  @override
-  String get featuresCatSearchSub =>
-      'Instant full-text discovery, visual calendar, and habit analytics';
-
-  @override
-  String get featuresCatStorage => 'Storage, Backups & Export';
-
-  @override
-  String get featuresCatStorageSub =>
-      'Full offline autonomy, storage migration, and multi-format exports';
+  String get bodyAppearanceTypographyReset => 'Typography reset to default.';
 
   @override
   String get helpHeaderTitle => 'Help Center & Knowledge Base';
@@ -2817,707 +2737,689 @@ class AppLocalizationsEn extends AppLocalizations {
   String get helpSectionFaq => 'Frequently Asked Questions';
 
   @override
-  String get editorInsertDrawing => 'Drawing canvas';
+  String get tooltipEditorInsertDrawing => 'Drawing canvas';
 
   @override
-  String get drawingCanvasTitle => 'Drawing & Sketch';
+  String get titleDrawingCanvas => 'Drawing & Sketch';
 
   @override
-  String get drawingCanvasEditTitle => 'Edit Drawing';
+  String get titleDrawingCanvasEdit => 'Edit Drawing';
 
   @override
-  String get drawingCanvasPen => 'Pen';
+  String get labelDrawingCanvasPen => 'Pen';
 
   @override
-  String get drawingCanvasHighlighter => 'Highlighter';
+  String get labelDrawingCanvasHighlighter => 'Highlighter';
 
   @override
-  String get drawingCanvasEraser => 'Eraser';
+  String get labelDrawingCanvasEraser => 'Eraser';
 
   @override
-  String get drawingCanvasClear => 'Clear canvas';
+  String get actionDrawingCanvasClear => 'Clear canvas';
 
   @override
-  String get drawingCanvasClearConfirm => 'Clear the entire drawing?';
+  String get bodyDrawingCanvasClear => 'Clear the entire drawing?';
 
   @override
-  String get drawingCanvasStrokeWidth => 'Stroke width';
+  String get labelDrawingCanvasStrokeWidth => 'Stroke width';
 
   @override
-  String get drawingCanvasColor => 'Stroke color';
+  String get labelDrawingCanvasBackground => 'Background';
 
   @override
-  String get drawingCanvasBackground => 'Background';
+  String get labelDrawingCanvasBgBlank => 'Blank';
 
   @override
-  String get drawingCanvasBgBlank => 'Blank';
+  String get labelDrawingCanvasBgRuled => 'Ruled';
 
   @override
-  String get drawingCanvasBgRuled => 'Ruled';
+  String get labelDrawingCanvasBgGrid => 'Grid';
 
   @override
-  String get drawingCanvasBgGrid => 'Grid';
+  String get labelDrawingCanvasBgDots => 'Dots';
 
   @override
-  String get drawingCanvasBgDots => 'Dots';
+  String get actionDrawingCanvasUndo => 'Undo';
 
   @override
-  String get drawingCanvasUndo => 'Undo';
+  String get actionDrawingCanvasRedo => 'Redo';
 
   @override
-  String get drawingCanvasRedo => 'Redo';
+  String get actionDrawingCanvasSave => 'Save drawing';
 
   @override
-  String get drawingCanvasSave => 'Save drawing';
+  String get bodyDrawingCanvasDiscard => 'Discard changes?';
 
   @override
-  String get drawingCanvasDiscardTitle => 'Discard changes?';
-
-  @override
-  String get drawingCanvasDiscardMessage =>
+  String get bodyDrawingCanvasDiscardMessage =>
       'Are you sure you want to discard your drawing changes?';
 
   @override
-  String get drawingEditTooltip => 'Edit drawing';
+  String get tooltipDrawingEdit => 'Edit drawing';
 
   @override
-  String get drawingSizeTooltip => 'Resize drawing';
+  String get tooltipDrawingSize => 'Resize drawing';
 
   @override
-  String get drawingDeleteTooltip => 'Delete drawing';
+  String get tooltipDrawingDelete => 'Delete drawing';
 
   @override
-  String get drawingUnavailable => 'Drawing unavailable';
+  String get descDrawingUnavailable => 'Drawing unavailable';
 
   @override
-  String get drawingLoading => 'Loading drawing…';
+  String get descDrawingLoading => 'Loading drawing…';
 
   @override
-  String get drawingSaveError => 'Could not save drawing.';
+  String get errorDrawingSave => 'Could not save drawing.';
 
   @override
-  String get journalManageTemplates => 'Custom Templates';
+  String get actionJournalManageTemplates => 'Custom Templates';
 
   @override
   String get helpTitle => 'Help';
 
   @override
-  String get featuresTitle => 'Features';
+  String get titleFeatures => 'Features';
 
   @override
-  String get featureOfflineTitle => '100% Offline & Zero Network Permission';
+  String get bodyFeatureOffline => '100% Offline & Zero Network Permission';
 
   @override
-  String get featureOfflineDesc =>
+  String get descFeatureOffline =>
       'The application contains zero network access code, requests no internet permissions, and keeps all journal data, attachments, and encryption strictly offline.';
 
   @override
-  String get ritualScreenTitle => 'Ritual Practice';
+  String get titleRitual => 'Ritual Practice';
 
   @override
-  String get ritualDeckBrowserTitle => 'Reflection Deck';
+  String get titleRitualDeckBrowser => 'Reflection Deck';
 
   @override
-  String get ritualResetReviewsTooltip => 'Reset SRS intervals';
+  String get tooltipRitualResetReviews => 'Reset SRS intervals';
 
   @override
-  String get ritualResetReviewsTitle => 'Reset All Card Reviews';
+  String get titleRitualResetReviews => 'Reset reviews';
 
   @override
-  String get ritualResetReviewsConfirm =>
+  String get bodyRitualResetReviews =>
       'This will reset review levels and next review dates for all cards. Continue?';
 
   @override
-  String get ritualResetReviewsDone => 'Card review intervals reset.';
+  String get bodyRitualResetReviewsDone => 'Card review intervals reset.';
 
   @override
-  String get ritualAllThemes => 'All Themes';
+  String get labelRitualAllThemes => 'All Themes';
 
   @override
-  String get ritualSrsNew => 'New';
+  String get labelRitualSrsNew => 'New';
 
   @override
-  String get ritualSrsDueToday => 'Due Today';
+  String get labelRitualSrsDueToday => 'Due Today';
 
   @override
-  String ritualSrsInDays(int days) {
+  String labelRitualSrsInDays(int days) {
     return 'In ${days}d';
   }
 
   @override
-  String get ritualStepBreathe => 'Breathe';
+  String get labelRitualStepBreathe => 'Breathe';
 
   @override
-  String get ritualStepReflect => 'Reflect';
+  String get labelRitualStepReflect => 'Reflect';
 
   @override
-  String get ritualStepWrite => 'Write';
+  String get labelRitualStepWrite => 'Write';
 
   @override
-  String get ritualBreatheHeading => 'Centering Breath';
+  String get titleRitualBreathe => 'Centering Breath';
 
   @override
-  String get ritualSkipToPrompt => 'Skip to Prompt';
+  String get actionRitualSkipToPrompt => 'Skip to Prompt';
 
   @override
-  String get ritualContinueToCard => 'Continue';
+  String get actionRitualContinueToCard => 'Continue';
 
   @override
-  String get ritualShuffleCard => 'Shuffle';
+  String get actionRitualShuffleCard => 'Shuffle';
 
   @override
-  String get ritualSrsRatePrompt => 'HOW MEMORABLE / EASY WAS THIS REFLECTION?';
+  String get bodyRitualSrsRatePrompt =>
+      'HOW MEMORABLE / EASY WAS THIS REFLECTION?';
 
   @override
-  String get ritualSrsHard => 'Hard';
+  String get actionRitualSrsHard => 'Hard';
 
   @override
-  String get ritualSrsHardSubtitle => 'Review in 1d';
+  String get descRitualSrsHard => 'Review in 1d';
 
   @override
-  String get ritualSrsRevision => 'Revision';
+  String get actionRitualSrsRevision => 'Revision';
 
   @override
-  String get ritualSrsRevisionSubtitle => 'Review in 3d';
+  String get descRitualSrsRevision => 'Review in 3d';
 
   @override
-  String get ritualSrsEasy => 'Easy';
+  String get actionRitualSrsEasy => 'Easy';
 
   @override
-  String get ritualSrsEasySubtitle => '+7 days';
+  String get descRitualSrsEasy => '+7 days';
 
   @override
-  String get ritualProceedToJournal => 'Proceed to Journal';
+  String get actionRitualProceedToJournal => 'Proceed to Journal';
 
   @override
-  String get ritualReadyToWriteTitle => 'Ready to Reflect';
+  String get titleRitualReadyToWrite => 'Ready to Reflect';
 
   @override
-  String ritualReadyToWriteDesc(String cardTitle) {
+  String descRitualReadyToWrite(String cardTitle) {
     return 'Write your thoughts into today\'s journal entry inspired by \"$cardTitle\".';
   }
 
   @override
-  String get ritualBeginWritingButton => 'Begin Journaling';
+  String get actionRitualBeginWriting => 'Begin Journaling';
 
   @override
-  String get ritualCompletePracticeOnly => 'Complete Practice Only';
+  String get actionRitualCompletePracticeOnly => 'Finish practice';
 
   @override
-  String get ritualSettingsTitle => 'Ritual Mode Settings';
+  String get titleRitualSettings => 'Ritual Mode Settings';
 
   @override
-  String get ritualLaunchOnStartupTitle => 'Open in Ritual Mode';
+  String get titleRitualLaunchOnStartup => 'Open in Ritual Mode';
 
   @override
-  String get ritualLaunchOnStartupSubtitle =>
+  String get descRitualLaunchOnStartup =>
       'Begin every session with a guided breath and reflection prompt';
 
   @override
-  String get ritualBreathTechniqueLabel => 'Breathing Technique';
+  String get labelRitualBreathTechnique => 'Breathing Technique';
 
   @override
-  String ritualBreathCyclesLabel(int count) {
+  String labelRitualBreathCycles(int count) {
     return 'Breathing Cycles: $count';
   }
 
   @override
-  String get commonReset => 'Reset';
+  String get actionCommonReset => 'Reset';
 
   @override
-  String get ritualHomeCardTitle => 'Daily Ritual Practice';
+  String get titleRitualSettingsTile => 'Ritual mode';
 
   @override
-  String get ritualHomeCardSubtitle =>
-      'Center your mind with a guided breath and today\'s reflection card';
-
-  @override
-  String get ritualHomeCardAction => 'Begin Practice';
-
-  @override
-  String get ritualSettingsTileTitle => 'Ritual Mode & Reflection';
-
-  @override
-  String get ritualSettingsTileSubtitle =>
+  String get descRitualSettingsTile =>
       'Guided breath timer, 50-card Sanathana Dharma deck & spaced repetition';
 
   @override
-  String get featureRitualTitle => 'Ritual Mode & Reflection Cards';
+  String get titleFeatureRitual => 'Ritual Mode & Reflection Cards';
 
   @override
-  String get featureRitualDesc =>
+  String get descFeatureRitual =>
       'A guided daily practice that calms your mind with a breath timer, surfaces rotating prompt cards with Anki-style spaced repetition, and opens directly to today\'s entry.';
 
   @override
-  String get syncLandingTitle => 'Device-to-Device Sync';
+  String get titleSyncLanding => 'Device sync';
 
   @override
-  String get syncLandingSubtitle =>
+  String get descSyncLanding =>
       'Sync entries and attachments directly over local Wi-Fi with no cloud servers';
 
   @override
-  String get syncSendTitle => 'Send Changes (Host)';
+  String get titleSyncSend => 'Send Changes (Host)';
 
   @override
-  String get syncSendSubtitle =>
+  String get descSyncSend =>
       'Display a pairing QR code to share journal entries and attachments with another device';
 
   @override
-  String get syncReceiveTitle => 'Receive Changes (Client)';
+  String get titleSyncReceive => 'Receive changes';
 
   @override
-  String get syncReceiveSubtitle =>
+  String get descSyncReceive =>
       'Scan a pairing QR code or enter connection details to receive updates';
 
   @override
-  String get syncHostTitle => 'Host Wi-Fi Sync';
+  String get titleSyncHost => 'Host Wi-Fi Sync';
 
   @override
-  String get syncClientTitle => 'Receive Wi-Fi Sync';
+  String get titleSyncClient => 'Receive Wi-Fi Sync';
 
   @override
-  String get syncTabQrScan => 'Scan QR';
+  String get tabSyncTabQrScan => 'Scan QR';
 
   @override
-  String get syncTabManualEntry => 'Manual Details';
+  String get tabSyncTabManualEntry => 'Manual Details';
 
   @override
-  String get syncTabConnection => 'Connection';
+  String get labelSyncIp => 'Local IP Address';
 
   @override
-  String get syncIpLabel => 'Local IP Address';
+  String get labelSyncPort => 'Port';
 
   @override
-  String get syncPortLabel => 'Port';
+  String get labelSyncPairingCode => 'Pairing Code';
 
   @override
-  String get syncPairingCodeLabel => 'Pairing Code';
+  String get labelSyncPairingCodeHint => 'XXXX-XXXX-XXXX-XXXX';
 
   @override
-  String get syncStatusListening => 'Waiting for incoming connection...';
+  String get descSyncStatusListening => 'Waiting for incoming connection...';
 
   @override
-  String get syncStatusConnected => 'Device connected & authenticated';
+  String get labelSyncStatusConnected => 'Device connected';
 
   @override
-  String get syncStatusCompleted => 'Sync completed successfully!';
+  String get descSyncStatusCompleted => 'Sync completed successfully!';
 
   @override
-  String get syncStatusDenied => 'Connection rejected: incorrect pairing code';
+  String get errorSyncStatusDenied =>
+      'Connection rejected: incorrect pairing code';
 
   @override
-  String get syncStatusStopped => 'Sync server stopped';
+  String get labelSyncStatusStopped => 'Sync server stopped';
 
   @override
-  String get syncStatusError => 'Sync server error';
+  String get errorSyncStatusError => 'Sync server error';
 
   @override
-  String get syncButtonStart => 'Start Server';
+  String get actionSyncButtonStart => 'Start Server';
 
   @override
-  String get syncButtonStop => 'Stop Server';
+  String get actionSyncButtonStop => 'Stop Server';
 
   @override
-  String get syncButtonConnect => 'Connect & Sync';
+  String get actionSyncButtonConnect => 'Connect & Sync';
 
   @override
-  String get syncScanInstructions =>
+  String get descSyncScanInstructions =>
       'Point your camera at the pairing QR code on the sending device';
 
   @override
-  String get syncHostAddressHint => 'e.g. 192.168.1.5';
+  String get descSyncHostAddress => 'e.g. 192.168.1.5';
 
   @override
-  String get syncPortHint => 'e.g. 54321';
+  String get descSyncPort => 'e.g. 54321';
 
   @override
-  String get syncCodeHint => '16-character pairing code';
+  String get descSyncCode => '16-character pairing code';
 
   @override
-  String get syncNoWifiAlert =>
+  String get descSyncNoWifiAlert =>
       'No Wi-Fi / LAN IP detected. Make sure both devices are on the same Wi-Fi network or hotspot.';
 
   @override
-  String get syncPairingCodeCopied => 'Pairing code copied to clipboard';
+  String get bodySyncPairingCodeCopied => 'Pairing code copied to clipboard';
 
   @override
-  String get airqrTitle => 'Optical Air-Gap Sync (AirQR)';
+  String get titleAirqr => 'AirQR sync';
 
   @override
-  String get airqrIntro =>
+  String get descAirqrIntro =>
       'Synchronize settings, small journals, and entries over light using animated QR codes without network connections.';
 
   @override
-  String get airqrSendTitle => 'Send via AirQR';
+  String get titleAirqrSend => 'Send via AirQR';
 
   @override
-  String get airqrReceiveTitle => 'Receive via AirQR';
+  String get titleAirqrReceive => 'Receive via AirQR';
 
   @override
-  String get airqrReceive => 'Receive Data (Scanner)';
+  String get actionAirqrReceive => 'Receive data';
 
   @override
-  String get airqrReceiveSubtitle =>
-      'Scan animated QR frames from another device';
+  String get descAirqrReceive => 'Scan animated QR frames from another device';
 
   @override
-  String get airqrSyncSettingsTitle => 'Sync App Settings';
+  String get titleAirqrSyncSettings => 'Sync App Settings';
 
   @override
-  String get airqrSyncSettingsSubtitle =>
+  String get descAirqrSyncSettings =>
       'Theme, accent color, security, ritual & templates (< 1 sec)';
 
   @override
-  String get airqrSyncJournalTitle => 'Sync Single Journal';
+  String get titleAirqrSyncJournal => 'Sync Single Journal';
 
   @override
-  String get airqrSyncJournalSubtitle =>
+  String get descAirqrSyncJournal =>
       'Select and stream a journal with text entries';
 
   @override
-  String get airqrTooLargeTitle => 'Payload Too Large';
+  String get titleAirqrTooLarge => 'Payload Too Large';
 
   @override
-  String get airqrSlowTitle => 'Large Optical Transfer';
+  String get titleAirqrSlow => 'Large transfer';
 
   @override
-  String get airqrSendAnyway => 'Send Anyway';
+  String get actionAirqrSendAnyway => 'Send Anyway';
 
   @override
-  String get airqrSpeedNoteTitle => '100% Offline & Private';
+  String get titleAirqrSpeedNote => 'Offline and private';
 
   @override
-  String get airqrSpeedNoteBody =>
+  String get bodyAirqrSpeedNote =>
       'AirQR works purely via camera and screen. No Wi-Fi, hotspot, Bluetooth, or internet required.';
 
   @override
-  String get timeCapsuleActionSeal => 'Seal as Time Capsule';
+  String get actionTimeCapsuleActionSeal => 'Seal as Time Capsule';
 
   @override
-  String get timeCapsuleSealTitle => 'Seal as Time Capsule';
+  String get titleTimeCapsuleSeal => 'Seal as Time Capsule';
 
   @override
-  String get timeCapsuleSealDescription =>
+  String get descTimeCapsuleSeal =>
       'Cryptographically seals this entry until a future date. The decryption key will not be released until that date arrives.';
 
   @override
-  String get timeCapsuleUnlockDateLabel => 'Unlock Date';
+  String get labelTimeCapsuleUnlockDate => 'Unlock Date';
 
   @override
-  String get timeCapsuleTeaserHint => 'Note to future self (optional teaser)';
+  String get descTimeCapsuleTeaser => 'Note to future self (optional teaser)';
 
   @override
-  String get timeCapsulePreset1Month => '1 Month';
+  String get actionTimeCapsulePreset1Month => '1 Month';
 
   @override
-  String get timeCapsulePreset6Months => '6 Months';
+  String get actionTimeCapsulePreset6Months => '6 Months';
 
   @override
-  String get timeCapsulePreset1Year => '1 Year';
+  String get actionTimeCapsulePreset1Year => '1 Year';
 
   @override
-  String get timeCapsulePreset3Years => '3 Years';
+  String get actionTimeCapsulePreset3Years => '3 Years';
 
   @override
-  String get timeCapsulePreset5Years => '5 Years';
+  String get actionTimeCapsulePreset5Years => '5 Years';
 
   @override
-  String get timeCapsulePresetCustom => 'Custom Date';
+  String get actionTimeCapsulePresetCustom => 'Custom Date';
 
   @override
-  String get timeCapsuleSealConfirm => 'Seal Capsule';
+  String get bodyTimeCapsuleSeal => 'Seal Capsule';
 
   @override
-  String get timeCapsuleSealedBadge => 'Sealed Time Capsule';
+  String get labelTimeCapsuleSealedBadge => 'Sealed Time Capsule';
 
   @override
-  String timeCapsuleSealedUntil(String date) {
+  String labelTimeCapsuleSealedUntil(String date) {
     return 'Sealed until $date';
   }
 
   @override
-  String timeCapsuleOpensInDays(int days) {
+  String labelTimeCapsuleOpensInDays(int days) {
     return 'Opens in $days days';
   }
 
   @override
-  String timeCapsuleOpensInHours(int hours) {
+  String labelTimeCapsuleOpensInHours(int hours) {
     return 'Opens in $hours hours';
   }
 
   @override
-  String get timeCapsuleOpensToday => 'Opens today!';
+  String get descTimeCapsuleOpensToday => 'Opens today!';
 
   @override
-  String get timeCapsuleReadyToOpen => 'Ready to Open';
+  String get actionTimeCapsuleReadyToOpen => 'Ready to Open';
 
   @override
-  String get timeCapsuleLockedExplanation =>
+  String get descTimeCapsuleLocked =>
       'This entry is cryptographically sealed under AES-256-GCM. The app\'s date-gated vault engine will not release the decryption key until the unlock date.';
 
   @override
-  String get timeCapsuleUnsealButton => 'Unseal Time Capsule';
+  String get actionTimeCapsuleUnseal => 'Unseal Time Capsule';
 
   @override
-  String timeCapsuleUnsealLockedPrompt(String date) {
+  String actionTimeCapsuleUnsealLockedPrompt(String date) {
     return 'Locked until $date';
   }
 
   @override
-  String timeCapsuleSealedSuccess(String date) {
+  String bodyTimeCapsuleSealedSuccess(String date) {
     return 'Entry sealed into a time capsule until $date.';
   }
 
   @override
-  String get timeCapsuleUnsealedSuccess =>
+  String get bodyTimeCapsuleUnsealedSuccess =>
       'Time capsule successfully unsealed! Welcome back to your words.';
 
   @override
-  String get timeCapsuleClockTamperError =>
+  String get errorTimeCapsuleClockTamper =>
       'Device clock rollback detected. The capsule cannot be unlocked while the device time is behind the recorded seal timestamp.';
 
   @override
-  String get timeCapsuleTitle => 'Time Capsules';
+  String get titleTimeCapsule => 'Time Capsules';
 
   @override
-  String get timeCapsuleSubtitle =>
+  String get descTimeCapsule =>
       'Letters and entries sealed for your future self';
 
   @override
-  String get timeCapsuleEmptyState =>
+  String get emptyTimeCapsule =>
       'No time capsules yet. Create an entry and seal it for your future self.';
 
   @override
-  String get timeCapsuleBannerTitle => 'Time Capsule Ready!';
+  String get bodyTimeCapsuleBanner => 'Time Capsule Ready!';
 
   @override
-  String timeCapsuleBannerBody(int count) {
+  String bodyTimeCapsuleBannerBody(int count) {
     return 'You have $count sealed capsule ready to open today.';
   }
 
   @override
-  String timeCapsuleBannerBodyPlural(int count) {
+  String descTimeCapsuleBannerBodyPlural(int count) {
     return 'You have $count sealed capsules ready to open today.';
   }
 
   @override
-  String get timeCapsuleCategorySealed => 'Sealed Capsules';
+  String get titleTimeCapsuleCategorySealed => 'Sealed Capsules';
 
   @override
-  String get timeCapsuleCategoryReady => 'Ready to Open';
+  String get titleTimeCapsuleCategoryReady => 'Ready to Open';
 
   @override
-  String get timeCapsuleCategoryOpened => 'Opened Capsules';
+  String get titleTimeCapsuleCategoryOpened => 'Opened Capsules';
 
   @override
-  String get ritualCreateCardTitle => 'Create Card';
+  String get titleRitualCreateCard => 'Create Card';
 
   @override
-  String get ritualEditCardTitle => 'Edit Card';
+  String get titleRitualEditCard => 'Edit Card';
 
   @override
-  String get ritualCreateCardButton => 'New Card';
+  String get actionRitualCreateCard => 'New Card';
 
   @override
-  String get ritualCardThemeLabel => 'Theme';
+  String get labelRitualCardTheme => 'Theme';
 
   @override
-  String get ritualCardTitleLabel => 'Title';
+  String get labelRitualCardTitle => 'Title';
 
   @override
-  String get ritualCardTitleHint => 'e.g. The Light of Self-Knowledge';
+  String get descRitualCardTitle => 'e.g. The Light of Self-Knowledge';
 
   @override
-  String get ritualCardTitleRequired => 'A title is required.';
+  String get errorRitualCardTitle => 'A title is required.';
 
   @override
-  String get ritualCardPromptLabel => 'Reflection Question';
+  String get labelRitualCardPrompt => 'Reflection Question';
 
   @override
-  String get ritualCardPromptHint =>
+  String get descRitualCardPrompt =>
       'A question to reflect upon during practice...';
 
   @override
-  String get ritualCardPromptRequired => 'A reflection question is required.';
+  String get errorRitualCardPrompt => 'A reflection question is required.';
 
   @override
-  String get ritualCardQuoteLabel => 'Teaching or Quote';
+  String get labelRitualCardQuote => 'Teaching or Quote';
 
   @override
-  String get ritualCardQuoteHint => 'A verse, shloka, or teaching...';
+  String get descRitualCardQuote => 'A verse, shloka, or teaching...';
 
   @override
-  String get ritualCardQuoteRequired => 'A teaching or quote is required.';
+  String get errorRitualCardQuote => 'A teaching or quote is required.';
 
   @override
-  String get ritualCardAuthorLabel => 'Source (optional)';
+  String get labelRitualCardAuthor => 'Source (optional)';
 
   @override
-  String get ritualCardAuthorHint => 'e.g. Bhagavad Gita 2.47';
+  String get descRitualCardAuthor => 'e.g. Bhagavad Gita 2.47';
 
   @override
-  String get ritualCardPreviewLabel => 'Preview';
+  String get labelRitualCardPreview => 'Preview';
 
   @override
-  String get ritualSaveCardCreate => 'Create Card';
+  String get actionRitualSaveCardCreate => 'Create Card';
 
   @override
-  String get ritualSaveCardEdit => 'Save Changes';
+  String get actionRitualSaveCardEdit => 'Save Changes';
 
   @override
-  String get ritualCardCreatedMessage => 'Card created.';
+  String get bodyRitualCardCreated => 'Card created.';
 
   @override
-  String get ritualCardUpdatedMessage => 'Card updated.';
+  String get bodyRitualCardUpdated => 'Card updated.';
 
   @override
-  String get ritualCardSaveError =>
+  String get errorRitualCardSave =>
       'Could not save the card. Please try again.';
 
   @override
-  String get ritualUserCardBadge => 'MY CARD';
+  String get labelRitualUserCardBadge => 'MY CARD';
 
   @override
-  String get ritualEditCardAction => 'Edit';
+  String get actionRitualEditCard => 'Edit';
 
   @override
-  String get ritualDeleteCardAction => 'Delete';
+  String get actionRitualDeleteCard => 'Delete';
 
   @override
-  String get ritualDeleteCardTitle => 'Delete Card';
+  String get titleRitualDeleteCard => 'Delete Card';
 
   @override
-  String ritualDeleteCardConfirm(String title) {
+  String bodyRitualDeleteCard(String title) {
     return 'Are you sure you want to delete \"$title\"? This cannot be undone.';
   }
 
   @override
-  String get ritualCardDeletedMessage => 'Card deleted.';
+  String get bodyRitualCardDeleted => 'Card deleted.';
 
   @override
-  String get ritualNoJournalError => 'Please create a journal first.';
+  String get errorRitualNoJournal => 'Please create a journal first.';
 
   @override
-  String get editorGotoLineStart => '⇤';
+  String get actionEditorGotoLineStart => '⇤';
 
   @override
-  String get editorGotoLineEnd => '⇥';
+  String get actionEditorGotoLineEnd => '⇥';
 
   @override
-  String get ocrCameraTitle => 'Scan Document';
-
-  @override
-  String get ocrCameraPermissionDenied =>
+  String get bodyOcrCameraPermissionDenied =>
       'Camera permission is required to photograph documents for text recognition.';
 
   @override
-  String get ocrCameraOpenSettings => 'Open Settings';
+  String get actionOcrCameraOpenSettings => 'Open Settings';
 
   @override
-  String get ocrCameraNoCameras => 'No camera found on this device.';
+  String get bodyOcrCameraNoCameras => 'No camera found on this device.';
 
   @override
-  String get ocrCameraFlashOff => 'Flash off';
+  String get tooltipOcrCameraFlashOff => 'Flash off';
 
   @override
-  String get ocrCameraFlashAuto => 'Flash auto';
+  String get tooltipOcrCameraFlashAuto => 'Flash auto';
 
   @override
-  String get ocrCameraFlashOn => 'Flash on';
+  String get tooltipOcrCameraFlashOn => 'Flash on';
 
   @override
-  String get ocrCameraFlashTorch => 'Torch on';
+  String get tooltipOcrCameraFlashTorch => 'Torch on';
 
   @override
-  String get ocrCameraGridToggle => 'Framing grid';
+  String get tooltipOcrCameraGridToggle => 'Framing grid';
 
   @override
-  String get ocrCameraSwitch => 'Switch camera';
+  String get tooltipOcrCameraSwitch => 'Switch camera';
 
   @override
-  String get ocrCameraCaptureHint => 'Tap to focus • Pinch to zoom';
+  String get descOcrCameraCapture => 'Tap to focus • Pinch to zoom';
 
   @override
-  String get ocrCameraCapture => 'Take photo';
+  String get actionOcrCameraCapture => 'Take photo';
 
   @override
-  String get ocrCameraGallery => 'Choose from gallery';
+  String get actionOcrCameraGallery => 'Choose from gallery';
 
   @override
-  String get ocrCameraExposure => 'Exposure';
+  String get labelOcrCameraExposure => 'Exposure';
 
   @override
-  String get ocrCameraZoom => 'Zoom';
+  String get labelOcrCameraZoom => 'Zoom';
 
   @override
-  String get ocrCameraFocusAuto => 'Auto focus';
+  String get tooltipOcrCameraFocusAuto => 'Auto focus';
 
   @override
-  String get ocrCameraFocusLocked => 'Focus locked';
+  String get tooltipOcrCameraFocusLocked => 'Focus locked';
 
   @override
-  String get ocrCameraExposureAuto => 'Auto exposure';
+  String get tooltipOcrCameraExposureAuto => 'Auto exposure';
 
   @override
-  String get ocrCameraExposureLocked => 'Exposure locked';
+  String get tooltipOcrCameraExposureLocked => 'Exposure locked';
 
   @override
-  String get ocrCameraControls => 'Camera controls';
+  String get tooltipOcrCameraControls => 'Camera controls';
 
   @override
-  String get ocrCameraReset => 'Reset';
+  String get actionOcrCameraReset => 'Reset';
 
   @override
-  String get ocrEnhanceTitle => 'Enhance & Scan';
+  String get titleOcrEnhance => 'Enhance & Scan';
 
   @override
-  String get ocrEnhanceRotate => 'Rotate';
+  String get tooltipOcrEnhanceRotateLeft => 'Rotate left';
 
   @override
-  String get ocrEnhanceRotateLeft => 'Rotate left';
+  String get tooltipOcrEnhanceRotateRight => 'Rotate right';
 
   @override
-  String get ocrEnhanceRotateRight => 'Rotate right';
+  String get labelOcrEnhanceCrop => 'Crop';
 
   @override
-  String get ocrEnhanceCrop => 'Crop';
+  String get tabOcrEnhanceFilter => 'Filter';
 
   @override
-  String get ocrEnhanceFilter => 'Filter';
+  String get actionOcrEnhanceInvert => 'Invert';
 
   @override
-  String get ocrEnhanceInvert => 'Invert';
+  String get labelOcrEnhanceFilterOriginal => 'Original';
 
   @override
-  String get ocrEnhanceFilterOriginal => 'Original';
+  String get labelOcrEnhanceFilterDocument => 'Document';
 
   @override
-  String get ocrEnhanceFilterDocument => 'Document';
+  String get labelOcrEnhanceFilterGrayscale => 'Grayscale';
 
   @override
-  String get ocrEnhanceFilterGrayscale => 'Grayscale';
+  String get actionOcrEnhanceFilterEnhance => 'High Contrast';
 
   @override
-  String get ocrEnhanceFilterEnhance => 'High Contrast';
+  String get labelOcrEnhanceBrightness => 'Brightness';
 
   @override
-  String get ocrEnhanceBrightness => 'Brightness';
+  String get labelOcrEnhanceContrast => 'Contrast';
 
   @override
-  String get ocrEnhanceContrast => 'Contrast';
+  String get tabOcrEnhanceAdjust => 'Adjust';
 
   @override
-  String get ocrEnhanceAdjust => 'Adjust';
+  String get titleOcrEnhanceLiveText => 'Text found';
 
   @override
-  String get ocrEnhanceLiveText => 'Recognized Text Preview';
-
-  @override
-  String get ocrEnhanceLiveTextNone =>
+  String get bodyOcrEnhanceLiveTextNone =>
       'No text detected yet. Try adjusting contrast, rotating, or cropping closer.';
 
   @override
-  String ocrEnhanceLiveWordCount(int count) {
+  String descOcrEnhanceLiveWordCount(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
@@ -3528,26 +3430,2403 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get ocrEnhanceInsertText => 'Insert into Entry';
+  String get actionOcrEnhanceInsertText => 'Insert into Entry';
 
   @override
-  String get ocrEnhanceRetake => 'Retake';
+  String get actionOcrEnhanceRetake => 'Retake';
 
   @override
-  String get ocrEnhanceProcessing => 'Enhancing image...';
+  String get bodyOcrEnhanceProcessing => 'Enhancing image...';
 
   @override
-  String get ocrEnhanceLiveScanning => 'Scanning text...';
+  String get bodyOcrEnhanceLiveScanning => 'Scanning text...';
 
   @override
-  String get ocrLanguageAll => 'English + മലയാളം';
+  String get labelOcrLanguageAll => 'English + മലയാളം';
 
   @override
-  String get ocrLanguageMalayalam => 'മലയാളം';
+  String get labelOcrLanguageMalayalam => 'മലയാളം';
 
   @override
-  String get ocrLanguageEnglish => 'English';
+  String get labelOcrLanguageEnglish => 'English';
 
   @override
-  String get ocrLanguageSelectTooltip => 'Select OCR language';
+  String get tooltipOcrLanguageSelect => 'Select OCR language';
+
+  @override
+  String get titleLanguage => 'Language';
+
+  @override
+  String get labelLanguageSystemDefault => 'System default';
+
+  @override
+  String get descLanguageSystemDefault =>
+      'Follows the phone\'s language, or English if the phone\'s language is not available.';
+
+  @override
+  String get labelLanguageEnglish => 'English';
+
+  @override
+  String get labelLanguageMalayalam => 'മലയാളം';
+
+  @override
+  String get labelLanguageSanskrit => 'संस्कृतम्';
+
+  @override
+  String labelLanguageCurrent(String language) {
+    return 'Language: $language';
+  }
+
+  @override
+  String get aboutDetailAuthor => 'Author';
+
+  @override
+  String get aboutDetailEmail => 'Email';
+
+  @override
+  String get aboutDetailLicense => 'License';
+
+  @override
+  String get aboutDetailAiUsed => 'AI used';
+
+  @override
+  String get aboutDetailIdeUsed => 'IDE used';
+
+  @override
+  String get bodyAboutBuildDateUnavailable => 'Build date unavailable';
+
+  @override
+  String madeWithLove(String heart) {
+    return 'Made with $heart from India';
+  }
+
+  @override
+  String get madeWithLoveA11y => 'Made with love from India';
+
+  @override
+  String get tooltipFilterEntries => 'Filter entries';
+
+  @override
+  String get tooltipSaveSearch => 'Save search';
+
+  @override
+  String get tooltipResetScanner => 'Reset scanner';
+
+  @override
+  String get tooltipToggleTorch => 'Toggle torch';
+
+  @override
+  String get tooltipSwitchCamera => 'Switch camera';
+
+  @override
+  String get tooltipCopyPairingCode => 'Copy pairing code';
+
+  @override
+  String get tooltipSlower => 'Slower';
+
+  @override
+  String get tooltipFaster => 'Faster';
+
+  @override
+  String get tooltipRecordVoiceNote => 'Record voice note';
+
+  @override
+  String get tooltipStopRecording => 'Stop recording';
+
+  @override
+  String get tooltipMoreOptions => 'More options';
+
+  @override
+  String get tooltipShowDetails => 'Show details';
+
+  @override
+  String get tooltipRemove => 'Remove';
+
+  @override
+  String get descRitualCard01Title => 'Your Swadharma';
+
+  @override
+  String get descRitualCard01Prompt =>
+      'What is the unique duty or calling that only you can fulfil in this season of your life? How are you honouring it today?';
+
+  @override
+  String get descRitualCard01Quote =>
+      'It is better to perform one\'s own duty imperfectly than to perform another\'s duty perfectly.';
+
+  @override
+  String get descRitualCard01Source => 'Bhagavad Gita 3.35';
+
+  @override
+  String get descRitualCard02Title => 'Righteousness in the Small';
+
+  @override
+  String get descRitualCard02Prompt =>
+      'In what small, everyday action today can you choose what is right over what is easy or popular?';
+
+  @override
+  String get descRitualCard02Quote =>
+      'Dharma exists for the welfare of all beings. Hence, that by which the welfare of all living beings is sustained, that is Dharma.';
+
+  @override
+  String get descRitualCard02Source => 'Mahabharata, Shanti Parva 109.10';
+
+  @override
+  String get descRitualCard03Title => 'The Wheel of Dharma';
+
+  @override
+  String get descRitualCard03Prompt =>
+      'Reflect on one relationship or responsibility you hold. Are you nurturing it with integrity, or have you been neglecting its call?';
+
+  @override
+  String get descRitualCard03Quote =>
+      'When Dharma is protected, Dharma protects.';
+
+  @override
+  String get descRitualCard03Source => 'Manusmriti 8.15';
+
+  @override
+  String get descRitualCard04Title => 'The Eternal Order';
+
+  @override
+  String get descRitualCard04Prompt =>
+      'Where in nature — the rising sun, the changing seasons, the flowing river — do you see the rhythm of Rta (cosmic order), and how does it mirror your own life?';
+
+  @override
+  String get descRitualCard04Quote =>
+      'The rivers flow into the ocean but the ocean never overflows. Likewise, desires flow into the wise one, who remains ever at peace.';
+
+  @override
+  String get descRitualCard04Source => 'Bhagavad Gita 2.70';
+
+  @override
+  String get descRitualCard05Title => 'Dharma in Adversity';
+
+  @override
+  String get descRitualCard05Prompt =>
+      'When life tests you, what principle or value do you refuse to compromise? Why does it matter to you?';
+
+  @override
+  String get descRitualCard05Quote =>
+      'Even in the most difficult of times, one should not abandon Dharma.';
+
+  @override
+  String get descRitualCard05Source => 'Ramayana, Ayodhya Kanda';
+
+  @override
+  String get descRitualCard06Title => 'Action Without Attachment';
+
+  @override
+  String get descRitualCard06Prompt =>
+      'What is one task or effort you are doing today where you can let go of the result and focus purely on the quality of your action?';
+
+  @override
+  String get descRitualCard06Quote =>
+      'You have the right to perform your duty, but you are not entitled to the fruits of your actions.';
+
+  @override
+  String get descRitualCard06Source => 'Bhagavad Gita 2.47';
+
+  @override
+  String get descRitualCard07Title => 'The Seed You Plant Today';
+
+  @override
+  String get descRitualCard07Prompt =>
+      'Every action is a seed. What kind of seed — patience, kindness, discipline, or something else — are you planting today?';
+
+  @override
+  String get descRitualCard07Quote =>
+      'As a man sows, so shall he reap. There is no escape from the fruits of one\'s actions.';
+
+  @override
+  String get descRitualCard07Source => 'Mahabharata, Vana Parva';
+
+  @override
+  String get descRitualCard08Title => 'Nishkama Karma';
+
+  @override
+  String get descRitualCard08Prompt =>
+      'Think of something you did purely for its own sake, without wanting praise or reward. How did that feel? Can you bring that spirit to more of your day?';
+
+  @override
+  String get descRitualCard08Quote =>
+      'The wise, engaged in selfless action, surrender all attachment to results and attain supreme peace.';
+
+  @override
+  String get descRitualCard08Source => 'Bhagavad Gita 5.12';
+
+  @override
+  String get descRitualCard09Title => 'Breaking the Chain';
+
+  @override
+  String get descRitualCard09Prompt =>
+      'Is there a pattern of reaction — anger, avoidance, blame — that you keep repeating? What would it look like to consciously choose a different response today?';
+
+  @override
+  String get descRitualCard09Quote =>
+      'One who restrains the senses and organs of action, but whose mind dwells on sense objects, is deluded and called a hypocrite.';
+
+  @override
+  String get descRitualCard09Source => 'Bhagavad Gita 3.6';
+
+  @override
+  String get descRitualCard10Title => 'Karma Yoga in Daily Life';
+
+  @override
+  String get descRitualCard10Prompt =>
+      'How can you transform an ordinary task today — cooking, cleaning, working — into an offering, performing it with full attention and devotion?';
+
+  @override
+  String get descRitualCard10Quote =>
+      'Whatever you do, whatever you eat, whatever you offer in sacrifice, whatever you give, whatever austerity you practise — do it as an offering to Me.';
+
+  @override
+  String get descRitualCard10Source => 'Bhagavad Gita 9.27';
+
+  @override
+  String get descRitualCard11Title => 'The Heart of Devotion';
+
+  @override
+  String get descRitualCard11Prompt =>
+      'What fills your heart with reverence and love — a prayer, a memory, a place, the thought of the Divine? Dwell on it now.';
+
+  @override
+  String get descRitualCard11Quote =>
+      'Whoever offers Me with devotion a leaf, a flower, a fruit, or water — that offering of love I accept from the pure-hearted.';
+
+  @override
+  String get descRitualCard11Source => 'Bhagavad Gita 9.26';
+
+  @override
+  String get descRitualCard12Title => 'Surrender and Trust';
+
+  @override
+  String get descRitualCard12Prompt =>
+      'What worry or burden can you mentally place at the feet of the Divine today, trusting that grace will carry you through?';
+
+  @override
+  String get descRitualCard12Quote =>
+      'Abandon all varieties of Dharma and simply surrender unto Me. I shall deliver you from all sinful reactions; do not fear.';
+
+  @override
+  String get descRitualCard12Source => 'Bhagavad Gita 18.66';
+
+  @override
+  String get descRitualCard13Title => 'Seeing God in All';
+
+  @override
+  String get descRitualCard13Prompt =>
+      'Can you look at every person you meet today as a form of the Divine? How would that change the way you speak and listen?';
+
+  @override
+  String get descRitualCard13Quote =>
+      'The wise see the same Divine Self equally in a learned Brahmin, a cow, an elephant, a dog, and an outcaste.';
+
+  @override
+  String get descRitualCard13Source => 'Bhagavad Gita 5.18';
+
+  @override
+  String get descRitualCard14Title => 'The Name that Purifies';
+
+  @override
+  String get descRitualCard14Prompt =>
+      'When was the last time you sat quietly and repeated a sacred name or mantra? What feelings arose when you did?';
+
+  @override
+  String get descRitualCard14Quote =>
+      'The name of the Lord is the boat that will take you across the ocean of worldly existence.';
+
+  @override
+  String get descRitualCard14Source => 'Tulsidas, Ramcharitmanas';
+
+  @override
+  String get descRitualCard15Title => 'Grace in Gratitude';
+
+  @override
+  String get descRitualCard15Prompt =>
+      'What unexpected blessing or moment of grace have you received recently that you have not yet paused to acknowledge?';
+
+  @override
+  String get descRitualCard15Quote =>
+      'I am the origin of all. Everything emanates from Me. The wise who know this worship Me with loving devotion.';
+
+  @override
+  String get descRitualCard15Source => 'Bhagavad Gita 10.8';
+
+  @override
+  String get descRitualCard16Title => 'Who Am I?';
+
+  @override
+  String get descRitualCard16Prompt =>
+      'Strip away your name, your job, your roles, your body. What remains? Sit with this question: Who am I beyond all labels?';
+
+  @override
+  String get descRitualCard16Quote => 'Tat Tvam Asi — Thou art That.';
+
+  @override
+  String get descRitualCard16Source => 'Chandogya Upanishad 6.8.7';
+
+  @override
+  String get descRitualCard17Title => 'The Eternal Witness';
+
+  @override
+  String get descRitualCard17Prompt =>
+      'Observe your thoughts passing by without grasping any of them. Who is the one watching? Can that awareness itself ever be harmed?';
+
+  @override
+  String get descRitualCard17Quote =>
+      'The Self is never born, nor does it die. It is eternal, ever-existing, and primeval. It is not slain when the body is slain.';
+
+  @override
+  String get descRitualCard17Source => 'Bhagavad Gita 2.20';
+
+  @override
+  String get descRitualCard18Title => 'Knowledge That Frees';
+
+  @override
+  String get descRitualCard18Prompt =>
+      'What is one truth about yourself or about life that, once you truly accepted it, freed you from suffering?';
+
+  @override
+  String get descRitualCard18Quote =>
+      'There is nothing as purifying in this world as knowledge. One who has attained purity of mind through prolonged Yoga discovers this knowledge within, in due course of time.';
+
+  @override
+  String get descRitualCard18Source => 'Bhagavad Gita 4.38';
+
+  @override
+  String get descRitualCard19Title => 'Beyond the Senses';
+
+  @override
+  String get descRitualCard19Prompt =>
+      'Your senses show you the surface of things. What deeper truth lies beneath the situation you are facing right now?';
+
+  @override
+  String get descRitualCard19Quote =>
+      'Beyond the senses are the objects; beyond the objects is the mind; beyond the mind is the intellect; beyond the intellect is the Great Self.';
+
+  @override
+  String get descRitualCard19Source => 'Katha Upanishad 1.3.10';
+
+  @override
+  String get descRitualCard20Title => 'The Light Within';
+
+  @override
+  String get descRitualCard20Prompt =>
+      'Close your eyes. Imagine a steady flame burning in your heart that no wind can extinguish. What does this light illuminate for you?';
+
+  @override
+  String get descRitualCard20Quote =>
+      'Asato ma sadgamaya, tamaso ma jyotirgamaya, mrityorma amritam gamaya. Lead me from the unreal to the Real, from darkness to Light, from death to Immortality.';
+
+  @override
+  String get descRitualCard20Source => 'Brihadaranyaka Upanishad 1.3.28';
+
+  @override
+  String get descRitualCard21Title => 'The Fullness of Being';
+
+  @override
+  String get descRitualCard21Prompt =>
+      'If you lack nothing at the deepest level, why do you feel incomplete? Reflect on what it means to be already whole.';
+
+  @override
+  String get descRitualCard21Quote =>
+      'Om Purnamadah Purnamidam — That is Whole, this is Whole. From the Whole, the Whole arises. When the Whole is taken from the Whole, the Whole still remains.';
+
+  @override
+  String get descRitualCard21Source => 'Isha Upanishad, Invocation';
+
+  @override
+  String get descRitualCard22Title => 'Brahman in Everything';
+
+  @override
+  String get descRitualCard22Prompt =>
+      'The same consciousness that shines through you shines through every living being. How does this awareness change the way you see the world today?';
+
+  @override
+  String get descRitualCard22Quote => 'Aham Brahmasmi — I am Brahman.';
+
+  @override
+  String get descRitualCard22Source => 'Brihadaranyaka Upanishad 1.4.10';
+
+  @override
+  String get descRitualCard23Title => 'Stilling the Mind';
+
+  @override
+  String get descRitualCard23Prompt =>
+      'Right now, observe the fluctuations of your mind — planning, worrying, remembering. Can you gently bring all of them to stillness, even for a few breaths?';
+
+  @override
+  String get descRitualCard23Quote =>
+      'Yogas chitta vritti nirodhah — Yoga is the cessation of the fluctuations of the mind.';
+
+  @override
+  String get descRitualCard23Source => 'Yoga Sutras of Patanjali 1.2';
+
+  @override
+  String get descRitualCard24Title => 'Steady Practice';
+
+  @override
+  String get descRitualCard24Prompt =>
+      'What is one positive habit or practice you can commit to with patience and devotion, knowing that consistency matters more than intensity?';
+
+  @override
+  String get descRitualCard24Quote =>
+      'Abhyasa — practice becomes firmly grounded when it is pursued for a long time, without interruption, and with sincere devotion.';
+
+  @override
+  String get descRitualCard24Source => 'Yoga Sutras of Patanjali 1.14';
+
+  @override
+  String get descRitualCard25Title => 'Evenness of Mind';
+
+  @override
+  String get descRitualCard25Prompt =>
+      'Recall a recent moment of success and a moment of failure. Can you hold both with the same steady awareness, without elation or despair?';
+
+  @override
+  String get descRitualCard25Quote =>
+      'Yoga is equanimity of mind — samatvam yoga uchyate.';
+
+  @override
+  String get descRitualCard25Source => 'Bhagavad Gita 2.48';
+
+  @override
+  String get descRitualCard26Title => 'The Five Yamas';
+
+  @override
+  String get descRitualCard26Prompt =>
+      'Non-violence, truthfulness, non-stealing, moderation, non-possessiveness — which of the five Yamas is the hardest for you right now, and why?';
+
+  @override
+  String get descRitualCard26Quote =>
+      'Ahimsa, Satya, Asteya, Brahmacharya, Aparigraha — these are the great universal vows.';
+
+  @override
+  String get descRitualCard26Source => 'Yoga Sutras of Patanjali 2.30';
+
+  @override
+  String get descRitualCard27Title => 'Ishvara Pranidhana';
+
+  @override
+  String get descRitualCard27Prompt =>
+      'What does it feel like to offer your effort completely — not to achieve, but to dedicate? Try offering your next action to something greater than yourself.';
+
+  @override
+  String get descRitualCard27Quote =>
+      'By total surrender to Ishvara, Samadhi is attained.';
+
+  @override
+  String get descRitualCard27Source => 'Yoga Sutras of Patanjali 2.45';
+
+  @override
+  String get descRitualCard28Title => 'Non-Violence in Thought';
+
+  @override
+  String get descRitualCard28Prompt =>
+      'Have you directed harsh, violent thoughts towards yourself or someone else today? What would it mean to replace them with understanding?';
+
+  @override
+  String get descRitualCard28Quote =>
+      'Ahimsa Paramo Dharma — Non-violence is the highest Dharma.';
+
+  @override
+  String get descRitualCard28Source => 'Mahabharata, Anushasana Parva 116.38';
+
+  @override
+  String get descRitualCard29Title => 'Compassion for All Beings';
+
+  @override
+  String get descRitualCard29Prompt =>
+      'Think of a creature — an animal, an insect, a bird — you encountered recently. What would the world be like if you extended the same care to all living beings?';
+
+  @override
+  String get descRitualCard29Quote =>
+      'One who sees all beings in the Self and the Self in all beings, never turns away from it.';
+
+  @override
+  String get descRitualCard29Source => 'Isha Upanishad, Verse 6';
+
+  @override
+  String get descRitualCard30Title => 'Gentle Speech';
+
+  @override
+  String get descRitualCard30Prompt =>
+      'Before you speak today, pause and ask: Is it true? Is it kind? Is it necessary? How does this filter change your conversations?';
+
+  @override
+  String get descRitualCard30Quote =>
+      'Words that do not cause distress, that are truthful, pleasant, and beneficial — this is called the austerity of speech.';
+
+  @override
+  String get descRitualCard30Source => 'Bhagavad Gita 17.15';
+
+  @override
+  String get descRitualCard31Title => 'Forgiving the Hurt';
+
+  @override
+  String get descRitualCard31Prompt =>
+      'Who has caused you pain that you are still carrying? What would it take to forgive — not for them, but to free your own heart?';
+
+  @override
+  String get descRitualCard31Quote =>
+      'Forgiveness is the ornament of the brave.';
+
+  @override
+  String get descRitualCard31Source => 'Mahabharata, Udyoga Parva 33.48';
+
+  @override
+  String get descRitualCard32Title => 'Living in Truth';
+
+  @override
+  String get descRitualCard32Prompt =>
+      'Is there something in your life where you are being less than truthful — with yourself or with others? What would honest alignment look like?';
+
+  @override
+  String get descRitualCard32Quote =>
+      'Satyameva Jayate — Truth alone triumphs.';
+
+  @override
+  String get descRitualCard32Source => 'Mundaka Upanishad 3.1.6';
+
+  @override
+  String get descRitualCard33Title => 'The Courage of Honesty';
+
+  @override
+  String get descRitualCard33Prompt =>
+      'What is one truth you have been avoiding because it is uncomfortable? What would it take to face it with courage today?';
+
+  @override
+  String get descRitualCard33Quote =>
+      'Speak the truth. Practise Dharma. Do not neglect the study of the scriptures.';
+
+  @override
+  String get descRitualCard33Source => 'Taittiriya Upanishad 1.11.1';
+
+  @override
+  String get descRitualCard34Title => 'Truth Beyond Words';
+
+  @override
+  String get descRitualCard34Prompt =>
+      'Truth is not only in what you say, but in what you do. Are your actions today aligned with the truth you hold in your heart?';
+
+  @override
+  String get descRitualCard34Quote =>
+      'By truthfulness, man reaches the station of God.';
+
+  @override
+  String get descRitualCard34Source => 'Chanakya Niti 14.3';
+
+  @override
+  String get descRitualCard35Title => 'The Promise You Keep';
+
+  @override
+  String get descRitualCard35Prompt =>
+      'What is a promise you have made — to yourself, to another, or to the Divine — that you must honour? Recommit to it now.';
+
+  @override
+  String get descRitualCard35Quote =>
+      'Let your word be your bond. A person who breaks a promise breaks trust, and trust once broken is hard to rebuild.';
+
+  @override
+  String get descRitualCard35Source => 'Vidura Niti, Mahabharata';
+
+  @override
+  String get descRitualCard36Title => 'Letting Go';
+
+  @override
+  String get descRitualCard36Prompt =>
+      'What possession, expectation, or desire are you clinging to that no longer serves your growth? Imagine gently releasing it.';
+
+  @override
+  String get descRitualCard36Quote =>
+      'Vairagya is the mastery of consciousness in which one is free from craving for sense objects, whether experienced directly or described.';
+
+  @override
+  String get descRitualCard36Source => 'Yoga Sutras of Patanjali 1.15';
+
+  @override
+  String get descRitualCard37Title => 'The Unchanging Self';
+
+  @override
+  String get descRitualCard37Prompt =>
+      'Everything around you changes — moods, fortunes, relationships. What part of you has remained unchanged through all of life\'s storms?';
+
+  @override
+  String get descRitualCard37Quote =>
+      'That which is not real never was and never will be. That which is real always was and can never cease to be.';
+
+  @override
+  String get descRitualCard37Source => 'Bhagavad Gita 2.16';
+
+  @override
+  String get descRitualCard38Title => 'Contentment';
+
+  @override
+  String get descRitualCard38Prompt =>
+      'What do you already have that is truly enough? Reflect on the difference between want and need in your life right now.';
+
+  @override
+  String get descRitualCard38Quote =>
+      'From contentment comes unsurpassed happiness.';
+
+  @override
+  String get descRitualCard38Source => 'Yoga Sutras of Patanjali 2.42';
+
+  @override
+  String get descRitualCard39Title => 'Beyond Pleasure and Pain';
+
+  @override
+  String get descRitualCard39Prompt =>
+      'Can you sit with discomfort without fleeing, and with pleasure without grasping? What happens when you simply observe both?';
+
+  @override
+  String get descRitualCard39Quote =>
+      'One who is not disturbed by happiness and distress and is steady in both is certainly eligible for liberation.';
+
+  @override
+  String get descRitualCard39Source => 'Bhagavad Gita 2.15';
+
+  @override
+  String get descRitualCard40Title => 'The Joy of Giving';
+
+  @override
+  String get descRitualCard40Prompt =>
+      'What can you give today — time, attention, a kind word, a helping hand — without expecting anything in return?';
+
+  @override
+  String get descRitualCard40Quote =>
+      'The highest form of charity is helping those who are helpless.';
+
+  @override
+  String get descRitualCard40Source => 'Thirukkural 221';
+
+  @override
+  String get descRitualCard41Title => 'Serving the Divine in Others';
+
+  @override
+  String get descRitualCard41Prompt =>
+      'If the person standing in front of you were God in disguise, how would you treat them? Try living this for the next hour.';
+
+  @override
+  String get descRitualCard41Quote => 'Service to humanity is service to God.';
+
+  @override
+  String get descRitualCard41Source => 'Swami Vivekananda';
+
+  @override
+  String get descRitualCard42Title => 'Selfless Work';
+
+  @override
+  String get descRitualCard42Prompt =>
+      'Recall a time when you helped someone and felt a quiet, deep joy that had nothing to do with recognition. What did that teach you?';
+
+  @override
+  String get descRitualCard42Quote =>
+      'Arise, awake, and stop not till the goal is reached.';
+
+  @override
+  String get descRitualCard42Source =>
+      'Katha Upanishad 1.3.14 / Swami Vivekananda';
+
+  @override
+  String get descRitualCard43Title => 'Vasudhaiva Kutumbakam';
+
+  @override
+  String get descRitualCard43Prompt =>
+      'The whole world is one family. What is one step you can take today to live as though every person\'s well-being matters to you?';
+
+  @override
+  String get descRitualCard43Quote =>
+      'Vasudhaiva Kutumbakam — the entire world is one family.';
+
+  @override
+  String get descRitualCard43Source => 'Maha Upanishad 6.71';
+
+  @override
+  String get descRitualCard44Title => 'The Wealth of Kindness';
+
+  @override
+  String get descRitualCard44Prompt =>
+      'What small act of kindness did someone do for you that you still remember? How can you pass that same kindness forward today?';
+
+  @override
+  String get descRitualCard44Quote =>
+      'Even the poverty of the poor will depart if they give, with compassion, even what little they have.';
+
+  @override
+  String get descRitualCard44Source => 'Thirukkural 247';
+
+  @override
+  String get descRitualCard45Title => 'The Peace Within';
+
+  @override
+  String get descRitualCard45Prompt =>
+      'Close your eyes and take three slow breaths. Feel the silence between each breath. That silence is who you truly are. Can you carry it through the day?';
+
+  @override
+  String get descRitualCard45Quote =>
+      'For one who has conquered the mind, the mind is the best of friends; but for one who has failed to do so, the mind will remain the greatest enemy.';
+
+  @override
+  String get descRitualCard45Source => 'Bhagavad Gita 6.6';
+
+  @override
+  String get descRitualCard46Title => 'Equanimity in Praise and Blame';
+
+  @override
+  String get descRitualCard46Prompt =>
+      'Recall a recent praise and a recent criticism you received. Can you hold both with the same calm composure, without clinging to one or rejecting the other?';
+
+  @override
+  String get descRitualCard46Quote =>
+      'One who is the same to friend and foe, in honour and dishonour, in heat and cold, in pleasure and pain, and is free from attachment — such a person is dear to Me.';
+
+  @override
+  String get descRitualCard46Source => 'Bhagavad Gita 12.18–19';
+
+  @override
+  String get descRitualCard47Title => 'The Lotus in Mud';
+
+  @override
+  String get descRitualCard47Prompt =>
+      'A lotus blooms in muddy water yet remains unstained. What is the muddy situation in your life right now, and how can you remain untouched by it while still growing?';
+
+  @override
+  String get descRitualCard47Quote =>
+      'One who performs actions without attachment, surrendering them to Brahman, is untouched by sin, like a lotus leaf by water.';
+
+  @override
+  String get descRitualCard47Source => 'Bhagavad Gita 5.10';
+
+  @override
+  String get descRitualCard48Title => 'Om Shanti';
+
+  @override
+  String get descRitualCard48Prompt =>
+      'Sit still and repeat Om Shanti three times — peace in body, peace in mind, peace in spirit. What disturbance melts away as you do this?';
+
+  @override
+  String get descRitualCard48Quote =>
+      'Om Shantih Shantih Shantih — Om, Peace, Peace, Peace.';
+
+  @override
+  String get descRitualCard48Source => 'Upanishadic Shanti Mantra';
+
+  @override
+  String get descRitualCard49Title => 'May All Be Happy';
+
+  @override
+  String get descRitualCard49Prompt =>
+      'Silently wish well-being for yourself, then for your loved ones, then for strangers, then for all beings. Notice how your heart expands as the circle widens.';
+
+  @override
+  String get descRitualCard49Quote =>
+      'Sarve bhavantu sukhinah, sarve santu niramayah. Sarve bhadrani pashyantu, ma kashchit duhkhabhag bhavet. — May all be happy, may all be free from disease, may all see auspiciousness, may none suffer.';
+
+  @override
+  String get descRitualCard49Source => 'Upanishadic Prayer';
+
+  @override
+  String get descRitualCard50Title => 'Strength and Peace Together';
+
+  @override
+  String get descRitualCard50Prompt =>
+      'True strength does not come from tension; it comes from deep inner peace. Where in your life can you replace force with calm resolve today?';
+
+  @override
+  String get descRitualCard50Quote =>
+      'Strength is life, weakness is death. Strength is the medicine, strength is the cure. Strength, strength is what the Upanishads preach.';
+
+  @override
+  String get descRitualCard50Source => 'Swami Vivekananda';
+
+  @override
+  String get labelRitualThemeDharma => 'Dharma';
+
+  @override
+  String get labelRitualThemeKarma => 'Karma';
+
+  @override
+  String get labelRitualThemeBhakti => 'Bhakti';
+
+  @override
+  String get labelRitualThemeJnana => 'Jnana';
+
+  @override
+  String get labelRitualThemeYoga => 'Yoga';
+
+  @override
+  String get labelRitualThemeAhimsa => 'Ahimsa';
+
+  @override
+  String get labelRitualThemeSathya => 'Sathya';
+
+  @override
+  String get labelRitualThemeVairagya => 'Vairagya';
+
+  @override
+  String get labelRitualThemeSeva => 'Seva';
+
+  @override
+  String get labelRitualThemeShanti => 'Shanti';
+
+  @override
+  String get labelBreathTechniqueBox => 'Box breathing';
+
+  @override
+  String get labelBreathTechniqueRelaxing => 'Relaxing breath';
+
+  @override
+  String get labelBreathTechniqueCalm => 'Calm rhythm';
+
+  @override
+  String get labelBreathPhaseInhale => 'Inhale';
+
+  @override
+  String get labelBreathPhaseHold => 'Hold';
+
+  @override
+  String get labelBreathPhaseExhale => 'Exhale';
+
+  @override
+  String get labelBreathPhaseRest => 'Hold & rest';
+
+  @override
+  String get descBreathGuidanceInhale =>
+      'Breathe in slowly through your nose...';
+
+  @override
+  String get descBreathGuidanceHold => 'Hold gently at the top...';
+
+  @override
+  String get descBreathGuidanceExhale => 'Release slowly and completely...';
+
+  @override
+  String get descBreathGuidanceRest => 'Rest in quiet stillness...';
+
+  @override
+  String get bodyBreathPracticeCompleted => 'Breathing practice completed';
+
+  @override
+  String bodyBreathPhaseRemaining(String phase, int seconds) {
+    return '$phase, $seconds seconds remaining';
+  }
+
+  @override
+  String get titleBreathGrounded => 'Grounded & present';
+
+  @override
+  String labelBreathCycle(int current, int total) {
+    return 'Cycle $current of $total';
+  }
+
+  @override
+  String get labelTemplateCategoryGeneral => 'Start fresh';
+
+  @override
+  String get labelTemplateCategoryReflective => 'Daily & reflective';
+
+  @override
+  String get labelTemplateCategoryThoughts => 'Thoughts & ideas';
+
+  @override
+  String get labelTemplateCategoryProjects => 'Projects & work';
+
+  @override
+  String get labelTemplateCategoryPeople => 'Relationships';
+
+  @override
+  String get labelTemplateCategoryHealth => 'Health & wellbeing';
+
+  @override
+  String get labelTemplateCategoryLearning => 'Learning & growth';
+
+  @override
+  String get labelTemplateCategoryCreative => 'Creative';
+
+  @override
+  String get labelTemplateCategoryPlanning => 'Planning';
+
+  @override
+  String get labelTemplateCategorySpecialty => 'Specialty';
+
+  @override
+  String get labelTemplateBlank => 'Blank';
+
+  @override
+  String get descTemplateBlank => 'Start with an empty entry.';
+
+  @override
+  String get labelTemplateDaily => 'Daily Reflection';
+
+  @override
+  String get descTemplateDaily =>
+      'Highlights, gratitudes, and tomorrow\'s focus.';
+
+  @override
+  String get descTemplateDailyEntryTitle => 'Daily Reflection';
+
+  @override
+  String get bodyTemplateDaily =>
+      'Highlights\n\nLowlights\n\nTomorrow\'s focus\n\n';
+
+  @override
+  String get labelTemplateTodayForMe => 'Today for Me';
+
+  @override
+  String get descTemplateTodayForMe =>
+      'Did, thought, saw, encountered, felt, and learned today.';
+
+  @override
+  String get descTemplateTodayForMeEntryTitle => 'Today for Me';
+
+  @override
+  String get bodyTemplateTodayForMe =>
+      'What I did today\n\nWhat I thought today\n\nWhat I saw today\n\nWhat I encountered today\n\nWhat I felt today\n\nWhat was taught to me today\n\n';
+
+  @override
+  String get labelTemplateEveningWindDown => 'Evening Wind-down';
+
+  @override
+  String get descTemplateEveningWindDown =>
+      'Wins, struggles, one thing to let go of.';
+
+  @override
+  String get descTemplateEveningWindDownEntryTitle => 'Evening Wind-down';
+
+  @override
+  String get bodyTemplateEveningWindDown =>
+      'Wins\n\nStruggles\n\nOne thing to let go of\n\n';
+
+  @override
+  String get labelTemplateMorningPages => 'Morning Pages';
+
+  @override
+  String get descTemplateMorningPages =>
+      'Stream-of-consciousness brain dump to start the day.';
+
+  @override
+  String get descTemplateMorningPagesEntryTitle => 'Morning Pages';
+
+  @override
+  String get labelTemplateDayHighlight => 'Highlight of the Day';
+
+  @override
+  String get descTemplateDayHighlight =>
+      'Single most memorable moment and why.';
+
+  @override
+  String get descTemplateDayHighlightEntryTitle => 'Highlight of the Day';
+
+  @override
+  String get bodyTemplateDayHighlight => 'The moment\n\nWhy it stood out\n\n';
+
+  @override
+  String get labelTemplateEnergyCheck => 'Energy Check';
+
+  @override
+  String get descTemplateEnergyCheck =>
+      'Energy level, what drained it, what restored it.';
+
+  @override
+  String get descTemplateEnergyCheckEntryTitle => 'Energy Check';
+
+  @override
+  String get bodyTemplateEnergyCheck =>
+      'Energy level (1-10): \n\nWhat drained it\n\nWhat restored it\n\n';
+
+  @override
+  String get labelTemplateMood => 'Mood Check-in';
+
+  @override
+  String get descTemplateMood =>
+      'Note your current mood and what is shaping it.';
+
+  @override
+  String get descTemplateMoodEntryTitle => 'Mood Check-in';
+
+  @override
+  String get bodyTemplateMood =>
+      'How I feel right now\n\nWhat is shaping it\n\n';
+
+  @override
+  String get labelTemplateThoughts => 'My Thoughts';
+
+  @override
+  String get descTemplateThoughts => 'Free-form reflection on a topic.';
+
+  @override
+  String get descTemplateThoughtsEntryTitle => 'My Thoughts';
+
+  @override
+  String get bodyTemplateThoughts => 'Topic\n\nMy thoughts\n\n';
+
+  @override
+  String get labelTemplateIdeaCapture => 'Idea Capture';
+
+  @override
+  String get descTemplateIdeaCapture => 'Idea, why it matters, next step.';
+
+  @override
+  String get descTemplateIdeaCaptureEntryTitle => 'Idea Capture';
+
+  @override
+  String get bodyTemplateIdeaCapture =>
+      'The idea\n\nWhy it matters\n\nNext step\n\n';
+
+  @override
+  String get labelTemplateOpenQuestion => 'Open Question';
+
+  @override
+  String get descTemplateOpenQuestion =>
+      'A question I am sitting with and current thinking.';
+
+  @override
+  String get descTemplateOpenQuestionEntryTitle => 'Open Question';
+
+  @override
+  String get bodyTemplateOpenQuestion =>
+      'The question\n\nWhat I think so far\n\nWhat I still don\'t know\n\n';
+
+  @override
+  String get labelTemplateOpinion => 'Opinion / Hot Take';
+
+  @override
+  String get descTemplateOpinion => 'Belief, evidence for, evidence against.';
+
+  @override
+  String get descTemplateOpinionEntryTitle => 'Opinion / Hot Take';
+
+  @override
+  String get bodyTemplateOpinion =>
+      'My belief\n\nEvidence for\n\nEvidence against\n\n';
+
+  @override
+  String get labelTemplateLessonsLearned => 'Lessons Learned';
+
+  @override
+  String get descTemplateLessonsLearned =>
+      'What happened, what I learned, how I\'ll apply it.';
+
+  @override
+  String get descTemplateLessonsLearnedEntryTitle => 'Lessons Learned';
+
+  @override
+  String get bodyTemplateLessonsLearned =>
+      'What happened\n\nWhat I learned\n\nHow I\'ll apply it\n\n';
+
+  @override
+  String get labelTemplateProjects => 'My Projects';
+
+  @override
+  String get descTemplateProjects => 'Project, status, blockers, next action.';
+
+  @override
+  String get descTemplateProjectsEntryTitle => 'My Projects';
+
+  @override
+  String get bodyTemplateProjects =>
+      'Project\n\nStatus\n\nBlockers\n\nNext action\n\n';
+
+  @override
+  String get labelTemplateProjectUpdate => 'Project Update';
+
+  @override
+  String get descTemplateProjectUpdate => 'Progress, risks, decisions made.';
+
+  @override
+  String get descTemplateProjectUpdateEntryTitle => 'Project Update';
+
+  @override
+  String get bodyTemplateProjectUpdate =>
+      'Progress\n\nRisks\n\nDecisions made\n\n';
+
+  @override
+  String get labelTemplateWeeklyReview => 'Weekly Review';
+
+  @override
+  String get descTemplateWeeklyReview => 'Wins, misses, focus for next week.';
+
+  @override
+  String get descTemplateWeeklyReviewEntryTitle => 'Weekly Review';
+
+  @override
+  String get bodyTemplateWeeklyReview =>
+      'Wins\n\nMisses\n\nFocus for next week\n\n';
+
+  @override
+  String get labelTemplateGoalTracker => 'Goal Tracker';
+
+  @override
+  String get descTemplateGoalTracker =>
+      'Goal, progress, obstacles, adjustments.';
+
+  @override
+  String get descTemplateGoalTrackerEntryTitle => 'Goal Tracker';
+
+  @override
+  String get bodyTemplateGoalTracker =>
+      'Goal\n\nProgress\n\nObstacles\n\nAdjustments\n\n';
+
+  @override
+  String get labelTemplateDecisionLog => 'Decision Log';
+
+  @override
+  String get descTemplateDecisionLog =>
+      'Decision, options considered, why I chose this.';
+
+  @override
+  String get descTemplateDecisionLogEntryTitle => 'Decision Log';
+
+  @override
+  String get bodyTemplateDecisionLog =>
+      'The decision\n\nOptions considered\n\nWhy I chose this\n\n';
+
+  @override
+  String get labelTemplateStuckPoint => 'Stuck Point';
+
+  @override
+  String get descTemplateStuckPoint =>
+      'Where I\'m stuck, what I\'ve tried, what to try next.';
+
+  @override
+  String get descTemplateStuckPointEntryTitle => 'Stuck Point';
+
+  @override
+  String get bodyTemplateStuckPoint =>
+      'Where I\'m stuck\n\nWhat I\'ve tried\n\nWhat to try next\n\n';
+
+  @override
+  String get labelTemplateMeeting => 'Meeting Notes';
+
+  @override
+  String get descTemplateMeeting =>
+      'Attendees, agenda, decisions, action items.';
+
+  @override
+  String get descTemplateMeetingEntryTitle => 'Meeting Notes';
+
+  @override
+  String get bodyTemplateMeeting =>
+      'Attendees: \nAgenda\n\nDecisions\n\nAction items\n\n';
+
+  @override
+  String get labelTemplateConversationRecap => 'Conversation Recap';
+
+  @override
+  String get descTemplateConversationRecap =>
+      'Who, what we discussed, follow-ups.';
+
+  @override
+  String get descTemplateConversationRecapEntryTitle => 'Conversation Recap';
+
+  @override
+  String get bodyTemplateConversationRecap =>
+      'Who\n\nWhat we discussed\n\nFollow-ups\n\n';
+
+  @override
+  String get labelTemplateGratefulPeople => 'Grateful for people';
+
+  @override
+  String get descTemplateGratefulPeople => 'Person and a specific reason.';
+
+  @override
+  String get descTemplateGratefulPeopleEntryTitle => 'People I\'m Grateful For';
+
+  @override
+  String get bodyTemplateGratefulPeople => 'Person\n\nSpecific reason\n\n';
+
+  @override
+  String get labelTemplateUnsentLetter => 'Letter I Won\'t Send';
+
+  @override
+  String get descTemplateUnsentLetter => 'Unsent letter to process feelings.';
+
+  @override
+  String get descTemplateUnsentLetterEntryTitle => 'Unsent Letter';
+
+  @override
+  String get bodyTemplateUnsentLetter => 'Dear ...,\n\n\n\n— Me\n\n';
+
+  @override
+  String get labelTemplateRelationshipCheckin => 'Relationship check';
+
+  @override
+  String get descTemplateRelationshipCheckin =>
+      'How a key relationship is going.';
+
+  @override
+  String get descTemplateRelationshipCheckinEntryTitle =>
+      'Relationship Check-in';
+
+  @override
+  String get bodyTemplateRelationshipCheckin =>
+      'Person\n\nHow it\'s going\n\nWhat needs attention\n\n';
+
+  @override
+  String get labelTemplateGratitude => 'Gratitude';
+
+  @override
+  String get descTemplateGratitude => 'Three things I am grateful for today.';
+
+  @override
+  String get descTemplateGratitudeEntryTitle => 'Gratitude';
+
+  @override
+  String get bodyTemplateGratitude =>
+      'Three things I\'m grateful for\n\n1. \n2. \n3. \n';
+
+  @override
+  String get labelTemplateBodyCheckin => 'Body Check-in';
+
+  @override
+  String get descTemplateBodyCheckin =>
+      'Sleep, food, movement, pain or tension.';
+
+  @override
+  String get descTemplateBodyCheckinEntryTitle => 'Body Check-in';
+
+  @override
+  String get bodyTemplateBodyCheckin =>
+      'Sleep\n\nFood\n\nMovement\n\nPain or tension\n\n';
+
+  @override
+  String get labelTemplateMentalHealth => 'Mental Health Log';
+
+  @override
+  String get descTemplateMentalHealth => 'Mood, triggers, coping used.';
+
+  @override
+  String get descTemplateMentalHealthEntryTitle => 'Mental Health Log';
+
+  @override
+  String get bodyTemplateMentalHealth => 'Mood\n\nTriggers\n\nCoping used\n\n';
+
+  @override
+  String get labelTemplateHabitTracker => 'Habit Tracker';
+
+  @override
+  String get descTemplateHabitTracker => 'Habits done today and streak notes.';
+
+  @override
+  String get descTemplateHabitTrackerEntryTitle => 'Habit Tracker';
+
+  @override
+  String get bodyTemplateHabitTracker =>
+      'Habits done today\n\nMissed today\n\nStreak notes\n\n';
+
+  @override
+  String get labelTemplateSleepLog => 'Sleep Log';
+
+  @override
+  String get descTemplateSleepLog => 'Hours, quality, dreams.';
+
+  @override
+  String get descTemplateSleepLogEntryTitle => 'Sleep Log';
+
+  @override
+  String get bodyTemplateSleepLog => 'Hours\n\nQuality\n\nDreams\n\n';
+
+  @override
+  String get labelTemplateTaughtToday => 'Taught to Me Today';
+
+  @override
+  String get descTemplateTaughtToday => 'Lesson, source, takeaway.';
+
+  @override
+  String get descTemplateTaughtTodayEntryTitle => 'Taught to Me Today';
+
+  @override
+  String get bodyTemplateTaughtToday => 'Lesson\n\nSource\n\nTakeaway\n\n';
+
+  @override
+  String get labelTemplateBookNotes => 'Book / Article Notes';
+
+  @override
+  String get descTemplateBookNotes => 'Title, key ideas, my reaction.';
+
+  @override
+  String get descTemplateBookNotesEntryTitle => 'Book / Article Notes';
+
+  @override
+  String get bodyTemplateBookNotes =>
+      'Title: \nAuthor: \n\nKey ideas\n\nMy reaction\n\n';
+
+  @override
+  String get labelTemplateSkillPractice => 'Skill Practice';
+
+  @override
+  String get descTemplateSkillPractice =>
+      'What I practiced, what improved, next focus.';
+
+  @override
+  String get descTemplateSkillPracticeEntryTitle => 'Skill Practice';
+
+  @override
+  String get bodyTemplateSkillPractice =>
+      'Skill\n\nWhat I practiced\n\nWhat improved\n\nNext focus\n\n';
+
+  @override
+  String get labelTemplateMistakeLog => 'Mistake Log';
+
+  @override
+  String get descTemplateMistakeLog =>
+      'What went wrong, root cause, prevention.';
+
+  @override
+  String get descTemplateMistakeLogEntryTitle => 'Mistake Log';
+
+  @override
+  String get bodyTemplateMistakeLog =>
+      'What went wrong\n\nRoot cause\n\nPrevention\n\n';
+
+  @override
+  String get labelTemplateTopicDeepDive => 'Topic Deep Dive';
+
+  @override
+  String get descTemplateTopicDeepDive =>
+      'Detailed study note on a concept, subject, or domain.';
+
+  @override
+  String get descTemplateTopicDeepDiveEntryTitle => 'Topic Deep Dive';
+
+  @override
+  String get bodyTemplateTopicDeepDive =>
+      'Topic / Core Concept\n\nKey Principles & Overview\n\nDetailed Analysis & Notes\n\nKey Takeaways & References\n\nOpen Questions / Further Exploration\n\n';
+
+  @override
+  String get labelTemplateDreamJournal => 'Dream Journal';
+
+  @override
+  String get descTemplateDreamJournal =>
+      'Dream details, emotions, possible meaning.';
+
+  @override
+  String get descTemplateDreamJournalEntryTitle => 'Dream Journal';
+
+  @override
+  String get bodyTemplateDreamJournal =>
+      'Dream details\n\nEmotions\n\nPossible meaning\n\n';
+
+  @override
+  String get labelTemplateObservation => 'Observation Sketch';
+
+  @override
+  String get descTemplateObservation => 'Something I noticed in detail.';
+
+  @override
+  String get descTemplateObservationEntryTitle => 'Observation Sketch';
+
+  @override
+  String get bodyTemplateObservation => 'What I noticed\n\nDetails\n\n';
+
+  @override
+  String get labelTemplateQuoteOfDay => 'Quote of the Day';
+
+  @override
+  String get descTemplateQuoteOfDay => 'Quote and why it resonates.';
+
+  @override
+  String get descTemplateQuoteOfDayEntryTitle => 'Quote of the Day';
+
+  @override
+  String get bodyTemplateQuoteOfDay =>
+      'Quote\n\nSource\n\nWhy it resonates\n\n';
+
+  @override
+  String get labelTemplateStorySeed => 'Story Seed';
+
+  @override
+  String get descTemplateStorySeed => 'A tiny story idea or scene.';
+
+  @override
+  String get descTemplateStorySeedEntryTitle => 'Story Seed';
+
+  @override
+  String get bodyTemplateStorySeed => 'The seed\n\nPossible direction\n\n';
+
+  @override
+  String get labelTemplateTravel => 'Travel Log';
+
+  @override
+  String get descTemplateTravel =>
+      'Place, weather, what happened, who you met.';
+
+  @override
+  String get descTemplateTravelEntryTitle => 'Travel Log';
+
+  @override
+  String get bodyTemplateTravel =>
+      'Place: \nWeather: \nWhat happened\n\nPeople I met\n\n';
+
+  @override
+  String get labelTemplateTomorrowFocus => 'Tomorrow\'s Focus';
+
+  @override
+  String get descTemplateTomorrowFocus =>
+      'Top 3 priorities and the first step.';
+
+  @override
+  String get descTemplateTomorrowFocusEntryTitle => 'Tomorrow\'s Focus';
+
+  @override
+  String get bodyTemplateTomorrowFocus =>
+      'Top 3 priorities\n\n1. \n2. \n3. \n\nFirst step\n\n';
+
+  @override
+  String get labelTemplateWeeklyIntentions => 'Weekly Intentions';
+
+  @override
+  String get descTemplateWeeklyIntentions =>
+      'Theme, priorities, what to avoid.';
+
+  @override
+  String get descTemplateWeeklyIntentionsEntryTitle => 'Weekly Intentions';
+
+  @override
+  String get bodyTemplateWeeklyIntentions =>
+      'Theme\n\nPriorities\n\nWhat to avoid\n\n';
+
+  @override
+  String get labelTemplateMonthlyReview => 'Monthly Review';
+
+  @override
+  String get descTemplateMonthlyReview =>
+      'Wins, lessons, what changes next month.';
+
+  @override
+  String get descTemplateMonthlyReviewEntryTitle => 'Monthly Review';
+
+  @override
+  String get bodyTemplateMonthlyReview =>
+      'Wins\n\nLessons\n\nWhat changes next month\n\n';
+
+  @override
+  String get labelTemplateWorkoutLog => 'Workout Log';
+
+  @override
+  String get descTemplateWorkoutLog => 'Exercises, sets, reps, how it felt.';
+
+  @override
+  String get descTemplateWorkoutLogEntryTitle => 'Workout Log';
+
+  @override
+  String get bodyTemplateWorkoutLog =>
+      'Workout\n\nSets / reps\n\nHow it felt\n\n';
+
+  @override
+  String get labelTemplateReadingLog => 'Reading Log';
+
+  @override
+  String get descTemplateReadingLog => 'Book, pages read, favorite passage.';
+
+  @override
+  String get descTemplateReadingLogEntryTitle => 'Reading Log';
+
+  @override
+  String get bodyTemplateReadingLog =>
+      'Book\n\nPages read\n\nFavorite passage\n\n';
+
+  @override
+  String get labelTemplateFoodJournal => 'Food Journal';
+
+  @override
+  String get descTemplateFoodJournal => 'Meals and how I felt after.';
+
+  @override
+  String get descTemplateFoodJournalEntryTitle => 'Food Journal';
+
+  @override
+  String get bodyTemplateFoodJournal => 'Meals\n\nHow I felt after\n\n';
+
+  @override
+  String get labelTemplateSpendingLog => 'Spending Log';
+
+  @override
+  String get descTemplateSpendingLog => 'Purchases — was it worth it?';
+
+  @override
+  String get descTemplateSpendingLogEntryTitle => 'Spending Log';
+
+  @override
+  String get bodyTemplateSpendingLog =>
+      'Purchase\n\nCost\n\nWas it worth it?\n\n';
+
+  @override
+  String get labelTemplatePrayerMeditation => 'Prayer / Meditation';
+
+  @override
+  String get descTemplatePrayerMeditation => 'Practice, duration, reflections.';
+
+  @override
+  String get descTemplatePrayerMeditationEntryTitle => 'Prayer / Meditation';
+
+  @override
+  String get bodyTemplatePrayerMeditation =>
+      'Practice\n\nDuration\n\nReflections\n\n';
+
+  @override
+  String get labelTemplateSysadminRunbook => 'System admin';
+
+  @override
+  String get descTemplateSysadminRunbook =>
+      'Server / system runbook, commands, and maintenance log.';
+
+  @override
+  String get descTemplateSysadminRunbookEntryTitle => 'Sysadmin / Tech Note';
+
+  @override
+  String get bodyTemplateSysadminRunbook =>
+      'System / Service: \nObjective & Architecture\n\nConfiguration & Commands\n\nVerification & Health Checks\n\nTroubleshooting & Rollback Notes\n\n';
+
+  @override
+  String get labelTemplateSanathanaDharmaStudy => 'Dharma study';
+
+  @override
+  String get descTemplateSanathanaDharmaStudy =>
+      'Scripture, shloka, tatva/meaning, and sadhana reflection.';
+
+  @override
+  String get descTemplateSanathanaDharmaStudyEntryTitle =>
+      'Sanathana Dharma Study';
+
+  @override
+  String get bodyTemplateSanathanaDharmaStudy =>
+      'Topic / Scripture: \nShloka / Mantra / Reference\n\nWord Breakdown & Meaning\n\nPhilosophical Insights (Tatva)\n\nDaily Sadhana & Practical Application\n\n';
+
+  @override
+  String get labelTemplateDiyProject => 'DIY & Maker Project';
+
+  @override
+  String get descTemplateDiyProject =>
+      'Materials, tools, step-by-step build, and safety.';
+
+  @override
+  String get descTemplateDiyProjectEntryTitle => 'DIY Project';
+
+  @override
+  String get bodyTemplateDiyProject =>
+      'Project Goal & Scope\n\nTools & Materials Required\n\nStep-by-Step Procedure\n\nSafety & Precautions\n\nTesting & Lessons Learned\n\n';
+
+  @override
+  String get labelTemplateHomeMaintenance => 'Home & Maintenance';
+
+  @override
+  String get descTemplateHomeMaintenance =>
+      'Appliance care, repairs, warranties, and vendor logs.';
+
+  @override
+  String get descTemplateHomeMaintenanceEntryTitle => 'Home Maintenance Note';
+
+  @override
+  String get bodyTemplateHomeMaintenance =>
+      'Area / Item / Appliance: \nIssue / Maintenance Task\n\nService History & Costs\n\nWarranty & Vendor Contacts\n\nNext Scheduled Check: \n\n';
+
+  @override
+  String get labelTemplateKitchenRecipe => 'Kitchen & Recipe';
+
+  @override
+  String get descTemplateKitchenRecipe =>
+      'Dish, ingredients, step-by-step method, and tips.';
+
+  @override
+  String get descTemplateKitchenRecipeEntryTitle => 'Recipe & Kitchen Note';
+
+  @override
+  String get bodyTemplateKitchenRecipe =>
+      'Dish Name: \nCuisine / Prep & Cook Time: \n\nIngredients & Quantities\n\nStep-by-Step Method\n\nChef Notes & Variations\n\n';
+
+  @override
+  String get titleExport => 'Export';
+
+  @override
+  String get titleExportSectionWhat => 'What to export';
+
+  @override
+  String get titleExportSectionFormat => 'Format';
+
+  @override
+  String get titleExportSectionOptions => 'Options';
+
+  @override
+  String get labelExportScopeThisEntry => 'This entry';
+
+  @override
+  String get labelExportScopeWholeJournal => 'The whole journal';
+
+  @override
+  String get labelExportScopeDateRange => 'A date range';
+
+  @override
+  String get actionExportPickDateRange => 'Choose dates';
+
+  @override
+  String get descExportDateRangeNotSet => 'No dates chosen yet';
+
+  @override
+  String descExportFromJournal(String journalTitle) {
+    return 'From \"$journalTitle\"';
+  }
+
+  @override
+  String descExportDateRange(String from, String to) {
+    return '$from to $to';
+  }
+
+  @override
+  String get labelExportFormatMarkdown => 'Markdown';
+
+  @override
+  String get labelExportFormatHtml => 'Web page (HTML)';
+
+  @override
+  String get labelExportFormatPlainText => 'Plain text';
+
+  @override
+  String get labelExportFormatPdf => 'PDF';
+
+  @override
+  String get descExportFormatMarkdown =>
+      'Keeps headings, lists and styling. Opens in any text editor.';
+
+  @override
+  String get descExportFormatHtml =>
+      'One page that opens in any browser. Nothing is loaded from the internet.';
+
+  @override
+  String get descExportFormatPlainText => 'Just the words, no styling.';
+
+  @override
+  String get descExportFormatPdf => 'Fixed pages, ready to print or share.';
+
+  @override
+  String get bodyExportPdfUnavailable =>
+      'PDF export is not available on this device. The other formats still work.';
+
+  @override
+  String get labelExportIncludeAttachments => 'Include attachments';
+
+  @override
+  String get descExportIncludeAttachments =>
+      'Adds a copy of each file and voice note to the export.';
+
+  @override
+  String get labelExportIncludeMetadata => 'Date, tags and mood';
+
+  @override
+  String get descExportIncludeMetadata =>
+      'Adds a short header above each entry.';
+
+  @override
+  String get bodyExportNotEncrypted =>
+      'The exported file is not encrypted. Anyone who can open the file can read it. Keep it somewhere safe.';
+
+  @override
+  String get titleExportConfirm => 'Export unencrypted?';
+
+  @override
+  String bodyExportConfirm(int count, String format) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entries',
+      one: '1 entry',
+    );
+    return 'This will write $_temp0 to an unencrypted $format file. Anyone who can open that file can read your journal. Keep it somewhere safe, and delete it when you are done with it.';
+  }
+
+  @override
+  String get actionExportAnyway => 'Export anyway';
+
+  @override
+  String get actionExport => 'Export';
+
+  @override
+  String get bodyExportExporting => 'Exporting…';
+
+  @override
+  String get titleExportSaveDialog => 'Save export';
+
+  @override
+  String bodyExportDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Exported $count entries.',
+      one: 'Exported 1 entry.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get bodyExportCancelled => 'Export cancelled.';
+
+  @override
+  String get errorExportNothing =>
+      'There are no entries to export for that choice.';
+
+  @override
+  String get errorExportFailed =>
+      'Could not finish the export. Nothing was saved.';
+
+  @override
+  String get errorExportPdfTimedOut =>
+      'The PDF took too long to build and was stopped. Try a smaller date range.';
+
+  @override
+  String get errorExportPdfFailed => 'Could not build the PDF.';
+
+  @override
+  String get titleExportSkipped => 'Not included';
+
+  @override
+  String bodyExportSkippedLockedAttachment(String fileName) {
+    return '$fileName — locked. Unlock it first to include it.';
+  }
+
+  @override
+  String bodyExportSkippedUnreadableAttachment(String fileName) {
+    return '$fileName — the file could not be read.';
+  }
+
+  @override
+  String bodyExportSkippedUnreadableVoiceNote(String fileName) {
+    return '$fileName — the recording could not be read.';
+  }
+
+  @override
+  String bodyExportSkippedLockedInlineImage(String fileName) {
+    return '$fileName — a locked image in the entry body was left out of the page.';
+  }
+
+  @override
+  String bodyExportSkippedUnreadableInlineImage(String fileName) {
+    return '$fileName — an image in the entry body could not be read.';
+  }
+
+  @override
+  String get descExportFileUntitledEntry => 'Untitled entry';
+
+  @override
+  String get descExportFileDate => 'Date';
+
+  @override
+  String get descExportFileTags => 'Tags';
+
+  @override
+  String get descExportFileMood => 'Mood';
+
+  @override
+  String get descExportFileAttachments => 'Attachments';
+
+  @override
+  String get descExportFileVoiceNotes => 'Voice notes';
+
+  @override
+  String get descExportFileTranscript => 'Transcript';
+
+  @override
+  String get descExportFileLockedNotIncluded => 'locked — not included';
+
+  @override
+  String get descExportFileImage => 'Image';
+
+  @override
+  String get descExportFileDrawing => 'Drawing';
+
+  @override
+  String get descExportFileCalloutNote => 'Note';
+
+  @override
+  String get descExportFileCalloutTip => 'Tip';
+
+  @override
+  String get descExportFileCalloutWarning => 'Warning';
+
+  @override
+  String get descExportFileCalloutImportant => 'Important';
+
+  @override
+  String descExportFileMoodValue(int mood) {
+    return '$mood of 5';
+  }
+
+  @override
+  String descExportFileRecording(String duration) {
+    return 'Recording ($duration)';
+  }
+
+  @override
+  String bodyExportFileReadme(
+    String journalTitle,
+    String exportedAt,
+    int entryCount,
+    String formatName,
+  ) {
+    return 'Export from SreerajP Journal Vault\n\nJournal:  $journalTitle\nExported: $exportedAt\nEntries:  $entryCount\nFormat:   $formatName\n\nThe \"entries\" folder holds one file per entry.\nThe \"attachments\" folder, if present, holds a copy of the files and voice\nnotes belonging to those entries.\n\nThis export is NOT encrypted. Anyone who can open these files can read them.\n';
+  }
+
+  @override
+  String get labelExportData => 'Export Data';
+
+  @override
+  String get tooltipExportEntry => 'Export this entry';
+
+  @override
+  String get tooltipExportJournal => 'Export this journal';
+
+  @override
+  String get titleExportChooseJournal => 'Export from journal';
+
+  @override
+  String get bodyExportNoJournals =>
+      'Create a journal first, then you can export it.';
+
+  @override
+  String get bodyExportAllLocked =>
+      'Open a locked journal first to export from it.';
+
+  @override
+  String descExportFileUnexportableBlock(String type) {
+    return '$type block — not exportable as text';
+  }
+
+  @override
+  String get descExportFileImageNotIncluded => 'image not included';
+
+  @override
+  String get descExportFileDrawingNotIncluded => 'drawing not included';
+
+  @override
+  String get actionCommonOk => 'OK';
+
+  @override
+  String get actionCommonDone => 'Done';
+
+  @override
+  String get bodyAirqrSettingsApplied => 'Settings and templates applied.';
+
+  @override
+  String get bodyAirqrEntryImported => 'Entry imported into your journal.';
+
+  @override
+  String get bodyAirqrJournalImported => 'Journal and entries imported.';
+
+  @override
+  String get errorAirqrImport => 'Could not import the data.';
+
+  @override
+  String get descAirqrImportedEntryTitle => 'Imported entry';
+
+  @override
+  String get descAirqrImportedJournalTitle => 'Imported journal';
+
+  @override
+  String get bodyAirqrAssembling => 'Joining the frames and checking them…';
+
+  @override
+  String get errorAirqrDecode =>
+      'The data could not be read. Check the pairing code and scan again.';
+
+  @override
+  String get actionAirqrScanAgain => 'Scan again';
+
+  @override
+  String bodyAirqrFramesReceived(int received, int total) {
+    return 'Received $received of $total frames';
+  }
+
+  @override
+  String get bodyAirqrAlignCamera => 'Point the camera at the moving QR code…';
+
+  @override
+  String bodyAirqrMissingFrames(String frames) {
+    return 'Missing frames: $frames';
+  }
+
+  @override
+  String get titleAirqrEnterCode => 'Enter pairing code';
+
+  @override
+  String get descAirqrEnterCode =>
+      'Enter the 16-character code shown on the sending screen.';
+
+  @override
+  String get actionAirqrDecrypt => 'Decrypt and verify';
+
+  @override
+  String get titleAirqrVerified => 'Data verified';
+
+  @override
+  String descAirqrPayloadType(String type) {
+    return 'Type: $type';
+  }
+
+  @override
+  String get labelAirqrKindSettings => 'Settings';
+
+  @override
+  String get labelAirqrKindEntry => 'Entry';
+
+  @override
+  String get labelAirqrKindJournal => 'Journal';
+
+  @override
+  String get labelAirqrKindSnapshot => 'Snapshot';
+
+  @override
+  String descAirqrPayloadTheme(String theme) {
+    return 'Theme: $theme';
+  }
+
+  @override
+  String descAirqrPayloadAccent(String color) {
+    return 'Accent color: $color';
+  }
+
+  @override
+  String descAirqrPayloadTemplates(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Templates: $count custom templates',
+      one: 'Templates: 1 custom template',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String descAirqrPayloadTags(int count) {
+    return 'Tags: $count';
+  }
+
+  @override
+  String get actionAirqrApplySettings => 'Apply settings';
+
+  @override
+  String get actionAirqrImport => 'Import to vault';
+
+  @override
+  String get bodyAirqrEncoding => 'Preparing the QR frames…';
+
+  @override
+  String get errorAirqrEncode => 'Could not prepare the data to send.';
+
+  @override
+  String descAirqrPayloadSize(int bytes, int frames) {
+    return '$bytes bytes • $frames data frames';
+  }
+
+  @override
+  String get labelAirqrManifestFrame => 'Header frame';
+
+  @override
+  String labelAirqrFrameOf(int index, int total) {
+    return 'Frame $index of $total';
+  }
+
+  @override
+  String labelAirqrSpeed(int fps) {
+    return 'Speed: $fps FPS';
+  }
+
+  @override
+  String bodyAirqrTooLarge(String size, String limit) {
+    return '$size is too large to send by QR (limit $limit). Use Wi-Fi Sync instead.';
+  }
+
+  @override
+  String bodyAirqrSlow(String size, String duration) {
+    return 'This transfer is $size and will take about $duration by QR. Wi-Fi Sync is much faster for large transfers.';
+  }
+
+  @override
+  String descAirqrMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes',
+      one: '1 minute',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String descAirqrSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count seconds',
+      one: '1 second',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get bodyAirqrNoJournals => 'No journals to send.';
+
+  @override
+  String get titleAirqrSelectJournal => 'Choose a journal';
+
+  @override
+  String get descAirqrNoDescription => 'No description';
+
+  @override
+  String get descAirqrOffline => 'Fully offline • Camera only';
+
+  @override
+  String get labelAirqrBadgeFast => 'Under 1 sec';
+
+  @override
+  String get titleAirqrPayloadSettings => 'Settings';
+
+  @override
+  String get titleAirqrPayloadSnapshot => 'Vault text snapshot';
+
+  @override
+  String get errorTimeCapsuleSeal => 'Could not seal the time capsule.';
+
+  @override
+  String get errorTimeCapsuleNotFound => 'Time capsule not found.';
+
+  @override
+  String get errorTimeCapsuleLoad => 'Could not open the time capsule.';
+
+  @override
+  String get labelTimeCapsuleDays => 'Days';
+
+  @override
+  String get labelTimeCapsuleHours => 'Hours';
+
+  @override
+  String get labelTimeCapsuleMinutes => 'Mins';
+
+  @override
+  String get labelTimeCapsuleSeconds => 'Secs';
+
+  @override
+  String get labelTimeCapsuleSealedOn => 'Sealed on';
+
+  @override
+  String get labelTimeCapsuleUnlocksOn => 'Unlocks on';
+
+  @override
+  String get labelTimeCapsuleTeaser => 'Note to future self';
+
+  @override
+  String get descEditorPlaceholder => 'Write your entry…';
+
+  @override
+  String descBiometricReasonFile(String fileName) {
+    return 'Unlock \"$fileName\"';
+  }
+
+  @override
+  String get descBiometricReasonApp => 'Unlock SreerajP Journal Vault';
+
+  @override
+  String get bodyEditorDrawingLocked => 'Locked drawing — tap to unlock';
+
+  @override
+  String get descEditorImageLoading => 'Loading image…';
+
+  @override
+  String get errorTemplateLoad => 'Could not load templates.';
+
+  @override
+  String get errorTemplateSave => 'Could not save the template.';
+
+  @override
+  String descShareSealedFileSize(String size) {
+    return '$size KB • Encrypted vault file';
+  }
+
+  @override
+  String labelTypographyPoints(int size) {
+    return '$size pt';
+  }
+
+  @override
+  String descTypographyFamilyAndSize(String family, int size) {
+    return '$family • $size pt';
+  }
+
+  @override
+  String get descTemplateTokenToday => 'Today\'s date (YYYY-MM-DD)';
+
+  @override
+  String get descTemplateTokenWeekday => 'Day of the week (e.g. Monday)';
+
+  @override
+  String get descTemplateTokenDate => 'Full date (e.g. August 23, 2026)';
+
+  @override
+  String get descTemplateTokenTime => 'Current time (e.g. 2:30 PM)';
+
+  @override
+  String get descTemplateTokenYear => 'Four-digit year (e.g. 2026)';
+
+  @override
+  String get descTemplateTokenMonth => 'Month name (e.g. August)';
+
+  @override
+  String get descTemplateTokenDay => 'Day of the month (1–31)';
+
+  @override
+  String descShareDefaultTitle(String date) {
+    return 'Note - $date';
+  }
+
+  @override
+  String labelTimeCapsuleOpenedOn(String date) {
+    return 'Opened on $date';
+  }
+
+  @override
+  String get errorTimeCapsuleUnseal => 'Could not unseal the time capsule.';
+
+  @override
+  String get bodySyncStepConnecting => 'Connecting to the device…';
+
+  @override
+  String get bodySyncStepAuthenticating => 'Checking the pairing code…';
+
+  @override
+  String get bodySyncStepSyncing => 'Copying entries and attachments…';
+
+  @override
+  String get bodySyncStepCompleted => 'Sync finished.';
+
+  @override
+  String get errorSyncFailed =>
+      'Sync failed. Check both devices and try again.';
+
+  @override
+  String get labelSyncNotSynced => 'Not synced';
+
+  @override
+  String get labelSyncSynced => 'Synced';
+
+  @override
+  String get errorSyncIpRequired => 'Enter the IP address.';
+
+  @override
+  String get errorSyncPortInvalid => 'Enter a port between 1 and 65535.';
+
+  @override
+  String get errorSyncCodeInvalid => 'Enter the 16-character pairing code.';
+
+  @override
+  String get errorSyncHostAddress => 'Could not read this device\'s address.';
+
+  @override
+  String get labelSyncNoAddress => 'None';
+
+  @override
+  String get bodySyncDetectingWifi => 'Looking for Wi-Fi…';
+
+  @override
+  String labelSyncIpList(String addresses) {
+    return 'IP: $addresses';
+  }
+
+  @override
+  String labelSyncUnresolvedConflicts(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count conflicts',
+      one: '1 conflict',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String labelSyncLastSyncAt(String timestamp) {
+    return 'Last sync: $timestamp';
+  }
+
+  @override
+  String get errorOcrNoCameras => 'No camera found on this device.';
+
+  @override
+  String get bodyVoiceNoteRecording => 'Recording…';
+
+  @override
+  String get titleVoiceNote => 'Voice note';
+
+  @override
+  String get errorAttachmentAudioPlay => 'This audio file could not be played.';
+
+  @override
+  String get errorAttachmentArchiveRead =>
+      'This archive could not be read. It may be damaged or password-protected.';
+
+  @override
+  String get labelDateToday => 'Today';
+
+  @override
+  String get labelDateYesterday => 'Yesterday';
+
+  @override
+  String labelDateDaysAgo(int count) {
+    return '${count}d ago';
+  }
+
+  @override
+  String labelDateWeeksAgo(int count) {
+    return '${count}w ago';
+  }
+
+  @override
+  String labelDateMonthsAgo(int count) {
+    return '${count}mo ago';
+  }
+
+  @override
+  String labelDateYearsAgo(int count) {
+    return '${count}y ago';
+  }
+
+  @override
+  String get titlePermissionAttachmentImport => 'File access';
+
+  @override
+  String get descPermissionAttachmentImport =>
+      'Lets the app read files from your device storage when you add an attachment.';
+
+  @override
+  String get titlePermissionDocumentPicker => 'File picker';
+
+  @override
+  String get descPermissionDocumentPicker =>
+      'Uses the system file picker to choose attachments. No permission is needed.';
+
+  @override
+  String get labelSecurityEventFailedAuth => 'Unlock failed';
+
+  @override
+  String get labelSecurityEventAttachmentLocked => 'Attachment locked';
+
+  @override
+  String get labelSecurityEventAttachmentUnlocked => 'Attachment unlocked';
+
+  @override
+  String get labelSecurityEventExportAttempt => 'Data exported';
+
+  @override
+  String get labelSecurityEventLockTriggered => 'App locked';
+
+  @override
+  String get labelSecurityEventProfileChanged => 'Profile changed';
+
+  @override
+  String get labelSecurityEventProfileCreated => 'Profile created';
+
+  @override
+  String get labelSecurityEventScreenSecurityChanged => 'Screenshots changed';
+
+  @override
+  String get labelSecurityEventTamperDetected => 'Tampering detected';
+
+  @override
+  String get labelSecurityEventOther => 'Security event';
+
+  @override
+  String get labelImportFormatWord => 'Word document';
+
+  @override
+  String get labelImportFormatMarkdown => 'Markdown';
+
+  @override
+  String get labelImportFormatPlainText => 'Plain text';
+
+  @override
+  String get titleNotificationTimeCapsules => 'Time Capsules';
+
+  @override
+  String get errorStorageMigrationFailed => 'Could not move the attachments.';
+
+  @override
+  String get descPermissionSafGranted =>
+      'Granted through the system file picker — no separate permission is needed on Android 13 and later.';
+
+  @override
+  String labelJournalEntryCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entries',
+      one: '1 entry',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get tooltipEditorDictate => 'Dictate';
+
+  @override
+  String get titleDictation => 'Dictation';
+
+  @override
+  String get labelDictationListening => 'Listening…';
+
+  @override
+  String get labelDictationPaused => 'Paused';
+
+  @override
+  String get tooltipDictationPause => 'Pause';
+
+  @override
+  String get tooltipDictationResume => 'Resume';
+
+  @override
+  String get tooltipDictationLanguage => 'Speech language';
+
+  @override
+  String get labelDictationDeviceDefault => 'Device language';
+
+  @override
+  String get labelDictationEditHint => 'Edit text';
+
+  @override
+  String get actionDictationInsert => 'Insert';
+
+  @override
+  String get emptyDictationSpeak =>
+      'Start speaking. Your words will appear here.';
+
+  @override
+  String get descDictationPrivacy =>
+      'Speech is recognised on this device. No audio is saved or sent.';
+
+  @override
+  String get errorDictationOfflineUnavailable =>
+      'Offline speech recognition is not available on this device. Dictation works only on the device, so it cannot be used here.';
+
+  @override
+  String get errorDictationLanguageUnavailable =>
+      'The offline speech model for this language is not installed. Install it in your phone\'s speech settings, or pick another language.';
+
+  @override
+  String get errorDictationFailed =>
+      'Speech recognition stopped unexpectedly. Try again.';
+
+  @override
+  String get helpDictationSanskritUnsupported =>
+      'Sanskrit speech cannot be recognised offline yet. Speak in English or Malayalam.';
+
+  @override
+  String get tooltipOcrPreviewText => 'Preview text';
+
+  @override
+  String get actionOcrInAppCamera => 'In-app camera';
+
+  @override
+  String get errorOcrPhoneCameraUnavailable =>
+      'Could not open the phone\'s camera app. Using the in-app camera instead.';
+
+  @override
+  String get helpOcrPhoneCamera =>
+      '\"Take photo\" opens your phone\'s own camera app for the clearest photos. A few camera apps also keep their own copy in the gallery. Choose \"In-app camera\" if the photo must never leave this app.';
 }

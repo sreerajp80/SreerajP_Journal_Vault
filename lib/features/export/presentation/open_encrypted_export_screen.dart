@@ -89,23 +89,23 @@ class _OpenEncryptedExportScreenState extends State<OpenEncryptedExportScreen> {
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.openEncryptedTitle)),
+      appBar: AppBar(title: Text(l10n.titleOpenEncrypted)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         children: [
-          Text(l10n.openEncryptedIntro, style: theme.textTheme.bodyMedium),
+          Text(l10n.descOpenEncryptedIntro, style: theme.textTheme.bodyMedium),
           const SizedBox(height: 16),
 
           OutlinedButton.icon(
             key: const Key('open-encrypted-pick-file'),
             onPressed: _busy ? null : _pickFile,
             icon: const Icon(Icons.folder_open),
-            label: Text(l10n.openEncryptedPickFile),
+            label: Text(l10n.actionOpenEncryptedPickFile),
           ),
           if (_chosen != null) ...[
             const SizedBox(height: 8),
             Text(
-              l10n.openEncryptedChosenFile(_chosen!.fileName),
+              l10n.labelOpenEncryptedChosenFile(_chosen!.fileName),
               style: theme.textTheme.bodySmall,
             ),
           ],
@@ -118,7 +118,7 @@ class _OpenEncryptedExportScreenState extends State<OpenEncryptedExportScreen> {
             obscureText: true,
             enabled: !_busy,
             decoration: InputDecoration(
-              labelText: l10n.openEncryptedPasswordLabel,
+              labelText: l10n.labelOpenEncryptedPassword,
               border: const OutlineInputBorder(),
             ),
           ),
@@ -135,7 +135,7 @@ class _OpenEncryptedExportScreenState extends State<OpenEncryptedExportScreen> {
                   )
                 : const Icon(Icons.lock_open),
             label: Text(
-              _busy ? l10n.openEncryptedWorking : l10n.openEncryptedAction,
+              _busy ? l10n.bodyOpenEncryptedWorking : l10n.actionOpenEncrypted,
             ),
           ),
 
@@ -186,7 +186,7 @@ class _OpenEncryptedExportScreenState extends State<OpenEncryptedExportScreen> {
       // Checked before the password is used, so "you picked the wrong file"
       // and "you typed the wrong password" stay two different answers.
       if (!VaultEnvelope.isSealed(chosen.bytes)) {
-        setState(() => _error = l10n.openEncryptedErrorNotSealed);
+        setState(() => _error = l10n.errorOpenEncryptedErrorNotSealed);
         return;
       }
 
@@ -202,7 +202,7 @@ class _OpenEncryptedExportScreenState extends State<OpenEncryptedExportScreen> {
           payload.header?.fileName ?? _strippedName(chosen.fileName);
 
       final savedPath = await _saver(
-        dialogTitle: l10n.openEncryptedSaveDialogTitle,
+        dialogTitle: l10n.titleOpenEncryptedSave,
         fileName: suggestedName,
         bytes: payload.bytes,
       );
@@ -212,24 +212,24 @@ class _OpenEncryptedExportScreenState extends State<OpenEncryptedExportScreen> {
         SnackBar(
           content: Text(
             savedPath == null
-                ? l10n.openEncryptedCancelled
-                : l10n.openEncryptedSaved,
+                ? l10n.bodyOpenEncryptedCancelled
+                : l10n.descOpenEncryptedSaved,
           ),
         ),
       );
     } on VaultVersionTooNewException {
-      setState(() => _error = l10n.openEncryptedErrorTooNew);
+      setState(() => _error = l10n.errorOpenEncryptedErrorTooNew);
     } on VaultCorruptedException {
       // A wrong password and a damaged file are the same event to AES-GCM, so
       // they get the same sentence.
-      setState(() => _error = l10n.openEncryptedErrorWrongPassword);
+      setState(() => _error = l10n.errorOpenEncryptedErrorWrongPassword);
     } catch (error) {
       // Never the file name and never the bytes — only that it failed.
       AppLogger.error(
         'open encrypted export: failed',
         error: AppLogger.redact(error),
       );
-      setState(() => _error = l10n.openEncryptedErrorFailed);
+      setState(() => _error = l10n.errorOpenEncryptedError);
     } finally {
       if (mounted) setState(() => _busy = false);
     }

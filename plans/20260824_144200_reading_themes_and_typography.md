@@ -1,6 +1,6 @@
 # Plan: Reading Themes and Entry Body Typography (A6.7)
 
-**Status:** Completed  
+**Status:** completed  
 **Created:** 2026-08-24 14:42:00 IST  
 **Scope:** `lib/core/theme/`, `lib/features/appearance/`, `lib/features/entries/`, `lib/app/app.dart`, `lib/features/airqr/`, `lib/l10n/`, `docs/`, `test/`
 

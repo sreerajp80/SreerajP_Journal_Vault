@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
+import 'package:sreerajp_journal_vault/core/l10n/locale_controller.dart';
 import 'package:sreerajp_journal_vault/features/attachments/providers/attachment_providers.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/inline_image_store.dart';
 import 'package:sreerajp_journal_vault/features/entries/services/entry_revision_service.dart';
@@ -9,6 +10,7 @@ import 'package:sreerajp_journal_vault/features/entries/services/voice_note_serv
 import 'package:sreerajp_journal_vault/features/lock_gate/providers/lock_gate_providers.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/services/biometric_authenticator.dart';
 import 'package:sreerajp_journal_vault/features/security/providers/security_providers.dart';
+import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 /// Provides the [EntryRevisionService] for managing version history.
 final entryRevisionServiceProvider = Provider<EntryRevisionService>((ref) {
@@ -63,9 +65,14 @@ InlineImageStore buildInlineImageStore(WidgetRef ref) {
           fileName: source.fileName,
         ),
     authenticate: (fileName) async {
+      // No BuildContext here, so the language comes from the locale
+      // controller rather than Localizations.of.
+      final l10n = lookupAppLocalizations(
+        effectiveAppLocale(ref.read(localeControllerProvider)),
+      );
       final result = await ref
           .read(biometricAuthenticatorProvider)
-          .authenticate(reason: 'Unlock "$fileName"');
+          .authenticate(reason: l10n.descBiometricReasonFile(fileName));
       return result == BiometricAuthResult.success;
     },
   );

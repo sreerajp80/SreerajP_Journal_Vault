@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
+import 'package:sreerajp_journal_vault/features/sync/presentation/sync_text.dart';
 import 'package:sreerajp_journal_vault/features/sync/providers/wifi_sync_providers.dart';
 import 'package:sreerajp_journal_vault/features/sync/services/sync_engine.dart';
 import 'package:sreerajp_journal_vault/features/sync/services/wifi_sync_crypto.dart';
@@ -92,17 +93,17 @@ class _SyncClientScreenState extends ConsumerState<SyncClientScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.syncClientTitle),
+        title: Text(l10n.titleSyncClient),
         bottom: TabBar(
           controller: _tabController,
           tabs: [
             Tab(
               icon: const Icon(Icons.qr_code_scanner_rounded),
-              text: l10n.syncTabQrScan,
+              text: l10n.tabSyncTabQrScan,
             ),
             Tab(
               icon: const Icon(Icons.edit_note_rounded),
-              text: l10n.syncTabManualEntry,
+              text: l10n.tabSyncTabManualEntry,
             ),
           ],
         ),
@@ -150,7 +151,7 @@ class _SyncClientScreenState extends ConsumerState<SyncClientScreen>
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          l10n.syncScanInstructions,
+                          l10n.descSyncScanInstructions,
                           textAlign: TextAlign.center,
                           style: const TextStyle(
                             color: Colors.white,
@@ -169,11 +170,17 @@ class _SyncClientScreenState extends ConsumerState<SyncClientScreen>
                         children: [
                           IconButton.filledTonal(
                             icon: const Icon(Icons.flash_on_rounded),
+                            tooltip: AppLocalizations.of(
+                              context,
+                            ).tooltipToggleTorch,
                             onPressed: () => _scannerController.toggleTorch(),
                           ),
                           const SizedBox(width: 20),
                           IconButton.filledTonal(
                             icon: const Icon(Icons.cameraswitch_rounded),
+                            tooltip: AppLocalizations.of(
+                              context,
+                            ).tooltipSwitchCamera,
                             onPressed: () => _scannerController.switchCamera(),
                           ),
                         ],
@@ -185,7 +192,7 @@ class _SyncClientScreenState extends ConsumerState<SyncClientScreen>
                         left: 20,
                         right: 20,
                         child: _ErrorBanner(
-                          error: clientState.error ?? 'Sync error',
+                          error: l10n.errorSyncFailed,
                           onRetry: () =>
                               ref.read(wifiSyncClientProvider.notifier).reset(),
                         ),
@@ -203,22 +210,22 @@ class _SyncClientScreenState extends ConsumerState<SyncClientScreen>
                         TextFormField(
                           controller: _hostController,
                           decoration: InputDecoration(
-                            labelText: l10n.syncIpLabel,
-                            hintText: l10n.syncHostAddressHint,
+                            labelText: l10n.labelSyncIp,
+                            hintText: l10n.descSyncHostAddress,
                             prefixIcon: const Icon(Icons.lan_rounded),
                             border: const OutlineInputBorder(),
                           ),
                           keyboardType: TextInputType.number,
                           validator: (v) => (v == null || v.trim().isEmpty)
-                              ? 'Required'
+                              ? l10n.errorSyncIpRequired
                               : null,
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
                           controller: _portController,
                           decoration: InputDecoration(
-                            labelText: l10n.syncPortLabel,
-                            hintText: l10n.syncPortHint,
+                            labelText: l10n.labelSyncPort,
+                            hintText: l10n.descSyncPort,
                             prefixIcon: const Icon(Icons.numbers_rounded),
                             border: const OutlineInputBorder(),
                           ),
@@ -226,7 +233,7 @@ class _SyncClientScreenState extends ConsumerState<SyncClientScreen>
                           validator: (v) {
                             final p = int.tryParse(v ?? '');
                             if (p == null || p < 1 || p > 65535) {
-                              return 'Enter valid port (1-65535)';
+                              return l10n.errorSyncPortInvalid;
                             }
                             return null;
                           },
@@ -235,15 +242,15 @@ class _SyncClientScreenState extends ConsumerState<SyncClientScreen>
                         TextFormField(
                           controller: _codeController,
                           decoration: InputDecoration(
-                            labelText: l10n.syncPairingCodeLabel,
-                            hintText: l10n.syncCodeHint,
+                            labelText: l10n.labelSyncPairingCode,
+                            hintText: l10n.descSyncCode,
                             prefixIcon: const Icon(Icons.key_rounded),
                             border: const OutlineInputBorder(),
                           ),
                           textCapitalization: TextCapitalization.characters,
                           validator: (v) {
                             if (v == null || !WifiSyncCrypto.isValidCode(v)) {
-                              return 'Enter 16-character pairing code';
+                              return l10n.errorSyncCodeInvalid;
                             }
                             return null;
                           },
@@ -260,7 +267,7 @@ class _SyncClientScreenState extends ConsumerState<SyncClientScreen>
                             }
                           },
                           icon: const Icon(Icons.sync_rounded),
-                          label: Text(l10n.syncButtonConnect),
+                          label: Text(l10n.actionSyncButtonConnect),
                           style: FilledButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
@@ -271,7 +278,7 @@ class _SyncClientScreenState extends ConsumerState<SyncClientScreen>
                         if (clientState.step == ClientSyncStep.error) ...[
                           const SizedBox(height: 16),
                           _ErrorBanner(
-                            error: clientState.error ?? 'Sync error',
+                            error: l10n.errorSyncFailed,
                             onRetry: () => ref
                                 .read(wifiSyncClientProvider.notifier)
                                 .reset(),
@@ -294,6 +301,7 @@ class _SyncProgressView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isCompleted = state.step == ClientSyncStep.completed;
 
@@ -325,7 +333,7 @@ class _SyncProgressView extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              state.statusMessage ?? 'Synchronizing...',
+              state.step.textIn(l10n),
               textAlign: TextAlign.center,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
@@ -335,7 +343,7 @@ class _SyncProgressView extends StatelessWidget {
             if (isCompleted)
               FilledButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('Done'),
+                child: Text(l10n.actionCommonDone),
               ),
           ],
         ),
@@ -374,6 +382,7 @@ class _ErrorBanner extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
+            tooltip: AppLocalizations.of(context).errorCommonRetry,
             onPressed: onRetry,
           ),
         ],

@@ -35,7 +35,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.importTitle)),
+      appBar: AppBar(title: Text(l10n.titleImport)),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -48,19 +48,23 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      l10n.importIntoJournal(widget.journalTitle),
+                      l10n.titleImportIntoJournal(widget.journalTitle),
                       style: theme.textTheme.titleMedium,
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      l10n.importSupportedFormats(
-                        importService.supportedFormats.join(', '),
+                      l10n.labelImportSupportedFormats(
+                        [
+                          l10n.labelImportFormatPlainText,
+                          l10n.labelImportFormatMarkdown,
+                          l10n.labelImportFormatWord,
+                        ].join(', '),
                       ),
                       style: theme.textTheme.bodySmall,
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      l10n.importSupportedExtensions(
+                      l10n.labelImportSupportedExtensions(
                         importService.supportedExtensions.join(', '),
                       ),
                       style: theme.textTheme.bodySmall?.copyWith(
@@ -84,15 +88,14 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
                     )
                   : const Icon(Icons.file_open),
               label: Text(
-                _isImporting ? l10n.importSelecting : l10n.importSelectFiles,
+                _isImporting
+                    ? l10n.bodyImportSelecting
+                    : l10n.actionImportSelectFiles,
               ),
             ),
             const SizedBox(height: 24),
             if (_results != null) ...[
-              Text(
-                l10n.importResultsHeading,
-                style: theme.textTheme.titleSmall,
-              ),
+              Text(l10n.titleImportResults, style: theme.textTheme.titleSmall),
               const SizedBox(height: 8),
               Expanded(
                 child: ListView.builder(
@@ -109,9 +112,9 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
                       ),
                       title: Text(entry.key),
                       subtitle: result.isSuccess
-                          ? Text(l10n.importFileSucceeded)
+                          ? Text(l10n.labelImportFileSucceeded)
                           : Text(
-                              result.error ?? l10n.commonUnknownError,
+                              result.error ?? l10n.errorCommonUnknown,
                               style: TextStyle(color: theme.colorScheme.error),
                             ),
                     );
@@ -133,7 +136,7 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        l10n.importSelectFilesPrompt,
+                        l10n.bodyImportSelectFilesPrompt,
                         style: theme.textTheme.bodyLarge?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),
@@ -188,7 +191,9 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              AppLocalizations.of(context).importCountSucceeded(successCount),
+              AppLocalizations.of(
+                context,
+              ).descImportCountSucceeded(successCount),
             ),
           ),
         );

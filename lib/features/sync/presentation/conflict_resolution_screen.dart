@@ -16,7 +16,7 @@ class ConflictResolutionScreen extends ConsumerWidget {
     final conflictsAsync = ref.watch(conflictDetailsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.syncConflictsTitle)),
+      appBar: AppBar(title: Text(l10n.titleSyncConflicts)),
       body: conflictsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
@@ -26,13 +26,13 @@ class ConflictResolutionScreen extends ConsumerWidget {
               const Icon(Icons.error_outline, size: 48),
               const SizedBox(height: 16),
               Text(
-                l10n.syncConflictsLoadFailed(error.toString()),
+                l10n.errorSyncConflictsLoad(error.toString()),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => ref.invalidate(conflictDetailsProvider),
-                child: Text(l10n.commonRetry),
+                child: Text(l10n.errorCommonRetry),
               ),
             ],
           ),
@@ -50,12 +50,12 @@ class ConflictResolutionScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    l10n.syncNoConflicts,
+                    l10n.emptySyncNoConflicts,
                     style: const TextStyle(fontSize: 18),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    l10n.syncAllInSync,
+                    l10n.emptySyncAllInSync,
                     style: const TextStyle(color: Colors.grey),
                   ),
                 ],
@@ -122,14 +122,17 @@ class _ConflictCard extends ConsumerWidget {
 
             // Detected timestamp
             Text(
-              l10n.syncDetectedAt(_formatDateTime(conflict.detectedAt)),
+              l10n.labelSyncDetectedAt(_formatDateTime(conflict.detectedAt)),
               style: theme.textTheme.bodySmall,
             ),
             const SizedBox(height: 12),
 
             // Field diffs
             if (conflict.diffs.isNotEmpty) ...[
-              Text(l10n.syncChangedFields, style: theme.textTheme.labelMedium),
+              Text(
+                l10n.titleSyncChangedFields,
+                style: theme.textTheme.labelMedium,
+              ),
               const SizedBox(height: 8),
               ...conflict.diffs.map((diff) => _FieldDiffRow(diff: diff)),
               const SizedBox(height: 12),
@@ -142,19 +145,19 @@ class _ConflictCard extends ConsumerWidget {
                 OutlinedButton.icon(
                   onPressed: () => _showDetailDialog(context, ref),
                   icon: const Icon(Icons.compare_arrows, size: 18),
-                  label: Text(l10n.syncCompare),
+                  label: Text(l10n.actionSyncCompare),
                 ),
                 const SizedBox(width: 8),
                 OutlinedButton(
                   onPressed: () =>
                       _resolve(ref, ConflictResolution.keepRemote, context),
-                  child: Text(l10n.syncKeepRemote),
+                  child: Text(l10n.actionSyncKeepRemote),
                 ),
                 const SizedBox(width: 8),
                 FilledButton(
                   onPressed: () =>
                       _resolve(ref, ConflictResolution.keepLocal, context),
-                  child: Text(l10n.syncKeepLocal),
+                  child: Text(l10n.actionSyncKeepLocal),
                 ),
               ],
             ),
@@ -176,19 +179,21 @@ class _ConflictCard extends ConsumerWidget {
         final keepLocal = resolution == ConflictResolution.keepLocal;
         return AlertDialog(
           title: Text(
-            keepLocal ? l10n.syncKeepLocalTitle : l10n.syncKeepRemoteTitle,
+            keepLocal ? l10n.bodySyncKeepLocal : l10n.bodySyncKeepRemote,
           ),
           content: Text(
-            keepLocal ? l10n.syncKeepLocalBody : l10n.syncKeepRemoteBody,
+            keepLocal
+                ? l10n.bodySyncKeepLocalBody
+                : l10n.bodySyncKeepRemoteBody,
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: Text(l10n.commonCancel),
+              child: Text(l10n.actionCommonCancel),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: Text(l10n.commonConfirm),
+              child: Text(l10n.bodyCommon),
             ),
           ],
         );
@@ -208,7 +213,9 @@ class _ConflictCard extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context).syncConflictResolved),
+            content: Text(
+              AppLocalizations.of(context).bodySyncConflictResolved,
+            ),
           ),
         );
       }
@@ -217,7 +224,7 @@ class _ConflictCard extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              AppLocalizations.of(context).syncResolutionFailed(e.toString()),
+              AppLocalizations.of(context).errorSyncResolution(e.toString()),
             ),
           ),
         );
@@ -315,7 +322,7 @@ class _ConflictDetailDialog extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                l10n.syncConflictDetailsTitle,
+                l10n.titleSyncConflictDetails,
                 style: theme.textTheme.headlineSmall,
               ),
               const SizedBox(height: 16),
@@ -337,9 +344,9 @@ class _ConflictDetailDialog extends StatelessWidget {
                           color: theme.colorScheme.surfaceContainerHighest,
                         ),
                         children: [
-                          _TableHeader(l10n.syncColumnField),
-                          _TableHeader(l10n.syncColumnLocal),
-                          _TableHeader(l10n.syncColumnRemote),
+                          _TableHeader(l10n.titleSyncColumnField),
+                          _TableHeader(l10n.titleSyncColumnLocal),
+                          _TableHeader(l10n.titleSyncColumnRemote),
                         ],
                       ),
                       ...conflict.diffs.map(
@@ -360,7 +367,7 @@ class _ConflictDetailDialog extends StatelessWidget {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text(l10n.commonClose),
+                  child: Text(l10n.actionCommonClose),
                 ),
               ),
             ],

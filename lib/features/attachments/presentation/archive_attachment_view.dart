@@ -71,7 +71,11 @@ class ArchiveAttachmentView extends StatefulWidget {
 
 class _ArchiveAttachmentViewState extends State<ArchiveAttachmentView> {
   List<ArchiveEntryInfo>? _entries;
-  String? _error;
+
+  /// True when the zip could not be listed. Kept as a flag rather than a
+  /// sentence: this is set from [initState], where the localizations are not
+  /// available yet, so the wording happens in [build].
+  bool _couldNotRead = false;
 
   @override
   void initState() {
@@ -84,14 +88,12 @@ class _ArchiveAttachmentViewState extends State<ArchiveAttachmentView> {
       final entries = widget.entryReader(widget.filePath);
       setState(() {
         _entries = entries;
-        _error = null;
+        _couldNotRead = false;
       });
     } catch (_) {
       setState(() {
         _entries = null;
-        _error =
-            'This archive could not be read. It may be corrupt, or protected '
-            'with a password.';
+        _couldNotRead = true;
       });
     }
   }
@@ -104,13 +106,15 @@ class _ArchiveAttachmentViewState extends State<ArchiveAttachmentView> {
 
   @override
   Widget build(BuildContext context) {
-    final error = _error;
-    if (error != null) {
+    if (_couldNotRead) {
       return Center(
         key: const Key('archive-attachment-error'),
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Text(error, textAlign: TextAlign.center),
+          child: Text(
+            AppLocalizations.of(context).errorAttachmentArchiveRead,
+            textAlign: TextAlign.center,
+          ),
         ),
       );
     }
@@ -125,7 +129,7 @@ class _ArchiveAttachmentViewState extends State<ArchiveAttachmentView> {
     if (entries.isEmpty) {
       return Center(
         key: const Key('archive-attachment-empty'),
-        child: Text(AppLocalizations.of(context).attachmentArchiveEmpty),
+        child: Text(AppLocalizations.of(context).emptyAttachmentArchive),
       );
     }
 

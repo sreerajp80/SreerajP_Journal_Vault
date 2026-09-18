@@ -1,6 +1,6 @@
 # Fix: long black loading screen when going back from the OCR enhance screen
 
-**Status:** Implemented
+**Status:** completed
 
 ## The problem
 

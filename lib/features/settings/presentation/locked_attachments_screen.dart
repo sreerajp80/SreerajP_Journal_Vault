@@ -52,7 +52,7 @@ class _LockedAttachmentsScreenState
     final l10n = AppLocalizations.of(context);
     final entries = _entries;
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.lockedAttachmentsTitle)),
+      appBar: AppBar(title: Text(l10n.titleLockedAttachments)),
       body: entries == null
           ? const Center(child: CircularProgressIndicator())
           : entries.isEmpty
@@ -60,7 +60,7 @@ class _LockedAttachmentsScreenState
               child: Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text(
-                  l10n.lockedAttachmentsEmpty,
+                  l10n.emptyLockedAttachments,
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -74,12 +74,14 @@ class _LockedAttachmentsScreenState
                   leading: const Icon(Icons.lock),
                   title: Text(attachment.fileName),
                   subtitle: Text(
-                    l10n.lockedAttachmentSince(formatShortDate(lock.lockedAt)),
+                    l10n.labelLockedAttachmentSince(
+                      formatShortDate(lock.lockedAt),
+                    ),
                   ),
                   trailing: TextButton(
                     key: Key('locked-attachment-remove-${attachment.id}'),
                     onPressed: () => _remove(attachment.id),
-                    child: Text(l10n.lockedAttachmentRemove),
+                    child: Text(l10n.actionLockedAttachmentRemove),
                   ),
                 );
               },

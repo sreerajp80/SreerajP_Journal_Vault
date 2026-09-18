@@ -44,8 +44,8 @@ void main() {
 
     expect(find.text('Explicit permissions'), findsOneWidget);
     expect(find.text('Implicit permissions'), findsOneWidget);
-    expect(find.text('Attachment library access'), findsOneWidget);
-    expect(find.text('System document picker'), findsOneWidget);
+    expect(find.text('File access'), findsOneWidget);
+    expect(find.text('File picker'), findsOneWidget);
     expect(find.text('Denied'), findsOneWidget);
 
     await tester.tap(
@@ -99,7 +99,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
-    expect(find.text('Attachment access blocked'), findsOneWidget);
+    expect(find.text('Access blocked'), findsOneWidget);
     expect(find.text('Open system settings'), findsOneWidget);
     expect(picker.wasCalled, isFalse);
 
@@ -173,10 +173,8 @@ class _FakeAppPermissionsService implements AppPermissionsService {
         AppPermissionItem(
           id: AppPermissionId.attachmentImport,
           category: AppPermissionCategory.explicit,
-          title: 'Attachment library access',
-          description: 'Test permission.',
           status: _currentState,
-          statusDetail: 'Test status detail.',
+          isGrantedViaFilePicker: true,
           canRequestAgain: _currentState == AppPermissionState.denied,
           canOpenSystemSettings:
               _currentState == AppPermissionState.denied ||
@@ -187,8 +185,6 @@ class _FakeAppPermissionsService implements AppPermissionsService {
         AppPermissionItem(
           id: AppPermissionId.documentPicker,
           category: AppPermissionCategory.implicit,
-          title: 'System document picker',
-          description: 'Test implicit permission.',
           status: AppPermissionState.userSelected,
         ),
       ],

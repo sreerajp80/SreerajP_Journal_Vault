@@ -84,10 +84,6 @@ class PermissionHandlerAppPermissionsService implements AppPermissionsService {
     return AppPermissionItem(
       id: AppPermissionId.attachmentImport,
       category: AppPermissionCategory.explicit,
-      title: 'Attachment library access',
-      description:
-          'Allows the app to read files from your device storage when '
-          'attaching them to journal entries.',
       status: state,
       canRequestAgain: state == AppPermissionState.denied,
       canOpenSystemSettings:
@@ -99,23 +95,13 @@ class PermissionHandlerAppPermissionsService implements AppPermissionsService {
   static const AppPermissionItem _safAttachmentImportItem = AppPermissionItem(
     id: AppPermissionId.attachmentImport,
     category: AppPermissionCategory.explicit,
-    title: 'Attachment library access',
-    description:
-        'Allows the app to read files from your device storage when '
-        'attaching them to journal entries.',
     status: AppPermissionState.granted,
-    statusDetail:
-        'Granted via the system file picker — no separate permission needed '
-        'on Android 13+.',
+    isGrantedViaFilePicker: true,
   );
 
   static const AppPermissionItem _documentPickerItem = AppPermissionItem(
     id: AppPermissionId.documentPicker,
     category: AppPermissionCategory.implicit,
-    title: 'System document picker',
-    description:
-        'Uses the system file picker to let you choose attachments. '
-        'No explicit permission is required.',
     status: AppPermissionState.userSelected,
   );
 

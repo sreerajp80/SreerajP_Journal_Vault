@@ -1,6 +1,6 @@
 # Plan: Split Settings UI out of app.dart into lib/features/settings/
 
-**Status:** Completed
+**Status:** completed
 **Date:** 2026-08-24
 **Topic:** Enhancement A6.8 — Split up app.dart
 

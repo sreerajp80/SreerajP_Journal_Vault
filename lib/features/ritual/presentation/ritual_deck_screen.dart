@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sreerajp_journal_vault/features/ritual/domain/ritual_card.dart';
 import 'package:sreerajp_journal_vault/features/ritual/domain/spaced_repetition.dart';
 import 'package:sreerajp_journal_vault/features/ritual/presentation/create_ritual_card_screen.dart';
+import 'package:sreerajp_journal_vault/features/ritual/presentation/ritual_card_text.dart';
 import 'package:sreerajp_journal_vault/features/ritual/providers/ritual_providers.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
@@ -30,10 +31,10 @@ class _RitualDeckScreenState extends ConsumerState<RitualDeckScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.ritualDeckBrowserTitle),
+        title: Text(l10n.titleRitualDeckBrowser),
         actions: [
           IconButton(
-            tooltip: l10n.ritualResetReviewsTooltip,
+            tooltip: l10n.tooltipRitualResetReviews,
             icon: const Icon(Icons.refresh_rounded),
             onPressed: () => _confirmReset(context),
           ),
@@ -42,7 +43,7 @@ class _RitualDeckScreenState extends ConsumerState<RitualDeckScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openCreateCard(context),
         icon: const Icon(Icons.add_rounded),
-        label: Text(l10n.ritualCreateCardButton),
+        label: Text(l10n.actionRitualCreateCard),
       ),
       body: Column(
         children: [
@@ -54,18 +55,17 @@ class _RitualDeckScreenState extends ConsumerState<RitualDeckScreen> {
               children: [
                 FilterChip(
                   selected: _selectedTheme == null,
-                  label: Text(l10n.ritualAllThemes),
+                  label: Text(l10n.labelRitualAllThemes),
                   onSelected: (_) => setState(() => _selectedTheme = null),
                 ),
                 const SizedBox(width: 8),
                 ...RitualTheme.values.map((t) {
-                  final langCode = Localizations.localeOf(context).languageCode;
                   return Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: FilterChip(
                       selected: _selectedTheme == t,
                       avatar: Icon(t.icon, size: 16, color: t.accentColor),
-                      label: Text(t.localizedName(langCode)),
+                      label: Text(t.nameIn(l10n)),
                       onSelected: (_) => setState(() => _selectedTheme = t),
                     ),
                   );
@@ -130,24 +130,23 @@ class _RitualDeckScreenState extends ConsumerState<RitualDeckScreen> {
   Future<void> _confirmDelete(BuildContext context, RitualCard card) async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
-    final langCode = Localizations.localeOf(context).languageCode;
-    final cardTitle = card.localizedTitle(langCode);
+    final cardTitle = card.titleIn(l10n);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(l10n.ritualDeleteCardTitle),
-        content: Text(l10n.ritualDeleteCardConfirm(cardTitle)),
+        title: Text(l10n.titleRitualDeleteCard),
+        content: Text(l10n.bodyRitualDeleteCard(cardTitle)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l10n.commonCancel),
+            child: Text(l10n.actionCommonCancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(l10n.ritualDeleteCardAction),
+            child: Text(l10n.actionRitualDeleteCard),
           ),
         ],
       ),
@@ -158,7 +157,7 @@ class _RitualDeckScreenState extends ConsumerState<RitualDeckScreen> {
           .read(ritualNotifierProvider.notifier)
           .deleteUserCard(card.dbId!);
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.ritualCardDeletedMessage)),
+        SnackBar(content: Text(l10n.bodyRitualCardDeleted)),
       );
     }
   }
@@ -169,16 +168,16 @@ class _RitualDeckScreenState extends ConsumerState<RitualDeckScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(l10n.ritualResetReviewsTitle),
-        content: Text(l10n.ritualResetReviewsConfirm),
+        title: Text(l10n.titleRitualResetReviews),
+        content: Text(l10n.bodyRitualResetReviews),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(l10n.commonCancel),
+            child: Text(l10n.actionCommonCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(l10n.commonReset),
+            child: Text(l10n.actionCommonReset),
           ),
         ],
       ),
@@ -191,7 +190,7 @@ class _RitualDeckScreenState extends ConsumerState<RitualDeckScreen> {
       }
       ref.invalidate(ritualNotifierProvider);
       messenger.showSnackBar(
-        SnackBar(content: Text(l10n.ritualResetReviewsDone)),
+        SnackBar(content: Text(l10n.bodyRitualResetReviewsDone)),
       );
     }
   }
@@ -215,16 +214,15 @@ class _DeckCardTile extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final l10n = AppLocalizations.of(context);
-    final langCode = Localizations.localeOf(context).languageCode;
     final service = ref.watch(ritualServiceProvider);
     final reviewState =
         service?.getReviewState(card.id) ?? CardReviewState.initial(card.id);
 
-    final title = card.localizedTitle(langCode);
-    final prompt = card.localizedPrompt(langCode);
-    final quote = card.localizedQuote(langCode);
-    final quoteAuthor = card.localizedQuoteAuthor(langCode);
-    final themeName = card.theme.localizedName(langCode);
+    final title = card.titleIn(l10n);
+    final prompt = card.promptIn(l10n);
+    final quote = card.quoteIn(l10n);
+    final quoteAuthor = card.sourceIn(l10n);
+    final themeName = card.theme.nameIn(l10n);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -294,7 +292,7 @@ class _DeckCardTile extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        l10n.ritualUserCardBadge,
+                        l10n.labelRitualUserCardBadge,
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: colorScheme.onTertiaryContainer,
                           fontWeight: FontWeight.bold,
@@ -310,6 +308,7 @@ class _DeckCardTile extends ConsumerWidget {
                       (onEdit != null || onDelete != null))
                     PopupMenuButton<String>(
                       icon: const Icon(Icons.more_vert, size: 20),
+                      tooltip: l10n.tooltipMoreOptions,
                       padding: EdgeInsets.zero,
                       itemBuilder: (ctx) => [
                         if (onEdit != null)
@@ -319,7 +318,7 @@ class _DeckCardTile extends ConsumerWidget {
                               children: [
                                 const Icon(Icons.edit_outlined, size: 18),
                                 const SizedBox(width: 8),
-                                Text(l10n.ritualEditCardAction),
+                                Text(l10n.actionRitualEditCard),
                               ],
                             ),
                           ),
@@ -335,7 +334,7 @@ class _DeckCardTile extends ConsumerWidget {
                                 ),
                                 const SizedBox(width: 8),
                                 Text(
-                                  l10n.ritualDeleteCardAction,
+                                  l10n.actionRitualDeleteCard,
                                   style: TextStyle(color: colorScheme.error),
                                 ),
                               ],
@@ -419,7 +418,7 @@ class _DeckCardTile extends ConsumerWidget {
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
-          l10n.ritualSrsNew,
+          l10n.labelRitualSrsNew,
           style: theme.textTheme.labelSmall?.copyWith(
             color: theme.colorScheme.outline,
           ),
@@ -435,7 +434,7 @@ class _DeckCardTile extends ConsumerWidget {
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
-          l10n.ritualSrsDueToday,
+          l10n.labelRitualSrsDueToday,
           style: theme.textTheme.labelSmall?.copyWith(
             color: theme.colorScheme.primary,
             fontWeight: FontWeight.bold,
@@ -452,7 +451,7 @@ class _DeckCardTile extends ConsumerWidget {
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(
-        l10n.ritualSrsInDays(days),
+        l10n.labelRitualSrsInDays(days),
         style: theme.textTheme.labelSmall?.copyWith(
           color: theme.colorScheme.onSurfaceVariant,
         ),

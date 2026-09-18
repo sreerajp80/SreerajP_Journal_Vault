@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
+import 'package:sreerajp_journal_vault/core/logging/app_logger.dart';
 import 'package:sreerajp_journal_vault/core/security/screen_security_controller.dart';
 import 'package:sreerajp_journal_vault/features/backup/providers/backup_providers.dart';
 import 'package:sreerajp_journal_vault/features/sync/providers/sync_providers.dart';
@@ -30,6 +31,10 @@ class _SyncHostScreenState extends ConsumerState<SyncHostScreen> {
   bool _isSyncing = false;
   String? _syncFeedback;
 
+  /// Whether [_syncFeedback] reports a failure. Kept as a flag rather than
+  /// read back out of the text, which would break in another language.
+  bool _syncFeedbackIsError = false;
+
   @override
   void initState() {
     super.initState();
@@ -54,6 +59,7 @@ class _SyncHostScreenState extends ConsumerState<SyncHostScreen> {
     setState(() {
       _isSyncing = true;
       _syncFeedback = null;
+      _syncFeedbackIsError = false;
     });
 
     try {
@@ -74,21 +80,29 @@ class _SyncHostScreenState extends ConsumerState<SyncHostScreen> {
       final status = await engine.performSync(syncPassword: pairingCode);
 
       if (!mounted) return;
+      final succeeded =
+          status == SyncStatus.success || status == SyncStatus.conflict;
       setState(() {
         _isSyncing = false;
-        _syncFeedback =
-            status == SyncStatus.success || status == SyncStatus.conflict
-            ? AppLocalizations.of(context).syncStatusCompleted
-            : AppLocalizations.of(context).syncStatusError;
+        _syncFeedbackIsError = !succeeded;
+        _syncFeedback = succeeded
+            ? AppLocalizations.of(context).descSyncStatusCompleted
+            : AppLocalizations.of(context).errorSyncStatusError;
       });
 
       ref.invalidate(recentSyncLogsProvider);
       ref.invalidate(latestSuccessfulSyncProvider);
     } catch (e) {
+      // The reason is logged, redacted, and never put on screen raw.
+      AppLogger.warning(
+        'wifi sync: host push failed',
+        error: AppLogger.redact(e),
+      );
       if (!mounted) return;
       setState(() {
         _isSyncing = false;
-        _syncFeedback = 'Error: $e';
+        _syncFeedbackIsError = true;
+        _syncFeedback = AppLocalizations.of(context).errorSyncFailed;
       });
     }
   }
@@ -102,7 +116,7 @@ class _SyncHostScreenState extends ConsumerState<SyncHostScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.syncHostTitle),
+        title: Text(l10n.titleSyncHost),
         actions: [
           IconButton(
             icon: Icon(
@@ -111,8 +125,8 @@ class _SyncHostScreenState extends ConsumerState<SyncHostScreen> {
                   : Icons.refresh_rounded,
             ),
             tooltip: hostState.phase == HostPhase.stopped
-                ? l10n.syncButtonStart
-                : l10n.syncButtonStop,
+                ? l10n.actionSyncButtonStart
+                : l10n.actionSyncButtonStop,
             onPressed: () {
               if (hostState.phase == HostPhase.stopped) {
                 ref.read(wifiSyncHostProvider.notifier).startHost();
@@ -168,7 +182,7 @@ class _SyncHostScreenState extends ConsumerState<SyncHostScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      l10n.syncScanInstructions,
+                      l10n.descSyncScanInstructions,
                       textAlign: TextAlign.center,
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
@@ -178,7 +192,7 @@ class _SyncHostScreenState extends ConsumerState<SyncHostScreen> {
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Text('Error: $e'),
+              error: (e, _) => Text(l10n.errorSyncHostAddress),
             ),
 
           const SizedBox(height: 24),
@@ -208,7 +222,7 @@ class _SyncHostScreenState extends ConsumerState<SyncHostScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              l10n.syncPairingCodeLabel,
+                              l10n.labelSyncPairingCode,
                               style: theme.textTheme.labelMedium?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
@@ -226,7 +240,7 @@ class _SyncHostScreenState extends ConsumerState<SyncHostScreen> {
                         ),
                         IconButton.filledTonal(
                           icon: const Icon(Icons.copy_rounded, size: 18),
-                          tooltip: l10n.syncPairingCodeCopied,
+                          tooltip: l10n.bodySyncPairingCodeCopied,
                           onPressed: () {
                             Clipboard.setData(
                               ClipboardData(
@@ -237,7 +251,7 @@ class _SyncHostScreenState extends ConsumerState<SyncHostScreen> {
                             );
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(l10n.syncPairingCodeCopied),
+                                content: Text(l10n.bodySyncPairingCodeCopied),
                                 duration: const Duration(seconds: 2),
                               ),
                             );
@@ -254,7 +268,7 @@ class _SyncHostScreenState extends ConsumerState<SyncHostScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                l10n.syncIpLabel,
+                                l10n.labelSyncIp,
                                 style: theme.textTheme.labelSmall?.copyWith(
                                   color: theme.colorScheme.onSurfaceVariant,
                                 ),
@@ -262,13 +276,16 @@ class _SyncHostScreenState extends ConsumerState<SyncHostScreen> {
                               const SizedBox(height: 2),
                               ipListAsync.when(
                                 data: (ips) => SelectableText(
-                                  ips.isNotEmpty ? ips.join(', ') : 'None',
+                                  ips.isNotEmpty
+                                      ? ips.join(', ')
+                                      : l10n.labelSyncNoAddress,
                                   style: theme.textTheme.bodyMedium?.copyWith(
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                loading: () => const Text('...'),
-                                error: (_, _) => const Text('Error'),
+                                loading: () => Text(l10n.bodyCommonEllipsis),
+                                error: (_, _) =>
+                                    Text(l10n.errorCommonErrorShort),
                               ),
                             ],
                           ),
@@ -277,7 +294,7 @@ class _SyncHostScreenState extends ConsumerState<SyncHostScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              l10n.syncPortLabel,
+                              l10n.labelSyncPort,
                               style: theme.textTheme.labelSmall?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
                               ),
@@ -321,7 +338,9 @@ class _SyncHostScreenState extends ConsumerState<SyncHostScreen> {
                     )
                   : const Icon(Icons.sync_rounded),
               label: Text(
-                _isSyncing ? l10n.syncStatusSyncing : l10n.syncButtonConnect,
+                _isSyncing
+                    ? l10n.descSyncStatusSyncing
+                    : l10n.actionSyncButtonConnect,
               ),
               style: FilledButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -338,7 +357,7 @@ class _SyncHostScreenState extends ConsumerState<SyncHostScreen> {
                 _syncFeedback!,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: _syncFeedback!.contains('Error')
+                  color: _syncFeedbackIsError
                       ? theme.colorScheme.error
                       : theme.colorScheme.primary,
                 ),
@@ -365,37 +384,37 @@ class _HostPhaseStatusBadge extends StatelessWidget {
       HostPhase.listening => (
         theme.colorScheme.primary,
         Icons.radar_rounded,
-        l10n.syncStatusListening,
+        l10n.descSyncStatusListening,
       ),
       HostPhase.connected => (
         Colors.green,
         Icons.check_circle_outline_rounded,
-        l10n.syncStatusConnected,
+        l10n.labelSyncStatusConnected,
       ),
       HostPhase.syncing => (
         Colors.orange,
         Icons.sync_rounded,
-        l10n.syncStatusSyncing,
+        l10n.descSyncStatusSyncing,
       ),
       HostPhase.completed => (
         Colors.green,
         Icons.task_alt_rounded,
-        l10n.syncStatusCompleted,
+        l10n.descSyncStatusCompleted,
       ),
       HostPhase.denied => (
         theme.colorScheme.error,
         Icons.block_rounded,
-        l10n.syncStatusDenied,
+        l10n.errorSyncStatusDenied,
       ),
       HostPhase.stopped => (
         theme.colorScheme.onSurfaceVariant,
         Icons.stop_circle_outlined,
-        l10n.syncStatusStopped,
+        l10n.labelSyncStatusStopped,
       ),
       HostPhase.error => (
         theme.colorScheme.error,
         Icons.error_outline_rounded,
-        l10n.syncStatusError,
+        l10n.errorSyncStatusError,
       ),
     };
 

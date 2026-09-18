@@ -6,7 +6,7 @@
 > Sections marked `TODO` are not yet decided. They are left empty on purpose rather than filled
 > with invented content, as the template instructs.
 
-Last reviewed: 2026-08-18
+Last reviewed: 2026-09-15 (against guidelines submodule commit `7ed5a36`, 2026-09-13)
 
 ## 1. Scope
 
@@ -57,6 +57,16 @@ These documents are binding for this app, not optional:
 - `docs/guidelines/release_process.md` — filled in locally as [`release_process.md`](release_process.md)
 - `docs/guidelines/flutter_build_flavors_guide.md` — flavors are already in use
 - `docs/guidelines/security.md` — filled in locally as [`security.md`](security.md)
+- `docs/guidelines/CLAUDE_MD_GUIDELINE.md` and `AGENTS_MD_GUIDELINE.md` — the root `CLAUDE.md` and
+  `AGENTS.md`
+- `docs/guidelines/DOCS_FOLDER_GUIDELINE.md` — how files in this `docs/` folder are shaped
+
+Two rules from the 2026-09 guideline update shape the whole app, so they are named here:
+
+- **Three languages.** The app ships English, Malayalam and Sanskrit, with an in-app language
+  picker. See section 16.
+- **Built for Google Play.** Even while it is sideloaded, the app must pass the Play readiness gate
+  in [`release_process.md`](release_process.md) section 9A before any store upload.
 
 ---
 
@@ -292,6 +302,10 @@ TODO — not yet audited. FTS5 covers entry title and plain text; other query pa
 
 - Attachment key manager: vends Keystore-backed AES keys for attachment encryption
 - Journal secret store: persists Keystore-wrapped journal secrets
+- On-device speech check: `sreerajp.journal_vault/speech` (`onDeviceSpeechStatus`) reports whether
+  `SpeechRecognizer` can work offline and which languages it has. `PluginSpeechEngine`
+  (`lib/features/entries/services/speech_engine.dart`) reads it; `DictationService` will not
+  start without it. The recogniser itself is the `speech_to_text` plugin in on-device mode
 - `local_auth`: device credential and biometric prompts
 
 ---
@@ -299,13 +313,15 @@ TODO — not yet audited. FTS5 covers entry title and plain text; other query pa
 ## 15. Environment And Build Model
 
 - Flavors used: `dev` and `prod` on flavor dimension `env`, defined in
-  `android/app/build.gradle.kts`. They differ only by the `appLabel` manifest placeholder — they
+  `android/app/build.gradle.kts`. They differ only by the `@string/app_name` resource in `src/dev/res` and `src/prod/res` — they
   share one application ID and so cannot coexist on a device (see section 21).
 - Runtime config mechanism: `AppFlavorConfig` (`lib/core/config/app_flavor_config.dart`), added
   2026-07-25. Reads `APP_FLAVOR` then `FLUTTER_APP_FLAVOR`, defaulting to `prod`. Currently
   gates verbose logging only.
-- Build outputs supported: release APK, `--split-per-abi` for sideloading. No app bundle (no
-  store distribution). See `release_process.md`.
+- Build outputs supported: release APK with `--split-per-abi` for sideloading (used today), and
+  an App Bundle for Google Play (built and checked, not yet uploaded). See `release_process.md`.
+- App Bundle language splitting is **disabled** (`bundle { language { enableSplit = false } }`),
+  so a Play install carries all three languages and the in-app picker can switch to any of them.
 - Obfuscation: **enabled** for release builds via `--obfuscate --split-debug-info`, alongside R8.
   Symbols are git-ignored and must be archived per release.
 
@@ -318,6 +334,24 @@ TODO — not yet audited. FTS5 covers entry title and plain text; other query pa
 - Accessibility expectations: as per the template — 48×48 dp targets, WCAG AA contrast, TalkBack
   tested, layouts verified at 1.0×/1.5×/2.0× text scale. TODO — confirm these are actually
   verified rather than merely intended.
+- **Tooltips:** every icon-only control (`IconButton`, FAB, `PopupMenuButton`, icon-only gesture,
+  unlabeled navigation destination) has a localized tooltip. `test/helpers/` holds the check.
+
+### Localization
+
+| Item | Decision |
+|---|---|
+| Languages | `en` (template), `ml`, `sa` — fixed, in that order |
+| Strings | `lib/l10n/app_en.arb`, `app_ml.arb`, `app_sa.arb`, generated into `lib/l10n/` by `flutter gen-l10n` |
+| Key naming | Category prefix: `action…`, `label…`, `title…`, `tab…`, `nav…`, `tooltip…` (short, ≤ 20 characters in English and ≤ 22 in Malayalam and Sanskrit), and `desc…`, `help…`, `empty…`, `error…`, `body…`, `aboutDetail…` (long prose allowed) |
+| Language choice | `LocaleController` in `lib/core/l10n/`, a Riverpod notifier. Saved under `app_language` (`system`, `en`, `ml`, `sa`) and read in `main.dart` before the first frame. `MaterialApp.locale` follows it; `null` means "follow the system", falling back to English |
+| Picker | Settings → Appearance → Language. System default, English, മലയാളം, संस्कृतम्. Applies at once, no restart |
+| Sanskrit framework strings | Flutter ships none. `lib/core/l10n/sa_framework_localizations.dart` answers `sa` with the English Material, Cupertino and Widgets strings, registered before the global delegates. The Quill fallback does the same |
+| Dates and numbers | `formattingLocale()` in `lib/core/l10n/formatting_locale.dart` — `intl` has no `sa` data, so Sanskrit formats with English patterns |
+| Fonts | Noto Sans Malayalam and Noto Sans Devanagari are bundled and set as `fontFamilyFallback`, so neither script depends on the device's fonts |
+| About screen | `app_config.json` values are `LocalizedText` (`{en, ml, sa}` maps for prose); row labels come from `aboutDetail<Key>`; the fixed "Made with ❤️ from India" badge ends the screen |
+| Gates | `test/l10n/translation_parity_test.dart`, `test/l10n/label_length_test.dart`, `tool/check_sanskrit_markers.sh` (CI and pre-commit) |
+| Review | Every new Malayalam or Sanskrit term is listed as "needs native-reader review" in its change log |
 
 ---
 
@@ -368,7 +402,10 @@ TODO — not yet audited. FTS5 covers entry title and plain text; other query pa
 
 ## 19. Operational Constraints
 
-- Minimum supported OS versions: Android API 28
+- Minimum supported OS versions: Android API 28. **Decision (recorded for Play readiness §9A.2):**
+  secrets are wrapped by Keystore keys created with `KeyGenParameterSpec` and the lock flows use
+  `BiometricPrompt`-era `local_auth`; both were designed and tested only on API 28+. Lowering it
+  needs a security re-review first.
 - Team constraints: single developer
 - Performance constraints: template defaults apply (cold start under 2 s, 16 ms frame budget).
   TODO — never measured.
@@ -627,25 +664,46 @@ instruction files and the documentation set. See
 > writing into `lib/` is now the only behaviour. `output-dir: lib/l10n` says the same thing and is
 > what this app sets. The guideline lives in the read-only submodule and cannot be corrected here.
 
-### Still open — localization (opened 2026-08-18)
+### Closed on 2026-09-16 — localization pockets (opened 2026-08-18)
 
-Two pockets of user-visible text are still Dart literals. Neither is a find-and-replace.
+Both pockets of literal text are gone. The entry template catalogue is text-free
+(`EntryTemplate.builtIn(id, category)`) and worded by `entry_template_text.dart`; bodies are
+treated as UI text, per language. `export_strings.dart` is deleted: renderers take `ExportLabels`,
+omissions and failures are typed (`ExportOmissionReason`, `ExportFailureReason`, `HtmlPdfFailure`)
+and worded by `export_text.dart`. See the strict-conformance change log.
 
-- **`lib/features/entries/templates/entry_templates.dart`** — the catalogue of 46 entry templates.
-  Each carries a `label`, a `description`, a `defaultTitle`, and a `contentJson` holding a whole
-  prefilled document. That is roughly 190 short strings plus 46 documents, and the catalogue is a
-  `const` structure read by providers, so moving it to ARB means restructuring it into a
-  context-dependent lookup as well as writing the keys. It deserves its own plan.
-  *Action:* decide first whether template bodies are UI text or seeded content. Only the picker's
-  `label` and `description` are read on screen.
+### Closed on 2026-09-16 — strict guidelines conformance (opened 2026-09-15)
 
-- **`lib/features/export/export_strings.dart`** — the export feature's string namespace. Split in
-  two: exported-document content (entry headers, the bundle README) that is written into the file
-  by renderers with no `BuildContext`, and messages produced in `export_service.dart` and
-  `html_pdf_service.dart` that only later reach a snackbar. Closing the second half needs an error
-  model — `ExportOmission` carrying a reason enum instead of a sentence, typed PDF exceptions, and
-  a mapping in `export_screen.dart`. The file's own doc comment records this.
-  *Action:* one plan covering the omission and exception refactor, then the screen mapping.
+The guidelines moved from commit `2b381be` to `7ed5a36`. Closed by
+`plans/20260915_200933_strict-guidelines-conformance.md`; details in its change log.
+
+| Gap | Rule | How it was closed |
+|---|---|---|
+| No Sanskrit: no `app_sa.arb`, `supportedLocales` is `en`, `ml` only | standard §8.1–§8.3 | `app_sa.arb` with all 1,657 keys; `appSupportedLocales` = en, ml, sa |
+| No Sanskrit framework delegates; Quill fallback does not answer `sa` | §8.3.1 | `sa_framework_localizations.dart`; date picker and dialog tested under `sa` |
+| `DateFormat` gets the raw locale — throws under `sa` | §8.3.2, §8.9 | `formattingLocaleTag` everywhere a date or time is formatted |
+| No Devanagari font | §8.3.3, §17.4 | Noto Sans Devanagari bundled; `fontFamilyFallback` |
+| No in-app language picker, no `app_language` preference | §8.4 | `LocaleController` + Appearance → Language, applied without restart |
+| Malayalam values equal to English | §8.2, §8.7 | translated; the rest are unit/format strings on the parity allow-list |
+| ARB keys use feature prefixes | §8.6 | every key renamed to a category prefix |
+| About config not localized; no `aboutDetail<Key>` labels | `guideline.md` §1.2–§1.6 | `LocalizedText`, lowerCamelCase keys, `aboutDetail*` labels |
+| No "Made with ❤️ from India" badge | `guideline.md` §1.7 | `made_with_love.dart`, last on the About screen |
+| Icon-only controls without a tooltip | §7.8 | tooltips added; `tooltip_coverage_test.dart` checks screens in all three languages |
+| Ritual cards have no Sanskrit text | §8.7 | card text moved to ARB, all three languages |
+| Literal text in templates, export, AirQR, sync, time capsules, permissions, security events, typography, share, OCR and more | §8.2, §8.7 | moved to ARB; services and providers hold typed values, presentation words them |
+| No `enableSplit = false` | §8.1, release §9A.3 | added to `build.gradle.kts` |
+| App label is a manifest placeholder | release §9A.1 | `@string/app_name` per flavor |
+| No parity, label-length or tooltip tests; no Sanskrit marker gate | §7.8, §8.5–§8.7 | tests in `test/l10n/`; the gate runs in CI and the pre-commit hook |
+| Label budget | §8.6 | English and Malayalam labels shortened; feature-catalogue titles and the app name are the documented exceptions in `label_length_test.dart` |
+| 20 files over 500 lines | standard file-length table | every source and test file at or under 500 lines, split into `part` files and sibling tests — see [`project_structure.md`](project_structure.md) section 3 |
+| `plans/Remediation_Plan.md` breaks the plan naming rule | §21.1 | renamed to `plans/20260725_000000_remediation-plan.md` |
+
+Still open, because only a person can do it:
+
+- **Fluent-reader review** of every Malayalam and Sanskrit term the plan adds (§8.5.4).
+- **Play Console work** — privacy policy URL, Data safety form, content rating, listing assets,
+  photo and video permission declaration, internal testing. See `release_process.md` §9A.
+- **16 KB page-size and edge-to-edge checks** on a real Android 15+ device.
 
 ### Still open — Core Baseline
 
@@ -658,14 +716,11 @@ Two pockets of user-visible text are still Dart literals. Neither is a find-and-
   *Action:* decide deliberately whether these are committed. If yes, `git add` them after a
   privacy pass with `sh tool/check_absolute_paths.sh --all`.
 
-- **`plans/Remediation_Plan.md` does not follow the plan naming rule.** Plans must be
-  `yyyymmdd_hhMMss_<short-slug>.md`. Left as is because several change logs reference it by name;
-  renaming it is a small task of its own.
+- ~~**`plans/Remediation_Plan.md` does not follow the plan naming rule.**~~ Closed 2026-09-15:
+  renamed to `plans/20260725_000000_remediation-plan.md`, references updated.
 
-- **`lib/app/app.dart` is ~2,830 lines**, holding the shell, navigation, and the whole settings UI.
-  Deliberately deferred to its own plan: it is a pure refactor with real regression risk across
-  every settings flow, and it fixes no security or correctness problem.
-  *Action:* extract settings into `lib/features/settings/`.
+- ~~**`lib/app/app.dart` is ~2,830 lines.**~~ Closed 2026-09-16: settings live in
+  `lib/features/settings/`, and `app.dart` is 431 lines with the rest in part files.
 
 - **The Home tab has no error state.** `_HomeTab` renders a spinner while loading and the list
   once loaded, but a load failure leaves the spinner up forever. The deleted `HomeScreen` had an

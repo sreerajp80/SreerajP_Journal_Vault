@@ -107,7 +107,7 @@ void main() {
 
         expect(find.text('Tamper Alerts'), findsOneWidget);
         expect(find.text('Vault Integrity Verified'), findsOneWidget);
-        expect(find.text('How Tamper Detection Works'), findsOneWidget);
+        expect(find.text('How this works'), findsOneWidget);
         expect(find.text('Tamper Alert History'), findsOneWidget);
         expect(
           find.text(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:sreerajp_journal_vault/core/l10n/formatting_locale.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 /// Represents the auto-save state of the entry editor.
@@ -54,11 +55,16 @@ class EditorStatsBar extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
-    final wordsStr = l10n.entryWordCount(wordCount);
-    final charsStr = l10n.entryCharCount(characterCount);
-    final statsText = l10n.entryStatsSummary(wordsStr, charsStr);
+    final wordsStr = l10n.descEntryWordCount(wordCount);
+    final charsStr = l10n.descEntryCharCount(characterCount);
+    final statsText = l10n.descEntryStats(wordsStr, charsStr);
 
-    final (statusIcon, statusText, statusColor) = _resolveStatus(l10n, theme);
+    // intl has no Sanskrit data, so the time falls back to English patterns.
+    final (statusIcon, statusText, statusColor) = _resolveStatus(
+      l10n,
+      theme,
+      formattingLocaleTag(Localizations.localeOf(context).toLanguageTag()),
+    );
 
     return Container(
       key: const Key('editor-stats-bar'),
@@ -106,29 +112,34 @@ class EditorStatsBar extends StatelessWidget {
   (IconData, String, Color) _resolveStatus(
     AppLocalizations l10n,
     ThemeData theme,
+    String? formattingLocale,
   ) {
     switch (saveStatus) {
       case EditorSaveStatus.saving:
-        return (Icons.sync, l10n.entryAutoSaving, theme.colorScheme.primary);
+        return (
+          Icons.sync,
+          l10n.labelEntryAutoSaving,
+          theme.colorScheme.primary,
+        );
       case EditorSaveStatus.unsaved:
         return (
           Icons.edit_outlined,
-          l10n.entryUnsavedChanges,
+          l10n.labelEntryUnsavedChanges,
           theme.colorScheme.onSurfaceVariant,
         );
       case EditorSaveStatus.saved:
         final time = lastSavedTime;
         if (time != null) {
-          final timeStr = DateFormat.jm().format(time);
+          final timeStr = DateFormat.jm(formattingLocale).format(time);
           return (
             Icons.check_circle_outline,
-            l10n.entryAutoSaved(timeStr),
+            l10n.labelEntryAutoSaved(timeStr),
             theme.colorScheme.outline,
           );
         }
         return (
           Icons.check_circle_outline,
-          l10n.entryAutoSavedJustNow,
+          l10n.labelEntryAutoSavedJustNow,
           theme.colorScheme.outline,
         );
     }

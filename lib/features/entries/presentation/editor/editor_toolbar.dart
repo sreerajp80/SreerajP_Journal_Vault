@@ -17,6 +17,7 @@ class EditorToolbar extends StatelessWidget {
     this.onInsertImage,
     this.onInsertDrawing,
     this.onScanText,
+    this.onDictate,
     this.onToggleFocusParagraph,
     this.isFocusParagraph = false,
     this.onToggleDistractionFree,
@@ -33,6 +34,9 @@ class EditorToolbar extends StatelessWidget {
   final VoidCallback? onInsertImage;
   final VoidCallback? onInsertDrawing;
   final VoidCallback? onScanText;
+
+  /// Opens on-device dictation. Null hides the button.
+  final VoidCallback? onDictate;
   final VoidCallback? onToggleFocusParagraph;
   final bool isFocusParagraph;
   final VoidCallback? onToggleDistractionFree;
@@ -115,7 +119,7 @@ class EditorToolbar extends StatelessWidget {
                 key: const Key('editor-insert-tab'),
                 icon: const Icon(Icons.keyboard_tab, size: 20),
                 onPressed: onInsertTab,
-                tooltip: AppLocalizations.of(context).editorInsertTab,
+                tooltip: AppLocalizations.of(context).tabEditorInsert,
                 visualDensity: VisualDensity.compact,
               ),
             _divider(),
@@ -161,7 +165,7 @@ class EditorToolbar extends StatelessWidget {
                 key: const Key('editor-insert-table'),
                 icon: const Icon(Icons.table_chart_outlined, size: 20),
                 onPressed: onInsertTable,
-                tooltip: AppLocalizations.of(context).editorInsertTable,
+                tooltip: AppLocalizations.of(context).tooltipEditorInsertTable,
                 visualDensity: VisualDensity.compact,
               ),
             // Callout insert
@@ -170,7 +174,9 @@ class EditorToolbar extends StatelessWidget {
                 key: const Key('editor-insert-callout'),
                 icon: const Icon(Icons.info_outline, size: 20),
                 onPressed: onInsertCallout,
-                tooltip: AppLocalizations.of(context).editorInsertCallout,
+                tooltip: AppLocalizations.of(
+                  context,
+                ).tooltipEditorInsertCallout,
                 visualDensity: VisualDensity.compact,
               ),
             // Inline image insert
@@ -179,7 +185,7 @@ class EditorToolbar extends StatelessWidget {
                 key: const Key('editor-insert-image'),
                 icon: const Icon(Icons.image_outlined, size: 20),
                 onPressed: onInsertImage,
-                tooltip: AppLocalizations.of(context).editorInsertImage,
+                tooltip: AppLocalizations.of(context).tooltipEditorInsertImage,
                 visualDensity: VisualDensity.compact,
               ),
             // Drawing / Sketch insert
@@ -188,7 +194,9 @@ class EditorToolbar extends StatelessWidget {
                 key: const Key('editor-insert-drawing'),
                 icon: const Icon(Icons.draw_outlined, size: 20),
                 onPressed: onInsertDrawing,
-                tooltip: AppLocalizations.of(context).editorInsertDrawing,
+                tooltip: AppLocalizations.of(
+                  context,
+                ).tooltipEditorInsertDrawing,
                 visualDensity: VisualDensity.compact,
               ),
             // OCR / Scan text from image
@@ -197,7 +205,18 @@ class EditorToolbar extends StatelessWidget {
                 key: const Key('editor-scan-text'),
                 icon: const Icon(Icons.document_scanner_outlined, size: 20),
                 onPressed: onScanText,
-                tooltip: AppLocalizations.of(context).entryEditorScanText,
+                tooltip: AppLocalizations.of(
+                  context,
+                ).tooltipEntryEditorScanText,
+                visualDensity: VisualDensity.compact,
+              ),
+            // Dictation: speech to text, recognised on the device
+            if (onDictate != null)
+              IconButton(
+                key: const Key('editor-dictate'),
+                icon: const Icon(Icons.keyboard_voice_outlined, size: 20),
+                onPressed: onDictate,
+                tooltip: AppLocalizations.of(context).tooltipEditorDictate,
                 visualDensity: VisualDensity.compact,
               ),
             _divider(),
@@ -216,8 +235,8 @@ class EditorToolbar extends StatelessWidget {
                 ),
                 onPressed: onToggleFocusParagraph,
                 tooltip: isFocusParagraph
-                    ? AppLocalizations.of(context).entryFocusParagraphOn
-                    : AppLocalizations.of(context).entryFocusParagraphOff,
+                    ? AppLocalizations.of(context).descEntryFocusParagraphOn
+                    : AppLocalizations.of(context).descEntryFocusParagraphOff,
                 visualDensity: VisualDensity.compact,
               ),
             // Distraction-free mode toggle
@@ -233,8 +252,12 @@ class EditorToolbar extends StatelessWidget {
                 ),
                 onPressed: onToggleDistractionFree,
                 tooltip: isDistractionFree
-                    ? AppLocalizations.of(context).entryDistractionFreeExit
-                    : AppLocalizations.of(context).entryDistractionFreeEnter,
+                    ? AppLocalizations.of(
+                        context,
+                      ).actionEntryDistractionFreeExit
+                    : AppLocalizations.of(
+                        context,
+                      ).actionEntryDistractionFreeEnter,
                 visualDensity: VisualDensity.compact,
               ),
             _divider(),

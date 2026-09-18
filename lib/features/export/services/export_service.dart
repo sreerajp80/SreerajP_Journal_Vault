@@ -7,6 +7,10 @@
 /// **It never partially succeeds in silence.** Anything skipped comes back in
 /// [ExportResult.skipped] so the screen can name it. An export that quietly
 /// omitted a locked file would be worse than one that failed outright.
+///
+/// **It holds no user-facing text.** The words written into the files come in
+/// as [ExportLabels]; what it reports back is typed ([ExportOmissionReason],
+/// [ExportFailureReason]) and the screen words it in the user's language.
 library;
 
 import 'dart:convert';
@@ -19,63 +23,16 @@ import 'package:sreerajp_journal_vault/core/security/vault_envelope.dart';
 import 'package:sreerajp_journal_vault/core/security/vault_payload.dart';
 import 'package:sreerajp_journal_vault/core/utils/safe_file_name.dart';
 import 'package:sreerajp_journal_vault/features/attachments/services/attachment_crypto_storage.dart';
-import 'package:sreerajp_journal_vault/features/export/export_strings.dart';
 import 'package:sreerajp_journal_vault/features/export/services/delta_to_markdown.dart';
 import 'package:sreerajp_journal_vault/features/export/services/delta_to_plain_text.dart';
 import 'package:sreerajp_journal_vault/features/export/services/export_document.dart';
 import 'package:sreerajp_journal_vault/features/export/services/export_format.dart';
 import 'package:sreerajp_journal_vault/features/export/services/export_html_builder.dart';
+import 'package:sreerajp_journal_vault/features/export/services/export_labels.dart';
 import 'package:sreerajp_journal_vault/features/export/services/html_pdf_service.dart';
 
-/// Something that was left out of an export, and why.
-class ExportOmission {
-  const ExportOmission(this.message);
-
-  /// Already worded for the user — see [ExportStrings].
-  final String message;
-
-  @override
-  String toString() => message;
-}
-
-/// The finished export, ready to be written to disk.
-class ExportResult {
-  const ExportResult({
-    required this.bytes,
-    required this.fileName,
-    required this.mimeType,
-    required this.entryCount,
-    this.skipped = const [],
-    this.isEncrypted = false,
-  });
-
-  final Uint8List bytes;
-
-  /// The suggested file name, including the extension.
-  final String fileName;
-  final String mimeType;
-  final int entryCount;
-
-  /// Everything that could not be included.
-  final List<ExportOmission> skipped;
-
-  /// True when [bytes] are sealed under a password rather than readable.
-  final bool isEncrypted;
-
-  /// True when the file is a zip bundle. False for a sealed export: what is
-  /// inside is not visible from the outside, which is the point.
-  bool get isZip => fileName.endsWith('.zip');
-}
-
-/// Thrown when an export cannot be produced at all.
-class ExportException implements Exception {
-  const ExportException(this.message);
-
-  final String message;
-
-  @override
-  String toString() => 'ExportException: $message';
-}
+part 'export_service_models.dart';
+part 'export_service_rendering.dart';
 
 class ExportService {
   // Private fields as named parameters — the same style the attachment
@@ -88,6 +45,9 @@ class ExportService {
     VaultEnvelope? envelope,
     this._now = DateTime.now,
   }) : _envelope = envelope ?? VaultEnvelope();
+
+  /// The README placed in a zip bundle. A file name, not text for the reader.
+  static const String _readmeFileName = 'README.txt';
 
   final AttachmentCryptoStorage _cryptoStorage;
   final ExportHtmlBuilder _htmlBuilder;
@@ -102,6 +62,9 @@ class ExportService {
 
   /// Builds the export.
   ///
+  /// [labels] are the words written into the files, in the language the user
+  /// exported in.
+  ///
   /// [includeAttachments] and [includeMetadata] mirror the scope the bundle was
   /// collected with. They are passed again rather than read off the bundle so
   /// this service stays usable on a hand-built bundle in a test.
@@ -112,12 +75,13 @@ class ExportService {
   Future<ExportResult> build(
     ExportBundle bundle, {
     required ExportFormat format,
+    required ExportLabels labels,
     bool includeAttachments = false,
     bool includeMetadata = true,
     String? password,
   }) async {
     if (bundle.isEmpty) {
-      throw const ExportException(ExportStrings.nothingToExport);
+      throw const ExportException(ExportFailureReason.nothingToExport);
     }
 
     final skipped = <ExportOmission>[];
@@ -132,6 +96,7 @@ class ExportService {
     final entryFiles = await _renderEntryFiles(
       bundle,
       format: format,
+      labels: labels,
       includeMetadata: includeMetadata,
       linkableImageIds: attachmentFiles
           .map((f) => f.attachmentId)
@@ -162,6 +127,7 @@ class ExportService {
     final zipBytes = _zip(
       bundle: bundle,
       format: format,
+      labels: labels,
       entryFiles: entryFiles,
       attachmentFiles: attachmentFiles,
     );
@@ -180,52 +146,12 @@ class ExportService {
     );
   }
 
-  /// Seals [result] when a password was given, and hands it back untouched
-  /// when one was not.
-  ///
-  /// The real file name and mime type go **inside** the sealed bytes, in a
-  /// [VaultPayloadHeader], and the sealed file is offered under a plain,
-  /// dated name instead. An entry titled "Leaving my job" must not still be
-  /// readable in the file name after the file itself has been encrypted.
-  Future<ExportResult> _finish(
-    ExportResult result, {
-    required String? password,
-  }) async {
-    if (password == null) return result;
-
-    // Throws BackupPasswordException-equivalent before any bytes are sealed.
-    validateVaultPassword(password);
-
-    final sealed = await _envelope.seal(
-      plainBytes: wrapVaultPayload(
-        bytes: result.bytes,
-        header: VaultPayloadHeader(
-          kind: vaultPayloadKindExport,
-          fileName: result.fileName,
-          mimeType: result.mimeType,
-          createdAt: _now(),
-        ),
-      ),
-      password: password,
-    );
-
-    return ExportResult(
-      bytes: sealed,
-      fileName:
-          'journal_export_${formatDateOnly(_now())}'
-          '.$vaultSealedFileExtension',
-      mimeType: 'application/octet-stream',
-      entryCount: result.entryCount,
-      skipped: result.skipped,
-      isEncrypted: true,
-    );
-  }
-
   // --- Entry files ----------------------------------------------------------
 
   Future<List<_OutputFile>> _renderEntryFiles(
     ExportBundle bundle, {
     required ExportFormat format,
+    required ExportLabels labels,
     required bool includeMetadata,
     required Set<int> linkableImageIds,
     required List<ExportOmission> skipped,
@@ -235,13 +161,14 @@ class ExportService {
     if (format.combinesEntriesIntoOneFile) {
       final html = await _htmlBuilder.build(
         bundle,
+        labels: labels,
         includeMetadata: includeMetadata,
         exportedAt: _now(),
         imageSources: await _resolveInlineImages(bundle, skipped),
       );
 
       final baseName = bundle.entryCount == 1
-          ? safeFileName(_titleOf(bundle.documents.single))
+          ? safeFileName(_titleOf(bundle.documents.single, labels))
           : safeFileName(bundle.journalTitle, fallback: 'journal');
 
       if (format == ExportFormat.html) {
@@ -264,164 +191,24 @@ class ExportService {
       final text = format == ExportFormat.markdown
           ? _markdownFor(
               document,
+              labels: labels,
               includeMetadata: includeMetadata,
               linkableImageIds: linkableImageIds,
             )
-          : _plainTextFor(document, includeMetadata: includeMetadata);
+          : _plainTextFor(
+              document,
+              labels: labels,
+              includeMetadata: includeMetadata,
+            );
 
       final name = _uniqueName(
-        _entryFileName(document, format.extension),
+        _entryFileName(document, format.extension, labels),
         usedNames,
       );
       files.add(_OutputFile(name, Uint8List.fromList(utf8.encode(text))));
     }
 
     return files;
-  }
-
-  String _titleOf(ExportDocument document) {
-    final title = document.title?.trim();
-    return title == null || title.isEmpty ? ExportStrings.untitledEntry : title;
-  }
-
-  /// `2026-08-16_my-entry.md` — dated first so a folder sorts chronologically.
-  String _entryFileName(ExportDocument document, String extension) {
-    final date = document.effectiveDate;
-    final datePart = date == null ? '' : '${formatDateOnly(date)}_';
-    return '$datePart${safeFileName(_titleOf(document))}.$extension';
-  }
-
-  /// Two entries on the same day can share a title, and a zip with two
-  /// identical names loses one of them.
-  String _uniqueName(String name, Set<String> used) {
-    if (used.add(name)) return name;
-    final dot = name.lastIndexOf('.');
-    final stem = dot == -1 ? name : name.substring(0, dot);
-    final extension = dot == -1 ? '' : name.substring(dot);
-    var counter = 2;
-    while (!used.add('$stem($counter)$extension')) {
-      counter++;
-    }
-    return '$stem($counter)$extension';
-  }
-
-  String _markdownFor(
-    ExportDocument document, {
-    required bool includeMetadata,
-    Set<int> linkableImageIds = const {},
-  }) {
-    final buffer = StringBuffer('# ${_titleOf(document)}\n');
-
-    if (includeMetadata) {
-      final meta = _metadataLines(document);
-      if (meta.isNotEmpty) {
-        buffer.writeln();
-        for (final line in meta) {
-          buffer.writeln('*$line*  ');
-        }
-      }
-    }
-
-    buffer
-      ..writeln()
-      ..writeln(
-        renderMarkdown(document.blocks, linkableImageIds: linkableImageIds),
-      );
-
-    if (document.voiceNotes.isNotEmpty) {
-      buffer
-        ..writeln()
-        ..writeln('## ${ExportStrings.labelVoiceNotes}');
-      for (final note in document.voiceNotes) {
-        buffer.writeln(
-          '- ${ExportStrings.voiceNoteDuration(note.formattedDuration)} — '
-          '${note.fileName}',
-        );
-        final transcript = note.transcript?.trim();
-        if (transcript != null && transcript.isNotEmpty) {
-          buffer.writeln('  > ${transcript.replaceAll('\n', '\n  > ')}');
-        }
-      }
-    }
-
-    if (document.attachments.isNotEmpty) {
-      buffer
-        ..writeln()
-        ..writeln('## ${ExportStrings.labelAttachments}');
-      for (final attachment in document.attachments) {
-        final suffix = attachment.isLocked ? ' (locked — not included)' : '';
-        buffer.writeln('- ${attachment.fileName}$suffix');
-      }
-    }
-
-    return buffer.toString().trimRight();
-  }
-
-  String _plainTextFor(
-    ExportDocument document, {
-    required bool includeMetadata,
-  }) {
-    final title = _titleOf(document);
-    final buffer = StringBuffer()
-      ..writeln(title)
-      ..writeln('=' * (title.runes.length > 80 ? 80 : title.runes.length));
-
-    if (includeMetadata) {
-      for (final line in _metadataLines(document)) {
-        buffer.writeln(line);
-      }
-    }
-
-    buffer
-      ..writeln()
-      ..writeln(renderPlainText(document.blocks));
-
-    if (document.voiceNotes.isNotEmpty) {
-      buffer
-        ..writeln()
-        ..writeln('${ExportStrings.labelVoiceNotes}:');
-      for (final note in document.voiceNotes) {
-        buffer.writeln(
-          '  ${ExportStrings.voiceNoteDuration(note.formattedDuration)} — '
-          '${note.fileName}',
-        );
-        final transcript = note.transcript?.trim();
-        if (transcript != null && transcript.isNotEmpty) {
-          buffer.writeln('    ${transcript.replaceAll('\n', '\n    ')}');
-        }
-      }
-    }
-
-    if (document.attachments.isNotEmpty) {
-      buffer
-        ..writeln()
-        ..writeln('${ExportStrings.labelAttachments}:');
-      for (final attachment in document.attachments) {
-        final suffix = attachment.isLocked ? ' (locked — not included)' : '';
-        buffer.writeln('  ${attachment.fileName}$suffix');
-      }
-    }
-
-    return buffer.toString().trimRight();
-  }
-
-  List<String> _metadataLines(ExportDocument document) {
-    final lines = <String>[];
-    final date = document.effectiveDate;
-    if (date != null) {
-      lines.add('${ExportStrings.labelDate}: ${formatDate(date)}');
-    }
-    if (document.tags.isNotEmpty) {
-      lines.add('${ExportStrings.labelTags}: ${document.tags.join(', ')}');
-    }
-    if (document.mood != null) {
-      final note = document.moodNote?.trim();
-      final value = note == null || note.isEmpty
-          ? ExportStrings.moodValue(document.mood!)
-          : '${ExportStrings.moodValue(document.mood!)} — $note';
-      lines.add('${ExportStrings.labelMood}: $value');
-    }
-    return lines;
   }
 
   // --- Inline images --------------------------------------------------------
@@ -451,7 +238,8 @@ class ExportService {
       if (image.isLocked) {
         skipped.add(
           ExportOmission(
-            ExportStrings.skippedLockedInlineImage(image.fileName),
+            ExportOmissionReason.lockedInlineImage,
+            image.fileName,
           ),
         );
         continue;
@@ -467,7 +255,8 @@ class ExportService {
       if (bytes == null) {
         skipped.add(
           ExportOmission(
-            ExportStrings.skippedUnreadableInlineImage(image.fileName),
+            ExportOmissionReason.unreadableInlineImage,
+            image.fileName,
           ),
         );
         continue;
@@ -478,19 +267,6 @@ class ExportService {
     }
 
     return sources;
-  }
-
-  /// The MIME type to stamp on an inline image's data URI.
-  ///
-  /// Only real image types are allowed through. A row whose MIME type is
-  /// missing or is not an image falls back to PNG rather than putting an
-  /// arbitrary type into the page's markup.
-  String _imageMimeType(ExportAttachmentRef image) {
-    final mime = image.mimeType?.trim().toLowerCase();
-    if (mime == null || !mime.startsWith('image/')) return 'image/png';
-    // Anything beyond the type itself (a `;charset=` tail, stray characters)
-    // has no business in a data URI.
-    return RegExp(r'^image/[a-z0-9.+-]+$').hasMatch(mime) ? mime : 'image/png';
   }
 
   // --- Attachments ----------------------------------------------------------
@@ -512,7 +288,8 @@ class ExportService {
       if (attachment.isLocked) {
         skipped.add(
           ExportOmission(
-            ExportStrings.skippedLockedAttachment(attachment.fileName),
+            ExportOmissionReason.lockedAttachment,
+            attachment.fileName,
           ),
         );
         continue;
@@ -528,7 +305,8 @@ class ExportService {
       if (bytes == null) {
         skipped.add(
           ExportOmission(
-            ExportStrings.skippedUnreadableAttachment(attachment.fileName),
+            ExportOmissionReason.unreadableAttachment,
+            attachment.fileName,
           ),
         );
         continue;
@@ -554,7 +332,8 @@ class ExportService {
       if (bytes == null) {
         skipped.add(
           ExportOmission(
-            ExportStrings.skippedUnreadableVoiceNote(note.fileName),
+            ExportOmissionReason.unreadableVoiceNote,
+            note.fileName,
           ),
         );
         continue;
@@ -570,43 +349,12 @@ class ExportService {
     return files;
   }
 
-  /// Decrypts one stored file, or returns null when it cannot be read.
-  ///
-  /// A missing SD card or a damaged file must cost the export that one file,
-  /// not the whole run — the user still wants the other nine years of writing.
-  Future<Uint8List?> _decrypt({
-    required String encryptedPath,
-    required String nonceBase64,
-    required String keyReference,
-    required String fileName,
-  }) async {
-    AttachmentTempFileHandle? handle;
-    try {
-      handle = await _cryptoStorage.decryptToTempFile(
-        encryptedPath: encryptedPath,
-        nonceBase64: nonceBase64,
-        keyReference: keyReference,
-        fileName: fileName,
-      );
-      return await handle.file.readAsBytes();
-    } catch (error) {
-      // The file name is user content and never goes in a log.
-      AppLogger.warning(
-        'export: could not decrypt an attachment for export',
-        error: AppLogger.redact(error),
-      );
-      return null;
-    } finally {
-      // The decrypted copy is deleted whether or not the read worked.
-      await handle?.release();
-    }
-  }
-
   // --- Zip ------------------------------------------------------------------
 
   Uint8List _zip({
     required ExportBundle bundle,
     required ExportFormat format,
+    required ExportLabels labels,
     required List<_OutputFile> entryFiles,
     required List<_OutputFile> attachmentFiles,
   }) {
@@ -624,16 +372,14 @@ class ExportService {
     }
 
     final readme = utf8.encode(
-      ExportStrings.readmeBody(
+      labels.readme(
         journalTitle: bundle.journalTitle,
         exportedAt: formatDate(_now()),
         entryCount: bundle.entryCount,
-        formatName: format.label,
+        formatName: labels.formatName(format),
       ),
     );
-    archive.addFile(
-      ArchiveFile(ExportStrings.readmeFileName, readme.length, readme),
-    );
+    archive.addFile(ArchiveFile(_readmeFileName, readme.length, readme));
 
     final encoded = ZipEncoder().encode(archive);
     return Uint8List.fromList(encoded);

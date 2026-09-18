@@ -247,7 +247,7 @@ class _InlineDrawingBlockState extends State<_InlineDrawingBlock> {
       null => _DrawingPlaceholder(
         key: const Key('drawing-loading'),
         icon: Icons.draw_outlined,
-        message: l10n.drawingLoading,
+        message: l10n.descDrawingLoading,
       ),
       InlineImageReady(:final file) => GestureDetector(
         key: const Key('drawing-open-fullscreen'),
@@ -267,7 +267,7 @@ class _InlineDrawingBlockState extends State<_InlineDrawingBlock> {
               alignment: Alignment.centerLeft,
               errorBuilder: (_, _, _) => _DrawingPlaceholder(
                 icon: Icons.broken_image_outlined,
-                message: l10n.drawingUnavailable,
+                message: l10n.descDrawingUnavailable,
               ),
             ),
           ),
@@ -276,15 +276,15 @@ class _InlineDrawingBlockState extends State<_InlineDrawingBlock> {
       InlineImageLocked() => _DrawingPlaceholder(
         key: const Key('drawing-locked'),
         icon: Icons.lock_outline,
-        message: 'Locked drawing — tap to unlock',
+        message: l10n.bodyEditorDrawingLocked,
         onTap: _unlock,
       ),
       InlineImageUnavailable() => _DrawingPlaceholder(
         key: const Key('drawing-unavailable'),
         icon: Icons.broken_image_outlined,
         message: widget.data.fileName.isEmpty
-            ? l10n.drawingUnavailable
-            : '${l10n.drawingUnavailable} — ${widget.data.fileName}',
+            ? l10n.descDrawingUnavailable
+            : '${l10n.descDrawingUnavailable} — ${widget.data.fileName}',
       ),
     };
   }
@@ -300,13 +300,13 @@ class _InlineDrawingBlockState extends State<_InlineDrawingBlock> {
             key: const Key('drawing-edit-button'),
             icon: const Icon(Icons.edit_outlined, size: 18),
             color: theme.colorScheme.onSurfaceVariant,
-            tooltip: l10n.drawingEditTooltip,
+            tooltip: l10n.tooltipDrawingEdit,
             onPressed: widget.onEdit,
           ),
         if (widget.onWidthChanged != null)
           PopupMenuButton<double>(
             key: const Key('drawing-size-menu'),
-            tooltip: l10n.drawingSizeTooltip,
+            tooltip: l10n.tooltipDrawingSize,
             icon: Icon(
               Icons.photo_size_select_large,
               size: 18,
@@ -316,15 +316,15 @@ class _InlineDrawingBlockState extends State<_InlineDrawingBlock> {
             itemBuilder: (_) => [
               PopupMenuItem(
                 value: DrawingEmbedData.smallWidth,
-                child: Text(l10n.editorImageSizeSmall),
+                child: Text(l10n.labelEditorImageSizeSmall),
               ),
               PopupMenuItem(
                 value: DrawingEmbedData.mediumWidth,
-                child: Text(l10n.editorImageSizeMedium),
+                child: Text(l10n.labelEditorImageSizeMedium),
               ),
               PopupMenuItem(
                 value: DrawingEmbedData.fullWidth,
-                child: Text(l10n.editorImageSizeFull),
+                child: Text(l10n.labelEditorImageSizeFull),
               ),
             ],
           ),
@@ -333,7 +333,7 @@ class _InlineDrawingBlockState extends State<_InlineDrawingBlock> {
             key: const Key('drawing-delete-button'),
             icon: const Icon(Icons.close, size: 18),
             color: theme.colorScheme.onSurfaceVariant,
-            tooltip: l10n.drawingDeleteTooltip,
+            tooltip: l10n.tooltipDrawingDelete,
             onPressed: widget.onDelete,
           ),
       ],
@@ -398,7 +398,7 @@ class _FullScreenDrawing extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(fileName.isEmpty ? l10n.drawingDefaultTitle : fileName),
+        title: Text(fileName.isEmpty ? l10n.titleDrawingDefault : fileName),
       ),
       body: Center(
         child: InteractiveViewer(
@@ -406,7 +406,7 @@ class _FullScreenDrawing extends StatelessWidget {
           child: Image.file(
             file,
             errorBuilder: (context, _, _) =>
-                Text(AppLocalizations.of(context).drawingUnavailable),
+                Text(AppLocalizations.of(context).descDrawingUnavailable),
           ),
         ),
       ),

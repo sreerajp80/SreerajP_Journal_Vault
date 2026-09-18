@@ -7,7 +7,7 @@ import 'package:sreerajp_journal_vault/features/entries/providers/entry_provider
 import 'package:sreerajp_journal_vault/features/entries/services/voice_note_service.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
-/// Bottom-sheet UI for recording voice notes with live transcription.
+/// Bottom-sheet UI for recording voice notes.
 class VoiceNoteRecorder extends ConsumerStatefulWidget {
   const VoiceNoteRecorder({super.key, required this.onRecordingComplete});
 
@@ -22,7 +22,6 @@ class _VoiceNoteRecorderState extends ConsumerState<VoiceNoteRecorder> {
   bool _isRecording = false;
   Duration _elapsed = Duration.zero;
   Timer? _timer;
-  String _partialTranscript = '';
 
   @override
   void dispose() {
@@ -38,7 +37,7 @@ class _VoiceNoteRecorderState extends ConsumerState<VoiceNoteRecorder> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              AppLocalizations.of(context).editorMicPermissionDenied,
+              AppLocalizations.of(context).bodyEditorMicPermissionDenied,
             ),
           ),
         );
@@ -56,23 +55,15 @@ class _VoiceNoteRecorderState extends ConsumerState<VoiceNoteRecorder> {
         setState(() => _elapsed += const Duration(seconds: 1));
       }
     });
-
-    // Start live transcription in parallel.
-    service.transcribeLive(
-      onPartial: (partial) {
-        if (mounted) setState(() => _partialTranscript = partial);
-      },
-    );
   }
 
   Future<void> _stopRecording() async {
     _timer?.cancel();
     final service = ref.read(voiceNoteServiceProvider);
-    await service.stopTranscription();
     final result = await service.stopRecording();
 
     if (result != null && mounted) {
-      widget.onRecordingComplete(result, _partialTranscript);
+      widget.onRecordingComplete(result, '');
       Navigator.pop(context);
     }
   }
@@ -80,7 +71,6 @@ class _VoiceNoteRecorderState extends ConsumerState<VoiceNoteRecorder> {
   Future<void> _cancelRecording() async {
     _timer?.cancel();
     final service = ref.read(voiceNoteServiceProvider);
-    await service.stopTranscription();
     await service.cancelRecording();
     if (mounted) Navigator.pop(context);
   }
@@ -94,6 +84,7 @@ class _VoiceNoteRecorderState extends ConsumerState<VoiceNoteRecorder> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
 
     return Padding(
       padding: const EdgeInsets.all(24),
@@ -101,7 +92,7 @@ class _VoiceNoteRecorderState extends ConsumerState<VoiceNoteRecorder> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            _isRecording ? 'Recording...' : 'Voice Note',
+            _isRecording ? l10n.bodyVoiceNoteRecording : l10n.titleVoiceNote,
             style: theme.textTheme.titleMedium,
           ),
           const SizedBox(height: 16),
@@ -113,24 +104,6 @@ class _VoiceNoteRecorderState extends ConsumerState<VoiceNoteRecorder> {
             ),
           ),
           const SizedBox(height: 8),
-          // Transcript preview
-          if (_partialTranscript.isNotEmpty)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                _partialTranscript,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  fontStyle: FontStyle.italic,
-                ),
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
           const SizedBox(height: 24),
           // Controls
           Row(
@@ -140,13 +113,16 @@ class _VoiceNoteRecorderState extends ConsumerState<VoiceNoteRecorder> {
                 TextButton.icon(
                   onPressed: _cancelRecording,
                   icon: const Icon(Icons.delete_outline),
-                  label: Text(AppLocalizations.of(context).editorDiscard),
+                  label: Text(AppLocalizations.of(context).actionEditorDiscard),
                   style: TextButton.styleFrom(
                     foregroundColor: theme.colorScheme.error,
                   ),
                 ),
               FloatingActionButton(
                 heroTag: 'voice_note_record',
+                tooltip: _isRecording
+                    ? AppLocalizations.of(context).tooltipStopRecording
+                    : AppLocalizations.of(context).tooltipRecordVoiceNote,
                 onPressed: _isRecording ? _stopRecording : _startRecording,
                 backgroundColor: _isRecording
                     ? theme.colorScheme.error
@@ -162,7 +138,7 @@ class _VoiceNoteRecorderState extends ConsumerState<VoiceNoteRecorder> {
                 TextButton.icon(
                   onPressed: _stopRecording,
                   icon: const Icon(Icons.check),
-                  label: Text(AppLocalizations.of(context).editorDone),
+                  label: Text(AppLocalizations.of(context).actionEditorDone),
                 ),
             ],
           ),

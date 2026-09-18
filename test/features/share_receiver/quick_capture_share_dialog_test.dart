@@ -235,7 +235,7 @@ void main() {
     await tester.tap(find.text('Open Quick Capture'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Encrypted file detected'), findsOneWidget);
+    expect(find.text('Encrypted file'), findsOneWidget);
     expect(find.text('journal_backup.jvbk'), findsOneWidget);
     expect(find.text('Open Encrypted File'), findsOneWidget);
 

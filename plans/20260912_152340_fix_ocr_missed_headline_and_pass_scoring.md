@@ -1,6 +1,6 @@
 # Plan — Fix OCR missing the headline (inverted text) and stop first-pass-wins
 
-**Status:** Awaiting approval
+**Status:** completed
 
 ## The issue
 

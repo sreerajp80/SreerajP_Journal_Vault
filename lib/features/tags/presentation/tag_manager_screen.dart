@@ -20,17 +20,17 @@ class TagManagerScreen extends ConsumerWidget {
     final tagsAsync = ref.watch(allTagsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.tagsTitle)),
+      appBar: AppBar(title: Text(l10n.titleTags)),
       body: tagsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) =>
-            Center(child: Text(l10n.tagsLoadError(error.toString()))),
+            Center(child: Text(l10n.errorTagsLoad(error.toString()))),
         data: (tags) {
           if (tags.isEmpty) {
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(24),
-                child: Text(l10n.tagsEmpty, textAlign: TextAlign.center),
+                child: Text(l10n.emptyTags, textAlign: TextAlign.center),
               ),
             );
           }
@@ -66,24 +66,27 @@ class _TagTile extends ConsumerWidget {
         decoration: BoxDecoration(color: color, shape: BoxShape.circle),
       ),
       title: Text('#${tag.name}', style: TextStyle(color: color)),
-      subtitle: hasCustomColor(tag) ? null : Text(l10n.tagsAutomaticColour),
+      subtitle: hasCustomColor(tag) ? null : Text(l10n.descTagsAutomaticColour),
       trailing: PopupMenuButton<_TagAction>(
-        tooltip: l10n.tagsActionsTooltip,
+        tooltip: l10n.tooltipTagsActions,
         onSelected: (action) => _handle(context, ref, action),
         itemBuilder: (context) => [
-          PopupMenuItem(value: _TagAction.rename, child: Text(l10n.tagsRename)),
+          PopupMenuItem(
+            value: _TagAction.rename,
+            child: Text(l10n.actionTagsRename),
+          ),
           PopupMenuItem(
             value: _TagAction.color,
-            child: Text(l10n.tagsChooseColour),
+            child: Text(l10n.actionTagsChooseColour),
           ),
           if (hasCustomColor(tag))
             PopupMenuItem(
               value: _TagAction.resetColor,
-              child: Text(l10n.tagsResetColour),
+              child: Text(l10n.actionTagsResetColour),
             ),
           PopupMenuItem(
             value: _TagAction.delete,
-            child: Text(l10n.commonDelete),
+            child: Text(l10n.actionCommonDelete),
           ),
         ],
       ),
@@ -105,9 +108,7 @@ class _TagTile extends ConsumerWidget {
         if (name == null) return;
         final ok = await db.tagsDao.renameTag(tag.id, name);
         if (!ok) {
-          messenger.showSnackBar(
-            SnackBar(content: Text(l10n.tagsRenameFailed)),
-          );
+          messenger.showSnackBar(SnackBar(content: Text(l10n.errorTagsRename)));
           return;
         }
 
@@ -124,7 +125,7 @@ class _TagTile extends ConsumerWidget {
         if (confirmed != true) return;
         await db.tagsDao.deleteTagWithLinks(tag.id);
         messenger.showSnackBar(
-          SnackBar(content: Text(l10n.tagsDeleted(tag.name))),
+          SnackBar(content: Text(l10n.bodyTagsDeleted(tag.name))),
         );
     }
 
@@ -143,7 +144,7 @@ class _TagTile extends ConsumerWidget {
     return showDialog<Color>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text(AppLocalizations.of(dialogContext).tagsChooseColour),
+        title: Text(AppLocalizations.of(dialogContext).actionTagsChooseColour),
         content: Wrap(
           spacing: 12,
           runSpacing: 12,
@@ -175,7 +176,7 @@ class _TagTile extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: Text(AppLocalizations.of(dialogContext).commonCancel),
+            child: Text(AppLocalizations.of(dialogContext).actionCommonCancel),
           ),
         ],
       ),
@@ -188,16 +189,16 @@ class _TagTile extends ConsumerWidget {
       builder: (dialogContext) {
         final l10n = AppLocalizations.of(dialogContext);
         return AlertDialog(
-          title: Text(l10n.tagsDeleteTitle),
-          content: Text(l10n.tagsDeleteBody(name)),
+          title: Text(l10n.bodyTagsDelete),
+          content: Text(l10n.bodyTagsDeleteBody(name)),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: Text(l10n.commonCancel),
+              child: Text(l10n.actionCommonCancel),
             ),
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, true),
-              child: Text(l10n.commonDelete),
+              child: Text(l10n.actionCommonDelete),
             ),
           ],
         );
@@ -236,22 +237,22 @@ class _RenameTagDialogState extends State<_RenameTagDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return AlertDialog(
-      title: Text(l10n.tagsRenameTitle),
+      title: Text(l10n.titleTagsRename),
       content: TextField(
         key: const Key('tag-rename-field'),
         controller: _controller,
         autofocus: true,
-        decoration: InputDecoration(labelText: l10n.tagsNameLabel),
+        decoration: InputDecoration(labelText: l10n.labelTagsName),
         onSubmitted: (value) => Navigator.pop(context, value),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text(l10n.commonCancel),
+          child: Text(l10n.actionCommonCancel),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context, _controller.text),
-          child: Text(l10n.commonSave),
+          child: Text(l10n.actionCommonSave),
         ),
       ],
     );

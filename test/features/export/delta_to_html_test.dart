@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import '../../helpers/export_labels.dart';
 import 'package:sreerajp_journal_vault/features/export/services/delta_document.dart';
 import 'package:sreerajp_journal_vault/features/export/services/delta_to_html.dart';
 
@@ -20,22 +21,28 @@ void main() {
   group('renderHtml — block styles', () {
     test('renders headings and paragraphs', () {
       expect(
-        renderHtml([_text('a', style: BlockStyle.heading1)]),
+        renderHtml(labels: englishExportLabels, [
+          _text('a', style: BlockStyle.heading1),
+        ]),
         '<h1>a</h1>',
       );
       expect(
-        renderHtml([_text('b', style: BlockStyle.heading2)]),
+        renderHtml(labels: englishExportLabels, [
+          _text('b', style: BlockStyle.heading2),
+        ]),
         '<h2>b</h2>',
       );
       expect(
-        renderHtml([_text('c', style: BlockStyle.heading3)]),
+        renderHtml(labels: englishExportLabels, [
+          _text('c', style: BlockStyle.heading3),
+        ]),
         '<h3>c</h3>',
       );
-      expect(renderHtml([_text('d')]), '<p>d</p>');
+      expect(renderHtml(labels: englishExportLabels, [_text('d')]), '<p>d</p>');
     });
 
     test('wraps a run of bullet items in one list element', () {
-      final html = renderHtml([
+      final html = renderHtml(labels: englishExportLabels, [
         _text('a', style: BlockStyle.bulletList),
         _text('b', style: BlockStyle.bulletList),
       ]);
@@ -43,7 +50,7 @@ void main() {
     });
 
     test('uses an ordered list element for numbered items', () {
-      final html = renderHtml([
+      final html = renderHtml(labels: englishExportLabels, [
         _text('a', style: BlockStyle.orderedList),
         _text('b', style: BlockStyle.orderedList),
       ]);
@@ -51,7 +58,7 @@ void main() {
     });
 
     test('starts a new list element when the list kind changes', () {
-      final html = renderHtml([
+      final html = renderHtml(labels: englishExportLabels, [
         _text('a', style: BlockStyle.bulletList),
         _text('b', style: BlockStyle.orderedList),
       ]);
@@ -59,7 +66,7 @@ void main() {
     });
 
     test('keeps checked and unchecked items in one task list', () {
-      final html = renderHtml([
+      final html = renderHtml(labels: englishExportLabels, [
         _text('done', style: BlockStyle.checkedList),
         _text('todo', style: BlockStyle.uncheckedList),
       ]);
@@ -71,7 +78,7 @@ void main() {
     });
 
     test('gathers consecutive code lines into one pre block', () {
-      final html = renderHtml([
+      final html = renderHtml(labels: englishExportLabels, [
         _text('line one', style: BlockStyle.codeBlock),
         _text('line two', style: BlockStyle.codeBlock),
       ]);
@@ -80,18 +87,23 @@ void main() {
 
     test('renders a blockquote', () {
       expect(
-        renderHtml([_text('q', style: BlockStyle.blockquote)]),
+        renderHtml(labels: englishExportLabels, [
+          _text('q', style: BlockStyle.blockquote),
+        ]),
         '<blockquote>q</blockquote>',
       );
     });
 
     test('keeps an empty paragraph as real vertical space', () {
-      expect(renderHtml([_text('')]), '<p>&nbsp;</p>');
+      expect(
+        renderHtml(labels: englishExportLabels, [_text('')]),
+        '<p>&nbsp;</p>',
+      );
     });
   });
 
   group('renderHtml — inline styles', () {
-    String render(InlineSpan span) => renderHtml([
+    String render(InlineSpan span) => renderHtml(labels: englishExportLabels, [
       TextBlock(spans: [span]),
     ]);
 
@@ -132,20 +144,24 @@ void main() {
 
   group('renderHtml — escaping and link safety', () {
     test('escapes markup characters in entry text', () {
-      final html = renderHtml([_text('<script>alert(1)</script>')]);
+      final html = renderHtml(labels: englishExportLabels, [
+        _text('<script>alert(1)</script>'),
+      ]);
       expect(html, isNot(contains('<script>')));
       expect(html, contains('&lt;script&gt;'));
     });
 
     test('escapes ampersands, quotes and apostrophes', () {
-      final html = renderHtml([_text('''a & b "c" 'd' ''')]);
+      final html = renderHtml(labels: englishExportLabels, [
+        _text('''a & b "c" 'd' '''),
+      ]);
       expect(html, contains('&amp;'));
       expect(html, contains('&quot;'));
       expect(html, contains('&#39;'));
     });
 
     test('escapes text inside a code block', () {
-      final html = renderHtml([
+      final html = renderHtml(labels: englishExportLabels, [
         _text('<b>not bold</b>', style: BlockStyle.codeBlock),
       ]);
       expect(html, contains('&lt;b&gt;'));
@@ -153,7 +169,7 @@ void main() {
     });
 
     test('escapes text inside a table cell', () {
-      final html = renderHtml([
+      final html = renderHtml(labels: englishExportLabels, [
         const TableBlock([
           ['<td>injected</td>'],
         ]),
@@ -162,7 +178,7 @@ void main() {
     });
 
     test('drops a javascript: link but keeps its text', () {
-      final html = renderHtml([
+      final html = renderHtml(labels: englishExportLabels, [
         const TextBlock(
           spans: [InlineSpan(text: 'click me', link: 'javascript:alert(1)')],
         ),
@@ -178,7 +194,7 @@ void main() {
         'https://a.test',
         'mailto:a@b.test',
       ]) {
-        final html = renderHtml([
+        final html = renderHtml(labels: englishExportLabels, [
           TextBlock(
             spans: [InlineSpan(text: 'x', link: url)],
           ),
@@ -188,7 +204,7 @@ void main() {
     });
 
     test('treats a bare domain as https rather than dropping it', () {
-      final html = renderHtml([
+      final html = renderHtml(labels: englishExportLabels, [
         const TextBlock(
           spans: [InlineSpan(text: 'x', link: 'example.com')],
         ),
@@ -199,7 +215,7 @@ void main() {
     test(
       'escapes a quote inside a link URL so it cannot end the attribute',
       () {
-        final html = renderHtml([
+        final html = renderHtml(labels: englishExportLabels, [
           const TextBlock(
             spans: [
               InlineSpan(
@@ -217,7 +233,7 @@ void main() {
 
   group('renderHtml — embeds', () {
     test('renders a table with the first row as the header', () {
-      final html = renderHtml([
+      final html = renderHtml(labels: englishExportLabels, [
         const TableBlock([
           ['Name', 'Value'],
           ['a', '1'],
@@ -228,7 +244,7 @@ void main() {
     });
 
     test('pads a short row so every row has the same cell count', () {
-      final html = renderHtml([
+      final html = renderHtml(labels: englishExportLabels, [
         const TableBlock([
           ['a', 'b'],
           ['c'],
@@ -238,7 +254,7 @@ void main() {
     });
 
     test('renders a callout with a style class and a label', () {
-      final html = renderHtml([
+      final html = renderHtml(labels: englishExportLabels, [
         const CalloutBlock(style: 'warning', text: 'careful'),
       ]);
       expect(html, contains('class="callout callout-warning"'));
@@ -249,7 +265,7 @@ void main() {
     test('falls back to a known class for an unexpected callout style', () {
       // The style becomes a CSS class, so an odd value must not be able to
       // inject an attribute.
-      final html = renderHtml([
+      final html = renderHtml(labels: englishExportLabels, [
         const CalloutBlock(style: 'x" onload="evil', text: 't'),
       ]);
       expect(html, contains('class="callout callout-info"'));
@@ -262,7 +278,9 @@ void main() {
     });
 
     test('names an unknown embed rather than dropping it', () {
-      final html = renderHtml([const UnknownEmbedBlock('sketch')]);
+      final html = renderHtml(labels: englishExportLabels, [
+        const UnknownEmbedBlock('sketch'),
+      ]);
       expect(html, contains('sketch'));
     });
   });
@@ -272,6 +290,7 @@ void main() {
 
     test('draws the picture when a source is supplied', () {
       final html = renderHtml(
+        labels: englishExportLabels,
         [image],
         imageSources: const {12: 'data:image/jpeg;base64,AAAA'},
       );
@@ -282,7 +301,7 @@ void main() {
     });
 
     test('names the picture when there is no source for it', () {
-      final html = renderHtml([image]);
+      final html = renderHtml(labels: englishExportLabels, [image]);
 
       expect(html, isNot(contains('<img')));
       expect(html, contains('beach.jpg'));
@@ -292,6 +311,7 @@ void main() {
     test('refuses a source that is not a data image URI', () {
       // An exported page must load nothing from the network, ever.
       final html = renderHtml(
+        labels: englishExportLabels,
         [image],
         imageSources: const {12: 'https://example.com/tracker.png'},
       );
@@ -301,7 +321,7 @@ void main() {
     });
 
     test('escapes the file name', () {
-      final html = renderHtml([
+      final html = renderHtml(labels: englishExportLabels, [
         const ImageBlock(attachmentId: 1, fileName: '"><script>evil'),
       ]);
 
@@ -311,6 +331,6 @@ void main() {
   });
 
   test('renders an empty document as an empty string', () {
-    expect(renderHtml(const []), '');
+    expect(renderHtml(labels: englishExportLabels, const []), '');
   });
 }

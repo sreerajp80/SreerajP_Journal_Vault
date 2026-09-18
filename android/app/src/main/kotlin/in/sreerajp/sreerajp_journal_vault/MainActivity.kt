@@ -15,6 +15,13 @@ import android.graphics.Paint
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.Manifest
+import android.content.pm.PackageManager
+import android.speech.RecognitionSupport
+import android.speech.RecognitionSupportCallback
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
+import androidx.core.content.ContextCompat
 import android.print.JvHtmlToPdf
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
@@ -120,6 +127,73 @@ class MainActivity : FlutterFragmentActivity() {
             runOnUiThread {
                 shareChannel?.invokeMethod("onShareReceived", payload)
             }
+        }
+    }
+
+    /**
+     * Tells Dart whether speech can be recognised on this device without a
+     * network, and which languages the on-device recogniser has.
+     *
+     * Dictation starts only when `available` is true. The speech plugin makes
+     * the same `isOnDeviceRecognitionAvailable` check before it picks a
+     * recogniser, and would otherwise fall back to the online one — so this
+     * check is what keeps dictated audio on the device.
+     */
+    private fun reportOnDeviceSpeechStatus(result: MethodChannel.Result) {
+        val available = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
+            SpeechRecognizer.isOnDeviceRecognitionAvailable(applicationContext)
+        val emptyStatus = mapOf(
+            "available" to available,
+            "installedLanguages" to emptyList<String>(),
+            "supportedLanguages" to emptyList<String>(),
+        )
+        val hasMicPermission = ContextCompat.checkSelfPermission(
+            applicationContext,
+            Manifest.permission.RECORD_AUDIO,
+        ) == PackageManager.PERMISSION_GRANTED
+        // The language list needs Android 13 and the microphone permission.
+        if (!available || Build.VERSION.SDK_INT < 33 || !hasMicPermission) {
+            result.success(emptyStatus)
+            return
+        }
+
+        val recognizer = try {
+            SpeechRecognizer.createOnDeviceSpeechRecognizer(applicationContext)
+        } catch (e: Exception) {
+            result.success(emptyStatus)
+            return
+        }
+        var replied = false
+        fun reply(value: Map<String, Any>) {
+            runOnUiThread {
+                if (replied) return@runOnUiThread
+                replied = true
+                recognizer.destroy()
+                result.success(value)
+            }
+        }
+        try {
+            recognizer.checkRecognitionSupport(
+                Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH),
+                Executors.newSingleThreadExecutor(),
+                object : RecognitionSupportCallback {
+                    override fun onSupportResult(support: RecognitionSupport) {
+                        reply(
+                            mapOf(
+                                "available" to true,
+                                "installedLanguages" to support.installedOnDeviceLanguages,
+                                "supportedLanguages" to support.supportedOnDeviceLanguages,
+                            ),
+                        )
+                    }
+
+                    override fun onError(error: Int) {
+                        reply(emptyStatus)
+                    }
+                },
+            )
+        } catch (e: Exception) {
+            reply(emptyStatus)
         }
     }
 
@@ -603,6 +677,16 @@ class MainActivity : FlutterFragmentActivity() {
 
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
+            SPEECH_CHANNEL,
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "onDeviceSpeechStatus" -> reportOnDeviceSpeechStatus(result)
+                else -> result.notImplemented()
+            }
+        }
+
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
             TESSERACT_OCR_CHANNEL,
         ).setMethodCallHandler { call, result ->
             when (call.method) {
@@ -768,9 +852,14 @@ class MainActivity : FlutterFragmentActivity() {
      * keep almost everything, while a non-Malayalam word on a Malayalam page —
      * the ornament case, and only that — faces a high one.
      *
+     * An English-only scan keeps every word. The filter exists to remove
+     * ornaments misread on Malayalam pages; on an English page it only threw
+     * away real words that a phone photo leaves with low confidence.
+     *
      * Returns `null` when there is nothing to walk, so the caller can fall back.
      */
-    private fun collectConfidentText(tess: TessBaseAPI): String? {
+    private fun collectConfidentText(tess: TessBaseAPI, language: String): String? {
+        val keepEverything = !language.contains("mal")
         val iterator = tess.resultIterator ?: return null
         val words = mutableListOf<RecognisedWord>()
         try {
@@ -814,12 +903,13 @@ class MainActivity : FlutterFragmentActivity() {
         if (words.isEmpty()) return ""
 
         // Decide what kind of page this is, counting only words that clear the low
-        // floor so that junk cannot vote. An English page must behave exactly as it
-        // did before this filter existed, so the high floor applies to Malayalam
-        // pages only.
+        // floor so that junk cannot vote. The high floor applies only to a page
+        // that is clearly Malayalam. A mixed page, where some English words were
+        // misread as Malayalam shapes, must keep its English words.
         val readable = words.filter { it.confidence >= MALAYALAM_CONFIDENCE_FLOOR }
         val malayalamCount = readable.count { it.hasMalayalam }
-        val pageIsMalayalam = malayalamCount > (readable.size - malayalamCount)
+        val pageIsMalayalam = readable.isNotEmpty() &&
+            malayalamCount >= readable.size * MALAYALAM_PAGE_SHARE
 
         val lines = mutableListOf<TextLineBox>()
         val lineText = StringBuilder()
@@ -837,7 +927,9 @@ class MainActivity : FlutterFragmentActivity() {
         }
 
         for (word in words) {
-            val floor = if (word.hasMalayalam || !pageIsMalayalam) {
+            val floor = if (keepEverything) {
+                0f
+            } else if (word.hasMalayalam || !pageIsMalayalam) {
                 MALAYALAM_CONFIDENCE_FLOOR
             } else {
                 FOREIGN_CONFIDENCE_FLOOR
@@ -957,17 +1049,20 @@ class MainActivity : FlutterFragmentActivity() {
                 // Prefer the confidence-filtered reading. If the floor stripped
                 // everything but the recognizer did find words, keep the unfiltered
                 // text — a tuning value must never turn a working scan blank.
-                val filtered = collectConfidentText(tess)
+                val filtered = collectConfidentText(tess, activeTessLang ?: language)
                 val text = if (filtered.isNullOrEmpty()) rawText else filtered
                 if (text.isNotEmpty()) {
-                    val score = scoreRecognition(text, tess.meanConfidence())
+                    val meanConfidence = tess.meanConfidence()
+                    val score = scoreRecognition(text, meanConfidence)
                     if (score > bestScore) {
                         bestScore = score
                         bestText = text
                     }
                     // A clean page is read well on its first pass. Stop there rather
-                    // than spending three more passes to confirm it.
-                    if (score >= CONFIDENT_SCORE) break
+                    // than spending more passes to confirm it. Both a high score and a
+                    // high mean confidence are needed: a score alone is reached by a
+                    // long main block even when a heading or a column was missed.
+                    if (score >= CONFIDENT_SCORE && meanConfidence >= CONFIDENT_MEAN) break
                 }
             }
 
@@ -1386,6 +1481,7 @@ private const val SCREEN_SECURITY_CHANNEL = "sreerajp.journal_vault/screen_secur
 private const val SHARE_INTENT_CHANNEL = "sreerajp.journal_vault/share_intent"
 private const val NOTIFICATIONS_CHANNEL = "sreerajp.journal_vault/notifications"
 private const val TESSERACT_OCR_CHANNEL = "sreerajp.journal_vault/ocr"
+private const val SPEECH_CHANNEL = "sreerajp.journal_vault/speech"
 
 /**
  * Identifies the set of language models currently shipped in assets.
@@ -1395,7 +1491,7 @@ private const val TESSERACT_OCR_CHANNEL = "sreerajp.journal_vault/ocr"
  * copy. Bumping this string forces one re-copy. Change it whenever any file in
  * `assets/tessdata/` changes.
  */
-private const val TESSDATA_VERSION = "2026-09-12-mal-best"
+private const val TESSDATA_VERSION = "2026-09-16-eng-best-mal-best"
 
 /** Name of the marker file recording which model set is on disk. */
 private const val TESSDATA_VERSION_FILE = ".model_version"
@@ -1425,6 +1521,13 @@ private const val MALAYALAM_CONFIDENCE_FLOOR = 30f
  */
 private const val FOREIGN_CONFIDENCE_FLOOR = 60f
 
+/**
+ * Share of readable words (0..1) that must be Malayalam before a page counts as
+ * Malayalam and [FOREIGN_CONFIDENCE_FLOOR] applies to its other words. A simple
+ * majority let mixed pages lose their English words.
+ */
+private const val MALAYALAM_PAGE_SHARE = 0.7
+
 /** Edge length of the downscaled copy used to measure average brightness. */
 private const val SAMPLE_EDGE = 32
 
@@ -1438,7 +1541,13 @@ private const val DARK_IMAGE_LUMINANCE = 110
  * Score (mean confidence x word count) above which a pass is considered good
  * enough to stop trying the remaining page segmentation modes.
  */
-private const val CONFIDENT_SCORE = 1600
+private const val CONFIDENT_SCORE = 2400
+
+/**
+ * Mean confidence (0..100) a pass must also reach before the remaining page
+ * segmentation modes are skipped.
+ */
+private const val CONFIDENT_MEAN = 85
 
 /**
  * Page segmentation modes tried in order: a full page first, then a single

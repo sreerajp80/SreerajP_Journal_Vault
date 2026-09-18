@@ -1,11 +1,12 @@
 #!/bin/sh
 #
-# Runs three checks before a commit:
+# Runs four checks before a commit:
 #   1. No absolute local path in plans, change logs or docs. See
 #      tool/check_absolute_paths.sh for the rules and the "allow-abs-path"
 #      escape marker.
-#   2. dart format is clean.
-#   3. flutter analyze is clean.
+#   2. The Sanskrit ARB carries no Hindi markers.
+#   3. dart format is clean.
+#   4. flutter analyze is clean.
 #
 # Checks 2 and 3 are skipped when the Dart toolchain cannot be run here, so the
 # hook still works in a docs-only environment. CI remains the source of truth
@@ -37,6 +38,18 @@ printf '%s\n' "$staged" \
 # analyze steps below would mask its exit status.
 path_check_status=$?
 [ "$path_check_status" -eq 0 ] || exit "$path_check_status"
+
+# --- Sanskrit quality gate (engineering standard section 8.5.1) -------------
+#
+# Devanagari script alone does not make a string Sanskrit. This catches Hindi
+# copulas, postpositions and verb endings in app_sa.arb before they land.
+sanskrit_checker="$repo_root/tool/check_sanskrit_markers.sh"
+if [ -f "$sanskrit_checker" ]; then
+  if ! sh "$sanskrit_checker"; then
+    echo "pre-commit: the Sanskrit check failed."
+    exit 1
+  fi
+fi
 
 # --- Formatting and analysis (engineering standard section 19.3) ------------
 #

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sreerajp_journal_vault/features/permissions/domain/app_permission_models.dart';
+import 'package:sreerajp_journal_vault/features/permissions/presentation/permission_text.dart';
 import 'package:sreerajp_journal_vault/features/permissions/providers/permissions_providers.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
@@ -36,11 +37,11 @@ class _PermissionsScreenState extends ConsumerState<PermissionsScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.permissionsTitle)),
+      appBar: AppBar(title: Text(l10n.titlePermissions)),
       body: ListView(
         children: [
           if (snapshot.explicitPermissions.isNotEmpty) ...[
-            _SectionHeader(title: l10n.permissionsExplicitHeader),
+            _SectionHeader(title: l10n.titlePermissionsExplicit),
             ...snapshot.explicitPermissions.map(
               (p) => _PermissionTile(
                 item: p,
@@ -50,7 +51,7 @@ class _PermissionsScreenState extends ConsumerState<PermissionsScreen> {
             ),
           ],
           if (snapshot.implicitPermissions.isNotEmpty) ...[
-            _SectionHeader(title: l10n.permissionsImplicitHeader),
+            _SectionHeader(title: l10n.titlePermissionsImplicit),
             ...snapshot.implicitPermissions.map(
               (p) => _PermissionTile(
                 item: p,
@@ -104,33 +105,42 @@ class _PermissionTile extends StatelessWidget {
   String _statusLabel(AppLocalizations l10n) {
     switch (item.status) {
       case AppPermissionState.granted:
-        return l10n.permissionStatusAllowed;
+        return l10n.labelPermissionStatusAllowed;
       case AppPermissionState.denied:
-        return l10n.permissionStatusDenied;
+        return l10n.labelPermissionStatusDenied;
       case AppPermissionState.permanentlyDenied:
-        return l10n.permissionStatusPermanentlyDenied;
+        return l10n.labelPermissionStatusPermanentlyDenied;
       case AppPermissionState.userSelected:
-        return l10n.permissionStatusUserSelected;
+        return l10n.labelPermissionStatusUserSelected;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final detail = item.detailIn(l10n);
     return ListTile(
-      title: Text(item.title),
-      subtitle: Text(_statusLabel(l10n)),
+      isThreeLine: true,
+      title: Text(item.titleIn(l10n)),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(_statusLabel(l10n)),
+          Text(item.descriptionIn(l10n)),
+          if (detail != null) Text(detail),
+        ],
+      ),
       trailing: item.canRequestAgain
           ? TextButton(
               key: Key('permission-request-${item.id.name}'),
               onPressed: onRequest,
-              child: Text(l10n.permissionsRequest),
+              child: Text(l10n.actionPermissionsRequest),
             )
           : item.canOpenSystemSettings
           ? TextButton(
               key: Key('permission-settings-${item.id.name}'),
               onPressed: onOpenSettings,
-              child: Text(l10n.permissionsOpenSettings),
+              child: Text(l10n.actionPermissionsOpenSettings),
             )
           : null,
     );

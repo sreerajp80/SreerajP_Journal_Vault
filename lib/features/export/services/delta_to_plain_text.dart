@@ -10,9 +10,16 @@
 library;
 
 import 'package:sreerajp_journal_vault/features/export/services/delta_document.dart';
+import 'package:sreerajp_journal_vault/features/export/services/export_labels.dart';
 
 /// Turns [blocks] into a plain-text document.
-String renderPlainText(List<ExportBlock> blocks) {
+///
+/// [labels] supplies the words written into the file (callout names, image
+/// placeholders), in the language the user exported in.
+String renderPlainText(
+  List<ExportBlock> blocks, {
+  required ExportLabels labels,
+}) {
   final buffer = StringBuffer();
   final counters = <int, int>{};
   BlockStyle? previousStyle;
@@ -35,7 +42,7 @@ String renderPlainText(List<ExportBlock> blocks) {
       case CalloutBlock():
         buffer
           ..writeln()
-          ..writeln(_renderCallout(block));
+          ..writeln(_renderCallout(block, labels));
         previousStyle = null;
 
       case ImageBlock():
@@ -45,7 +52,9 @@ String renderPlainText(List<ExportBlock> blocks) {
         buffer
           ..writeln()
           ..writeln(
-            block.fileName.isEmpty ? '[Image]' : '[Image: ${block.fileName}]',
+            block.fileName.isEmpty
+                ? '[${labels.image}]'
+                : '[${labels.image}: ${block.fileName}]',
           );
         previousStyle = null;
 
@@ -54,15 +63,15 @@ String renderPlainText(List<ExportBlock> blocks) {
           ..writeln()
           ..writeln(
             block.fileName.isEmpty
-                ? '[Drawing]'
-                : '[Drawing: ${block.fileName}]',
+                ? '[${labels.drawing}]'
+                : '[${labels.drawing}: ${block.fileName}]',
           );
         previousStyle = null;
 
       case UnknownEmbedBlock():
         buffer
           ..writeln()
-          ..writeln('[${block.type} block — not exportable as text]');
+          ..writeln('[${labels.unexportableBlock(block.type)}]');
         previousStyle = null;
     }
   }
@@ -163,27 +172,12 @@ String _renderTable(List<List<String>> rows) {
   return buffer.toString();
 }
 
-String _renderCallout(CalloutBlock block) {
-  final label = _calloutLabel(block.style);
+String _renderCallout(CalloutBlock block, ExportLabels labels) {
+  final label = labels.calloutLabel(block.style);
   final lines = block.text.split('\n');
   final buffer = StringBuffer('[$label]');
   for (final line in lines) {
     buffer.write('\n  $line');
   }
   return buffer.toString();
-}
-
-String _calloutLabel(String style) {
-  switch (style) {
-    case 'warning':
-      return 'Warning';
-    case 'tip':
-      return 'Tip';
-    case 'important':
-      return 'Important';
-    case 'info':
-      return 'Note';
-    default:
-      return style.isEmpty ? 'Note' : style;
-  }
 }

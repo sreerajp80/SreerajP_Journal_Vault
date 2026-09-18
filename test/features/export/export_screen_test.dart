@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
-import 'package:sreerajp_journal_vault/features/export/export_strings.dart';
 import 'package:sreerajp_journal_vault/features/export/presentation/export_screen.dart';
 import 'package:sreerajp_journal_vault/features/export/providers/export_providers.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
@@ -19,6 +18,7 @@ import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 void main() {
   late AppDatabase database;
   late int journalId;
+  final l10n = lookupAppLocalizations(const Locale('en'));
 
   setUp(() async {
     database = AppDatabase.forExecutor(NativeDatabase.memory());
@@ -69,7 +69,7 @@ void main() {
   testWidgets('shows the journal it will export from', (tester) async {
     await pumpScreen(tester);
 
-    expect(find.text(ExportStrings.fromJournal('My Journal')), findsOneWidget);
+    expect(find.text(l10n.descExportFromJournal('My Journal')), findsOneWidget);
   });
 
   testWidgets(
@@ -113,7 +113,7 @@ void main() {
       find.byKey(const Key('export-format-pdf')),
     );
     expect(pdfTile.enabled, isFalse);
-    expect(find.text(ExportStrings.pdfUnavailable), findsOneWidget);
+    expect(find.text(l10n.bodyExportPdfUnavailable), findsOneWidget);
 
     // The other three formats stay usable.
     final markdownTile = tester.widget<RadioListTile<Object?>>(
@@ -140,7 +140,7 @@ void main() {
     // writes it somewhere the vault does not protect.
     await pumpScreen(tester);
 
-    expect(find.text(ExportStrings.notEncryptedWarning), findsOneWidget);
+    expect(find.text(l10n.bodyExportNotEncrypted), findsOneWidget);
   });
 
   testWidgets('will not export a date range until dates are chosen', (
@@ -161,7 +161,7 @@ void main() {
       find.byKey(const Key('export-run-button')),
     );
     expect(button.onPressed, isNull);
-    expect(find.text(ExportStrings.dateRangeNotSet), findsOneWidget);
+    expect(find.text(l10n.descExportDateRangeNotSet), findsOneWidget);
     expect(find.byKey(const Key('export-pick-dates')), findsOneWidget);
   });
 
@@ -204,7 +204,7 @@ void main() {
       await tapExport(tester);
 
       expect(find.byKey(const Key('export-confirm-dialog')), findsOneWidget);
-      expect(find.text(ExportStrings.confirmTitle), findsOneWidget);
+      expect(find.text(l10n.titleExportConfirm), findsOneWidget);
     });
 
     testWidgets('says how many entries and which format', (tester) async {
@@ -213,7 +213,7 @@ void main() {
 
       // One entry was seeded, and Markdown is the default format.
       expect(
-        find.text(ExportStrings.confirmBody(1, ExportStrings.formatMarkdown)),
+        find.text(l10n.bodyExportConfirm(1, l10n.labelExportFormatMarkdown)),
         findsOneWidget,
       );
     });
@@ -226,7 +226,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('export-confirm-dialog')), findsNothing);
-      expect(find.text(ExportStrings.exportCancelled), findsOneWidget);
+      expect(find.text(l10n.bodyExportCancelled), findsOneWidget);
       // The screen is usable again rather than stuck in its exporting state.
       final button = tester.widget<FilledButton>(
         find.byKey(const Key('export-run-button')),
@@ -310,11 +310,11 @@ void main() {
     testWidgets('replaces the "not encrypted" warning', (tester) async {
       await pumpScreen(tester);
 
-      expect(find.text(ExportStrings.notEncryptedWarning), findsOneWidget);
+      expect(find.text(l10n.bodyExportNotEncrypted), findsOneWidget);
 
       await turnOnEncryption(tester);
 
-      expect(find.text(ExportStrings.notEncryptedWarning), findsNothing);
+      expect(find.text(l10n.bodyExportNotEncrypted), findsNothing);
     });
   });
 

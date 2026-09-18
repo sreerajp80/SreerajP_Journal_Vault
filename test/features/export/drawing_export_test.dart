@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import '../../helpers/export_labels.dart';
 import 'package:sreerajp_journal_vault/features/export/services/delta_document.dart';
 import 'package:sreerajp_journal_vault/features/export/services/delta_to_html.dart';
 import 'package:sreerajp_journal_vault/features/export/services/delta_to_markdown.dart';
@@ -55,11 +56,17 @@ void main() {
       const block = DrawingBlock(attachmentId: 10, fileName: 'doodle.png');
 
       // When linkable
-      final linkedMd = renderMarkdown([block], linkableImageIds: {10});
+      final linkedMd = renderMarkdown(
+        labels: englishExportLabels,
+        [block],
+        linkableImageIds: {10},
+      );
       expect(linkedMd, contains('![doodle.png](attachments/10_doodle.png)'));
 
       // When not linkable
-      final unlinkedMd = renderMarkdown([block], linkableImageIds: {});
+      final unlinkedMd = renderMarkdown(labels: englishExportLabels, [
+        block,
+      ], linkableImageIds: {});
       expect(unlinkedMd, contains('_[Drawing: doodle.png]_'));
     });
 
@@ -68,6 +75,7 @@ void main() {
 
       // When data source provided
       final html = renderHtml(
+        labels: englishExportLabels,
         [block],
         imageSources: {15: 'data:image/png;base64,iVBORw0KGgo='},
       );
@@ -80,14 +88,16 @@ void main() {
       );
 
       // When not provided
-      final unincludedHtml = renderHtml([block], imageSources: {});
+      final unincludedHtml = renderHtml(labels: englishExportLabels, [
+        block,
+      ], imageSources: {});
       expect(unincludedHtml, contains('drawing not included'));
     });
 
     test('renders DrawingBlock to Plain Text', () {
       const block = DrawingBlock(attachmentId: 20, fileName: 'sketch.png');
 
-      final plainText = renderPlainText([block]);
+      final plainText = renderPlainText(labels: englishExportLabels, [block]);
       expect(plainText, contains('[Drawing: sketch.png]'));
     });
   });

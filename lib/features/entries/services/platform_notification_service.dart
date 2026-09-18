@@ -9,10 +9,15 @@ class PlatformNotificationService {
   );
 
   /// Triggers a local notification immediately when a capsule is unlocked.
+  ///
+  /// Every word shown to the user — [title], [message] and [channelName], the
+  /// name Android lists in its own notification settings — is passed in
+  /// already translated. This service holds no text of its own.
   Future<void> showCapsuleUnlockedNotification({
     required int entryId,
     required String title,
     required String message,
+    required String channelName,
   }) async {
     try {
       await _channel.invokeMethod('showNotification', {
@@ -20,7 +25,7 @@ class PlatformNotificationService {
         'title': title,
         'message': message,
         'channelId': 'time_capsules',
-        'channelName': 'Time Capsules',
+        'channelName': channelName,
       });
     } catch (e) {
       AppLogger.warning(

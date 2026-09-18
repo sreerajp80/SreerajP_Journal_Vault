@@ -1,5 +1,7 @@
 # SreerajP_Journal_Vault — Remediation Plan
 
+**Status:** completed
+
 This plan addresses the gap between [ai_development_prompts.md](../ai_development_prompts.md) (which marked all 21 prompts `[COMPLETED]`) and the actual integrated state of the running app. Most V2/V3 features exist as orphan modules in `lib/features/` but are not wired into the app shell, the V1 lock gate is a no-op button, and journal secrets are stored in memory in production.
 
 Each task below is a discrete, testable unit. Mark `[x]` when shipped. Slice ordering reflects impact and dependency — execute A → B → C → D → E.

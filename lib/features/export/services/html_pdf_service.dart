@@ -27,15 +27,16 @@ library;
 
 import 'package:flutter/services.dart';
 
-import 'package:sreerajp_journal_vault/features/export/export_strings.dart';
+/// Why a PDF could not be produced. The screen turns this into text in the
+/// user's language (`presentation/export_text.dart`).
+enum HtmlPdfFailure { timedOut, failed, unavailable }
 
 /// Thrown when the native renderer cannot produce a PDF, including when the
 /// platform has no implementation at all (iOS today).
 class HtmlPdfException implements Exception {
-  const HtmlPdfException(this.message, {this.isUnsupportedPlatform = false});
+  const HtmlPdfException(this.failure, {this.isUnsupportedPlatform = false});
 
-  /// Already worded for the user.
-  final String message;
+  final HtmlPdfFailure failure;
 
   /// True when this platform has no native renderer, rather than the render
   /// having failed. The screen uses this to disable the PDF option up front
@@ -44,7 +45,7 @@ class HtmlPdfException implements Exception {
   final bool isUnsupportedPlatform;
 
   @override
-  String toString() => 'HtmlPdfException: $message';
+  String toString() => 'HtmlPdfException: ${failure.name}';
 }
 
 /// Converts HTML to PDF bytes over the `sreerajp.journal_vault/html_pdf`
@@ -96,17 +97,17 @@ class HtmlPdfService {
             // error message wins when it is the one that gives up first.
             timeout + const Duration(seconds: 5),
             onTimeout: () =>
-                throw const HtmlPdfException(ExportStrings.pdfTimedOut),
+                throw const HtmlPdfException(HtmlPdfFailure.timedOut),
           );
 
       if (bytes == null || bytes.isEmpty) {
-        throw const HtmlPdfException(ExportStrings.pdfFailed);
+        throw const HtmlPdfException(HtmlPdfFailure.failed);
       }
       return bytes;
     } on MissingPluginException {
       // No native implementation on this platform (iOS today).
       throw const HtmlPdfException(
-        ExportStrings.pdfUnavailable,
+        HtmlPdfFailure.unavailable,
         isUnsupportedPlatform: true,
       );
     } on PlatformException catch (error) {
@@ -114,8 +115,8 @@ class HtmlPdfService {
       // user; the code is enough to tell a timeout from a failure.
       throw HtmlPdfException(
         error.code == 'timeout'
-            ? ExportStrings.pdfTimedOut
-            : ExportStrings.pdfFailed,
+            ? HtmlPdfFailure.timedOut
+            : HtmlPdfFailure.failed,
       );
     }
   }

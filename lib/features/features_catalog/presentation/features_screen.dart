@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
+part 'feature_tile.dart';
+
 class _AppFeature {
   final String title;
   final String description;
@@ -36,13 +38,13 @@ class FeaturesScreen extends StatelessWidget {
 
   List<_FeatureCategory> _getCategories(AppLocalizations l10n) => [
     _FeatureCategory(
-      name: l10n.featuresCategoryJournaling,
-      subtitle: l10n.featuresCategoryJournalingSubtitle,
+      name: l10n.labelFeaturesCategoryJournaling,
+      subtitle: l10n.descFeaturesCategoryJournaling,
       icon: Icons.edit_note_outlined,
       features: [
         _AppFeature(
-          title: l10n.featureQuillTitle,
-          description: l10n.featureQuillDesc,
+          title: l10n.titleFeatureQuill,
+          description: l10n.descFeatureQuill,
           icon: Icons.format_paint_outlined,
           highlights: const [
             'Rich Typography',
@@ -52,8 +54,8 @@ class FeaturesScreen extends StatelessWidget {
           ],
         ),
         _AppFeature(
-          title: l10n.featureTemplatesTitle,
-          description: l10n.featureTemplatesDesc,
+          title: l10n.titleFeatureTemplates,
+          description: l10n.descFeatureTemplates,
           icon: Icons.dashboard_customize_outlined,
           highlights: const [
             '8 Starter Templates',
@@ -62,8 +64,8 @@ class FeaturesScreen extends StatelessWidget {
           ],
         ),
         _AppFeature(
-          title: l10n.featureMediaOcrTitle,
-          description: l10n.featureMediaOcrDesc,
+          title: l10n.bodyFeatureMediaOcr,
+          description: l10n.descFeatureMediaOcr,
           icon: Icons.document_scanner_outlined,
           highlights: const [
             'Offline OCR Scanner',
@@ -72,8 +74,8 @@ class FeaturesScreen extends StatelessWidget {
           ],
         ),
         _AppFeature(
-          title: l10n.featureTagsTitle,
-          description: l10n.featureTagsDesc,
+          title: l10n.titleFeatureTags,
+          description: l10n.descFeatureTags,
           icon: Icons.sell_outlined,
           highlights: const [
             'Custom Tag Colors',
@@ -82,8 +84,8 @@ class FeaturesScreen extends StatelessWidget {
           ],
         ),
         _AppFeature(
-          title: l10n.featureMultiJournalTitle,
-          description: l10n.featureMultiJournalDesc,
+          title: l10n.titleFeatureMultiJournal,
+          description: l10n.descFeatureMultiJournal,
           icon: Icons.menu_book_outlined,
           highlights: const [
             'Multi-Journal Support',
@@ -92,8 +94,8 @@ class FeaturesScreen extends StatelessWidget {
           ],
         ),
         _AppFeature(
-          title: l10n.featureRitualTitle,
-          description: l10n.featureRitualDesc,
+          title: l10n.titleFeatureRitual,
+          description: l10n.descFeatureRitual,
           icon: Icons.self_improvement_rounded,
           highlights: const [
             'Centering Breath Timer',
@@ -105,13 +107,13 @@ class FeaturesScreen extends StatelessWidget {
       ],
     ),
     _FeatureCategory(
-      name: l10n.featuresCategorySecurity,
-      subtitle: l10n.featuresCategorySecuritySubtitle,
+      name: l10n.descFeaturesCategorySecurity,
+      subtitle: l10n.descFeaturesCategorySecuritySubtitle,
       icon: Icons.shield_outlined,
       features: [
         _AppFeature(
-          title: l10n.featureSqlcipherTitle,
-          description: l10n.featureSqlcipherDesc,
+          title: l10n.bodyFeatureSqlcipher,
+          description: l10n.descFeatureSqlcipher,
           icon: Icons.lock_outline,
           highlights: const [
             'SQLCipher Engine',
@@ -120,8 +122,8 @@ class FeaturesScreen extends StatelessWidget {
           ],
         ),
         _AppFeature(
-          title: l10n.featureBiometricsTitle,
-          description: l10n.featureBiometricsDesc,
+          title: l10n.titleFeatureBiometrics,
+          description: l10n.descFeatureBiometrics,
           icon: Icons.fingerprint,
           highlights: const [
             'Fingerprint & Face Unlock',
@@ -130,8 +132,8 @@ class FeaturesScreen extends StatelessWidget {
           ],
         ),
         _AppFeature(
-          title: l10n.featureJournalLockTitle,
-          description: l10n.featureJournalLockDesc,
+          title: l10n.titleFeatureJournalLock,
+          description: l10n.descFeatureJournalLock,
           icon: Icons.password_rounded,
           highlights: const [
             'PBKDF2 Derivation',
@@ -140,8 +142,8 @@ class FeaturesScreen extends StatelessWidget {
           ],
         ),
         _AppFeature(
-          title: l10n.featureAttachmentLockTitle,
-          description: l10n.featureAttachmentLockDesc,
+          title: l10n.bodyFeatureAttachmentLock,
+          description: l10n.descFeatureAttachmentLock,
           icon: Icons.file_present_outlined,
           highlights: const [
             'Individual File Lock',
@@ -150,8 +152,8 @@ class FeaturesScreen extends StatelessWidget {
           ],
         ),
         _AppFeature(
-          title: l10n.featureScreenshotGuardTitle,
-          description: l10n.featureScreenshotGuardDesc,
+          title: l10n.bodyFeatureScreenshotGuard,
+          description: l10n.descFeatureScreenshotGuard,
           icon: Icons.screenshot_outlined,
           highlights: const [
             'FLAG_SECURE Defense',
@@ -160,8 +162,8 @@ class FeaturesScreen extends StatelessWidget {
           ],
         ),
         _AppFeature(
-          title: l10n.featureTamperAuditTitle,
-          description: l10n.featureTamperAuditDesc,
+          title: l10n.bodyFeatureTamperAudit,
+          description: l10n.descFeatureTamperAudit,
           icon: Icons.history_edu_outlined,
           highlights: const [
             'Audit Trail Log',
@@ -170,8 +172,8 @@ class FeaturesScreen extends StatelessWidget {
           ],
         ),
         _AppFeature(
-          title: l10n.featureAutoLockTitle,
-          description: l10n.featureAutoLockDesc,
+          title: l10n.titleFeatureAutoLock,
+          description: l10n.descFeatureAutoLock,
           icon: Icons.timer_outlined,
           highlights: const [
             '4 Inactivity Profiles',
@@ -180,8 +182,8 @@ class FeaturesScreen extends StatelessWidget {
           ],
         ),
         _AppFeature(
-          title: l10n.featureOfflineTitle,
-          description: l10n.featureOfflineDesc,
+          title: l10n.bodyFeatureOffline,
+          description: l10n.descFeatureOffline,
           icon: Icons.wifi_off_outlined,
           highlights: const [
             'Zero Permissions',
@@ -192,13 +194,13 @@ class FeaturesScreen extends StatelessWidget {
       ],
     ),
     _FeatureCategory(
-      name: l10n.featuresCategoryDiscovery,
-      subtitle: l10n.featuresCategoryDiscoverySubtitle,
+      name: l10n.labelFeaturesCategoryDiscovery,
+      subtitle: l10n.descFeaturesCategoryDiscovery,
       icon: Icons.insights_outlined,
       features: [
         _AppFeature(
-          title: l10n.featureFtsSearchTitle,
-          description: l10n.featureFtsSearchDesc,
+          title: l10n.titleFeatureFtsSearch,
+          description: l10n.descFeatureFtsSearch,
           icon: Icons.search_rounded,
           highlights: const [
             'SQLite FTS5 Indexing',
@@ -207,8 +209,8 @@ class FeaturesScreen extends StatelessWidget {
           ],
         ),
         _AppFeature(
-          title: l10n.featureSearchPresetsTitle,
-          description: l10n.featureSearchPresetsDesc,
+          title: l10n.titleFeatureSearchPresets,
+          description: l10n.descFeatureSearchPresets,
           icon: Icons.bookmark_border_rounded,
           highlights: const [
             'Saved Filters',
@@ -217,8 +219,8 @@ class FeaturesScreen extends StatelessWidget {
           ],
         ),
         _AppFeature(
-          title: l10n.featureTimelineTitle,
-          description: l10n.featureTimelineDesc,
+          title: l10n.bodyFeatureTimeline,
+          description: l10n.descFeatureTimeline,
           icon: Icons.calendar_month_outlined,
           highlights: const [
             'Visual Activity Dots',
@@ -227,8 +229,8 @@ class FeaturesScreen extends StatelessWidget {
           ],
         ),
         _AppFeature(
-          title: l10n.featureInsightsTitle,
-          description: l10n.featureInsightsDesc,
+          title: l10n.titleFeatureInsights,
+          description: l10n.descFeatureInsights,
           icon: Icons.auto_graph_rounded,
           highlights: const [
             'Habit Streak Tracking',
@@ -239,13 +241,13 @@ class FeaturesScreen extends StatelessWidget {
       ],
     ),
     _FeatureCategory(
-      name: l10n.featuresCategoryStorage,
-      subtitle: l10n.featuresCategoryStorageSubtitle,
+      name: l10n.descFeaturesCategoryStorage,
+      subtitle: l10n.descFeaturesCategoryStorageSubtitle,
       icon: Icons.inventory_2_outlined,
       features: [
         _AppFeature(
-          title: l10n.featureStorageMigrationTitle,
-          description: l10n.featureStorageMigrationDesc,
+          title: l10n.bodyFeatureStorageMigration,
+          description: l10n.descFeatureStorageMigration,
           icon: Icons.sd_card_outlined,
           highlights: const [
             'Live SD Card Migration',
@@ -254,8 +256,8 @@ class FeaturesScreen extends StatelessWidget {
           ],
         ),
         _AppFeature(
-          title: l10n.featureEncryptedBackupsTitle,
-          description: l10n.featureEncryptedBackupsDesc,
+          title: l10n.titleFeatureEncryptedBackups,
+          description: l10n.descFeatureEncryptedBackups,
           icon: Icons.backup_outlined,
           highlights: const [
             'Password-Sealed .jvbk',
@@ -264,8 +266,8 @@ class FeaturesScreen extends StatelessWidget {
           ],
         ),
         _AppFeature(
-          title: l10n.featureMultiExportTitle,
-          description: l10n.featureMultiExportDesc,
+          title: l10n.titleFeatureMultiExport,
+          description: l10n.descFeatureMultiExport,
           icon: Icons.picture_as_pdf_outlined,
           highlights: const [
             'Formatted PDF Export',
@@ -274,8 +276,8 @@ class FeaturesScreen extends StatelessWidget {
           ],
         ),
         _AppFeature(
-          title: l10n.featureEncryptedReaderTitle,
-          description: l10n.featureEncryptedReaderDesc,
+          title: l10n.bodyFeatureEncryptedReader,
+          description: l10n.descFeatureEncryptedReader,
           icon: Icons.lock_open_outlined,
           highlights: const [
             'In-App Reader Tool',
@@ -293,7 +295,7 @@ class FeaturesScreen extends StatelessWidget {
     final categories = _getCategories(l10n);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.featuresTitle)),
+      appBar: AppBar(title: Text(l10n.titleFeatures)),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         children: [
@@ -358,7 +360,7 @@ class FeaturesScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    l10n.featuresHeaderTitle,
+                    l10n.titleFeaturesHeader,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w800,
                       letterSpacing: -0.2,
@@ -366,7 +368,7 @@ class FeaturesScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    l10n.featuresHeaderSubtitle,
+                    l10n.descFeaturesHeader,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                       height: 1.35,
@@ -454,127 +456,6 @@ class FeaturesScreen extends StatelessWidget {
         ),
         itemBuilder: (context, i) =>
             _FeatureTile(feature: category.features[i]),
-      ),
-    );
-  }
-}
-
-class _FeatureTile extends StatefulWidget {
-  final _AppFeature feature;
-  const _FeatureTile({required this.feature});
-
-  @override
-  State<_FeatureTile> createState() => _FeatureTileState();
-}
-
-class _FeatureTileState extends State<_FeatureTile> {
-  bool _expanded = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final accent = theme.colorScheme.primary;
-    final f = widget.feature;
-
-    return InkWell(
-      onTap: () => setState(() => _expanded = !_expanded),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(f.icon, size: 22, color: accent),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        f.title,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          height: 1.25,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        f.description,
-                        maxLines: _expanded ? null : 2,
-                        overflow: _expanded
-                            ? TextOverflow.visible
-                            : TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                          height: 1.4,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Padding(
-                  padding: const EdgeInsets.only(top: 2),
-                  child: Icon(
-                    _expanded
-                        ? Icons.keyboard_arrow_up_rounded
-                        : Icons.keyboard_arrow_down_rounded,
-                    size: 20,
-                    color: theme.colorScheme.onSurfaceVariant.withValues(
-                      alpha: 0.6,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            if (_expanded && f.highlights.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.only(left: 54),
-                child: Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: f.highlights
-                      .map(
-                        (h) => Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 9,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: accent.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: accent.withValues(alpha: 0.2),
-                              width: 0.8,
-                            ),
-                          ),
-                          child: Text(
-                            h,
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: accent,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ),
-                      )
-                      .toList(),
-                ),
-              ),
-            ],
-          ],
-        ),
       ),
     );
   }

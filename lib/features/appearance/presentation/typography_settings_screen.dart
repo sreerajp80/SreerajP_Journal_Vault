@@ -17,18 +17,18 @@ class TypographySettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.appearanceTypographyTitle),
+        title: Text(l10n.titleAppearanceTypography),
         actions: [
           IconButton(
             key: const Key('typography-reset-button'),
             icon: const Icon(Icons.restart_alt_outlined),
-            tooltip: l10n.appearanceResetDefault,
+            tooltip: l10n.actionAppearanceResetDefault,
             onPressed: () async {
               await ref.read(typographyProvider.notifier).resetToDefault();
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(l10n.appearanceTypographyReset),
+                    content: Text(l10n.bodyAppearanceTypographyReset),
                     duration: const Duration(seconds: 2),
                   ),
                 );
@@ -46,7 +46,7 @@ class TypographySettingsScreen extends ConsumerWidget {
 
           // ─── Font Family Selection ──────────────────────────────────────
           Text(
-            l10n.appearanceFontFamily.toUpperCase(),
+            l10n.titleAppearanceFontFamily.toUpperCase(),
             style: theme.textTheme.labelLarge?.copyWith(
               color: colors.primary,
               fontWeight: FontWeight.w800,
@@ -57,8 +57,8 @@ class TypographySettingsScreen extends ConsumerWidget {
           _FontFamilyTile(
             key: const Key('typography-font-sans'),
             family: EntryFontFamily.sans,
-            title: l10n.appearanceFontFamilySans,
-            subtitle: l10n.appearanceFontFamilySansDesc,
+            title: l10n.labelAppearanceFontFamilySans,
+            subtitle: l10n.descAppearanceFontFamilySans,
             sampleGlyph: 'Aa',
             glyphFontFamily: null,
             isSelected: typography.fontFamily == EntryFontFamily.sans,
@@ -70,8 +70,8 @@ class TypographySettingsScreen extends ConsumerWidget {
           _FontFamilyTile(
             key: const Key('typography-font-serif'),
             family: EntryFontFamily.serif,
-            title: l10n.appearanceFontFamilySerif,
-            subtitle: l10n.appearanceFontFamilySerifDesc,
+            title: l10n.labelAppearanceFontFamilySerif,
+            subtitle: l10n.descAppearanceFontFamilySerif,
             sampleGlyph: 'Aa',
             glyphFontFamily: 'serif',
             isSelected: typography.fontFamily == EntryFontFamily.serif,
@@ -83,8 +83,8 @@ class TypographySettingsScreen extends ConsumerWidget {
           _FontFamilyTile(
             key: const Key('typography-font-monospace'),
             family: EntryFontFamily.monospace,
-            title: l10n.appearanceFontFamilyMonospace,
-            subtitle: l10n.appearanceFontFamilyMonospaceDesc,
+            title: l10n.labelAppearanceFontFamilyMonospace,
+            subtitle: l10n.descAppearanceFontFamilyMonospace,
             sampleGlyph: 'Aa',
             glyphFontFamily: 'monospace',
             isSelected: typography.fontFamily == EntryFontFamily.monospace,
@@ -99,7 +99,7 @@ class TypographySettingsScreen extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                l10n.appearanceFontSize.toUpperCase(),
+                l10n.titleAppearanceFontSize.toUpperCase(),
                 style: theme.textTheme.labelLarge?.copyWith(
                   color: colors.primary,
                   fontWeight: FontWeight.w800,
@@ -116,7 +116,7 @@ class TypographySettingsScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  '${typography.fontSize.round()} pt',
+                  l10n.labelTypographyPoints(typography.fontSize.round()),
                   style: TextStyle(
                     color: colors.onPrimaryContainer,
                     fontWeight: FontWeight.bold,
@@ -153,7 +153,9 @@ class TypographySettingsScreen extends ConsumerWidget {
                           min: TypographySettings.minFontSize,
                           max: TypographySettings.maxFontSize,
                           divisions: 12,
-                          label: '${typography.fontSize.round()} pt',
+                          label: l10n.labelTypographyPoints(
+                            typography.fontSize.round(),
+                          ),
                           onChanged: (val) => ref
                               .read(typographyProvider.notifier)
                               .updateFontSize(val),
@@ -178,7 +180,7 @@ class TypographySettingsScreen extends ConsumerWidget {
                       children: [
                         _PresetChip(
                           key: const Key('typography-preset-small'),
-                          label: l10n.appearanceFontSizeSmall,
+                          label: l10n.labelAppearanceFontSizeSmall,
                           size: TypographySettings.presetSmall,
                           currentSize: typography.fontSize,
                           onTap: (s) => ref
@@ -188,7 +190,7 @@ class TypographySettingsScreen extends ConsumerWidget {
                         const SizedBox(width: 8),
                         _PresetChip(
                           key: const Key('typography-preset-default'),
-                          label: l10n.appearanceFontSizeDefault,
+                          label: l10n.labelAppearanceFontSizeDefault,
                           size: TypographySettings.presetDefault,
                           currentSize: typography.fontSize,
                           onTap: (s) => ref
@@ -198,7 +200,7 @@ class TypographySettingsScreen extends ConsumerWidget {
                         const SizedBox(width: 8),
                         _PresetChip(
                           key: const Key('typography-preset-medium'),
-                          label: l10n.appearanceFontSizeMedium,
+                          label: l10n.labelAppearanceFontSizeMedium,
                           size: TypographySettings.presetMedium,
                           currentSize: typography.fontSize,
                           onTap: (s) => ref
@@ -208,7 +210,7 @@ class TypographySettingsScreen extends ConsumerWidget {
                         const SizedBox(width: 8),
                         _PresetChip(
                           key: const Key('typography-preset-large'),
-                          label: l10n.appearanceFontSizeLarge,
+                          label: l10n.labelAppearanceFontSizeLarge,
                           size: TypographySettings.presetLarge,
                           currentSize: typography.fontSize,
                           onTap: (s) => ref
@@ -218,7 +220,7 @@ class TypographySettingsScreen extends ConsumerWidget {
                         const SizedBox(width: 8),
                         _PresetChip(
                           key: const Key('typography-preset-xlarge'),
-                          label: l10n.appearanceFontSizeExtraLarge,
+                          label: l10n.labelAppearanceFontSizeExtraLarge,
                           size: TypographySettings.presetExtraLarge,
                           currentSize: typography.fontSize,
                           onTap: (s) => ref
@@ -250,9 +252,9 @@ class _LivePreviewCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     final familyLabel = switch (typography.fontFamily) {
-      EntryFontFamily.sans => l10n.appearanceFontFamilySans,
-      EntryFontFamily.serif => l10n.appearanceFontFamilySerif,
-      EntryFontFamily.monospace => l10n.appearanceFontFamilyMonospace,
+      EntryFontFamily.sans => l10n.labelAppearanceFontFamilySans,
+      EntryFontFamily.serif => l10n.labelAppearanceFontFamilySerif,
+      EntryFontFamily.monospace => l10n.labelAppearanceFontFamilyMonospace,
     };
 
     return Card(
@@ -279,7 +281,7 @@ class _LivePreviewCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      l10n.appearanceLivePreview.toUpperCase(),
+                      l10n.titleAppearanceLivePreview.toUpperCase(),
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
@@ -299,7 +301,10 @@ class _LivePreviewCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    '$familyLabel • ${typography.fontSize.round()}pt',
+                    AppLocalizations.of(context).descTypographyFamilyAndSize(
+                      familyLabel,
+                      typography.fontSize.round(),
+                    ),
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -311,7 +316,7 @@ class _LivePreviewCard extends StatelessWidget {
             ),
             const Divider(height: 24),
             Text(
-              l10n.appearanceSampleHeadline,
+              l10n.labelAppearanceSampleHeadline,
               style: TextStyle(
                 fontFamily: typography.fontFamily.fontName,
                 fontSize: (typography.fontSize * 1.3).clamp(16.0, 30.0),
@@ -321,7 +326,7 @@ class _LivePreviewCard extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              l10n.appearanceSampleBody,
+              l10n.bodyAppearanceSample,
               style: typography.toTextStyle(
                 color: colors.onSurface.withValues(alpha: 0.9),
               ),

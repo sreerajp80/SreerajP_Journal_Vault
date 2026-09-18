@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'package:sreerajp_journal_vault/core/database/database_open_failure.dart';
+import 'package:sreerajp_journal_vault/core/l10n/app_locales.dart';
+import 'package:sreerajp_journal_vault/core/theme/script_fonts.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 /// Shown instead of the app when the encrypted vault cannot be opened.
@@ -15,30 +16,33 @@ import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 /// would destroy a journal that a reinstall, a backup, or a repaired Keystore
 /// might still recover.
 class VaultUnavailableApp extends StatelessWidget {
-  const VaultUnavailableApp({super.key, required this.failure});
+  const VaultUnavailableApp({super.key, required this.failure, this.locale});
 
   final DatabaseOpenFailure failure;
+
+  /// The user's saved language, read before the vault was opened. `null`
+  /// follows the system language.
+  final Locale? locale;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+      onGenerateTitle: (context) => AppLocalizations.of(context).titleApp,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF9C5F2B)),
+        fontFamilyFallback: appScriptFontFallback,
       ),
       darkTheme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF9C5F2B),
           brightness: Brightness.dark,
         ),
+        fontFamilyFallback: appScriptFontFallback,
       ),
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: AppLocalizations.supportedLocales,
+      locale: locale,
+      localizationsDelegates: appLocalizationsDelegates,
+      supportedLocales: appSupportedLocales,
+      localeResolutionCallback: resolveAppLocale,
       home: VaultUnavailableScreen(failure: failure),
     );
   }
@@ -73,7 +77,7 @@ class VaultUnavailableScreen extends StatelessWidget {
                 Semantics(
                   header: true,
                   child: Text(
-                    l10n.vaultUnavailableTitle,
+                    l10n.titleVaultUnavailable,
                     style: theme.textTheme.headlineSmall,
                   ),
                 ),
@@ -81,12 +85,12 @@ class VaultUnavailableScreen extends StatelessWidget {
                 Text(_reason(l10n), style: theme.textTheme.bodyMedium),
                 const SizedBox(height: 12),
                 Text(
-                  l10n.vaultUnavailableDataIntact,
+                  l10n.descVaultUnavailableDataIntact,
                   style: theme.textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  l10n.vaultUnavailableNextSteps,
+                  l10n.descVaultUnavailableNextSteps,
                   style: theme.textTheme.bodyMedium,
                 ),
               ],
@@ -98,11 +102,13 @@ class VaultUnavailableScreen extends StatelessWidget {
   }
 
   String _reason(AppLocalizations l10n) => switch (failure.kind) {
-    DatabaseOpenFailureKind.keyUnavailable => l10n.vaultUnavailableKeyMissing,
+    DatabaseOpenFailureKind.keyUnavailable =>
+      l10n.descVaultUnavailableKeyMissing,
     DatabaseOpenFailureKind.cipherUnavailable =>
-      l10n.vaultUnavailableCipherMissing,
+      l10n.descVaultUnavailableCipherMissing,
     DatabaseOpenFailureKind.conversionFailed =>
-      l10n.vaultUnavailableConversionFailed,
-    DatabaseOpenFailureKind.openFailed => l10n.vaultUnavailableFileUnreadable,
+      l10n.errorVaultUnavailableConversion,
+    DatabaseOpenFailureKind.openFailed =>
+      l10n.descVaultUnavailableFileUnreadable,
   };
 }

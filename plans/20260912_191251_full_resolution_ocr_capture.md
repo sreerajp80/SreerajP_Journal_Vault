@@ -1,6 +1,7 @@
 # Plan — Full camera resolution, orientation and rotation for OCR
 
-**Status:** Implemented — see the matching change log
+**Status:** completed
+**Status note:** See the matching change log
 **Revised:** 2026-09-12 20:55 — ports the proven downscaler from the sibling
 todo app instead of writing a new one, and adds the orientation and rotation work.
 

@@ -1,6 +1,6 @@
 # Plan: A5.3 Guard the missing INTERNET permission and unused permissions
 
-**Status:** Complete
+**Status:** completed
 **Date:** 2026-08-23
 **Feature:** A5.3 Guard the missing INTERNET permission
 
