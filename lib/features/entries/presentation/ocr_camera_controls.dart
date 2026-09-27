@@ -103,8 +103,8 @@ extension _OcrCameraScreenStatePart1 on _OcrCameraScreenState {
     // Attempt 0 and 1 both ask for the full sensor: the first try can time out
     // when the camera hardware is still held by the screen the user just came
     // back from, and that is worth one more go before giving up resolution.
-    // Attempt 2 drops to veryHigh for the devices where `max` is unsupported
-    // or too slow to start.
+    // Attempts 2 and 3 step down to 4K and then 1080p for the devices where
+    // `max` is unsupported or too slow to start.
     for (
       var attempt = 0;
       attempt < _OcrCameraScreenState._resolutionAttempts.length;
@@ -222,7 +222,8 @@ extension _OcrCameraScreenStatePart1 on _OcrCameraScreenState {
       _rebuild(() => _flashMode = nextMode);
     } catch (e) {
       AppLogger.warning(
-        'OcrCameraScreen: failed to set flash mode $nextMode: $e',
+        'OcrCameraScreen: failed to set flash mode $nextMode',
+        error: e,
       );
     }
   }
@@ -326,7 +327,10 @@ extension _OcrCameraScreenStatePart1 on _OcrCameraScreenState {
       await controller.setFocusPoint(_lastFocusPoint ?? const Offset(0.5, 0.5));
       await Future<void>.delayed(_OcrCameraScreenState._focusSettleDelay);
     } catch (e) {
-      AppLogger.warning('OcrCameraScreen: focus before capture failed: $e');
+      AppLogger.warning(
+        'OcrCameraScreen: focus before capture failed',
+        error: e,
+      );
     }
   }
 
@@ -359,16 +363,53 @@ extension _OcrCameraScreenStatePart1 on _OcrCameraScreenState {
         return;
       }
 
+      final imageEditService =
+          widget.imageEditService ?? const CropperImageEditService();
+      final l10n = AppLocalizations.of(context);
+      final theme = Theme.of(context);
+
       _childRouteOpen = true;
+      final String? croppedPath;
+      try {
+        croppedPath = await imageEditService.cropAndRotate(
+          sourcePath: photo.path,
+          toolbarTitle: l10n.titleEntryEditorCropImage,
+          toolbarColor: theme.colorScheme.surface,
+          toolbarWidgetColor: theme.colorScheme.onSurface,
+          statusBarBrightness: theme.brightness,
+          activeControlColor: theme.colorScheme.primary,
+        );
+      } finally {
+        // The raw photo from the camera was only needed for cropping.
+        unawaited(widget.tempFileSweeper.deleteNow(photo.path));
+      }
+
+      if (!mounted) {
+        _childRouteOpen = false;
+        return;
+      }
+
+      if (croppedPath == null) {
+        // User cancelled the crop — return to camera view to retake.
+        _childRouteOpen = false;
+        _rebuild(() => _isCapturing = false);
+        await _resumeCameraAfterChildRoute();
+        return;
+      }
+
+      final verifiedPath = croppedPath;
       final String? result;
       try {
         result = await Navigator.of(context).push<String>(
           MaterialPageRoute(
-            builder: (_) => OcrEnhanceScreen(imagePath: photo.path),
+            builder: (_) => OcrEnhanceScreen(imagePath: verifiedPath),
           ),
         );
       } finally {
         _childRouteOpen = false;
+        if (verifiedPath != photo.path) {
+          unawaited(widget.tempFileSweeper.deleteNow(verifiedPath));
+        }
       }
 
       if (!mounted) return;
@@ -380,7 +421,7 @@ extension _OcrCameraScreenStatePart1 on _OcrCameraScreenState {
       }
 
       // The user came back to retake the photo. The camera was released while
-      // the enhance screen was on top, so bring it back now.
+      // the crop and enhance screens were on top, so bring it back now.
       await _resumeCameraAfterChildRoute();
     } catch (e, st) {
       AppLogger.error(
@@ -416,7 +457,9 @@ extension _OcrCameraScreenStatePart1 on _OcrCameraScreenState {
     final picker = widget.imagePicker ?? ImagePicker();
     _childRouteOpen = true;
     try {
-      final picked = await picker.pickImage(source: ImageSource.gallery);
+      final picked = await ExternalHandoffGuard.instance.run(
+        () => picker.pickImage(source: ImageSource.gallery),
+      );
       if (picked != null && mounted) {
         if (widget.imagePicker != null) {
           // Direct return for unit testing
@@ -424,11 +467,44 @@ extension _OcrCameraScreenStatePart1 on _OcrCameraScreenState {
           return;
         }
 
-        final result = await Navigator.of(context).push<String>(
-          MaterialPageRoute(
-            builder: (_) => OcrEnhanceScreen(imagePath: picked.path),
-          ),
-        );
+        final imageEditService =
+            widget.imageEditService ?? const CropperImageEditService();
+        final l10n = AppLocalizations.of(context);
+        final theme = Theme.of(context);
+
+        final String? croppedPath;
+        try {
+          croppedPath = await imageEditService.cropAndRotate(
+            sourcePath: picked.path,
+            toolbarTitle: l10n.titleEntryEditorCropImage,
+            toolbarColor: theme.colorScheme.surface,
+            toolbarWidgetColor: theme.colorScheme.onSurface,
+            statusBarBrightness: theme.brightness,
+            activeControlColor: theme.colorScheme.primary,
+          );
+        } finally {
+          unawaited(widget.tempFileSweeper.deleteNow(picked.path));
+        }
+
+        if (!mounted) return;
+        if (croppedPath == null) {
+          await _resumeCameraAfterChildRoute();
+          return;
+        }
+
+        final verifiedGalleryPath = croppedPath;
+        final String? result;
+        try {
+          result = await Navigator.of(context).push<String>(
+            MaterialPageRoute(
+              builder: (_) => OcrEnhanceScreen(imagePath: verifiedGalleryPath),
+            ),
+          );
+        } finally {
+          if (verifiedGalleryPath != picked.path) {
+            unawaited(widget.tempFileSweeper.deleteNow(verifiedGalleryPath));
+          }
+        }
 
         if (result != null && mounted) {
           Navigator.of(context).pop(result);

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
@@ -33,12 +34,27 @@ abstract class OcrService {
   Future<void> cancelRequests(List<int> requestIds) async {}
 }
 
+/// Thrown when text recognition does not answer within its time limit.
+class OcrTimeoutException implements Exception {
+  const OcrTimeoutException();
+
+  @override
+  String toString() => 'OcrTimeoutException';
+}
+
+/// Longest time one recognition may take before the caller gives up.
+///
+/// A full page normally reads in seconds. This limit only exists so a stuck
+/// read can never leave the user waiting on a spinner for ever.
+const Duration kOcrRecognitionTimeout = Duration(minutes: 3);
+
 /// On-device OCR implementation backed by native Tesseract 5 (Tesseract4Android)
 /// via MethodChannel, providing accurate Malayalam and English text recognition.
 class NativeOcrService implements OcrService {
   const NativeOcrService({
     this.channel = _defaultChannel,
     this.fallbackService = const MlKitOcrService(),
+    this.timeout = kOcrRecognitionTimeout,
   });
 
   static const MethodChannel _defaultChannel = MethodChannel(
@@ -48,26 +64,59 @@ class NativeOcrService implements OcrService {
   final MethodChannel channel;
   final OcrService fallbackService;
 
+  /// How long to wait for the platform before giving up with
+  /// [OcrTimeoutException].
+  final Duration timeout;
+
   @override
   Future<String> extractTextFromImage(
     String imagePath, {
     String language = 'eng+mal',
     int? requestId,
   }) async {
+    // When English-only is selected, Google ML Kit on-device neural recognition
+    // provides industry-standard accuracy on natural scenes, computer screens,
+    // code snippets, and tables, avoiding Tesseract's bilingual confusion.
+    if (language == 'eng') {
+      try {
+        final text = await fallbackService.extractTextFromImage(
+          imagePath,
+          language: language,
+          requestId: requestId,
+        );
+        if (text.isNotEmpty) {
+          AppLogger.info(
+            'NativeOcrService: ML Kit recognition complete for English, length=${text.length}',
+          );
+          return text;
+        }
+      } catch (e) {
+        AppLogger.warning(
+          'NativeOcrService: ML Kit failed for English, falling back to native engine',
+          error: e,
+        );
+      }
+    }
+
     try {
-      final String? result = await channel.invokeMethod<String>(
-        'extractText',
-        <String, dynamic>{
-          'imagePath': imagePath,
-          'language': language,
-          'requestId': requestId ?? 0,
-        },
-      );
+      final String? result = await channel
+          .invokeMethod<String>('extractText', <String, dynamic>{
+            'imagePath': imagePath,
+            'language': language,
+            'requestId': requestId ?? 0,
+          })
+          .timeout(timeout);
       final text = result?.trim() ?? '';
       AppLogger.info(
         'NativeOcrService: recognition complete, length=${text.length}',
       );
       return text;
+    } on TimeoutException {
+      AppLogger.warning('NativeOcrService: recognition timed out');
+      // Free the processor if the job is still waiting its turn. A job with no
+      // id cannot be told apart from others, so it is left alone.
+      if (requestId != null) await cancelRequests(<int>[requestId]);
+      throw const OcrTimeoutException();
     } on MissingPluginException catch (_) {
       // In host test environments where the Android platform channel is not active,
       // fallback smoothly to ML Kit or fallback service.

@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/features/backup/presentation/restore_backup_screen.dart';
 import 'package:sreerajp_journal_vault/features/backup/providers/backup_providers.dart';
 import 'package:sreerajp_journal_vault/features/backup/services/backup_scheduler.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
+import 'package:sreerajp_journal_vault/core/security/keyboard_privacy_scope.dart';
 
 part 'backup_health_sections.dart';
 part 'backup_health_sections_2.dart';
@@ -63,7 +65,7 @@ class _BackupHealthScreenState extends ConsumerState<BackupHealthScreen> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16).withSafeBottom(context),
         children: [
           // Health status card
           _buildHealthStatusCard(theme, latestSuccess, failureCount),

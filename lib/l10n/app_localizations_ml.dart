@@ -453,6 +453,18 @@ class AppLocalizationsMl extends AppLocalizations {
   }
 
   @override
+  String get descSyncConflictDeletedRemote =>
+      'മറ്റേ ഉപകരണത്തിൽ ഇത് ഇല്ലാതാക്കി. റിമോട്ട് പതിപ്പ് സൂക്ഷിച്ചാൽ ഇവിടെയും ഇല്ലാതാകും.';
+
+  @override
+  String get descSyncConflictDeletedLocal =>
+      'ഈ ഉപകരണത്തിൽ നിങ്ങൾ ഇത് ഇല്ലാതാക്കി. റിമോട്ട് പതിപ്പ് സൂക്ഷിച്ചാൽ ഇത് തിരികെ വരും.';
+
+  @override
+  String get errorSyncConflictMissingParent =>
+      'റിമോട്ട് പതിപ്പ് സൂക്ഷിക്കാനാവില്ല: അത് ഉൾപ്പെടുന്ന ഇനം ഈ ഉപകരണത്തിലില്ല. വീണ്ടും സിങ്ക് ചെയ്ത ശേഷം ശ്രമിക്കുക.';
+
+  @override
   String get titleSyncConflictDetails => 'വൈരുദ്ധ്യ വിവരങ്ങൾ';
 
   @override
@@ -819,6 +831,42 @@ class AppLocalizationsMl extends AppLocalizations {
   String get labelEntryTableDimensionHelp => '1-20';
 
   @override
+  String get actionTableAddRow => 'വരി ചേർക്കുക';
+
+  @override
+  String get actionTableAddColumn => 'നിര ചേർക്കുക';
+
+  @override
+  String get actionTableDeleteRow => 'വരി നീക്കുക';
+
+  @override
+  String get actionTableDeleteColumn => 'നിര നീക്കുക';
+
+  @override
+  String get actionTableDelete => 'പട്ടിക നീക്കുക';
+
+  @override
+  String get actionConvertToTable => 'പട്ടികയാക്കുക';
+
+  @override
+  String get actionPasteMarkdown => 'മാർക്ക്ഡൗൺ ആയി ഒട്ടിക്കുക';
+
+  @override
+  String get actionPastePlainText => 'സാധാരണ ടെക്സ്റ്റായി ഒട്ടിക്കുക';
+
+  @override
+  String get tooltipTableAddRow => 'വരി ചേർക്കുക';
+
+  @override
+  String get tooltipTableAddColumn => 'നിര ചേർക്കുക';
+
+  @override
+  String get tooltipTableResizeColumn => 'നിരയുടെ വലുപ്പം മാറ്റുക';
+
+  @override
+  String get labelTableCell => 'പട്ടികയിലെ കളം';
+
+  @override
   String get titleEntryCalloutType => 'കോൾഔട്ട് തരം';
 
   @override
@@ -1161,6 +1209,13 @@ class AppLocalizationsMl extends AppLocalizations {
       'സ്ക്രീൻഷോട്ടുകൾ, സ്ക്രീൻ റെക്കോർഡിംഗ്, സമീപകാല ആപ്പ് പ്രിവ്യൂ എന്നിവ തടയുന്നു';
 
   @override
+  String get labelSettingsScanInAppCamera => 'ആപ്പിലെ ക്യാമറ';
+
+  @override
+  String get descSettingsScanInAppCamera =>
+      '\"ഫോട്ടോ എടുക്കുക\" ഈ ആപ്പിലെ ക്യാമറ ഉപയോഗിക്കും, അതിനാൽ ഫോട്ടോയുടെ പകർപ്പ് ഗാലറിയിൽ എത്തില്ല. ഓഫാണെങ്കിൽ ഫോണിലെ ക്യാമറ ആപ്പ് തുറക്കും, അത് കൂടുതൽ വ്യക്തമായ ചിത്രം എടുക്കും';
+
+  @override
   String get bodySettingsScreenSecurityOff => 'സ്ക്രീൻഷോട്ട് തടയൽ ഓഫാക്കണോ?';
 
   @override
@@ -1181,6 +1236,36 @@ class AppLocalizationsMl extends AppLocalizations {
   @override
   String get errorSettingsScreenSecuritySave =>
       'സ്ക്രീൻഷോട്ട് ക്രമീകരണം മാറ്റാൻ കഴിഞ്ഞില്ല';
+
+  @override
+  String get labelSettingsKeyboardPrivacy => 'കീബോർഡ് സ്വകാര്യത';
+
+  @override
+  String get descSettingsKeyboardPrivacy =>
+      'ഇവിടെ ടൈപ്പ് ചെയ്യുന്ന വാക്കുകൾ പഠിക്കരുതെന്ന് കീബോർഡിനോട് ആവശ്യപ്പെടുന്നു, അതിനാൽ സ്വകാര്യ വാക്കുകൾ മറ്റ് ആപ്പുകളിൽ നിർദ്ദേശങ്ങളായി വരില്ല. കീബോർഡിന്റെ സ്വന്തം ക്രമീകരണങ്ങൾ തുടർന്നും ബാധകമാണ്.';
+
+  @override
+  String get bodySettingsKeyboardPrivacyOff =>
+      'കീബോർഡിനെ പഠിക്കാൻ അനുവദിക്കണോ?';
+
+  @override
+  String get bodySettingsKeyboardPrivacyOffBody =>
+      'നിങ്ങളുടെ ജേണലിലെ പേരുകളും സ്ഥലങ്ങളും പോലുള്ള വാക്കുകൾ കീബോർഡ് ഓർത്തുവെച്ച് മറ്റ് ആപ്പുകളിൽ നിർദ്ദേശിച്ചേക്കാം. എഴുതുമ്പോൾ മികച്ച നിർദ്ദേശങ്ങൾ വേണമെങ്കിൽ മാത്രം ഇത് ഓഫാക്കുക.';
+
+  @override
+  String get actionSettingsKeyboardPrivacyOff => 'പഠിക്കാൻ അനുവദിക്കുക';
+
+  @override
+  String get bodySettingsKeyboardPrivacyUpdatedOn =>
+      'കീബോർഡ് സ്വകാര്യത ഓണാക്കി';
+
+  @override
+  String get bodySettingsKeyboardPrivacyUpdatedOff =>
+      'കീബോർഡ് സ്വകാര്യത ഓഫാക്കി';
+
+  @override
+  String get errorSettingsKeyboardPrivacySave =>
+      'കീബോർഡ് സ്വകാര്യത മാറ്റാൻ കഴിഞ്ഞില്ല';
 
   @override
   String get labelSettingsTamperAlerts => 'സുരക്ഷാ മുന്നറിയിപ്പുകൾ';
@@ -1476,7 +1561,7 @@ class AppLocalizationsMl extends AppLocalizations {
 
   @override
   String get bodyRestoreConfirmReplaceBody =>
-      'ഈ ഫോണിലെ എല്ലാ ജേണലുകളും കുറിപ്പുകളും മാറ്റി ബാക്കപ്പിലെ വിവരങ്ങൾ സ്ഥാപിക്കും. നിലവിലെ വിവരങ്ങൾ ഒരു സുരക്ഷാ ബാക്കപ്പായി സേവ് ചെയ്യും.';
+      'ഈ ഫോണിലെ എല്ലാ ജേണലുകളും കുറിപ്പുകളും മാറ്റി ബാക്കപ്പിലെ വിവരങ്ങൾ സ്ഥാപിക്കും. നിലവിലെ വിവരങ്ങൾ ഒരു സുരക്ഷാ ബാക്കപ്പായി സേവ് ചെയ്യും. അടുത്ത തവണ ഈ ഫോൺ Wi-Fi സിങ്കിൽ ഡാറ്റ അയക്കുമ്പോൾ, മറ്റേ ഉപകരണത്തിലെ പകർപ്പുകളും ഇതുപോലെ മാറും.';
 
   @override
   String get bodyRestoreConfirmMerge => 'ബാക്കപ്പ് ലയിപ്പിക്കണോ?';
@@ -2145,7 +2230,7 @@ class AppLocalizationsMl extends AppLocalizations {
 
   @override
   String get helpFaqA3 =>
-      'ക്യാമറ/ഫോട്ടോകൾ: ഫോട്ടോകൾ ചേർക്കാൻ.\nമൈക്രോഫോൺ: വോയ്സ് നോട്ടുകൾ റെക്കോർഡ് ചെയ്യാനും പറഞ്ഞെഴുതാനും (ഉപകരണത്തിൽ തന്നെ തിരിച്ചറിയുന്നു).\nസംഭരണം: ബാക്കപ്പുകൾ സേവ് ചെയ്യാനും എക്സ്പോർട്ട് ചെയ്യാനും.';
+      'ക്യാമറ/ഫോട്ടോകൾ: ഫോട്ടോകൾ ചേർക്കാൻ.\nമൈക്രോഫോൺ: വോയ്സ് നോട്ടുകൾ റെക്കോർഡ് ചെയ്യാൻ.\nസംഭരണം: ബാക്കപ്പുകൾ സേവ് ചെയ്യാനും എക്സ്പോർട്ട് ചെയ്യാനും.';
 
   @override
   String get helpFaqQ4 => 'ജേണൽ പുതിയ ഫോണിലേക്ക് മാറ്റാൻ കഴിയുമോ?';
@@ -2456,6 +2541,9 @@ class AppLocalizationsMl extends AppLocalizations {
 
   @override
   String get labelTemplateCategoryCustom => 'എന്റെ മാതൃകകൾ';
+
+  @override
+  String get labelImportedTemplateName => 'ഇറക്കുമതി ചെയ്ത മാതൃക';
 
   @override
   String get actionTemplateCollapseAll => 'എല്ലാം ചുരുക്കുക';
@@ -3362,6 +3450,18 @@ class AppLocalizationsMl extends AppLocalizations {
 
   @override
   String get actionEditorGotoLineEnd => '⇥';
+
+  @override
+  String get actionEditorBold => 'ബോൾഡ്';
+
+  @override
+  String get actionEditorItalic => 'ഇറ്റാലിക്';
+
+  @override
+  String get actionEditorUnderline => 'അടിവര';
+
+  @override
+  String get actionEditorStrike => 'വെട്ടുക';
 
   @override
   String get bodyOcrCameraPermissionDenied =>
@@ -5333,6 +5433,9 @@ class AppLocalizationsMl extends AppLocalizations {
   String get tooltipExportJournal => 'ഈ ജേണൽ കയറ്റുമതി ചെയ്യുക';
 
   @override
+  String get tooltipImportJournal => 'ഈ ജേണലിലേക്ക് ഇറക്കുമതി ചെയ്യുക';
+
+  @override
   String get titleExportChooseJournal => 'ജേണലിൽ നിന്ന് കയറ്റുമതി';
 
   @override
@@ -5831,58 +5934,16 @@ class AppLocalizationsMl extends AppLocalizations {
   }
 
   @override
-  String get tooltipEditorDictate => 'പറഞ്ഞെഴുതുക';
+  String get errorVoiceNoteSaveFailed =>
+      'വോയ്സ് നോട്ട് സേവ് ചെയ്യാനായില്ല. വീണ്ടും ശ്രമിക്കുക.';
 
   @override
-  String get titleDictation => 'പറഞ്ഞെഴുത്ത്';
+  String get labelVoiceNoteSaving => 'സേവ് ചെയ്യുന്നു…';
 
   @override
-  String get labelDictationListening => 'കേൾക്കുന്നു…';
-
-  @override
-  String get labelDictationPaused => 'നിർത്തിവെച്ചു';
-
-  @override
-  String get tooltipDictationPause => 'താൽക്കാലികമായി നിർത്തുക';
-
-  @override
-  String get tooltipDictationResume => 'തുടരുക';
-
-  @override
-  String get tooltipDictationLanguage => 'സംസാര ഭാഷ';
-
-  @override
-  String get labelDictationDeviceDefault => 'ഉപകരണ ഭാഷ';
-
-  @override
-  String get labelDictationEditHint => 'ടെക്സ്റ്റ് തിരുത്തുക';
-
-  @override
-  String get actionDictationInsert => 'ചേർക്കുക';
-
-  @override
-  String get emptyDictationSpeak =>
-      'സംസാരിച്ചു തുടങ്ങുക. നിങ്ങളുടെ വാക്കുകൾ ഇവിടെ കാണാം.';
-
-  @override
-  String get descDictationPrivacy =>
-      'സംസാരം ഈ ഉപകരണത്തിൽ തന്നെ തിരിച്ചറിയുന്നു. ശബ്ദം സേവ് ചെയ്യുകയോ അയയ്ക്കുകയോ ഇല്ല.';
-
-  @override
-  String get errorDictationOfflineUnavailable =>
-      'ഈ ഉപകരണത്തിൽ ഓഫ്‌ലൈൻ സംസാര തിരിച്ചറിയൽ ലഭ്യമല്ല. പറഞ്ഞെഴുത്ത് ഉപകരണത്തിനുള്ളിൽ മാത്രം പ്രവർത്തിക്കുന്നതിനാൽ ഇവിടെ ഉപയോഗിക്കാനാവില്ല.';
-
-  @override
-  String get errorDictationLanguageUnavailable =>
-      'ഈ ഭാഷയുടെ ഓഫ്‌ലൈൻ സംസാര മോഡൽ ഇൻസ്റ്റാൾ ചെയ്തിട്ടില്ല. ഫോണിന്റെ സംസാര ക്രമീകരണങ്ങളിൽ ഇൻസ്റ്റാൾ ചെയ്യുക, അല്ലെങ്കിൽ മറ്റൊരു ഭാഷ തിരഞ്ഞെടുക്കുക.';
-
-  @override
-  String get errorDictationFailed =>
-      'സംസാര തിരിച്ചറിയൽ അപ്രതീക്ഷിതമായി നിന്നു. വീണ്ടും ശ്രമിക്കുക.';
-
-  @override
-  String get helpDictationSanskritUnsupported =>
-      'സംസ്കൃത സംസാരം ഇപ്പോൾ ഓഫ്‌ലൈനായി തിരിച്ചറിയാനാവില്ല. ഇംഗ്ലീഷിലോ മലയാളത്തിലോ സംസാരിക്കുക.';
+  String labelVoiceNoteFileName(String timestamp) {
+    return 'ശബ്ദക്കുറിപ്പ് $timestamp';
+  }
 
   @override
   String get tooltipOcrPreviewText => 'ടെക്സ്റ്റ് കാണുക';
@@ -5896,5 +5957,73 @@ class AppLocalizationsMl extends AppLocalizations {
 
   @override
   String get helpOcrPhoneCamera =>
-      '\"ഫോട്ടോ എടുക്കുക\" ഏറ്റവും വ്യക്തമായ ഫോട്ടോകൾക്കായി ഫോണിലെ സ്വന്തം ക്യാമറ ആപ്പ് തുറക്കുന്നു. ചില ക്യാമറ ആപ്പുകൾ ഫോട്ടോയുടെ ഒരു പകർപ്പ് ഗാലറിയിലും സൂക്ഷിക്കും. ഫോട്ടോ ഈ ആപ്പിന് പുറത്ത് പോകരുതെങ്കിൽ \"ആപ്പിലെ ക്യാമറ\" തിരഞ്ഞെടുക്കുക.';
+      '\"ഫോട്ടോ എടുക്കുക\" ഏറ്റവും വ്യക്തമായ ഫോട്ടോകൾക്കായി ഫോണിലെ സ്വന്തം ക്യാമറ ആപ്പ് തുറക്കുന്നു. ചില ക്യാമറ ആപ്പുകൾ ഫോട്ടോയുടെ ഒരു പകർപ്പ് ഗാലറിയിലും സൂക്ഷിക്കും. ഫോട്ടോ ഈ ആപ്പിന് പുറത്ത് പോകരുതെങ്കിൽ ക്രമീകരണങ്ങളിലെ സുരക്ഷയിൽ \"ആപ്പിലെ ക്യാമറ\" ഓണാക്കുക.';
+
+  @override
+  String get errorOcrPhotoBlurry =>
+      'ഫോട്ടോ മങ്ങിയതാണ്. നന്നായി വായിക്കാൻ വീണ്ടും എടുക്കുക.';
+
+  @override
+  String get errorOcrEnhanceFailed =>
+      'ഈ മാറ്റം വരുത്താനായില്ല. വീണ്ടും ശ്രമിക്കുക.';
+
+  @override
+  String get errorOcrPhotoUnreadable =>
+      'ഈ ഫോട്ടോ തുറക്കാനായില്ല. മറ്റൊന്ന് ശ്രമിക്കുക.';
+
+  @override
+  String get errorOcrTimedOut =>
+      'ടെക്സ്റ്റ് വായിക്കാൻ വളരെ സമയമെടുത്തു. ടെക്സ്റ്റ് മാത്രം ക്രോപ്പ് ചെയ്ത് വീണ്ടും ശ്രമിക്കുക.';
+
+  @override
+  String get helpOcrAutoEnglish =>
+      '\"ഇംഗ്ലീഷ് + മലയാളം\" തിരഞ്ഞെടുത്തിരിക്കുമ്പോൾ പേജ് ഏതാണ്ട് മുഴുവൻ ഇംഗ്ലീഷ് ആണെങ്കിൽ, കൂടുതൽ കൃത്യതയ്ക്കായി ഇംഗ്ലീഷ് മാത്രം ഉപയോഗിച്ച് വീണ്ടും വായിക്കുന്നു. ഫോൺ അനക്കാതെ പിടിക്കുക, എല്ലായിടത്തും ഒരുപോലെ വെളിച്ചം ഉറപ്പാക്കുക: നിഴലില്ലാത്ത വ്യക്തമായ ഫോട്ടോയാണ് ഏറ്റവും നന്നായി വായിക്കാനാവുക.';
+
+  @override
+  String get labelOcrEnhanceFilterScreen => 'സ്ക്രീൻ';
+
+  @override
+  String get labelOcrEnhanceEnlarge => 'വലുതാക്കുക';
+
+  @override
+  String labelOcrEnhanceScale(int factor) {
+    return '$factor×';
+  }
+
+  @override
+  String get labelOcrEnhanceSharpen => 'മൂർച്ച';
+
+  @override
+  String get descOcrEnhancePreviewZoom =>
+      'ഫോട്ടോയുടെ പ്രിവ്യൂ. വലുതാക്കാൻ രണ്ട് വിരൽ കൊണ്ട് അകറ്റുകയോ രണ്ടുതവണ തട്ടുകയോ ചെയ്യുക.';
+
+  @override
+  String get helpOcrEditTools =>
+      'അക്ഷരങ്ങൾ ചെറുതാണോ വായിക്കാൻ പ്രയാസമാണോ? എഡിറ്റ് സ്ക്രീനിൽ \"ക്രമീകരിക്കുക\" തുറക്കുക: \"വലുതാക്കുക\" (2× അല്ലെങ്കിൽ 3×) ചെറിയ അക്ഷരങ്ങൾക്ക് കൂടുതൽ പിക്സലുകൾ നൽകുന്നു, \"മൂർച്ച\" മങ്ങിയ അരികുകൾ തെളിയിക്കുന്നു. കമ്പ്യൂട്ടറിന്റെയോ ഫോണിന്റെയോ സ്ക്രീനിന്റെ ഫോട്ടോയ്ക്ക് \"സ്ക്രീൻ\" ഫിൽട്ടർ തിരഞ്ഞെടുക്കുക. അക്ഷരങ്ങൾ പരിശോധിക്കാൻ ഫോട്ടോ രണ്ട് വിരൽ കൊണ്ട് വലുതാക്കുകയോ രണ്ടുതവണ തട്ടുകയോ ചെയ്യുക. ചേർക്കുന്നതിന് മുമ്പ് ടെക്സ്റ്റ് പ്രിവ്യൂവിൽ ഫലം താരതമ്യം ചെയ്യുക.';
+
+  @override
+  String get tooltipEntryDeleteAttachment => 'അറ്റാച്ച്മെന്റ് ഇല്ലാതാക്കുക';
+
+  @override
+  String get bodyEntryDeleteAttachment => 'അറ്റാച്ച്മെന്റ് ഇല്ലാതാക്കണോ?';
+
+  @override
+  String bodyEntryDeleteAttachmentBody(String fileName) {
+    return '\"$fileName\" ഈ കുറിപ്പിൽ നിന്നും ഈ ഉപകരണത്തിൽ നിന്നും നീക്കം ചെയ്യും. ഇത് തിരിച്ചെടുക്കാനാവില്ല.';
+  }
+
+  @override
+  String get errorEntryDeleteAttachment =>
+      'അറ്റാച്ച്മെന്റ് ഇല്ലാതാക്കാൻ കഴിഞ്ഞില്ല.';
+
+  @override
+  String get errorEntryDelete => 'കുറിപ്പ് ഇല്ലാതാക്കാൻ കഴിഞ്ഞില്ല.';
+
+  @override
+  String get errorJournalDelete =>
+      'ജേണൽ ഇല്ലാതാക്കാൻ കഴിഞ്ഞില്ല. ഒന്നും നീക്കം ചെയ്തിട്ടില്ല.';
+
+  @override
+  String get bodyVoiceNoteDiscardConfirm =>
+      'ഈ റെക്കോർഡിങ് നിർത്തി ഉപേക്ഷിക്കണോ?';
 }

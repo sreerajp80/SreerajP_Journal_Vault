@@ -27,7 +27,9 @@ class _BottomActionBar extends StatelessWidget {
           top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
         ),
       ),
-      padding: const EdgeInsets.all(8),
+      // The bar is the last row on screen, so it also clears the system
+      // navigation bar (0 while the keyboard is open).
+      padding: const EdgeInsets.all(8).withSafeBottom(context),
       child: Row(
         children: [
           IconButton(
@@ -98,10 +100,9 @@ class _LinkedFromPanelState extends ConsumerState<_LinkedFromPanel> {
   }
 
   Future<void> _load() async {
-    final db = ref.read(appDatabaseProvider);
-    final links = await db.backlinksDao.getBacklinksForEntryTarget(
-      widget.entryId,
-    );
+    final links = await ref
+        .read(entryEditorServiceProvider)
+        .backlinksTo(widget.entryId);
     if (mounted) setState(() => _links = links);
   }
 
@@ -140,14 +141,14 @@ class _LinkedFromRow extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final db = ref.watch(appDatabaseProvider);
+    final editorService = ref.watch(entryEditorServiceProvider);
     return FutureBuilder<Entry>(
-      future: db.entriesDao.getEntryById(sourceEntryId),
+      future: editorService.loadEntry(sourceEntryId),
       builder: (context, snapshot) {
         final entry = snapshot.data;
         final title = entry?.title?.isNotEmpty == true
             ? entry!.title!
-            : 'Entry #$sourceEntryId';
+            : AppLocalizations.of(context).descCommonUntitled;
         return InkWell(
           key: Key('linked-from-row-$sourceEntryId'),
           onTap: entry == null
@@ -244,9 +245,17 @@ class _MoodPickerRow extends StatelessWidget {
 /// can be opened — gated through [BiometricAuthenticator] so the user gets
 /// the same prompt the app-lock gate uses.
 class _AttachmentTray extends ConsumerStatefulWidget {
-  const _AttachmentTray({required this.entryId, this.refreshToken = 0});
+  const _AttachmentTray({
+    required this.entryId,
+    this.refreshToken = 0,
+    this.onAttachmentDeleted,
+  });
 
   final int entryId;
+
+  /// Called after an attachment is deleted, so the editor can take its
+  /// picture out of the text.
+  final ValueChanged<int>? onAttachmentDeleted;
 
   /// Changes when the editor has added an attachment, which is the tray's cue
   /// to read the list again.
@@ -276,10 +285,9 @@ class _AttachmentTrayState extends ConsumerState<_AttachmentTray> {
   }
 
   Future<void> _load() async {
-    final db = ref.read(appDatabaseProvider);
-    final attachments = await db.attachmentsDao.getAttachmentsForEntry(
-      widget.entryId,
-    );
+    final attachments = await ref
+        .read(entryEditorServiceProvider)
+        .attachmentsForEntry(widget.entryId);
     final lockService = ref.read(attachmentLockServiceProvider);
     final lockedMap = <int, bool>{
       for (final a in attachments) a.id: await lockService.isLocked(a.id),
@@ -300,6 +308,65 @@ class _AttachmentTrayState extends ConsumerState<_AttachmentTray> {
       await svc.lockAttachment(attachmentId: a.id);
     }
     await _load();
+  }
+
+  /// Asks, then deletes [a] — its row, lock and encrypted file.
+  ///
+  /// A locked attachment needs the same fingerprint or PIN as opening it.
+  Future<void> _delete(Attachment a) async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.bodyEntryDeleteAttachment),
+        content: Text(l10n.bodyEntryDeleteAttachmentBody(a.fileName)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(l10n.actionCommonCancel),
+          ),
+          TextButton(
+            key: Key('attachment-delete-confirm-${a.id}'),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(dialogContext).colorScheme.error,
+            ),
+            child: Text(l10n.actionCommonDelete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    if (_lockedById[a.id] ?? false) {
+      final result = await ref
+          .read(biometricAuthenticatorProvider)
+          .authenticate(reason: l10n.descBiometricReasonFile(a.fileName));
+      if (result != BiometricAuthResult.success) {
+        if (mounted) _showSnack(l10n.errorEntryAuth);
+        return;
+      }
+    }
+
+    try {
+      await ref.read(entryDeletionServiceProvider).deleteAttachment(a.id);
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'AttachmentTray: attachment delete failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      if (mounted) _showSnack(l10n.errorEntryDeleteAttachment);
+      return;
+    }
+    widget.onAttachmentDeleted?.call(a.id);
+    await _load();
+  }
+
+  void _showSnack(String message) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _open(Attachment a) async {
@@ -342,7 +409,8 @@ class _AttachmentTrayState extends ConsumerState<_AttachmentTray> {
         MaterialPageRoute<void>(
           builder: (_) => AttachmentViewerScreen(
             session: session,
-            onOpenExternally: () => openService.openExternally(session),
+            onOpenExternally: () =>
+                openService.openExternally(session, keepOnFailure: true),
           ),
         ),
       );
@@ -462,6 +530,14 @@ class _AttachmentTrayState extends ConsumerState<_AttachmentTray> {
                       context,
                     ).tooltipEntryOpenAttachment,
                     onPressed: () => _open(a),
+                  ),
+                  IconButton(
+                    key: Key('attachment-delete-${a.id}'),
+                    icon: const Icon(Icons.delete_outline),
+                    tooltip: AppLocalizations.of(
+                      context,
+                    ).tooltipEntryDeleteAttachment,
+                    onPressed: () => _delete(a),
                   ),
                 ],
               ),

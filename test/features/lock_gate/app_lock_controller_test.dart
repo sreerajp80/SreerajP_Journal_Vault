@@ -2,6 +2,7 @@ import 'package:drift/native.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
+import 'package:sreerajp_journal_vault/core/security/external_handoff_guard.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/app_lock_controller.dart';
 
 void main() {
@@ -122,6 +123,98 @@ void main() {
       controller.dispose();
     },
   );
+
+  group('system screen hand-off', () {
+    late ExternalHandoffGuard guard;
+    late DateTime now;
+    late AppLockController controller;
+
+    setUp(() async {
+      guard = ExternalHandoffGuard();
+      now = DateTime(2026, 9, 25, 12);
+      controller = AppLockController(
+        database: database,
+        observeLifecycle: false,
+        handoffGuard: guard,
+        clock: () => now,
+      );
+      await controller.ready();
+      await controller.switchLockMode(AppLockMode.appLock);
+      await controller.unlock();
+    });
+
+    tearDown(() => controller.dispose());
+
+    Future<void> settle() => Future<void>.delayed(Duration.zero);
+
+    test('a pause during a hand-off does not lock', () async {
+      await guard.run(() async {
+        controller.didChangeAppLifecycleState(AppLifecycleState.paused);
+        now = now.add(const Duration(seconds: 30));
+        controller.didChangeAppLifecycleState(AppLifecycleState.resumed);
+      });
+      await settle();
+
+      expect(controller.isLocked, isFalse);
+    });
+
+    test('returning after the grace period locks', () async {
+      await guard.run(() async {
+        controller.didChangeAppLifecycleState(AppLifecycleState.paused);
+        now = now.add(
+          AppLockController.handoffGracePeriod + const Duration(seconds: 1),
+        );
+        controller.didChangeAppLifecycleState(AppLifecycleState.resumed);
+      });
+      await settle();
+
+      expect(controller.isLocked, isTrue);
+    });
+
+    test('the grace period is checked even if the hand-off ended '
+        'before resume', () async {
+      await guard.run(() async {
+        controller.didChangeAppLifecycleState(AppLifecycleState.paused);
+      });
+      now = now.add(const Duration(minutes: 5));
+      controller.didChangeAppLifecycleState(AppLifecycleState.resumed);
+      await settle();
+
+      expect(controller.isLocked, isTrue);
+    });
+
+    test('a plain pause after the hand-off ends still locks', () async {
+      await guard.run(() async {});
+      controller.didChangeAppLifecycleState(AppLifecycleState.paused);
+      await settle();
+
+      expect(controller.isLocked, isTrue);
+    });
+
+    test('an action that throws still closes the hand-off', () async {
+      await expectLater(
+        guard.run<void>(() async => throw StateError('picker failed')),
+        throwsStateError,
+      );
+      expect(guard.isActive, isFalse);
+
+      controller.didChangeAppLifecycleState(AppLifecycleState.paused);
+      await settle();
+      expect(controller.isLocked, isTrue);
+    });
+
+    test('unlock() clears a pending hand-off pause', () async {
+      await guard.run(() async {
+        controller.didChangeAppLifecycleState(AppLifecycleState.paused);
+      });
+      now = now.add(const Duration(minutes: 5));
+      await controller.unlock();
+      controller.didChangeAppLifecycleState(AppLifecycleState.resumed);
+      await settle();
+
+      expect(controller.isLocked, isFalse);
+    });
+  });
 
   test('unlock() persists isLocked=false', () async {
     final controller = AppLockController(

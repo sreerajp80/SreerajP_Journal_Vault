@@ -49,15 +49,14 @@ class AppFlavorConfig {
   /// this gate for apps under the Sensitive Data Extension.
   bool get enableVerboseLogging => isDev;
 
-  /// Whether the encrypted-sync UI is offered.
+  /// Whether the extra sync entry points are offered: the sync status and
+  /// conflict shortcut on the home screen, and the conflict row in Security
+  /// settings.
   ///
-  /// Off everywhere until sync actually works. `SyncEngine` and
-  /// `ConflictResolutionService` are implemented and tested, but `SyncProtocol`
-  /// has no concrete transport, so nothing can ever push or pull. Showing a
-  /// health dashboard and a conflict list for a sync that cannot run tells the
-  /// user their data is being replicated when it is not.
-  ///
-  /// Flip this to `isDev` once a transport lands, and remove it once sync
-  /// ships. See `docs/architecture.md` section 21.
+  /// Wi-Fi Sync itself is reachable from Storage settings, and its screen
+  /// links to the conflict list. It sends journals, entries, tags, links,
+  /// revisions and attachments one way, host to client, edits and deletes
+  /// included (see `docs/architecture.md` section 21). These extra shortcuts
+  /// stay off until that sync has been tried on real phones.
   bool get enableSyncUi => false;
 }

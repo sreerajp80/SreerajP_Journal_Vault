@@ -6,8 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image/image.dart' as img;
 import 'package:path/path.dart' as p;
+import 'package:sreerajp_journal_vault/core/l10n/sa_framework_localizations.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/ocr_enhance_screen.dart';
 import 'package:sreerajp_journal_vault/features/entries/services/image_edit_service.dart';
+import 'package:sreerajp_journal_vault/features/entries/services/ocr_blur_detector.dart';
 import 'package:sreerajp_journal_vault/features/entries/services/ocr_capture_downscaler.dart';
 import 'package:sreerajp_journal_vault/features/entries/services/ocr_enhancer.dart';
 import 'package:sreerajp_journal_vault/features/entries/services/ocr_language_store.dart';
@@ -42,6 +44,7 @@ void main() {
     required OcrCaptureDownscaler downscaler,
     ImageEditService? cropper,
     OcrLanguageStore? languageStore,
+    OcrBlurDetector? blurDetector,
     required void Function(String? text) onResult,
     GlobalKey<NavigatorState>? navigatorKey,
   }) {
@@ -66,6 +69,8 @@ void main() {
                         captureDownscaler: downscaler,
                         languageStore:
                             languageStore ?? InMemoryOcrLanguageStore(),
+                        blurDetector: blurDetector ?? FakeOcrBlurDetector(),
+                        tempFileSweeper: FakeOcrTempFileSweeper(tempDir),
                       ),
                     ),
                   ),
@@ -83,6 +88,48 @@ void main() {
     await tester.tap(find.text('Open Enhance'));
     await tester.pumpAndSettle();
   }
+
+  testWidgets('a blurry photo shows the retake warning', (tester) async {
+    final detector = FakeOcrBlurDetector(blurry: true);
+    await tester.pumpWidget(
+      buildLauncher(
+        ocrService: FakeOcrService(),
+        enhancer: FakeOcrEnhancer(previewBytes: dummyImageBytes),
+        downscaler: PassThroughCaptureDownscaler(),
+        blurDetector: detector,
+        onResult: (_) {},
+      ),
+    );
+    await openScreen(tester);
+
+    expect(detector.received, <String>[dummyImagePath]);
+    expect(
+      find.text('Photo looks blurry. Retake it for better text.'),
+      findsOneWidget,
+    );
+    // Advice only: the insert button is still there to use.
+    expect(find.text('Insert into Entry'), findsOneWidget);
+  });
+
+  testWidgets('a sharp photo shows no blur warning', (tester) async {
+    final detector = FakeOcrBlurDetector();
+    await tester.pumpWidget(
+      buildLauncher(
+        ocrService: FakeOcrService(),
+        enhancer: FakeOcrEnhancer(previewBytes: dummyImageBytes),
+        downscaler: PassThroughCaptureDownscaler(),
+        blurDetector: detector,
+        onResult: (_) {},
+      ),
+    );
+    await openScreen(tester);
+
+    expect(detector.received, <String>[dummyImagePath]);
+    expect(
+      find.text('Photo looks blurry. Retake it for better text.'),
+      findsNothing,
+    );
+  });
 
   testWidgets('image tools never start text recognition on their own', (
     tester,
@@ -276,6 +323,44 @@ void main() {
     expect(await store.read(), 'mal');
   });
 
+  testWidgets(
+    'language change in the app bar updates the language and is saved',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      final fakeOcr = FakeOcrService(textToReturn: 'Scanned');
+      final store = InMemoryOcrLanguageStore();
+
+      await tester.pumpWidget(
+        buildLauncher(
+          ocrService: fakeOcr,
+          enhancer: FakeOcrEnhancer(previewBytes: dummyImageBytes),
+          downscaler: PassThroughCaptureDownscaler(),
+          languageStore: store,
+          onResult: (_) {},
+        ),
+      );
+      await openScreen(tester);
+
+      final appBarLangSelector = find.byKey(
+        const Key('ocr-appbar-language-selector'),
+      );
+      expect(appBarLangSelector, findsOneWidget);
+
+      await tester.tap(appBarLangSelector);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('English').last);
+      await tester.pumpAndSettle();
+
+      expect(await store.read(), 'eng');
+
+      await tester.tap(find.byKey(const Key('ocr-enhance-insert-btn')));
+      await tester.pumpAndSettle();
+      expect(fakeOcr.lastLanguage, 'eng');
+    },
+  );
+
   testWidgets('uses the language saved from an earlier scan', (tester) async {
     await tester.binding.setSurfaceSize(const Size(800, 1200));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -398,6 +483,7 @@ void main() {
             ocrEnhancer: fakeEnhancer,
             captureDownscaler: fakeDownscaler,
             languageStore: InMemoryOcrLanguageStore(),
+            tempFileSweeper: FakeOcrTempFileSweeper(tempDir),
           ),
         ),
       ),
@@ -410,4 +496,140 @@ void main() {
     // memory on a real device.
     expect(fakeEnhancer.lastParams?.sourcePath, workingCopyPath);
   });
+
+  testWidgets('screen filter, sharpen and enlarge reach the enhancer', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1200));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final fakeEnhancer = FakeOcrEnhancer(previewBytes: dummyImageBytes);
+    await tester.pumpWidget(
+      buildLauncher(
+        ocrService: FakeOcrService(),
+        enhancer: fakeEnhancer,
+        downscaler: PassThroughCaptureDownscaler(),
+        onResult: (_) {},
+      ),
+    );
+    await openScreen(tester);
+
+    // Defaults: the output is made exactly as before these tools existed.
+    expect(fakeEnhancer.lastParams?.enlargeFactor, 1);
+    expect(fakeEnhancer.lastParams?.sharpen, 0);
+
+    await tester.tap(find.byKey(const Key('ocr-filter-tab-btn')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Screen'));
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
+    expect(fakeEnhancer.lastParams?.filter, OcrEnhanceFilter.screen);
+
+    await tester.tap(find.byKey(const Key('ocr-adjust-tab-btn')));
+    await tester.pumpAndSettle();
+    expect(find.text('Sharpen'), findsOneWidget);
+    expect(find.text('Enlarge'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('ocr-enlarge-3')));
+    await tester.pumpAndSettle();
+    expect(fakeEnhancer.lastParams?.enlargeFactor, 3);
+
+    await tester.drag(
+      find.byKey(const Key('ocr-sharpen-slider')),
+      const Offset(400, 0),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle();
+    expect(fakeEnhancer.lastParams?.sharpen, greaterThan(0));
+
+    await tester.tap(find.byKey(const Key('ocr-adjust-reset-btn')));
+    await tester.pumpAndSettle();
+    expect(fakeEnhancer.lastParams?.enlargeFactor, 1);
+    expect(fakeEnhancer.lastParams?.sharpen, 0);
+  });
+
+  testWidgets('double-tap zooms the preview in and back out', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1200));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      buildLauncher(
+        ocrService: FakeOcrService(),
+        enhancer: FakeOcrEnhancer(previewBytes: dummyImageBytes),
+        downscaler: PassThroughCaptureDownscaler(),
+        onResult: (_) {},
+      ),
+    );
+    await openScreen(tester);
+
+    double zoom() => tester
+        .widget<InteractiveViewer>(find.byType(InteractiveViewer))
+        .transformationController!
+        .value
+        .getMaxScaleOnAxis();
+
+    final preview = find.byKey(const Key('ocr-preview-zoom'));
+    expect(zoom(), 1.0);
+
+    await tester.tap(preview);
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tap(preview);
+    await tester.pumpAndSettle();
+    expect(zoom(), greaterThan(2.0));
+
+    await tester.tap(preview);
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tap(preview);
+    await tester.pumpAndSettle();
+    expect(zoom(), 1.0);
+  });
+
+  for (final locale in const ['ml', 'sa']) {
+    testWidgets('new edit tools render in $locale', (tester) async {
+      // Wide, because the test font draws every letter as a full square, so
+      // the longer Malayalam and Sanskrit tool labels need more room than on
+      // a phone.
+      await tester.binding.setSurfaceSize(const Size(2000, 1200));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            // Flutter has no Sanskrit framework strings; the app registers
+            // these fallbacks first, so the test does too.
+            localizationsDelegates: const [
+              SaMaterialLocalizationsDelegate(),
+              SaCupertinoLocalizationsDelegate(),
+              SaWidgetsLocalizationsDelegate(),
+              ...AppLocalizations.localizationsDelegates,
+            ],
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: Locale(locale),
+            home: OcrEnhanceScreen(
+              imagePath: dummyImagePath,
+              ocrService: FakeOcrService(),
+              ocrEnhancer: FakeOcrEnhancer(previewBytes: dummyImageBytes),
+              captureDownscaler: PassThroughCaptureDownscaler(),
+              languageStore: InMemoryOcrLanguageStore(),
+              blurDetector: FakeOcrBlurDetector(),
+              tempFileSweeper: FakeOcrTempFileSweeper(tempDir),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final l10n = lookupAppLocalizations(Locale(locale));
+
+      await tester.tap(find.byKey(const Key('ocr-filter-tab-btn')));
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.labelOcrEnhanceFilterScreen), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('ocr-adjust-tab-btn')));
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.labelOcrEnhanceSharpen), findsOneWidget);
+      expect(find.text(l10n.labelOcrEnhanceEnlarge), findsOneWidget);
+      expect(find.byKey(const Key('ocr-enlarge-2')), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+  }
 }

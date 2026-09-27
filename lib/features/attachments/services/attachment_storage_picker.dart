@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/services.dart';
+import 'package:sreerajp_journal_vault/core/security/external_handoff_guard.dart';
 
 /// The single native channel backing every SD-card storage operation.
 const MethodChannel attachmentStorageChannel = MethodChannel(
@@ -38,8 +39,8 @@ class MethodChannelAttachmentStoragePicker implements AttachmentStoragePicker {
 
   @override
   Future<StorageTreeSelection?> pickStorageTree() async {
-    final result = await _channel.invokeMapMethod<String, dynamic>(
-      'pickStorageTree',
+    final result = await ExternalHandoffGuard.instance.run(
+      () => _channel.invokeMapMethod<String, dynamic>('pickStorageTree'),
     );
     if (result == null) return null;
     final treeUri = result['treeUri'];

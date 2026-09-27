@@ -1,30 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/editor/table_cell_editing.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 /// Rich formatting toolbar for the Quill editor.
 ///
-/// Provides buttons for headings, fonts, character formatting,
-/// colors, alignment, lists, indents, code, links, quotes,
-/// tables, callouts, and undo/redo.
+/// Undo and redo are pinned at the start and always visible. The rest scrolls
+/// sideways, most-used first: character style, colours, heading and font,
+/// lists and indents, alignment, link/code/quote, then the insert buttons.
+///
+/// While a table cell is being edited (see [cellEditing]), the character
+/// buttons — bold, italic, underline, strike, sub/superscript, colours, inline
+/// code, link, clear formatting, undo/redo — act on the cell. Buttons that
+/// have no meaning inside a cell are greyed out until the edit ends.
 class EditorToolbar extends StatelessWidget {
   const EditorToolbar({
     super.key,
     required this.controller,
+    this.cellEditing,
     this.onInsertTab,
     this.onInsertTable,
     this.onInsertCallout,
     this.onInsertImage,
     this.onInsertDrawing,
     this.onScanText,
-    this.onDictate,
-    this.onToggleFocusParagraph,
-    this.isFocusParagraph = false,
-    this.onToggleDistractionFree,
-    this.isDistractionFree = false,
   });
 
   final QuillController controller;
+
+  /// Reports the table cell being edited, if any.
+  final TableCellEditingController? cellEditing;
 
   /// Inserts a tab character at the caret. Android soft keyboards have no Tab
   /// key, so this button is the only way to type one on a phone.
@@ -35,15 +40,77 @@ class EditorToolbar extends StatelessWidget {
   final VoidCallback? onInsertDrawing;
   final VoidCallback? onScanText;
 
-  /// Opens on-device dictation. Null hides the button.
-  final VoidCallback? onDictate;
-  final VoidCallback? onToggleFocusParagraph;
-  final bool isFocusParagraph;
-  final VoidCallback? onToggleDistractionFree;
-  final bool isDistractionFree;
-
   @override
   Widget build(BuildContext context) {
+    final cellEditing = this.cellEditing;
+    final Widget bar = cellEditing == null
+        ? _buildBar(context, controller, inCell: false)
+        : ListenableBuilder(
+            listenable: cellEditing,
+            builder: (context, _) {
+              final cellController = cellEditing.activeController;
+              return _buildBar(
+                context,
+                cellController ?? controller,
+                inCell: cellController != null,
+              );
+            },
+          );
+    // A tap on the toolbar is part of editing, not a tap "outside" the text:
+    // without this, pressing Bold would end the table cell's edit first.
+    return TextFieldTapRegion(child: bar);
+  }
+
+  Widget _buildBar(
+    BuildContext context,
+    QuillController controller, {
+    required bool inCell,
+  }) {
+    /// A button that only makes sense in the entry body, not in a cell.
+    Widget entryOnly(Widget child) {
+      if (!inCell) return child;
+      return IgnorePointer(child: Opacity(opacity: 0.38, child: child));
+    }
+
+    final l10n = AppLocalizations.of(context);
+
+    /// A plain icon button for one of the insert actions.
+    Widget insertButton(
+      String key,
+      IconData icon,
+      String tooltip,
+      VoidCallback onPressed,
+    ) {
+      return entryOnly(
+        IconButton(
+          key: Key(key),
+          icon: Icon(icon, size: 20),
+          onPressed: onPressed,
+          tooltip: tooltip,
+          visualDensity: VisualDensity.compact,
+        ),
+      );
+    }
+
+    Widget toggle(Attribute<dynamic> attribute) =>
+        QuillToolbarToggleStyleButton(
+          controller: controller,
+          attribute: attribute,
+        );
+
+    final onInsertTab = this.onInsertTab;
+    final onInsertTable = this.onInsertTable;
+    final onInsertCallout = this.onInsertCallout;
+    final onInsertImage = this.onInsertImage;
+    final onInsertDrawing = this.onInsertDrawing;
+    final onScanText = this.onScanText;
+    final hasInsertButtons =
+        onInsertTable != null ||
+        onInsertCallout != null ||
+        onInsertImage != null ||
+        onInsertDrawing != null ||
+        onScanText != null;
+
     return DecoratedBox(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerLow,
@@ -51,221 +118,135 @@ class EditorToolbar extends StatelessWidget {
           top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
         ),
       ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-        child: Row(
-          children: [
-            // Heading dropdown
-            QuillToolbarSelectHeaderStyleDropdownButton(controller: controller),
-            _divider(),
-            // Font family / size
-            QuillToolbarFontFamilyButton(controller: controller),
-            QuillToolbarFontSizeButton(controller: controller),
-            _divider(),
-            // Bold / Italic / Underline / Strikethrough
-            QuillToolbarToggleStyleButton(
+      child: Row(
+        children: [
+          // Undo / Redo stay pinned at the start, outside the scrolling part,
+          // so they are always one tap away.
+          Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: QuillToolbarHistoryButton(
               controller: controller,
-              attribute: Attribute.bold,
+              isUndo: true,
             ),
-            QuillToolbarToggleStyleButton(
-              controller: controller,
-              attribute: Attribute.italic,
-            ),
-            QuillToolbarToggleStyleButton(
-              controller: controller,
-              attribute: Attribute.underline,
-            ),
-            QuillToolbarToggleStyleButton(
-              controller: controller,
-              attribute: Attribute.strikeThrough,
-            ),
-            // Subscript / Superscript
-            QuillToolbarToggleStyleButton(
-              controller: controller,
-              attribute: Attribute.subscript,
-            ),
-            QuillToolbarToggleStyleButton(
-              controller: controller,
-              attribute: Attribute.superscript,
-            ),
-            _divider(),
-            // Text color / Background highlight
-            QuillToolbarColorButton(
-              controller: controller,
-              isBackground: false,
-            ),
-            QuillToolbarColorButton(controller: controller, isBackground: true),
-            // Clear formatting
-            QuillToolbarClearFormatButton(controller: controller),
-            _divider(),
-            // Lists
-            QuillToolbarToggleStyleButton(
-              controller: controller,
-              attribute: Attribute.ul,
-            ),
-            QuillToolbarToggleStyleButton(
-              controller: controller,
-              attribute: Attribute.ol,
-            ),
-            // Checklist
-            QuillToolbarToggleCheckListButton(controller: controller),
-            // Indent / Outdent
-            QuillToolbarIndentButton(controller: controller, isIncrease: false),
-            QuillToolbarIndentButton(controller: controller, isIncrease: true),
-            // Tab character — the soft keyboard has no Tab key.
-            if (onInsertTab != null)
-              IconButton(
-                key: const Key('editor-insert-tab'),
-                icon: const Icon(Icons.keyboard_tab, size: 20),
-                onPressed: onInsertTab,
-                tooltip: AppLocalizations.of(context).tabEditorInsert,
-                visualDensity: VisualDensity.compact,
+          ),
+          QuillToolbarHistoryButton(controller: controller, isUndo: false),
+          _divider(),
+          Expanded(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.only(right: 4, top: 2, bottom: 2),
+              child: Row(
+                children: [
+                  // Character style
+                  toggle(Attribute.bold),
+                  toggle(Attribute.italic),
+                  toggle(Attribute.underline),
+                  toggle(Attribute.strikeThrough),
+                  _divider(),
+                  // Text colour / highlight / clear formatting
+                  QuillToolbarColorButton(
+                    controller: controller,
+                    isBackground: false,
+                  ),
+                  QuillToolbarColorButton(
+                    controller: controller,
+                    isBackground: true,
+                  ),
+                  QuillToolbarClearFormatButton(controller: controller),
+                  _divider(),
+                  // Heading / font family / font size
+                  entryOnly(
+                    QuillToolbarSelectHeaderStyleDropdownButton(
+                      controller: controller,
+                    ),
+                  ),
+                  entryOnly(
+                    QuillToolbarFontFamilyButton(controller: controller),
+                  ),
+                  entryOnly(QuillToolbarFontSizeButton(controller: controller)),
+                  _divider(),
+                  // Lists, indent and tab
+                  entryOnly(toggle(Attribute.ul)),
+                  entryOnly(toggle(Attribute.ol)),
+                  entryOnly(
+                    QuillToolbarToggleCheckListButton(controller: controller),
+                  ),
+                  entryOnly(
+                    QuillToolbarIndentButton(
+                      controller: controller,
+                      isIncrease: false,
+                    ),
+                  ),
+                  entryOnly(
+                    QuillToolbarIndentButton(
+                      controller: controller,
+                      isIncrease: true,
+                    ),
+                  ),
+                  // Tab character — the soft keyboard has no Tab key.
+                  if (onInsertTab != null)
+                    insertButton(
+                      'editor-insert-tab',
+                      Icons.keyboard_tab,
+                      l10n.tabEditorInsert,
+                      onInsertTab,
+                    ),
+                  _divider(),
+                  // Alignment (left / center / right / justify)
+                  entryOnly(toggle(Attribute.leftAlignment)),
+                  entryOnly(toggle(Attribute.centerAlignment)),
+                  entryOnly(toggle(Attribute.rightAlignment)),
+                  entryOnly(toggle(Attribute.justifyAlignment)),
+                  _divider(),
+                  // Link, code, quote, sub/superscript
+                  QuillToolbarLinkStyleButton(controller: controller),
+                  toggle(Attribute.inlineCode),
+                  entryOnly(toggle(Attribute.codeBlock)),
+                  entryOnly(toggle(Attribute.blockQuote)),
+                  toggle(Attribute.subscript),
+                  toggle(Attribute.superscript),
+                  // Insert: table, callout, image, drawing, scanned text
+                  if (hasInsertButtons) _divider(),
+                  if (onInsertTable != null)
+                    insertButton(
+                      'editor-insert-table',
+                      Icons.table_chart_outlined,
+                      l10n.tooltipEditorInsertTable,
+                      onInsertTable,
+                    ),
+                  if (onInsertCallout != null)
+                    insertButton(
+                      'editor-insert-callout',
+                      Icons.info_outline,
+                      l10n.tooltipEditorInsertCallout,
+                      onInsertCallout,
+                    ),
+                  if (onInsertImage != null)
+                    insertButton(
+                      'editor-insert-image',
+                      Icons.image_outlined,
+                      l10n.tooltipEditorInsertImage,
+                      onInsertImage,
+                    ),
+                  if (onInsertDrawing != null)
+                    insertButton(
+                      'editor-insert-drawing',
+                      Icons.draw_outlined,
+                      l10n.tooltipEditorInsertDrawing,
+                      onInsertDrawing,
+                    ),
+                  if (onScanText != null)
+                    insertButton(
+                      'editor-scan-text',
+                      Icons.document_scanner_outlined,
+                      l10n.tooltipEntryEditorScanText,
+                      onScanText,
+                    ),
+                ],
               ),
-            _divider(),
-            // Alignment (left / center / right / justify)
-            QuillToolbarToggleStyleButton(
-              controller: controller,
-              attribute: Attribute.leftAlignment,
             ),
-            QuillToolbarToggleStyleButton(
-              controller: controller,
-              attribute: Attribute.centerAlignment,
-            ),
-            QuillToolbarToggleStyleButton(
-              controller: controller,
-              attribute: Attribute.rightAlignment,
-            ),
-            QuillToolbarToggleStyleButton(
-              controller: controller,
-              attribute: Attribute.justifyAlignment,
-            ),
-            _divider(),
-            // Code block
-            QuillToolbarToggleStyleButton(
-              controller: controller,
-              attribute: Attribute.codeBlock,
-            ),
-            // Inline code
-            QuillToolbarToggleStyleButton(
-              controller: controller,
-              attribute: Attribute.inlineCode,
-            ),
-            // Block quote
-            QuillToolbarToggleStyleButton(
-              controller: controller,
-              attribute: Attribute.blockQuote,
-            ),
-            // Link
-            QuillToolbarLinkStyleButton(controller: controller),
-            _divider(),
-            // Table insert
-            if (onInsertTable != null)
-              IconButton(
-                key: const Key('editor-insert-table'),
-                icon: const Icon(Icons.table_chart_outlined, size: 20),
-                onPressed: onInsertTable,
-                tooltip: AppLocalizations.of(context).tooltipEditorInsertTable,
-                visualDensity: VisualDensity.compact,
-              ),
-            // Callout insert
-            if (onInsertCallout != null)
-              IconButton(
-                key: const Key('editor-insert-callout'),
-                icon: const Icon(Icons.info_outline, size: 20),
-                onPressed: onInsertCallout,
-                tooltip: AppLocalizations.of(
-                  context,
-                ).tooltipEditorInsertCallout,
-                visualDensity: VisualDensity.compact,
-              ),
-            // Inline image insert
-            if (onInsertImage != null)
-              IconButton(
-                key: const Key('editor-insert-image'),
-                icon: const Icon(Icons.image_outlined, size: 20),
-                onPressed: onInsertImage,
-                tooltip: AppLocalizations.of(context).tooltipEditorInsertImage,
-                visualDensity: VisualDensity.compact,
-              ),
-            // Drawing / Sketch insert
-            if (onInsertDrawing != null)
-              IconButton(
-                key: const Key('editor-insert-drawing'),
-                icon: const Icon(Icons.draw_outlined, size: 20),
-                onPressed: onInsertDrawing,
-                tooltip: AppLocalizations.of(
-                  context,
-                ).tooltipEditorInsertDrawing,
-                visualDensity: VisualDensity.compact,
-              ),
-            // OCR / Scan text from image
-            if (onScanText != null)
-              IconButton(
-                key: const Key('editor-scan-text'),
-                icon: const Icon(Icons.document_scanner_outlined, size: 20),
-                onPressed: onScanText,
-                tooltip: AppLocalizations.of(
-                  context,
-                ).tooltipEntryEditorScanText,
-                visualDensity: VisualDensity.compact,
-              ),
-            // Dictation: speech to text, recognised on the device
-            if (onDictate != null)
-              IconButton(
-                key: const Key('editor-dictate'),
-                icon: const Icon(Icons.keyboard_voice_outlined, size: 20),
-                onPressed: onDictate,
-                tooltip: AppLocalizations.of(context).tooltipEditorDictate,
-                visualDensity: VisualDensity.compact,
-              ),
-            _divider(),
-            // Focus paragraph dim mode toggle
-            if (onToggleFocusParagraph != null)
-              IconButton(
-                key: const Key('editor-toggle-focus-paragraph'),
-                icon: Icon(
-                  isFocusParagraph
-                      ? Icons.filter_center_focus
-                      : Icons.center_focus_weak_outlined,
-                  size: 20,
-                  color: isFocusParagraph
-                      ? Theme.of(context).colorScheme.primary
-                      : null,
-                ),
-                onPressed: onToggleFocusParagraph,
-                tooltip: isFocusParagraph
-                    ? AppLocalizations.of(context).descEntryFocusParagraphOn
-                    : AppLocalizations.of(context).descEntryFocusParagraphOff,
-                visualDensity: VisualDensity.compact,
-              ),
-            // Distraction-free mode toggle
-            if (onToggleDistractionFree != null)
-              IconButton(
-                key: const Key('editor-toggle-distraction-free'),
-                icon: Icon(
-                  isDistractionFree ? Icons.fullscreen_exit : Icons.fullscreen,
-                  size: 20,
-                  color: isDistractionFree
-                      ? Theme.of(context).colorScheme.primary
-                      : null,
-                ),
-                onPressed: onToggleDistractionFree,
-                tooltip: isDistractionFree
-                    ? AppLocalizations.of(
-                        context,
-                      ).actionEntryDistractionFreeExit
-                    : AppLocalizations.of(
-                        context,
-                      ).actionEntryDistractionFreeEnter,
-                visualDensity: VisualDensity.compact,
-              ),
-            _divider(),
-            // Undo / Redo
-            QuillToolbarHistoryButton(controller: controller, isUndo: true),
-            QuillToolbarHistoryButton(controller: controller, isUndo: false),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

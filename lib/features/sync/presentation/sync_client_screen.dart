@@ -7,6 +7,7 @@ import 'package:sreerajp_journal_vault/features/sync/providers/wifi_sync_provide
 import 'package:sreerajp_journal_vault/features/sync/services/sync_engine.dart';
 import 'package:sreerajp_journal_vault/features/sync/services/wifi_sync_crypto.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
+import 'package:sreerajp_journal_vault/core/security/keyboard_privacy_scope.dart';
 
 /// Client Screen (Receive Mode)
 ///
@@ -208,6 +209,8 @@ class _SyncClientScreenState extends ConsumerState<SyncClientScreen>
                     child: ListView(
                       children: [
                         TextFormField(
+                          enableIMEPersonalizedLearning:
+                              KeyboardPrivacyScope.allowLearning(context),
                           controller: _hostController,
                           decoration: InputDecoration(
                             labelText: l10n.labelSyncIp,
@@ -222,6 +225,8 @@ class _SyncClientScreenState extends ConsumerState<SyncClientScreen>
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
+                          enableIMEPersonalizedLearning:
+                              KeyboardPrivacyScope.allowLearning(context),
                           controller: _portController,
                           decoration: InputDecoration(
                             labelText: l10n.labelSyncPort,
@@ -240,6 +245,8 @@ class _SyncClientScreenState extends ConsumerState<SyncClientScreen>
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
+                          enableIMEPersonalizedLearning:
+                              KeyboardPrivacyScope.allowLearning(context),
                           controller: _codeController,
                           decoration: InputDecoration(
                             labelText: l10n.labelSyncPairingCode,

@@ -441,6 +441,18 @@ class AppLocalizationsSa extends AppLocalizations {
   }
 
   @override
+  String get descSyncConflictDeletedRemote =>
+      'दूरस्थे उपकरणे इदं लुप्तम्। दूरस्थं स्थापयसि चेत् अत्रापि लुप्यते।';
+
+  @override
+  String get descSyncConflictDeletedLocal =>
+      'अस्मिन् उपकरणे त्वया इदं लुप्तम्। दूरस्थं स्थापयसि चेत् पुनः आगच्छति।';
+
+  @override
+  String get errorSyncConflictMissingParent =>
+      'दूरस्थं संस्करणं स्थापयितुं न शक्यते: तस्य मूलवस्तु अस्मिन् उपकरणे नास्ति। पुनः समन्वयं कृत्वा प्रयतस्व।';
+
+  @override
   String get titleSyncConflictDetails => 'विरोधविवरणम्';
 
   @override
@@ -800,6 +812,42 @@ class AppLocalizationsSa extends AppLocalizations {
   String get labelEntryTableDimensionHelp => '1–20';
 
   @override
+  String get actionTableAddRow => 'पङ्क्तिं योजय';
+
+  @override
+  String get actionTableAddColumn => 'स्तम्भं योजय';
+
+  @override
+  String get actionTableDeleteRow => 'पङ्क्तिं लोपय';
+
+  @override
+  String get actionTableDeleteColumn => 'स्तम्भं लोपय';
+
+  @override
+  String get actionTableDelete => 'सारणीं लोपय';
+
+  @override
+  String get actionConvertToTable => 'सारणीं कुरु';
+
+  @override
+  String get actionPasteMarkdown => 'मार्कडाउन-रूपेण स्थापय';
+
+  @override
+  String get actionPastePlainText => 'केवलपाठरूपेण स्थापय';
+
+  @override
+  String get tooltipTableAddRow => 'पङ्क्तिं योजय';
+
+  @override
+  String get tooltipTableAddColumn => 'स्तम्भं योजय';
+
+  @override
+  String get tooltipTableResizeColumn => 'स्तम्भविस्तारं परिवर्तय';
+
+  @override
+  String get labelTableCell => 'सारणीकोष्ठः';
+
+  @override
   String get titleEntryCalloutType => 'सूचनाप्रकारः';
 
   @override
@@ -1139,6 +1187,13 @@ class AppLocalizationsSa extends AppLocalizations {
       'पटलचित्राणि, पटलमुद्रणम्, अद्यतनानुप्रयोगसूच्यां दृश्यमानं पूर्वदर्शनं च निरुणद्धि';
 
   @override
+  String get labelSettingsScanInAppCamera => 'अन्तःस्थं छायायन्त्रम्';
+
+  @override
+  String get descSettingsScanInAppCamera =>
+      '\"चित्रं गृहाण\" इत्यनेन अस्य अनुप्रयोगस्य स्वकीयं छायायन्त्रं प्रयुज्यते, अतः चित्रस्य प्रतिलिपिः चित्रशालां न प्राप्नोति। निष्क्रिये सति दूरवाण्याः छायायन्त्र-अनुप्रयोगः उद्घाट्यते, यः स्पष्टतरं चित्रं गृह्णाति';
+
+  @override
   String get bodySettingsScreenSecurityOff =>
       'पटलचित्ररोधं निष्क्रियं कर्तव्यम् किम्?';
 
@@ -1158,6 +1213,34 @@ class AppLocalizationsSa extends AppLocalizations {
   @override
   String get errorSettingsScreenSecuritySave =>
       'पटलचित्ररोधः परिवर्तयितुं न शक्तः';
+
+  @override
+  String get labelSettingsKeyboardPrivacy => 'कुञ्जीफलकगोपनम्';
+
+  @override
+  String get descSettingsKeyboardPrivacy =>
+      'अत्र लिखितानि पदानि मा शिक्षस्व इति तव कुञ्जीफलकं याचते, येन गोप्यपदानि अन्येषु अनुप्रयोगेषु सूचनारूपेण न दृश्येरन्। कुञ्जीफलकस्य स्वकीयाः व्यवस्थाः अपि प्रवर्तन्ते।';
+
+  @override
+  String get bodySettingsKeyboardPrivacyOff => 'कुञ्जीफलकं शिक्षताम् किम्?';
+
+  @override
+  String get bodySettingsKeyboardPrivacyOffBody =>
+      'तव कुञ्जीफलकं दैनन्दिन्याः पदानि, यथा नामानि स्थानानि च, स्मरेत् अन्येषु अनुप्रयोगेषु सूचयेत् च। लेखनकाले उत्तमाः सूचनाः इच्छसि चेत् एव एतत् निष्क्रियं कुरु।';
+
+  @override
+  String get actionSettingsKeyboardPrivacyOff => 'शिक्षणम् अनुमन्यताम्';
+
+  @override
+  String get bodySettingsKeyboardPrivacyUpdatedOn => 'कुञ्जीफलकगोपनं सक्रियम्';
+
+  @override
+  String get bodySettingsKeyboardPrivacyUpdatedOff =>
+      'कुञ्जीफलकगोपनं निष्क्रियम्';
+
+  @override
+  String get errorSettingsKeyboardPrivacySave =>
+      'कुञ्जीफलकगोपनं परिवर्तयितुं न शक्तम्';
 
   @override
   String get labelSettingsTamperAlerts => 'विकृतिसूचनाः';
@@ -1451,7 +1534,7 @@ class AppLocalizationsSa extends AppLocalizations {
 
   @override
   String get bodyRestoreConfirmReplaceBody =>
-      'अस्मिन् उपकरणे प्रत्येका दैनन्दिनी प्रविष्टिः संलग्नं च लोप्यते, प्रतिलिप्या च प्रतिस्थाप्यते। अत्र यत् अस्ति तस्य सुरक्षाप्रतिलिपिः प्रथमं क्रियते।';
+      'अस्मिन् उपकरणे प्रत्येका दैनन्दिनी प्रविष्टिः संलग्नं च लोप्यते, प्रतिलिप्या च प्रतिस्थाप्यते। अत्र यत् अस्ति तस्य सुरक्षाप्रतिलिपिः प्रथमं क्रियते। यदा इदम् उपकरणं Wi-Fi समन्वयेन परिवर्तनानि प्रेषयति, तदा अन्यस्य उपकरणस्य प्रतिलिपयः अपि एवं प्रतिस्थाप्यन्ते।';
 
   @override
   String get bodyRestoreConfirmMerge => 'इयं प्रतिलिपिः संयोजयितव्या किम्?';
@@ -2108,7 +2191,7 @@ class AppLocalizationsSa extends AppLocalizations {
 
   @override
   String get helpFaqA3 =>
-      'छायायन्त्रं चित्राणि च: प्रविष्टिषु चित्राणि आदातुम् आनेतुं वा।\nध्वनिग्राहकः: ध्वनिटिप्पणीमुद्रणाय वाग्लेखनाय च (यन्त्रे एव परिचीयते)।\nकोशः: कूटलिखिताः प्रतिलिपयः रक्षितुं PDF निर्यापयितुं च।';
+      'छायायन्त्रं चित्राणि च: प्रविष्टिषु चित्राणि आदातुम् आनेतुं वा।\nध्वनिग्राहकः: ध्वनिटिप्पणीमुद्रणाय।\nकोशः: कूटलिखिताः प्रतिलिपयः रक्षितुं PDF निर्यापयितुं च।';
 
   @override
   String get helpFaqQ4 =>
@@ -2413,6 +2496,9 @@ class AppLocalizationsSa extends AppLocalizations {
 
   @override
   String get labelTemplateCategoryCustom => 'मम प्रारूपाणि';
+
+  @override
+  String get labelImportedTemplateName => 'आनीतं प्रारूपम्';
 
   @override
   String get actionTemplateCollapseAll => 'सर्वं संकोचय';
@@ -3303,6 +3389,18 @@ class AppLocalizationsSa extends AppLocalizations {
   String get actionEditorGotoLineEnd => '⇥';
 
   @override
+  String get actionEditorBold => 'स्थूलम्';
+
+  @override
+  String get actionEditorItalic => 'तिर्यक्';
+
+  @override
+  String get actionEditorUnderline => 'अधोरेखा';
+
+  @override
+  String get actionEditorStrike => 'छेदरेखा';
+
+  @override
   String get bodyOcrCameraPermissionDenied =>
       'पाठज्ञानाय लेखपत्राणां चित्रग्रहणे छायायन्त्रानुमतिः आवश्यका।';
 
@@ -3449,7 +3547,7 @@ class AppLocalizationsSa extends AppLocalizations {
   String get titleLanguage => 'भाषा';
 
   @override
-  String get labelLanguageSystemDefault => 'तन्त्रसिद्धम्';
+  String get labelLanguageSystemDefault => 'तन्त्रपूर्वनिर्धारितम्';
 
   @override
   String get descLanguageSystemDefault =>
@@ -5255,6 +5353,9 @@ class AppLocalizationsSa extends AppLocalizations {
   String get tooltipExportJournal => 'इयं दैनन्दिनी निर्याप्यताम्';
 
   @override
+  String get tooltipImportJournal => 'अस्यां दैनन्दिन्याम् आयातय';
+
+  @override
   String get titleExportChooseJournal => 'दैनन्दिन्याः निर्यापणम्';
 
   @override
@@ -5744,57 +5845,16 @@ class AppLocalizationsSa extends AppLocalizations {
   }
 
   @override
-  String get tooltipEditorDictate => 'वाचा लिख';
+  String get errorVoiceNoteSaveFailed =>
+      'ध्वनिटिप्पणी रक्षितुं न शक्ता। पुनः प्रयतस्व।';
 
   @override
-  String get titleDictation => 'वाग्लेखनम्';
+  String get labelVoiceNoteSaving => 'रक्ष्यते…';
 
   @override
-  String get labelDictationListening => 'शृणोति…';
-
-  @override
-  String get labelDictationPaused => 'विरतम्';
-
-  @override
-  String get tooltipDictationPause => 'विरम';
-
-  @override
-  String get tooltipDictationResume => 'पुनः आरभस्व';
-
-  @override
-  String get tooltipDictationLanguage => 'वाग्भाषा';
-
-  @override
-  String get labelDictationDeviceDefault => 'यन्त्रभाषा';
-
-  @override
-  String get labelDictationEditHint => 'पाठं संशोधय';
-
-  @override
-  String get actionDictationInsert => 'योजय';
-
-  @override
-  String get emptyDictationSpeak => 'वक्तुम् आरभस्व। तव शब्दाः अत्र दृश्यन्ते।';
-
-  @override
-  String get descDictationPrivacy =>
-      'वाणी अस्मिन् यन्त्रे एव परिचीयते। ध्वनिः न रक्ष्यते न च प्रेष्यते।';
-
-  @override
-  String get errorDictationOfflineUnavailable =>
-      'अस्मिन् यन्त्रे जालं विना वाक्परिचयः न लभ्यते। वाग्लेखनं यन्त्रे एव प्रवर्तते, अतः अत्र उपयोक्तुं न शक्यते।';
-
-  @override
-  String get errorDictationLanguageUnavailable =>
-      'अस्याः भाषायाः जालरहितं वाक्प्रतिरूपं न स्थापितम्। दूरवाण्याः वाग्विन्यासेषु तत् स्थापय, अथवा अन्यां भाषां चिनु।';
-
-  @override
-  String get errorDictationFailed =>
-      'वाक्परिचयः अकस्मात् स्थगितः। पुनः प्रयतस्व।';
-
-  @override
-  String get helpDictationSanskritUnsupported =>
-      'संस्कृतवाणी इदानीं जालं विना परिचेतुं न शक्यते। आङ्ग्लभाषया मलयाळभाषया वा वद।';
+  String labelVoiceNoteFileName(String timestamp) {
+    return 'ध्वनिटिप्पणी $timestamp';
+  }
 
   @override
   String get tooltipOcrPreviewText => 'पाठं पश्य';
@@ -5808,5 +5868,71 @@ class AppLocalizationsSa extends AppLocalizations {
 
   @override
   String get helpOcrPhoneCamera =>
-      '\"चित्रं गृहाण\" स्पष्टतमचित्रार्थं दूरवाण्याः स्वकीयं छायायन्त्र-अनुप्रयोगम् उद्घाटयति। केचन छायायन्त्र-अनुप्रयोगाः चित्रस्य प्रतिलिपिं चित्रशालायाम् अपि रक्षन्ति। यदि चित्रम् अस्मात् अनुप्रयोगात् बहिः न गन्तव्यम्, तर्हि \"अन्तःस्थं छायायन्त्रम्\" वृणु।';
+      '\"चित्रं गृहाण\" स्पष्टतमचित्रार्थं दूरवाण्याः स्वकीयं छायायन्त्र-अनुप्रयोगम् उद्घाटयति। केचन छायायन्त्र-अनुप्रयोगाः चित्रस्य प्रतिलिपिं चित्रशालायाम् अपि रक्षन्ति। यदि चित्रम् अस्मात् अनुप्रयोगात् बहिः न गन्तव्यम्, तर्हि विन्यासेषु सुरक्षाविभागे \"अन्तःस्थं छायायन्त्रम्\" सक्रियं कुरु।';
+
+  @override
+  String get errorOcrPhotoBlurry => 'चित्रम् अस्पष्टम्। शुद्धपठनाय पुनः गृहाण।';
+
+  @override
+  String get errorOcrEnhanceFailed =>
+      'इदं परिवर्तनं कर्तुं न शक्तम्। पुनः प्रयतस्व।';
+
+  @override
+  String get errorOcrPhotoUnreadable =>
+      'इदं चित्रम् उद्घाटयितुं न शक्तम्। अन्यत् चित्रं चिनु।';
+
+  @override
+  String get errorOcrTimedOut =>
+      'पाठपठने अतिविलम्बः जातः। केवलं पाठं कर्तयित्वा पुनः प्रयतस्व।';
+
+  @override
+  String get helpOcrAutoEnglish =>
+      'यदा \"English + മലയാളം\" वृतम्, पृष्ठं च प्रायः सर्वम् आङ्ग्लभाषायाम्, तदा अधिकशुद्ध्यै केवलम् आङ्ग्लभाषया पुनः पठ्यते। दूरवाणीं निश्चलं धारय, समं प्रकाशं च उपयुङ्क्ष्व। छायारहितं स्पष्टं चित्रं सर्वोत्तमं पठ्यते।';
+
+  @override
+  String get labelOcrEnhanceFilterScreen => 'पटलम्';
+
+  @override
+  String get labelOcrEnhanceEnlarge => 'विस्तारः';
+
+  @override
+  String labelOcrEnhanceScale(int factor) {
+    return '$factor×';
+  }
+
+  @override
+  String get labelOcrEnhanceSharpen => 'तीक्ष्णता';
+
+  @override
+  String get descOcrEnhancePreviewZoom =>
+      'चित्रस्य पूर्वदर्शनम्। वर्धयितुं द्वाभ्याम् अङ्गुलीभ्यां विस्तारय, अथवा द्विवारं स्पृश।';
+
+  @override
+  String get helpOcrEditTools =>
+      'अक्षराणि लघूनि दुष्पठानि वा? सम्पादनपटले \"समायोजनम्\" उद्घाटय। \"विस्तारः\" (2× 3× वा) लघुभ्यः अक्षरेभ्यः अधिकान् बिन्दून् ददाति, \"तीक्ष्णता\" अस्पष्टान् प्रान्तान् स्पष्टीकरोति। सङ्गणकस्य दूरवाण्याः वा पटलस्य चित्राय \"पटलम्\" इति छाननं वृणु। अक्षराणि परीक्षितुं चित्रं द्वाभ्याम् अङ्गुलीभ्यां विस्तारय, अथवा द्विवारं स्पृश। योजनात् पूर्वं पाठपूर्वदर्शने फलं तोलय।';
+
+  @override
+  String get tooltipEntryDeleteAttachment => 'संलग्नं लोपय';
+
+  @override
+  String get bodyEntryDeleteAttachment => 'संलग्नं लोपयितव्यम् किम्?';
+
+  @override
+  String bodyEntryDeleteAttachmentBody(String fileName) {
+    return '\"$fileName\" अस्याः प्रविष्टेः अस्मात् यन्त्रात् च अपनीयते। एतत् पुनः न लभ्यते।';
+  }
+
+  @override
+  String get errorEntryDeleteAttachment => 'संलग्नं लोपयितुं न शक्तम्।';
+
+  @override
+  String get errorEntryDelete => 'प्रविष्टिं लोपयितुं न शक्तम्।';
+
+  @override
+  String get errorJournalDelete =>
+      'दैनन्दिनीं लोपयितुं न शक्तम्। किमपि न अपनीतम्।';
+
+  @override
+  String get bodyVoiceNoteDiscardConfirm =>
+      'इदं ध्वनिमुद्रणं स्थगयित्वा त्यक्तव्यम् किम्?';
 }

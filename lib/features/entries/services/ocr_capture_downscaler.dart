@@ -149,6 +149,11 @@ class NativeOcrCaptureDownscaler implements OcrCaptureDownscaler {
 
       final storedWidth = info.width;
       final storedHeight = info.height;
+      // Size only, never content: lets a phone that captures at low resolution
+      // be spotted in the logs.
+      AppLogger.info(
+        'OcrCaptureDownscaler: capture ${storedWidth}x$storedHeight',
+      );
       final exifOrientation =
           img.decodeJpgExif(bytes)?.imageIfd.orientation ?? 1;
 

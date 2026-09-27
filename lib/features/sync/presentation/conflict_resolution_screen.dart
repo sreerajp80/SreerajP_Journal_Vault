@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/features/sync/providers/sync_providers.dart';
 import 'package:sreerajp_journal_vault/features/sync/services/conflict_resolution_service.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
@@ -64,7 +65,7 @@ class ConflictResolutionScreen extends ConsumerWidget {
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16).withSafeBottom(context),
             itemCount: conflicts.length,
             itemBuilder: (context, index) {
               final conflict = conflicts[index];
@@ -125,6 +126,18 @@ class _ConflictCard extends ConsumerWidget {
               l10n.labelSyncDetectedAt(_formatDateTime(conflict.detectedAt)),
               style: theme.textTheme.bodySmall,
             ),
+            // One side deleted the item: say which, and what each choice does.
+            if (conflict.isRemoteDeleted || conflict.isLocalDeleted) ...[
+              const SizedBox(height: 8),
+              Text(
+                conflict.isRemoteDeleted
+                    ? l10n.descSyncConflictDeletedRemote
+                    : l10n.descSyncConflictDeletedLocal,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.error,
+                ),
+              ),
+            ],
             const SizedBox(height: 12),
 
             // Field diffs
@@ -221,10 +234,13 @@ class _ConflictCard extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              AppLocalizations.of(context).errorSyncResolution(e.toString()),
+              e is ConflictResolutionException && e.missingParent
+                  ? l10n.errorSyncConflictMissingParent
+                  : l10n.errorSyncResolution(e.toString()),
             ),
           ),
         );

@@ -146,10 +146,12 @@ extension _ExportScreenStatePart1 on _ExportScreenState {
       // The system save dialog: scoped storage, no permission needed, and it
       // preserves a Unicode file name. Sharing through a content URI would
       // percent-encode a Malayalam name and garble it.
-      final savedPath = await FilePicker.saveFile(
-        dialogTitle: l10n.titleExportSaveDialog,
-        fileName: result.fileName,
-        bytes: result.bytes,
+      final savedPath = await ExternalHandoffGuard.instance.run(
+        () => FilePicker.saveFile(
+          dialogTitle: l10n.titleExportSaveDialog,
+          fileName: result.fileName,
+          bytes: result.bytes,
+        ),
       );
 
       if (!mounted) return;
@@ -224,25 +226,19 @@ extension _ExportScreenStatePart1 on _ExportScreenState {
   }) async {
     try {
       await ref
-          .read(appDatabaseProvider)
-          .securityEventsDao
+          .read(securityEventServiceProvider)
           .logEvent(
-            SecurityEventsCompanion.insert(
-              eventType: 'export_attempt',
-              severity: const Value('info'),
-              description: 'Journal data exported',
-              metadata: Value(
-                jsonEncode({
-                  'scope': scope.kind.name,
-                  'format': _format.name,
-                  'journalId': scope.journalId,
-                  'entryCount': result.entryCount,
-                  'includedAttachments': _includeAttachments,
-                  'encrypted': result.isEncrypted,
-                  'skippedCount': result.skipped.length,
-                }),
-              ),
-            ),
+            eventType: 'export_attempt',
+            description: 'Journal data exported',
+            metadata: jsonEncode({
+              'scope': scope.kind.name,
+              'format': _format.name,
+              'journalId': scope.journalId,
+              'entryCount': result.entryCount,
+              'includedAttachments': _includeAttachments,
+              'encrypted': result.isEncrypted,
+              'skippedCount': result.skipped.length,
+            }),
           );
     } catch (error) {
       // Losing an audit line must never lose the user their export.

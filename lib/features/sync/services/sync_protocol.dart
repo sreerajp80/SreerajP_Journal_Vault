@@ -21,6 +21,49 @@ abstract class SyncProtocol {
 
   /// Returns metadata about the remote (e.g. server version, device count).
   Future<SyncRemoteInfo> getRemoteInfo();
+
+  /// Receiver only: tells the sender that the pulled records were applied
+  /// and committed. The sender marks records as synced only after this.
+  Future<void> acknowledge(SyncAck ack);
+}
+
+/// The receiver's answer after it has applied a payload.
+class SyncAck {
+  const SyncAck({
+    required this.applied,
+    required this.skipped,
+    required this.conflicts,
+  });
+
+  /// Records inserted, updated or deleted.
+  final int applied;
+
+  /// Records that could not be applied (for example, a missing parent).
+  final int skipped;
+
+  /// Records stored as conflicts for the user.
+  final int conflicts;
+
+  Map<String, dynamic> toJson() => {
+    'ack': true,
+    'applied': applied,
+    'skipped': skipped,
+    'conflicts': conflicts,
+  };
+
+  /// Reads an acknowledgement. Throws [FormatException] when [json] is not
+  /// one.
+  factory SyncAck.fromJson(Map<String, dynamic> json) {
+    if (json['ack'] != true) {
+      throw const FormatException('Not a sync acknowledgement');
+    }
+    int count(String key) => json[key] is int ? json[key] as int : 0;
+    return SyncAck(
+      applied: count('applied'),
+      skipped: count('skipped'),
+      conflicts: count('conflicts'),
+    );
+  }
 }
 
 // ─────────────────────── Payload & Result Models ───────────────────────

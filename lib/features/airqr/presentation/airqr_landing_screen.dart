@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/features/airqr/domain/airqr_payload.dart';
 import 'package:sreerajp_journal_vault/features/airqr/presentation/airqr_receive_screen.dart';
 import 'package:sreerajp_journal_vault/features/airqr/presentation/airqr_send_screen.dart';
 import 'package:sreerajp_journal_vault/features/airqr/presentation/airqr_size_warning.dart';
 import 'package:sreerajp_journal_vault/features/airqr/providers/airqr_providers.dart';
+import 'package:sreerajp_journal_vault/features/journals/providers/journal_providers.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 /// Landing hub for Optical Air-Gap Sync (AirQR).
@@ -36,8 +37,7 @@ class AirqrLandingScreen extends ConsumerWidget {
   }
 
   Future<void> _sendJournal(BuildContext context, WidgetRef ref) async {
-    final db = ref.read(appDatabaseProvider);
-    final journals = await db.journalsDao.getAllJournals();
+    final journals = await ref.read(journalServiceProvider).allJournals();
 
     if (!context.mounted) return;
     if (journals.isEmpty) {
@@ -100,7 +100,9 @@ class AirqrLandingScreen extends ConsumerWidget {
     if (selectedJournal == null || !context.mounted) return;
 
     final (journalId, journalTitle) = selectedJournal;
-    final entries = await db.entriesDao.getEntriesForJournal(journalId);
+    final entries = await ref
+        .read(journalServiceProvider)
+        .entriesForJournal(journalId);
     final entryMaps = entries
         .map(
           (e) => {
@@ -143,7 +145,10 @@ class AirqrLandingScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.titleAirqr)),
       body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ).withSafeBottom(context),
         children: [
           // Header Card
           Card(

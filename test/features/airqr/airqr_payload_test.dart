@@ -9,7 +9,6 @@ void main() {
         themeMode: 'system',
         accentColorArgb: 0xFFFF5722,
         accentPresetName: 'Sunset',
-        isScreenSecurityEnabled: false,
         ritualLaunchOnStartup: true,
         ritualBreathTechnique: 'relax',
         ritualBreathCycles: 6,

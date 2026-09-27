@@ -10,7 +10,6 @@ void main() {
         themeMode: 'dark',
         accentColorArgb: null,
         accentPresetName: null,
-        isScreenSecurityEnabled: true,
         ritualLaunchOnStartup: false,
         ritualBreathTechnique: 'box',
         ritualBreathCycles: 4,

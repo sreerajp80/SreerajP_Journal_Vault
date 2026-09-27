@@ -75,4 +75,21 @@ class AttachmentLockService {
   /// Returns all currently locked attachments.
   Future<List<AttachmentLock>> getLockedAttachments() =>
       _database.attachmentLocksDao.getLockedAttachments();
+
+  /// Every lock with its attachment row. A lock whose attachment no longer
+  /// exists is skipped.
+  Future<List<(AttachmentLock, Attachment)>> getLockedAttachmentRows() async {
+    final pairs = <(AttachmentLock, Attachment)>[];
+    for (final lock in await getLockedAttachments()) {
+      try {
+        final attachment = await _database.attachmentsDao.getAttachmentById(
+          lock.attachmentId,
+        );
+        pairs.add((lock, attachment));
+      } catch (_) {
+        // Attachment missing — skip.
+      }
+    }
+    return pairs;
+  }
 }

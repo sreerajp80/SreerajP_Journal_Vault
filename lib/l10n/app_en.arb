@@ -624,6 +624,18 @@
       }
     }
   },
+  "descSyncConflictDeletedRemote": "Deleted on the other device. Keeping remote deletes it here too.",
+  "@descSyncConflictDeletedRemote": {
+    "description": "Sync conflict card: the item was deleted on the other device but changed on this one"
+  },
+  "descSyncConflictDeletedLocal": "You deleted this on this device. Keeping remote brings it back.",
+  "@descSyncConflictDeletedLocal": {
+    "description": "Sync conflict card: the item was deleted on this device but changed on the other one"
+  },
+  "errorSyncConflictMissingParent": "Cannot keep the remote version: an item it belongs to is not on this device. Sync again, then try once more.",
+  "@errorSyncConflictMissingParent": {
+    "description": "Shown when keeping the other device's version fails because an item it belongs to (for example its journal) is missing here"
+  },
   "titleSyncConflictDetails": "Conflict Details",
   "@titleSyncConflictDetails": {
     "description": "Title of the dialog comparing the local and remote values"
@@ -1141,6 +1153,54 @@
   "@labelEntryTableDimensionHelp": {
     "description": "Helper text saying the allowed range for table rows and columns"
   },
+  "actionTableAddRow": "Add row",
+  "@actionTableAddRow": {
+    "description": "Button and menu item to add a row to a table"
+  },
+  "actionTableAddColumn": "Add column",
+  "@actionTableAddColumn": {
+    "description": "Button and menu item to add a column to a table"
+  },
+  "actionTableDeleteRow": "Delete row",
+  "@actionTableDeleteRow": {
+    "description": "Context menu item to delete a row from a table"
+  },
+  "actionTableDeleteColumn": "Delete column",
+  "@actionTableDeleteColumn": {
+    "description": "Context menu item to delete a column from a table"
+  },
+  "actionTableDelete": "Delete table",
+  "@actionTableDelete": {
+    "description": "Context menu item to remove the entire table embed"
+  },
+  "actionConvertToTable": "Convert to table",
+  "@actionConvertToTable": {
+    "description": "Selection context menu item to convert tab or pipe separated text into a table"
+  },
+  "actionPasteMarkdown": "Paste as Markdown",
+  "@actionPasteMarkdown": {
+    "description": "Editor long-press menu item, shown after Paste. Pastes the clipboard text as Markdown, turning headings, lists, tables and links into formatted text"
+  },
+  "actionPastePlainText": "Paste as plain text",
+  "@actionPastePlainText": {
+    "description": "Editor long-press menu item, shown after Paste. Pastes only the clipboard's words, dropping all formatting, tables and links"
+  },
+  "tooltipTableAddRow": "Add row",
+  "@tooltipTableAddRow": {
+    "description": "Tooltip for the button that adds a row below the table"
+  },
+  "tooltipTableAddColumn": "Add column",
+  "@tooltipTableAddColumn": {
+    "description": "Tooltip for the button that adds a column to the right of the table"
+  },
+  "tooltipTableResizeColumn": "Resize column",
+  "@tooltipTableResizeColumn": {
+    "description": "Semantics label for the drag handle between table column headers that resizes adjacent columns"
+  },
+  "labelTableCell": "Table cell",
+  "@labelTableCell": {
+    "description": "Semantics label for one cell of a table in the entry editor. Tapping it starts editing the cell"
+  },
   "titleEntryCalloutType": "Callout type",
   "@titleEntryCalloutType": {
     "description": "Title of the dialog choosing which kind of callout to add"
@@ -1587,6 +1647,14 @@
   "@descSettingsScreenSecurity": {
     "description": "Explains what the screenshot blocking switch covers"
   },
+  "labelSettingsScanInAppCamera": "In-app camera",
+  "@labelSettingsScanInAppCamera": {
+    "description": "Settings switch that makes scan photos use the camera built into this app"
+  },
+  "descSettingsScanInAppCamera": "Take photo uses this app's own camera, so no copy of the photo can reach the device gallery. Off, it opens your phone's camera app, which takes the clearer picture",
+  "@descSettingsScanInAppCamera": {
+    "description": "Explains the trade-off between the in-app camera and the phone camera app for scans"
+  },
   "bodySettingsScreenSecurityOff": "Turn off screenshot blocking?",
   "@bodySettingsScreenSecurityOff": {
     "description": "Title of the dialog shown before screenshot blocking is turned off"
@@ -1610,6 +1678,38 @@
   "errorSettingsScreenSecuritySave": "Could not change screenshot blocking",
   "@errorSettingsScreenSecuritySave": {
     "description": "Message shown when the screenshot blocking choice could not be saved"
+  },
+  "labelSettingsKeyboardPrivacy": "Keyboard privacy",
+  "@labelSettingsKeyboardPrivacy": {
+    "description": "Settings switch that asks the keyboard not to learn from what is typed in the app"
+  },
+  "descSettingsKeyboardPrivacy": "Asks your keyboard not to learn the words you type here, so private words don't show up as suggestions in other apps. Your keyboard's own settings still apply.",
+  "@descSettingsKeyboardPrivacy": {
+    "description": "Explains what the keyboard privacy switch is for"
+  },
+  "bodySettingsKeyboardPrivacyOff": "Let the keyboard learn?",
+  "@bodySettingsKeyboardPrivacyOff": {
+    "description": "Title of the dialog shown before keyboard privacy is turned off"
+  },
+  "bodySettingsKeyboardPrivacyOffBody": "Your keyboard may remember words from your journal, such as names and places, and suggest them in other apps. Turn this off only if you want better suggestions while writing.",
+  "@bodySettingsKeyboardPrivacyOffBody": {
+    "description": "Warning text shown before keyboard privacy is turned off"
+  },
+  "actionSettingsKeyboardPrivacyOff": "Allow learning",
+  "@actionSettingsKeyboardPrivacyOff": {
+    "description": "Confirm button that turns keyboard privacy off"
+  },
+  "bodySettingsKeyboardPrivacyUpdatedOn": "Keyboard privacy is on",
+  "@bodySettingsKeyboardPrivacyUpdatedOn": {
+    "description": "Message shown after keyboard privacy is turned on"
+  },
+  "bodySettingsKeyboardPrivacyUpdatedOff": "Keyboard privacy is off",
+  "@bodySettingsKeyboardPrivacyUpdatedOff": {
+    "description": "Message shown after keyboard privacy is turned off"
+  },
+  "errorSettingsKeyboardPrivacySave": "Could not change keyboard privacy",
+  "@errorSettingsKeyboardPrivacySave": {
+    "description": "Message shown when the keyboard privacy choice could not be saved"
   },
   "labelSettingsTamperAlerts": "Tamper Alerts",
   "@labelSettingsTamperAlerts": {
@@ -2044,7 +2144,7 @@
   "@bodyRestoreConfirmReplace": {
     "description": "Title of the dialog confirming a replace"
   },
-  "bodyRestoreConfirmReplaceBody": "Every journal, entry and attachment on this device will be deleted and replaced by the backup. A safety backup of what is here now is taken first.",
+  "bodyRestoreConfirmReplaceBody": "Every journal, entry and attachment on this device will be deleted and replaced by the backup. A safety backup of what is here now is taken first. When this device next sends changes by Wi-Fi Sync, the other device's copies are replaced the same way.",
   "@bodyRestoreConfirmReplaceBody": {
     "description": "Body of the dialog confirming a replace"
   },
@@ -2820,7 +2920,7 @@
   "@helpFaqQ3": {
     "description": "FAQ Question 3: permissions requested"
   },
-  "helpFaqA3": "Camera & Photos: To take photos or import images/attachments into your entries.\nMicrophone: To record voice notes and to dictate text (recognised on the device).\nStorage/Media: To save encrypted backups and export PDFs.",
+  "helpFaqA3": "Camera & Photos: To take photos or import images/attachments into your entries.\nMicrophone: To record voice notes.\nStorage/Media: To save encrypted backups and export PDFs.",
   "@helpFaqA3": {
     "description": "FAQ Answer 3: permissions requested"
   },
@@ -3167,6 +3267,10 @@
   "labelTemplateCategoryCustom": "My templates",
   "@labelTemplateCategoryCustom": {
     "description": "Template chooser category heading. Short."
+  },
+  "labelImportedTemplateName": "Imported template",
+  "@labelImportedTemplateName": {
+    "description": "Name given to a template received by AirQR when it arrives without a name. Short."
   },
   "actionTemplateCollapseAll": "Collapse all",
   "@actionTemplateCollapseAll": {
@@ -4326,6 +4430,22 @@
   "actionEditorGotoLineEnd": "⇥",
   "@actionEditorGotoLineEnd": {
     "description": "Selection menu item that moves the caret to the end of the current line. Shown as a right arrow-to-bar glyph."
+  },
+  "actionEditorBold": "Bold",
+  "@actionEditorBold": {
+    "description": "Selection menu item that makes the selected text bold, or removes bold."
+  },
+  "actionEditorItalic": "Italic",
+  "@actionEditorItalic": {
+    "description": "Selection menu item that makes the selected text italic, or removes italic."
+  },
+  "actionEditorUnderline": "Underline",
+  "@actionEditorUnderline": {
+    "description": "Selection menu item that underlines the selected text, or removes the underline."
+  },
+  "actionEditorStrike": "Strike",
+  "@actionEditorStrike": {
+    "description": "Selection menu item that strikes through the selected text, or removes the strike-through."
   },
   "bodyOcrCameraPermissionDenied": "Camera permission is required to photograph documents for text recognition.",
   "@bodyOcrCameraPermissionDenied": {
@@ -6755,6 +6875,10 @@
   "@tooltipExportJournal": {
     "description": "Tooltip on the journal screen export button. Short."
   },
+  "tooltipImportJournal": "Import into journal",
+  "@tooltipImportJournal": {
+    "description": "Tooltip on the journal screen import button. Opens the file import screen for this journal. Short."
+  },
   "titleExportChooseJournal": "Export from journal",
   "@titleExportChooseJournal": {
     "description": "Title of the journal picker opened from the settings export tile. Short."
@@ -7473,69 +7597,22 @@
       }
     }
   },
-  "tooltipEditorDictate": "Dictate",
-  "@tooltipEditorDictate": {
-    "description": "Toolbar button that opens on-device dictation"
+  "errorVoiceNoteSaveFailed": "Could not save the voice note. Try again.",
+  "@errorVoiceNoteSaveFailed": {
+    "description": "Shown when a recorded voice note could not be stored on the entry"
   },
-  "titleDictation": "Dictation",
-  "@titleDictation": {
-    "description": "Title of the dictation sheet"
+  "labelVoiceNoteSaving": "Saving…",
+  "@labelVoiceNoteSaving": {
+    "description": "Shown while a recorded voice note is being encrypted and stored"
   },
-  "labelDictationListening": "Listening…",
-  "@labelDictationListening": {
-    "description": "Accessibility label while the microphone is open"
-  },
-  "labelDictationPaused": "Paused",
-  "@labelDictationPaused": {
-    "description": "Accessibility label while dictation is paused"
-  },
-  "tooltipDictationPause": "Pause",
-  "@tooltipDictationPause": {
-    "description": "Tooltip of the button that pauses dictation"
-  },
-  "tooltipDictationResume": "Resume",
-  "@tooltipDictationResume": {
-    "description": "Tooltip of the button that resumes dictation"
-  },
-  "tooltipDictationLanguage": "Speech language",
-  "@tooltipDictationLanguage": {
-    "description": "Tooltip of the dictation language picker"
-  },
-  "labelDictationDeviceDefault": "Device language",
-  "@labelDictationDeviceDefault": {
-    "description": "Language chip when the device does not list its offline languages"
-  },
-  "labelDictationEditHint": "Edit text",
-  "@labelDictationEditHint": {
-    "description": "Label of the field where dictated text can be corrected before inserting"
-  },
-  "actionDictationInsert": "Insert",
-  "@actionDictationInsert": {
-    "description": "Button that inserts dictated text into the entry"
-  },
-  "emptyDictationSpeak": "Start speaking. Your words will appear here.",
-  "@emptyDictationSpeak": {
-    "description": "Placeholder in the dictation sheet before anything is heard"
-  },
-  "descDictationPrivacy": "Speech is recognised on this device. No audio is saved or sent.",
-  "@descDictationPrivacy": {
-    "description": "Privacy note under the dictation title"
-  },
-  "errorDictationOfflineUnavailable": "Offline speech recognition is not available on this device. Dictation works only on the device, so it cannot be used here.",
-  "@errorDictationOfflineUnavailable": {
-    "description": "Shown when the device has no on-device speech recogniser"
-  },
-  "errorDictationLanguageUnavailable": "The offline speech model for this language is not installed. Install it in your phone's speech settings, or pick another language.",
-  "@errorDictationLanguageUnavailable": {
-    "description": "Shown when the chosen dictation language has no offline model"
-  },
-  "errorDictationFailed": "Speech recognition stopped unexpectedly. Try again.",
-  "@errorDictationFailed": {
-    "description": "Shown when the speech recogniser fails"
-  },
-  "helpDictationSanskritUnsupported": "Sanskrit speech cannot be recognised offline yet. Speak in English or Malayalam.",
-  "@helpDictationSanskritUnsupported": {
-    "description": "Hint shown in the Sanskrit UI, because no offline Sanskrit recogniser exists"
+  "labelVoiceNoteFileName": "Voice note {timestamp}",
+  "@labelVoiceNoteFileName": {
+    "description": "File name given to a recorded voice note attachment, before the .m4a extension",
+    "placeholders": {
+      "timestamp": {
+        "type": "String"
+      }
+    }
   },
   "tooltipOcrPreviewText": "Preview text",
   "@tooltipOcrPreviewText": {
@@ -7549,8 +7626,90 @@
   "@errorOcrPhoneCameraUnavailable": {
     "description": "Shown when the phone camera app cannot be opened for scanning text, so the in-app camera opens instead"
   },
-  "helpOcrPhoneCamera": "\"Take photo\" opens your phone's own camera app for the clearest photos. A few camera apps also keep their own copy in the gallery. Choose \"In-app camera\" if the photo must never leave this app.",
+  "helpOcrPhoneCamera": "\"Take photo\" opens your phone's own camera app for the clearest photos. A few camera apps also keep their own copy in the gallery. If the photo must never leave this app, turn on \"In-app camera\" in Settings under Security.",
   "@helpOcrPhoneCamera": {
     "description": "Help bullet explaining the phone camera app option, its gallery-copy privacy note, and the in-app camera alternative"
+  },
+  "errorOcrPhotoBlurry": "Photo looks blurry. Retake it for better text.",
+  "@errorOcrPhotoBlurry": {
+    "description": "Warning shown on the scan-text screen when the photo looks blurry, suggesting the user take it again; the user can still continue"
+  },
+  "errorOcrEnhanceFailed": "Could not apply this change. Try again.",
+  "@errorOcrEnhanceFailed": {
+    "description": "Shown on the scan-text edit screen when an image change (filter, slider, rotation) could not be applied, so the picture on screen is unchanged"
+  },
+  "errorOcrPhotoUnreadable": "Could not open this photo. Try another one.",
+  "@errorOcrPhotoUnreadable": {
+    "description": "Shown on the scan-text edit screen when the photo cannot be opened, for example because the file is damaged or far too large"
+  },
+  "errorOcrTimedOut": "Reading the text took too long. Crop to just the text and try again.",
+  "@errorOcrTimedOut": {
+    "description": "Shown when reading text from a photo ran past its time limit; suggests cropping the photo down to the text and trying again"
+  },
+  "helpOcrAutoEnglish": "With \"English + മലയാളം\" chosen, a page that is almost all English is read again with English alone, for better accuracy. Hold the phone still and use even light: a sharp photo without shadows reads best.",
+  "@helpOcrAutoEnglish": {
+    "description": "Help bullet explaining that the bilingual OCR choice re-reads English pages with English only, and giving photo tips (steady hands, even light)"
+  },
+  "labelOcrEnhanceFilterScreen": "Screen",
+  "@labelOcrEnhanceFilterScreen": {
+    "description": "Filter chip for photos of a computer or phone screen: evens out glare and turns light text on a dark screen into dark text on white"
+  },
+  "labelOcrEnhanceEnlarge": "Enlarge",
+  "@labelOcrEnhanceEnlarge": {
+    "description": "Label for the choice that scales the photo up before reading, so small text gets more pixels"
+  },
+  "labelOcrEnhanceScale": "{factor}×",
+  "@labelOcrEnhanceScale": {
+    "description": "Chip showing an enlarge factor, for example 2×",
+    "placeholders": {
+      "factor": {
+        "type": "int"
+      }
+    }
+  },
+  "labelOcrEnhanceSharpen": "Sharpen",
+  "@labelOcrEnhanceSharpen": {
+    "description": "Label for the slider that makes blurry letter edges crisper"
+  },
+  "descOcrEnhancePreviewZoom": "Photo preview. Pinch or double-tap to zoom in.",
+  "@descOcrEnhancePreviewZoom": {
+    "description": "Screen-reader label for the zoomable photo preview on the OCR edit screen"
+  },
+  "helpOcrEditTools": "Small or hard-to-read text? On the edit screen, open \"Adjust\": \"Enlarge\" (2× or 3×) gives small letters more pixels, and \"Sharpen\" makes blurry edges crisper. For a photo of a computer or phone screen, choose the \"Screen\" filter. Pinch or double-tap the photo to zoom in and check the letters, and use the text preview to compare before you insert.",
+  "@helpOcrEditTools": {
+    "description": "Help bullet explaining the OCR edit tools: Enlarge, Sharpen, the Screen filter and zoom"
+  },
+  "tooltipEntryDeleteAttachment": "Delete attachment",
+  "@tooltipEntryDeleteAttachment": {
+    "description": "Tooltip on the button that deletes one attachment from an entry"
+  },
+  "bodyEntryDeleteAttachment": "Delete attachment?",
+  "@bodyEntryDeleteAttachment": {
+    "description": "Title of the dialog confirming an attachment is deleted"
+  },
+  "bodyEntryDeleteAttachmentBody": "\"{fileName}\" will be removed from this entry and from this device. This cannot be undone.",
+  "@bodyEntryDeleteAttachmentBody": {
+    "description": "Warning in the delete-attachment dialog. fileName is the attachment's name",
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "errorEntryDeleteAttachment": "Could not delete the attachment.",
+  "@errorEntryDeleteAttachment": {
+    "description": "Shown when deleting an attachment fails"
+  },
+  "errorEntryDelete": "Could not delete the entry.",
+  "@errorEntryDelete": {
+    "description": "Shown when deleting an entry fails"
+  },
+  "errorJournalDelete": "Could not delete the journal. Nothing was removed.",
+  "@errorJournalDelete": {
+    "description": "Shown when deleting a journal fails; the journal is left unchanged"
+  },
+  "bodyVoiceNoteDiscardConfirm": "Stop and discard this recording?",
+  "@bodyVoiceNoteDiscardConfirm": {
+    "description": "Asked when the user tries to close the voice note sheet while recording"
   }
 }

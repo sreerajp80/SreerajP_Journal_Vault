@@ -37,9 +37,12 @@ class _JournalDetailScreenState extends ConsumerState<_JournalDetailScreen> {
 
   Future<void> _loadEntries() async {
     if (!mounted) return;
-    final db = ref.read(appDatabaseProvider);
-    final entries = await db.entriesDao.getEntriesForJournal(widget.journal.id);
-    final allCapsules = await db.timeCapsulesDao.getAllCapsules();
+    final entries = await ref
+        .read(journalServiceProvider)
+        .entriesForJournal(widget.journal.id);
+    final allCapsules = await ref
+        .read(timeCapsuleServiceProvider)
+        .getAllCapsules();
     final capsulesMap = {for (final c in allCapsules) c.entryId: c};
     if (mounted) {
       setState(() {
@@ -112,7 +115,25 @@ class _JournalDetailScreenState extends ConsumerState<_JournalDetailScreen> {
         title: Text(widget.journal.title),
         actions: [
           // Only once the journal is open. A locked journal must be unlocked
-          // before any of it can be written out.
+          // before any of it can be read or written.
+          if (accessible)
+            IconButton(
+              key: const Key('journal-import-button'),
+              icon: const Icon(Icons.file_open),
+              tooltip: AppLocalizations.of(context).tooltipImportJournal,
+              onPressed: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (_) => ImportScreen(
+                      journalId: widget.journal.id,
+                      journalTitle: widget.journal.title,
+                    ),
+                  ),
+                );
+                if (mounted) await _loadEntries();
+              },
+            ),
           if (accessible)
             IconButton(
               key: const Key('journal-export-button'),
@@ -152,6 +173,9 @@ class _JournalDetailScreenState extends ConsumerState<_JournalDetailScreen> {
           const SizedBox(height: 16),
           TextField(
             key: const Key('journal-unlock-password-field'),
+            enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+              context,
+            ),
             controller: _passwordController,
             obscureText: true,
             decoration: InputDecoration(labelText: l10n.labelCommonPassword),

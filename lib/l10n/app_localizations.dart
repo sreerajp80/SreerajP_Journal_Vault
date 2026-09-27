@@ -838,6 +838,24 @@ abstract class AppLocalizations {
   /// **'Resolution failed: {error}'**
   String errorSyncResolution(String error);
 
+  /// Sync conflict card: the item was deleted on the other device but changed on this one
+  ///
+  /// In en, this message translates to:
+  /// **'Deleted on the other device. Keeping remote deletes it here too.'**
+  String get descSyncConflictDeletedRemote;
+
+  /// Sync conflict card: the item was deleted on this device but changed on the other one
+  ///
+  /// In en, this message translates to:
+  /// **'You deleted this on this device. Keeping remote brings it back.'**
+  String get descSyncConflictDeletedLocal;
+
+  /// Shown when keeping the other device's version fails because an item it belongs to (for example its journal) is missing here
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot keep the remote version: an item it belongs to is not on this device. Sync again, then try once more.'**
+  String get errorSyncConflictMissingParent;
+
   /// Title of the dialog comparing the local and remote values
   ///
   /// In en, this message translates to:
@@ -1480,6 +1498,78 @@ abstract class AppLocalizations {
   /// **'1–20'**
   String get labelEntryTableDimensionHelp;
 
+  /// Button and menu item to add a row to a table
+  ///
+  /// In en, this message translates to:
+  /// **'Add row'**
+  String get actionTableAddRow;
+
+  /// Button and menu item to add a column to a table
+  ///
+  /// In en, this message translates to:
+  /// **'Add column'**
+  String get actionTableAddColumn;
+
+  /// Context menu item to delete a row from a table
+  ///
+  /// In en, this message translates to:
+  /// **'Delete row'**
+  String get actionTableDeleteRow;
+
+  /// Context menu item to delete a column from a table
+  ///
+  /// In en, this message translates to:
+  /// **'Delete column'**
+  String get actionTableDeleteColumn;
+
+  /// Context menu item to remove the entire table embed
+  ///
+  /// In en, this message translates to:
+  /// **'Delete table'**
+  String get actionTableDelete;
+
+  /// Selection context menu item to convert tab or pipe separated text into a table
+  ///
+  /// In en, this message translates to:
+  /// **'Convert to table'**
+  String get actionConvertToTable;
+
+  /// Editor long-press menu item, shown after Paste. Pastes the clipboard text as Markdown, turning headings, lists, tables and links into formatted text
+  ///
+  /// In en, this message translates to:
+  /// **'Paste as Markdown'**
+  String get actionPasteMarkdown;
+
+  /// Editor long-press menu item, shown after Paste. Pastes only the clipboard's words, dropping all formatting, tables and links
+  ///
+  /// In en, this message translates to:
+  /// **'Paste as plain text'**
+  String get actionPastePlainText;
+
+  /// Tooltip for the button that adds a row below the table
+  ///
+  /// In en, this message translates to:
+  /// **'Add row'**
+  String get tooltipTableAddRow;
+
+  /// Tooltip for the button that adds a column to the right of the table
+  ///
+  /// In en, this message translates to:
+  /// **'Add column'**
+  String get tooltipTableAddColumn;
+
+  /// Semantics label for the drag handle between table column headers that resizes adjacent columns
+  ///
+  /// In en, this message translates to:
+  /// **'Resize column'**
+  String get tooltipTableResizeColumn;
+
+  /// Semantics label for one cell of a table in the entry editor. Tapping it starts editing the cell
+  ///
+  /// In en, this message translates to:
+  /// **'Table cell'**
+  String get labelTableCell;
+
   /// Title of the dialog choosing which kind of callout to add
   ///
   /// In en, this message translates to:
@@ -2098,6 +2188,18 @@ abstract class AppLocalizations {
   /// **'Stops screenshots, screen recording and the preview shown in the recent apps list'**
   String get descSettingsScreenSecurity;
 
+  /// Settings switch that makes scan photos use the camera built into this app
+  ///
+  /// In en, this message translates to:
+  /// **'In-app camera'**
+  String get labelSettingsScanInAppCamera;
+
+  /// Explains the trade-off between the in-app camera and the phone camera app for scans
+  ///
+  /// In en, this message translates to:
+  /// **'Take photo uses this app\'s own camera, so no copy of the photo can reach the device gallery. Off, it opens your phone\'s camera app, which takes the clearer picture'**
+  String get descSettingsScanInAppCamera;
+
   /// Title of the dialog shown before screenshot blocking is turned off
   ///
   /// In en, this message translates to:
@@ -2133,6 +2235,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not change screenshot blocking'**
   String get errorSettingsScreenSecuritySave;
+
+  /// Settings switch that asks the keyboard not to learn from what is typed in the app
+  ///
+  /// In en, this message translates to:
+  /// **'Keyboard privacy'**
+  String get labelSettingsKeyboardPrivacy;
+
+  /// Explains what the keyboard privacy switch is for
+  ///
+  /// In en, this message translates to:
+  /// **'Asks your keyboard not to learn the words you type here, so private words don\'t show up as suggestions in other apps. Your keyboard\'s own settings still apply.'**
+  String get descSettingsKeyboardPrivacy;
+
+  /// Title of the dialog shown before keyboard privacy is turned off
+  ///
+  /// In en, this message translates to:
+  /// **'Let the keyboard learn?'**
+  String get bodySettingsKeyboardPrivacyOff;
+
+  /// Warning text shown before keyboard privacy is turned off
+  ///
+  /// In en, this message translates to:
+  /// **'Your keyboard may remember words from your journal, such as names and places, and suggest them in other apps. Turn this off only if you want better suggestions while writing.'**
+  String get bodySettingsKeyboardPrivacyOffBody;
+
+  /// Confirm button that turns keyboard privacy off
+  ///
+  /// In en, this message translates to:
+  /// **'Allow learning'**
+  String get actionSettingsKeyboardPrivacyOff;
+
+  /// Message shown after keyboard privacy is turned on
+  ///
+  /// In en, this message translates to:
+  /// **'Keyboard privacy is on'**
+  String get bodySettingsKeyboardPrivacyUpdatedOn;
+
+  /// Message shown after keyboard privacy is turned off
+  ///
+  /// In en, this message translates to:
+  /// **'Keyboard privacy is off'**
+  String get bodySettingsKeyboardPrivacyUpdatedOff;
+
+  /// Message shown when the keyboard privacy choice could not be saved
+  ///
+  /// In en, this message translates to:
+  /// **'Could not change keyboard privacy'**
+  String get errorSettingsKeyboardPrivacySave;
 
   /// Settings row for tamper alerts, not built yet
   ///
@@ -2635,7 +2785,7 @@ abstract class AppLocalizations {
   /// Body of the dialog confirming a replace
   ///
   /// In en, this message translates to:
-  /// **'Every journal, entry and attachment on this device will be deleted and replaced by the backup. A safety backup of what is here now is taken first.'**
+  /// **'Every journal, entry and attachment on this device will be deleted and replaced by the backup. A safety backup of what is here now is taken first. When this device next sends changes by Wi-Fi Sync, the other device\'s copies are replaced the same way.'**
   String get bodyRestoreConfirmReplaceBody;
 
   /// Title of the dialog confirming a merge
@@ -3715,7 +3865,7 @@ abstract class AppLocalizations {
   /// FAQ Answer 3: permissions requested
   ///
   /// In en, this message translates to:
-  /// **'Camera & Photos: To take photos or import images/attachments into your entries.\nMicrophone: To record voice notes and to dictate text (recognised on the device).\nStorage/Media: To save encrypted backups and export PDFs.'**
+  /// **'Camera & Photos: To take photos or import images/attachments into your entries.\nMicrophone: To record voice notes.\nStorage/Media: To save encrypted backups and export PDFs.'**
   String get helpFaqA3;
 
   /// FAQ Question 4: transfer to new phone
@@ -4203,6 +4353,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'My templates'**
   String get labelTemplateCategoryCustom;
+
+  /// Name given to a template received by AirQR when it arrives without a name. Short.
+  ///
+  /// In en, this message translates to:
+  /// **'Imported template'**
+  String get labelImportedTemplateName;
 
   /// Collapse all button in template manager
   ///
@@ -5817,6 +5973,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'⇥'**
   String get actionEditorGotoLineEnd;
+
+  /// Selection menu item that makes the selected text bold, or removes bold.
+  ///
+  /// In en, this message translates to:
+  /// **'Bold'**
+  String get actionEditorBold;
+
+  /// Selection menu item that makes the selected text italic, or removes italic.
+  ///
+  /// In en, this message translates to:
+  /// **'Italic'**
+  String get actionEditorItalic;
+
+  /// Selection menu item that underlines the selected text, or removes the underline.
+  ///
+  /// In en, this message translates to:
+  /// **'Underline'**
+  String get actionEditorUnderline;
+
+  /// Selection menu item that strikes through the selected text, or removes the strike-through.
+  ///
+  /// In en, this message translates to:
+  /// **'Strike'**
+  String get actionEditorStrike;
 
   /// Message displayed when camera permission is not granted
   ///
@@ -9273,6 +9453,12 @@ abstract class AppLocalizations {
   /// **'Export this journal'**
   String get tooltipExportJournal;
 
+  /// Tooltip on the journal screen import button. Opens the file import screen for this journal. Short.
+  ///
+  /// In en, this message translates to:
+  /// **'Import into journal'**
+  String get tooltipImportJournal;
+
   /// Title of the journal picker opened from the settings export tile. Short.
   ///
   /// In en, this message translates to:
@@ -10053,101 +10239,23 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 entry} other{{count} entries}}'**
   String labelJournalEntryCount(int count);
 
-  /// Toolbar button that opens on-device dictation
+  /// Shown when a recorded voice note could not be stored on the entry
   ///
   /// In en, this message translates to:
-  /// **'Dictate'**
-  String get tooltipEditorDictate;
+  /// **'Could not save the voice note. Try again.'**
+  String get errorVoiceNoteSaveFailed;
 
-  /// Title of the dictation sheet
+  /// Shown while a recorded voice note is being encrypted and stored
   ///
   /// In en, this message translates to:
-  /// **'Dictation'**
-  String get titleDictation;
+  /// **'Saving…'**
+  String get labelVoiceNoteSaving;
 
-  /// Accessibility label while the microphone is open
+  /// File name given to a recorded voice note attachment, before the .m4a extension
   ///
   /// In en, this message translates to:
-  /// **'Listening…'**
-  String get labelDictationListening;
-
-  /// Accessibility label while dictation is paused
-  ///
-  /// In en, this message translates to:
-  /// **'Paused'**
-  String get labelDictationPaused;
-
-  /// Tooltip of the button that pauses dictation
-  ///
-  /// In en, this message translates to:
-  /// **'Pause'**
-  String get tooltipDictationPause;
-
-  /// Tooltip of the button that resumes dictation
-  ///
-  /// In en, this message translates to:
-  /// **'Resume'**
-  String get tooltipDictationResume;
-
-  /// Tooltip of the dictation language picker
-  ///
-  /// In en, this message translates to:
-  /// **'Speech language'**
-  String get tooltipDictationLanguage;
-
-  /// Language chip when the device does not list its offline languages
-  ///
-  /// In en, this message translates to:
-  /// **'Device language'**
-  String get labelDictationDeviceDefault;
-
-  /// Label of the field where dictated text can be corrected before inserting
-  ///
-  /// In en, this message translates to:
-  /// **'Edit text'**
-  String get labelDictationEditHint;
-
-  /// Button that inserts dictated text into the entry
-  ///
-  /// In en, this message translates to:
-  /// **'Insert'**
-  String get actionDictationInsert;
-
-  /// Placeholder in the dictation sheet before anything is heard
-  ///
-  /// In en, this message translates to:
-  /// **'Start speaking. Your words will appear here.'**
-  String get emptyDictationSpeak;
-
-  /// Privacy note under the dictation title
-  ///
-  /// In en, this message translates to:
-  /// **'Speech is recognised on this device. No audio is saved or sent.'**
-  String get descDictationPrivacy;
-
-  /// Shown when the device has no on-device speech recogniser
-  ///
-  /// In en, this message translates to:
-  /// **'Offline speech recognition is not available on this device. Dictation works only on the device, so it cannot be used here.'**
-  String get errorDictationOfflineUnavailable;
-
-  /// Shown when the chosen dictation language has no offline model
-  ///
-  /// In en, this message translates to:
-  /// **'The offline speech model for this language is not installed. Install it in your phone\'s speech settings, or pick another language.'**
-  String get errorDictationLanguageUnavailable;
-
-  /// Shown when the speech recogniser fails
-  ///
-  /// In en, this message translates to:
-  /// **'Speech recognition stopped unexpectedly. Try again.'**
-  String get errorDictationFailed;
-
-  /// Hint shown in the Sanskrit UI, because no offline Sanskrit recogniser exists
-  ///
-  /// In en, this message translates to:
-  /// **'Sanskrit speech cannot be recognised offline yet. Speak in English or Malayalam.'**
-  String get helpDictationSanskritUnsupported;
+  /// **'Voice note {timestamp}'**
+  String labelVoiceNoteFileName(String timestamp);
 
   /// Tooltip for the icon on the OCR enhance screen that reads the text of the photo and shows it
   ///
@@ -10170,8 +10278,116 @@ abstract class AppLocalizations {
   /// Help bullet explaining the phone camera app option, its gallery-copy privacy note, and the in-app camera alternative
   ///
   /// In en, this message translates to:
-  /// **'\"Take photo\" opens your phone\'s own camera app for the clearest photos. A few camera apps also keep their own copy in the gallery. Choose \"In-app camera\" if the photo must never leave this app.'**
+  /// **'\"Take photo\" opens your phone\'s own camera app for the clearest photos. A few camera apps also keep their own copy in the gallery. If the photo must never leave this app, turn on \"In-app camera\" in Settings under Security.'**
   String get helpOcrPhoneCamera;
+
+  /// Warning shown on the scan-text screen when the photo looks blurry, suggesting the user take it again; the user can still continue
+  ///
+  /// In en, this message translates to:
+  /// **'Photo looks blurry. Retake it for better text.'**
+  String get errorOcrPhotoBlurry;
+
+  /// Shown on the scan-text edit screen when an image change (filter, slider, rotation) could not be applied, so the picture on screen is unchanged
+  ///
+  /// In en, this message translates to:
+  /// **'Could not apply this change. Try again.'**
+  String get errorOcrEnhanceFailed;
+
+  /// Shown on the scan-text edit screen when the photo cannot be opened, for example because the file is damaged or far too large
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open this photo. Try another one.'**
+  String get errorOcrPhotoUnreadable;
+
+  /// Shown when reading text from a photo ran past its time limit; suggests cropping the photo down to the text and trying again
+  ///
+  /// In en, this message translates to:
+  /// **'Reading the text took too long. Crop to just the text and try again.'**
+  String get errorOcrTimedOut;
+
+  /// Help bullet explaining that the bilingual OCR choice re-reads English pages with English only, and giving photo tips (steady hands, even light)
+  ///
+  /// In en, this message translates to:
+  /// **'With \"English + മലയാളം\" chosen, a page that is almost all English is read again with English alone, for better accuracy. Hold the phone still and use even light: a sharp photo without shadows reads best.'**
+  String get helpOcrAutoEnglish;
+
+  /// Filter chip for photos of a computer or phone screen: evens out glare and turns light text on a dark screen into dark text on white
+  ///
+  /// In en, this message translates to:
+  /// **'Screen'**
+  String get labelOcrEnhanceFilterScreen;
+
+  /// Label for the choice that scales the photo up before reading, so small text gets more pixels
+  ///
+  /// In en, this message translates to:
+  /// **'Enlarge'**
+  String get labelOcrEnhanceEnlarge;
+
+  /// Chip showing an enlarge factor, for example 2×
+  ///
+  /// In en, this message translates to:
+  /// **'{factor}×'**
+  String labelOcrEnhanceScale(int factor);
+
+  /// Label for the slider that makes blurry letter edges crisper
+  ///
+  /// In en, this message translates to:
+  /// **'Sharpen'**
+  String get labelOcrEnhanceSharpen;
+
+  /// Screen-reader label for the zoomable photo preview on the OCR edit screen
+  ///
+  /// In en, this message translates to:
+  /// **'Photo preview. Pinch or double-tap to zoom in.'**
+  String get descOcrEnhancePreviewZoom;
+
+  /// Help bullet explaining the OCR edit tools: Enlarge, Sharpen, the Screen filter and zoom
+  ///
+  /// In en, this message translates to:
+  /// **'Small or hard-to-read text? On the edit screen, open \"Adjust\": \"Enlarge\" (2× or 3×) gives small letters more pixels, and \"Sharpen\" makes blurry edges crisper. For a photo of a computer or phone screen, choose the \"Screen\" filter. Pinch or double-tap the photo to zoom in and check the letters, and use the text preview to compare before you insert.'**
+  String get helpOcrEditTools;
+
+  /// Tooltip on the button that deletes one attachment from an entry
+  ///
+  /// In en, this message translates to:
+  /// **'Delete attachment'**
+  String get tooltipEntryDeleteAttachment;
+
+  /// Title of the dialog confirming an attachment is deleted
+  ///
+  /// In en, this message translates to:
+  /// **'Delete attachment?'**
+  String get bodyEntryDeleteAttachment;
+
+  /// Warning in the delete-attachment dialog. fileName is the attachment's name
+  ///
+  /// In en, this message translates to:
+  /// **'\"{fileName}\" will be removed from this entry and from this device. This cannot be undone.'**
+  String bodyEntryDeleteAttachmentBody(String fileName);
+
+  /// Shown when deleting an attachment fails
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete the attachment.'**
+  String get errorEntryDeleteAttachment;
+
+  /// Shown when deleting an entry fails
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete the entry.'**
+  String get errorEntryDelete;
+
+  /// Shown when deleting a journal fails; the journal is left unchanged
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete the journal. Nothing was removed.'**
+  String get errorJournalDelete;
+
+  /// Asked when the user tries to close the voice note sheet while recording
+  ///
+  /// In en, this message translates to:
+  /// **'Stop and discard this recording?'**
+  String get bodyVoiceNoteDiscardConfirm;
 }
 
 class _AppLocalizationsDelegate

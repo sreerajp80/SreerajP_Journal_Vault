@@ -1,6 +1,7 @@
 import 'package:open_filex/open_filex.dart';
 
 import 'package:sreerajp_journal_vault/features/attachments/domain/attachment_open_models.dart';
+import 'package:sreerajp_journal_vault/core/security/external_handoff_guard.dart';
 
 /// Signature of the platform call that hands a decrypted file to another app.
 /// Defaults to [OpenFilex.open]; injectable so tests can drive every
@@ -16,7 +17,9 @@ class AttachmentOpenRouter {
   final AttachmentFileOpener _opener;
 
   static Future<OpenResult> _defaultOpener(String filePath, {String? type}) =>
-      OpenFilex.open(filePath, type: type);
+      ExternalHandoffGuard.instance.run(
+        () => OpenFilex.open(filePath, type: type),
+      );
 
   /// Determines how the attachment should be opened based on [fileName] and [mimeType].
   AttachmentOpenDecision resolve({

@@ -22,6 +22,8 @@ library;
 
 import 'dart:convert';
 
+import 'package:sreerajp_journal_vault/features/entries/domain/table_data.dart';
+
 /// How a whole line is styled.
 enum BlockStyle {
   paragraph,
@@ -93,11 +95,30 @@ class TextBlock extends ExportBlock {
   String toString() => 'TextBlock($style, "$plainText")';
 }
 
-/// A table embed. See `table_embed.dart` — stored as a JSON 2D list of strings.
+/// A table embed. See `table_data.dart` for the stored formats.
 class TableBlock extends ExportBlock {
-  const TableBlock(this.rows);
+  const TableBlock(this.rows, {this.richCells});
 
+  /// The cells as plain text. A line break inside a cell is kept as `\n`.
   final List<List<String>> rows;
+
+  /// The cells with their inline styling, when the table has any.
+  final List<List<List<InlineSpan>>>? richCells;
+
+  /// The cells with their inline styling. A cell's text may hold `\n` where
+  /// the cell has more than one line. Falls back to [rows] as unstyled text.
+  List<List<List<InlineSpan>>> get cells =>
+      richCells ??
+      [
+        for (final row in rows)
+          [
+            for (final cell in row)
+              if (cell.isEmpty)
+                const <InlineSpan>[]
+              else
+                [InlineSpan(text: cell)],
+          ],
+      ];
 
   @override
   String toString() => 'TableBlock(${rows.length} rows)';
@@ -357,8 +378,7 @@ ExportBlock? _embedBlock(Map<dynamic, dynamic> insert) {
 
   switch (type) {
     case 'table':
-      final rows = _tableRows(data);
-      return rows == null ? const UnknownEmbedBlock('table') : TableBlock(rows);
+      return _table(data) ?? const UnknownEmbedBlock('table');
     case 'callout':
       final callout = _callout(data);
       return callout ?? const UnknownEmbedBlock('callout');
@@ -374,19 +394,28 @@ ExportBlock? _embedBlock(Map<dynamic, dynamic> insert) {
   }
 }
 
-/// Reads a table embed's JSON 2D list of strings. Null when it is unusable.
-List<List<String>>? _tableRows(Object? data) {
-  if (data is! String) return null;
-  try {
-    final decoded = jsonDecode(data);
-    if (decoded is! List) return null;
-    return decoded
-        .whereType<List>()
-        .map((row) => row.map((cell) => cell?.toString() ?? '').toList())
-        .toList();
-  } on FormatException {
-    return null;
-  }
+/// Reads a table embed in any of its stored formats — the plain list, the
+/// envelope with column widths, and the rich format. Null when it is unusable.
+TableBlock? _table(Object? data) {
+  final table = TableData.tryParse(data);
+  if (table == null) return null;
+  if (!table.hasFormatting) return TableBlock(table.plainRows);
+  return TableBlock(
+    table.plainRows,
+    richCells: [
+      for (final row in table.cells)
+        [
+          for (final cell in row)
+            _mergeAdjacent([
+              for (final op in cell)
+                _spanFrom(
+                  op['insert'] as String,
+                  _asAttributes(op['attributes']),
+                ),
+            ]),
+        ],
+    ],
+  );
 }
 
 /// Reads an image embed's `{attachmentId, fileName}`. Null when it is unusable.

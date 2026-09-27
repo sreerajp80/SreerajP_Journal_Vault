@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
-import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
 import 'package:sreerajp_journal_vault/features/attachments/providers/attachment_providers.dart';
 import 'package:sreerajp_journal_vault/features/attachments/services/attachment_crypto_storage.dart';
 import 'package:sreerajp_journal_vault/features/backup/presentation/backup_health_screen.dart';
@@ -9,6 +8,7 @@ import 'package:sreerajp_journal_vault/features/export/presentation/export_scree
 import 'package:sreerajp_journal_vault/features/export/presentation/open_encrypted_export_screen.dart';
 import 'package:sreerajp_journal_vault/features/import/presentation/import_screen.dart';
 import 'package:sreerajp_journal_vault/features/journal_lock/providers/journal_lock_providers.dart';
+import 'package:sreerajp_journal_vault/features/journals/providers/journal_providers.dart';
 import 'package:sreerajp_journal_vault/features/sync/presentation/sync_landing_screen.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
@@ -49,14 +49,13 @@ class _StorageSectionState extends ConsumerState<StorageSection> {
 
   Future<void> _load() async {
     if (!mounted) return;
-    final db = ref.read(appDatabaseProvider);
-    final settings = await db.appSettingsDao.getSettings();
-    final attachments = await db.attachmentsDao.getAllAttachments();
-    final total = attachments.fold<int>(0, (sum, a) => sum + a.sizeBytes);
+    final overview = await ref
+        .read(attachmentStorageOverviewServiceProvider)
+        .load();
     if (!mounted) return;
     setState(() {
-      _settings = settings;
-      _totalBytes = total;
+      _settings = overview.settings;
+      _totalBytes = overview.totalBytes;
     });
   }
 
@@ -335,8 +334,7 @@ class _StorageSectionState extends ConsumerState<StorageSection> {
   }
 
   Future<void> _pickImportTarget(BuildContext context, WidgetRef ref) async {
-    final db = ref.read(appDatabaseProvider);
-    final journals = await db.journalsDao.getAllJournals();
+    final journals = await ref.read(journalServiceProvider).allJournals();
     if (!context.mounted) return;
     if (journals.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -384,8 +382,7 @@ class _StorageSectionState extends ConsumerState<StorageSection> {
   /// password. If every journal is locked, the user is told to open one first
   /// rather than being shown an empty list.
   Future<void> _pickExportTarget(BuildContext context, WidgetRef ref) async {
-    final db = ref.read(appDatabaseProvider);
-    final journals = await db.journalsDao.getAllJournals();
+    final journals = await ref.read(journalServiceProvider).allJournals();
     if (!context.mounted) return;
 
     if (journals.isEmpty) {

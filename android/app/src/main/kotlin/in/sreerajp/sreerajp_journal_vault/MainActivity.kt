@@ -6,7 +6,6 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.ColorMatrix
@@ -15,13 +14,6 @@ import android.graphics.Paint
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.Manifest
-import android.content.pm.PackageManager
-import android.speech.RecognitionSupport
-import android.speech.RecognitionSupportCallback
-import android.speech.RecognizerIntent
-import android.speech.SpeechRecognizer
-import androidx.core.content.ContextCompat
 import android.print.JvHtmlToPdf
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
@@ -46,6 +38,11 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import kotlin.random.Random
+import com.googlecode.leptonica.android.AdaptiveMap
+import com.googlecode.leptonica.android.Convert
+import com.googlecode.leptonica.android.Pix
+import com.googlecode.leptonica.android.ReadFile
+import com.googlecode.leptonica.android.Skew
 import com.googlecode.tesseract.android.TessBaseAPI
 import java.util.concurrent.Executors
 
@@ -60,9 +57,20 @@ class MainActivity : FlutterFragmentActivity() {
     private var activeTessApi: TessBaseAPI? = null
     private var activeTessLang: String? = null
 
+    /**
+     * English-only recognizer, kept apart from [activeTessApi] so that checking a
+     * bilingual scan against English never reloads a 15 MB model.
+     */
+    private var englishTessApi: TessBaseAPI? = null
+
     override fun onDestroy() {
-        activeTessApi?.recycle()
-        activeTessApi = null
+        // Free the engines on the OCR thread, after any read still running, so a
+        // read is never left using an engine that was freed under it.
+        try {
+            ocrExecutor.execute { releaseTessEngines() }
+        } catch (_: Exception) {
+            // Already shut down; nothing more can run there.
+        }
         ocrExecutor.shutdown()
         super.onDestroy()
     }
@@ -127,73 +135,6 @@ class MainActivity : FlutterFragmentActivity() {
             runOnUiThread {
                 shareChannel?.invokeMethod("onShareReceived", payload)
             }
-        }
-    }
-
-    /**
-     * Tells Dart whether speech can be recognised on this device without a
-     * network, and which languages the on-device recogniser has.
-     *
-     * Dictation starts only when `available` is true. The speech plugin makes
-     * the same `isOnDeviceRecognitionAvailable` check before it picks a
-     * recogniser, and would otherwise fall back to the online one — so this
-     * check is what keeps dictated audio on the device.
-     */
-    private fun reportOnDeviceSpeechStatus(result: MethodChannel.Result) {
-        val available = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S &&
-            SpeechRecognizer.isOnDeviceRecognitionAvailable(applicationContext)
-        val emptyStatus = mapOf(
-            "available" to available,
-            "installedLanguages" to emptyList<String>(),
-            "supportedLanguages" to emptyList<String>(),
-        )
-        val hasMicPermission = ContextCompat.checkSelfPermission(
-            applicationContext,
-            Manifest.permission.RECORD_AUDIO,
-        ) == PackageManager.PERMISSION_GRANTED
-        // The language list needs Android 13 and the microphone permission.
-        if (!available || Build.VERSION.SDK_INT < 33 || !hasMicPermission) {
-            result.success(emptyStatus)
-            return
-        }
-
-        val recognizer = try {
-            SpeechRecognizer.createOnDeviceSpeechRecognizer(applicationContext)
-        } catch (e: Exception) {
-            result.success(emptyStatus)
-            return
-        }
-        var replied = false
-        fun reply(value: Map<String, Any>) {
-            runOnUiThread {
-                if (replied) return@runOnUiThread
-                replied = true
-                recognizer.destroy()
-                result.success(value)
-            }
-        }
-        try {
-            recognizer.checkRecognitionSupport(
-                Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH),
-                Executors.newSingleThreadExecutor(),
-                object : RecognitionSupportCallback {
-                    override fun onSupportResult(support: RecognitionSupport) {
-                        reply(
-                            mapOf(
-                                "available" to true,
-                                "installedLanguages" to support.installedOnDeviceLanguages,
-                                "supportedLanguages" to support.supportedOnDeviceLanguages,
-                            ),
-                        )
-                    }
-
-                    override fun onError(error: Int) {
-                        reply(emptyStatus)
-                    }
-                },
-            )
-        } catch (e: Exception) {
-            reply(emptyStatus)
         }
     }
 
@@ -549,6 +490,21 @@ class MainActivity : FlutterFragmentActivity() {
                     }
                 }
 
+                // Live window only; the user's saved choice is not touched.
+                // Used while a screen showing a pairing secret is open. The
+                // next onCreate applies the saved choice again.
+                "applyScreenSecurity" -> {
+                    val enabled = call.argument<Boolean>("enabled")
+                    if (enabled == null) {
+                        result.error("invalid_args", "enabled is required", null)
+                        return@setMethodCallHandler
+                    }
+                    runOnUiThread {
+                        applyScreenSecurity(enabled)
+                        result.success(null)
+                    }
+                }
+
                 else -> result.notImplemented()
             }
         }
@@ -677,16 +633,6 @@ class MainActivity : FlutterFragmentActivity() {
 
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
-            SPEECH_CHANNEL,
-        ).setMethodCallHandler { call, result ->
-            when (call.method) {
-                "onDeviceSpeechStatus" -> reportOnDeviceSpeechStatus(result)
-                else -> result.notImplemented()
-            }
-        }
-
-        MethodChannel(
-            flutterEngine.dartExecutor.binaryMessenger,
             TESSERACT_OCR_CHANNEL,
         ).setMethodCallHandler { call, result ->
             when (call.method) {
@@ -718,9 +664,12 @@ class MainActivity : FlutterFragmentActivity() {
                             runOnUiThread {
                                 result.success(text)
                             }
-                        } catch (e: Exception) {
+                        } catch (e: Throwable) {
+                            // Throwable, not Exception: an OutOfMemoryError must still
+                            // get an answer back, or the caller waits for ever.
+                            if (e !is Exception) releaseTessEngines()
                             runOnUiThread {
-                                result.error("ocr_failure", e.message, null)
+                                result.error("ocr_failure", e.message ?: e.javaClass.simpleName, null)
                             }
                         } finally {
                             clearCancelledOcrRequest(requestId)
@@ -741,6 +690,19 @@ class MainActivity : FlutterFragmentActivity() {
                 else -> result.notImplemented()
             }
         }
+    }
+
+    /**
+     * Frees both Tesseract engines. The next read builds them again. Runs on the
+     * OCR thread only.
+     */
+    @Synchronized
+    private fun releaseTessEngines() {
+        activeTessApi?.recycle()
+        activeTessApi = null
+        activeTessLang = null
+        englishTessApi?.recycle()
+        englishTessApi = null
     }
 
     private fun openStorageTreePicker(result: MethodChannel.Result) {
@@ -837,8 +799,8 @@ class MainActivity : FlutterFragmentActivity() {
 
     /**
      * Rebuilds the recognised text, dropping only words the recognizer was unsure
-     * about *and* that are the wrong script for the page, then putting the
-     * surviving lines into reading order.
+     * about *and* that are the wrong script for the page, then dropping lines that
+     * are only noise, then putting the surviving lines into reading order.
      *
      * Running two languages at once means that when Tesseract meets a shape that
      * is not a letter at all — a printed ornament, a rule, a logo mark — it still
@@ -856,9 +818,18 @@ class MainActivity : FlutterFragmentActivity() {
      * ornaments misread on Malayalam pages; on an English page it only threw
      * away real words that a phone photo leaves with low confidence.
      *
+     * Whole lines are a different matter. Texture — a screen's moiré, paper
+     * grain — is read as lines of short, low-confidence "words". A real line
+     * nearly always holds at least one confident word; a noise line holds none.
+     * So a line is dropped only when its average confidence is under
+     * [JUNK_LINE_MEAN_CONFIDENCE] *and* none of its words reaches
+     * [JUNK_LINE_MAX_CONFIDENCE].
+     *
+     * The reading is scored by [scoreWords] over the words that were kept.
+     *
      * Returns `null` when there is nothing to walk, so the caller can fall back.
      */
-    private fun collectConfidentText(tess: TessBaseAPI, language: String): String? {
+    private fun collectConfidentText(tess: TessBaseAPI, language: String): OcrReading? {
         val keepEverything = !language.contains("mal")
         val iterator = tess.resultIterator ?: return null
         val words = mutableListOf<RecognisedWord>()
@@ -900,7 +871,7 @@ class MainActivity : FlutterFragmentActivity() {
             iterator.delete()
         }
 
-        if (words.isEmpty()) return ""
+        if (words.isEmpty()) return OcrReading("", 0f)
 
         // Decide what kind of page this is, counting only words that clear the low
         // floor so that junk cannot vote. The high floor applies only to a page
@@ -912,7 +883,9 @@ class MainActivity : FlutterFragmentActivity() {
             malayalamCount >= readable.size * MALAYALAM_PAGE_SHARE
 
         val lines = mutableListOf<TextLineBox>()
+        val keptConfidences = mutableListOf<Float>()
         val lineText = StringBuilder()
+        val lineConfidences = mutableListOf<Float>()
         var left = 0
         var top = 0
         var right = 0
@@ -920,9 +893,16 @@ class MainActivity : FlutterFragmentActivity() {
         var started = false
 
         fun flushLine() {
-            if (lineText.isEmpty()) return
-            lines.add(TextLineBox(left, top, right, bottom, lineText.toString()))
+            if (lineText.isNotEmpty()) {
+                val isNoise = lineConfidences.average() < JUNK_LINE_MEAN_CONFIDENCE &&
+                    lineConfidences.max() < JUNK_LINE_MAX_CONFIDENCE
+                if (!isNoise) {
+                    lines.add(TextLineBox(left, top, right, bottom, lineText.toString()))
+                    keptConfidences.addAll(lineConfidences)
+                }
+            }
             lineText.clear()
+            lineConfidences.clear()
             started = false
         }
 
@@ -937,6 +917,7 @@ class MainActivity : FlutterFragmentActivity() {
             if (word.confidence >= floor) {
                 if (lineText.isNotEmpty()) lineText.append(' ')
                 lineText.append(word.text)
+                lineConfidences.add(word.confidence)
                 if (started) {
                     left = minOf(left, word.lineLeft)
                     top = minOf(top, word.lineTop)
@@ -954,21 +935,20 @@ class MainActivity : FlutterFragmentActivity() {
         }
         flushLine()
 
-        return orderLinesForReading(lines).joinToString("\n") { it.text }.trim()
+        val text = orderLinesForReading(lines).joinToString("\n") { it.text }.trim()
+        return OcrReading(text, scoreWords(keptConfidences))
     }
 
     /**
-     * Scores one recognition result. A pass is better when it is both confident and
-     * finds more words, so a stray high-confidence fragment cannot beat a full line
-     * of slightly less certain text.
+     * Scores a reading from the confidence of each word it kept. Every word adds
+     * its confidence minus [WORD_SCORE_OFFSET]: a real word (confidence 70 to 95)
+     * adds a lot, a noise word (10 to 40) takes away. More text raises the score
+     * only when that text is believable, so a page of texture read as hundreds
+     * of junk "words" can no longer beat a clean reading of the real lines.
      */
-    private fun scoreRecognition(text: String, confidence: Int): Int {
-        if (text.isBlank()) return 0
-        val words = text.split(Regex("\\s+")).count { it.isNotBlank() }
-        return confidence * words
-    }
+    private fun scoreWords(confidences: List<Float>): Float =
+        confidences.sumOf { (it - WORD_SCORE_OFFSET).toDouble() }.toFloat()
 
-    /** One recognition attempt: a page segmentation mode against a given bitmap. */
     private fun isOcrRequestCancelled(requestId: Int): Boolean =
         synchronized(cancelledOcrRequests) { cancelledOcrRequests.contains(requestId) }
 
@@ -976,7 +956,167 @@ class MainActivity : FlutterFragmentActivity() {
         synchronized(cancelledOcrRequests) { cancelledOcrRequests.remove(requestId) }
     }
 
-    private data class OcrPass(val bitmap: Bitmap, val pageSegMode: Int)
+    /**
+     * A recognised text with its [scoreWords] score, and whether a pass was
+     * confident enough to stop early.
+     */
+    private data class OcrReading(
+        val text: String,
+        val score: Float,
+        val confident: Boolean = false,
+    )
+
+    /**
+     * Applies the recognition settings. Called before every run, because the
+     * thresholding method changes between the two candidates and a recognizer
+     * that was just initialised starts from Tesseract's defaults.
+     *
+     * [sauvola] picks Sauvola adaptive thresholding, which chooses a black/white
+     * threshold for each small area of the page and so copes with shadows. Off, it
+     * is Tesseract's default Otsu: one threshold for the whole image, which keeps
+     * background texture such as a screen's moiré on the paper side.
+     */
+    private fun configureTess(tess: TessBaseAPI, sauvola: Boolean) {
+        // Our images are resized PNGs with no DPI metadata, so Tesseract's own
+        // resolution guess is wrong and the LSTM line model loses accuracy on
+        // vowel signs and ligatures. Telling it the effective DPI fixes that.
+        tess.setVariable("user_defined_dpi", "300")
+        tess.setVariable("preserve_interword_spaces", "1")
+        tess.setVariable(
+            "thresholding_method",
+            if (sauvola) SAUVOLA_THRESHOLDING else OTSU_THRESHOLDING,
+        )
+        tess.setVariable("thresholding_window_size", SAUVOLA_WINDOW_SIZE)
+        tess.setVariable("thresholding_kfactor", SAUVOLA_K_FACTOR)
+    }
+
+    /**
+     * Returns the English-only recognizer, creating it on first use, or `null`
+     * when the English model cannot be loaded.
+     */
+    private fun englishTess(datapath: String): TessBaseAPI? {
+        if (activeTessLang == "eng") return activeTessApi
+        englishTessApi?.let { return it }
+        val api = TessBaseAPI()
+        return if (api.init(datapath, "eng")) {
+            englishTessApi = api
+            api
+        } else {
+            api.recycle()
+            null
+        }
+    }
+
+    /**
+     * Cleans a photo the way Tesseract likes it, using the Leptonica library that
+     * ships inside Tesseract:
+     *
+     * 1. grayscale;
+     * 2. background normalisation, only when [normaliseBackground] — it flattens
+     *    shadows and uneven light so the paper becomes one even tone, but on a
+     *    dark photo it treats the light text as background and wipes it out;
+     * 3. deskew, which straightens a small tilt (up to [DESKEW_MAX_DEGREES]).
+     *
+     * No sharpening: it strengthened screen moiré and paper grain far more than
+     * it helped the letters.
+     *
+     * Each step is optional: if one fails, it is skipped and the image from the
+     * step before is used. Returns `null` only when [src] could not be read at
+     * all. The caller owns the returned [Pix] and must recycle it.
+     */
+    private fun prepareForOcr(src: Bitmap, normaliseBackground: Boolean): Pix? {
+        var current = readPix(src) ?: return null
+
+        val steps = mutableListOf<(Pix) -> Pix?>({ Convert.convertTo8(it) })
+        if (normaliseBackground) steps.add { AdaptiveMap.backgroundNormMorph(it) }
+        steps.add {
+            // 0 asks Leptonica for its default where a finer value is not needed.
+            Skew.deskew(it, 0, DESKEW_MAX_DEGREES, DESKEW_STEP_DEGREES, 0, 0, FloatArray(2))
+        }
+        for (step in steps) {
+            val next = try {
+                step(current)
+            } catch (e: Exception) {
+                null
+            }
+            if (next != null && next !== current) {
+                current.recycle()
+                current = next
+            }
+        }
+        return current
+    }
+
+    /** [src] as a Leptonica image, or `null` when it cannot be converted. */
+    private fun readPix(src: Bitmap): Pix? = try {
+        ReadFile.readBitmap(src)
+    } catch (e: Exception) {
+        null
+    }
+
+    /**
+     * Reads every image in [images] with every page segmentation mode and returns
+     * the best-scoring reading. Stops early once a pass is clearly good and the
+     * first two modes have run ([canStopEarly]).
+     */
+    private fun runPasses(tess: TessBaseAPI, language: String, images: List<Pix>): OcrReading {
+        var best: OcrReading? = null
+        passes@ for (image in images) {
+            for ((modeIndex, mode) in PAGE_SEG_MODES.withIndex()) {
+                tess.pageSegMode = mode
+                tess.setImage(image)
+                val rawText = tess.utF8Text?.trim() ?: ""
+                // Prefer the filtered reading. If the filters stripped everything
+                // but the recognizer did find words, keep the unfiltered text — a
+                // tuning value must never turn a working scan blank. The score
+                // stays that of the filtered words, so such a pass rarely wins.
+                val filtered = collectConfidentText(tess, language)
+                val text = filtered?.text?.takeIf { it.isNotEmpty() } ?: rawText
+                if (text.isEmpty()) continue
+                val meanConfidence = tess.meanConfidence()
+                val score = filtered?.score ?: (meanConfidence - WORD_SCORE_OFFSET)
+                if (best == null || score > best.score) {
+                    best = OcrReading(text, score)
+                }
+                // A clean page is read well early. Stop once the full-page and
+                // single-block modes have both had their turn.
+                if (canStopEarly(modeIndex, text, meanConfidence)) {
+                    best = best.copy(confident = true)
+                    break@passes
+                }
+            }
+        }
+        tess.clear()
+        return best ?: OcrReading("", 0f)
+    }
+
+    /**
+     * Reads the page with [tess] in two candidates and keeps the better one:
+     *
+     * 1. the untouched photo with Otsu thresholding — exactly the reading this app
+     *    made before the clean-up existed;
+     * 2. the cleaned photo ([cleaned], made on first use) with Sauvola
+     *    thresholding — skipped when the first candidate was already confident.
+     *
+     * The clean-up can therefore only add a better reading; it can never replace
+     * a good one with a worse one.
+     */
+    private fun readBestCandidate(
+        tess: TessBaseAPI,
+        language: String,
+        untouched: List<Pix>,
+        cleaned: () -> List<Pix>,
+    ): OcrReading {
+        configureTess(tess, sauvola = false)
+        val first = runPasses(tess, language, untouched)
+        if (first.confident) return first
+
+        val cleanedImages = cleaned()
+        if (cleanedImages.isEmpty()) return first
+        configureTess(tess, sauvola = true)
+        val second = runPasses(tess, language, cleanedImages)
+        return if (second.text.isNotEmpty() && second.score > first.score) second else first
+    }
 
     @Synchronized
     private fun performTesseractOcr(
@@ -1002,15 +1142,11 @@ class MainActivity : FlutterFragmentActivity() {
                 activeTessLang = language
             }
         }
+        val activeLang = activeTessLang ?: language
 
-        // Our images are resized PNGs with no DPI metadata, so Tesseract's own
-        // resolution guess is wrong and the LSTM line model loses accuracy on
-        // vowel signs and ligatures. Telling it the effective DPI fixes that.
-        tess.setVariable("user_defined_dpi", "300")
-        tess.setVariable("preserve_interword_spaces", "1")
-
-        val rawBitmap = BitmapFactory.decodeFile(imageFile.absolutePath)
-            ?: throw IllegalArgumentException("Could not decode image file: ${imageFile.name}")
+        // Size-capped and turned upright, so an unexpected full-size photo cannot
+        // run the phone out of memory or be read sideways.
+        val rawBitmap = loadBitmapForOcr(imageFile)
 
         // Add a clean white quiet-zone padding around the image. Tight crops often have
         // dark borders or character strokes that touch the edge, causing Leptonica to treat
@@ -1023,55 +1159,74 @@ class MainActivity : FlutterFragmentActivity() {
         // A dark-dominant image is very likely light text on a dark ground. Recognise
         // the inverted copy too and let the scoring below decide which reading wins.
         // A normal light page skips this entirely and stays as fast as before.
-        val inverted = if (meanLuminance(bitmap) < DARK_IMAGE_LUMINANCE) {
-            invertBitmap(bitmap)
-        } else {
-            null
+        val isDark = meanLuminance(bitmap) < DARK_IMAGE_LUMINANCE
+        val inverted = if (isDark) invertBitmap(bitmap) else null
+
+        val sources = listOfNotNull(bitmap, inverted)
+        val untouched = mutableListOf<Pix>()
+        var cleaned: List<Pix>? = null
+        // Made once, on first use, and shared by the bilingual and English runs.
+        // Background normalisation is left out for a dark photo: it was tested to
+        // wipe out light-on-dark text, and the photo is already evenly lit enough
+        // for the inverted copy to read well.
+        val cleanedOnce: () -> List<Pix> = {
+            cleaned ?: sources.mapNotNull { prepareForOcr(it, normaliseBackground = !isDark) }
+                .also { cleaned = it }
         }
-
         return try {
-            val passes = mutableListOf<OcrPass>()
-            for (mode in PAGE_SEG_MODES) {
-                passes.add(OcrPass(bitmap, mode))
-            }
-            if (inverted != null) {
-                for (mode in PAGE_SEG_MODES) {
-                    passes.add(OcrPass(inverted, mode))
-                }
+            for (source in sources) {
+                val pix = readPix(source)
+                    ?: throw IllegalArgumentException("Could not read image for recognition")
+                untouched.add(pix)
             }
 
-            var bestText = ""
-            var bestScore = 0
-            for (pass in passes) {
-                tess.pageSegMode = pass.pageSegMode
-                tess.setImage(pass.bitmap)
-                val rawText = tess.utF8Text?.trim() ?: ""
-                // Prefer the confidence-filtered reading. If the floor stripped
-                // everything but the recognizer did find words, keep the unfiltered
-                // text — a tuning value must never turn a working scan blank.
-                val filtered = collectConfidentText(tess, activeTessLang ?: language)
-                val text = if (filtered.isNullOrEmpty()) rawText else filtered
-                if (text.isNotEmpty()) {
-                    val meanConfidence = tess.meanConfidence()
-                    val score = scoreRecognition(text, meanConfidence)
-                    if (score > bestScore) {
-                        bestScore = score
-                        bestText = text
+            var best = readBestCandidate(tess, activeLang, untouched, cleanedOnce)
+
+            // With both languages loaded, Tesseract often reads English letters as
+            // Malayalam shapes. When the page turns out to be almost all English,
+            // read it again with the English model alone. Its reading wins unless
+            // it is clearly worse.
+            if (activeLang == "eng+mal" &&
+                best.text.isNotEmpty() &&
+                malayalamWordShare(best.text) < ENGLISH_PAGE_MAX_MALAYALAM_SHARE
+            ) {
+                val english = englishTess(datapath)
+                if (english != null) {
+                    val englishReading = readBestCandidate(english, "eng", untouched, cleanedOnce)
+                    if (englishReading.text.isNotEmpty() &&
+                        englishReading.score >= englishWinningScore(best.score)
+                    ) {
+                        best = englishReading
                     }
-                    // A clean page is read well on its first pass. Stop there rather
-                    // than spending more passes to confirm it. Both a high score and a
-                    // high mean confidence are needed: a score alone is reached by a
-                    // long main block even when a heading or a column was missed.
-                    if (score >= CONFIDENT_SCORE && meanConfidence >= CONFIDENT_MEAN) break
                 }
             }
 
-            tess.clear()
-            bestText
+            best.text
         } finally {
+            untouched.forEach { it.recycle() }
+            cleaned?.forEach { it.recycle() }
             inverted?.recycle()
             bitmap.recycle()
         }
+    }
+
+    /**
+     * The score an English-only reading needs to replace a bilingual one scoring
+     * [bilingualScore]: [ENGLISH_READING_MIN_SCORE_RATIO] of it when positive.
+     * A zero or negative score cannot be scaled that way, so there the English
+     * reading only has to match it.
+     */
+    private fun englishWinningScore(bilingualScore: Float): Float =
+        if (bilingualScore > 0f) bilingualScore * ENGLISH_READING_MIN_SCORE_RATIO else bilingualScore
+
+    /**
+     * Share (0..1) of the words in [text] that contain a Malayalam letter,
+     * counting only words that contain some letter at all.
+     */
+    private fun malayalamWordShare(text: String): Double {
+        val words = text.split(Regex("\\s+")).filter { word -> word.any { it.isLetter() } }
+        if (words.isEmpty()) return 0.0
+        return words.count { hasMalayalamLetter(it) }.toDouble() / words.size
     }
 }
 
@@ -1481,7 +1636,6 @@ private const val SCREEN_SECURITY_CHANNEL = "sreerajp.journal_vault/screen_secur
 private const val SHARE_INTENT_CHANNEL = "sreerajp.journal_vault/share_intent"
 private const val NOTIFICATIONS_CHANNEL = "sreerajp.journal_vault/notifications"
 private const val TESSERACT_OCR_CHANNEL = "sreerajp.journal_vault/ocr"
-private const val SPEECH_CHANNEL = "sreerajp.journal_vault/speech"
 
 /**
  * Identifies the set of language models currently shipped in assets.
@@ -1528,6 +1682,60 @@ private const val FOREIGN_CONFIDENCE_FLOOR = 60f
  */
 private const val MALAYALAM_PAGE_SHARE = 0.7
 
+/**
+ * Share of words (0..1) that may contain Malayalam letters while a bilingual
+ * scan still counts as an English page and is re-read with English alone.
+ */
+private const val ENGLISH_PAGE_MAX_MALAYALAM_SHARE = 0.1
+
+/**
+ * The English-only reading of an English page is kept when its score is at
+ * least this fraction of the bilingual reading's. Slightly below 1 on purpose:
+ * the bilingual model's confident-looking misreads should not win a close call
+ * on a page that is already known to be English.
+ */
+private const val ENGLISH_READING_MIN_SCORE_RATIO = 0.9f
+
+/** Tesseract `thresholding_method` value for Sauvola adaptive thresholding. */
+private const val SAUVOLA_THRESHOLDING = "2"
+
+/** Tesseract `thresholding_method` value for its default, Otsu. */
+private const val OTSU_THRESHOLDING = "0"
+
+/**
+ * Confidence (0..100) a word must beat to raise a reading's score rather than
+ * lower it. Real words in a phone photo score from about 60 up; texture read as
+ * words scores from about 10 to 40.
+ */
+private const val WORD_SCORE_OFFSET = 45f
+
+/** Average word confidence below which a line may be noise. */
+private const val JUNK_LINE_MEAN_CONFIDENCE = 35f
+
+/**
+ * A line with any word at or above this confidence is always kept, whatever its
+ * average — a real line nearly always holds at least one confident word.
+ */
+private const val JUNK_LINE_MAX_CONFIDENCE = 60f
+
+/**
+ * Sauvola window, as a fraction of the text size Tesseract measures. Tesseract's
+ * own default.
+ */
+private const val SAUVOLA_WINDOW_SIZE = "0.33"
+
+/**
+ * Sauvola sensitivity. Higher values drop more faint marks as background.
+ * Tesseract's own default.
+ */
+private const val SAUVOLA_K_FACTOR = "0.34"
+
+/** Largest tilt, in degrees either way, that the clean-up straightens. */
+private const val DESKEW_MAX_DEGREES = 7f
+
+/** Step, in degrees, of the coarse tilt search before it is refined. */
+private const val DESKEW_STEP_DEGREES = 1f
+
 /** Edge length of the downscaled copy used to measure average brightness. */
 private const val SAMPLE_EDGE = 32
 
@@ -1538,22 +1746,13 @@ private const val SAMPLE_EDGE = 32
 private const val DARK_IMAGE_LUMINANCE = 110
 
 /**
- * Score (mean confidence x word count) above which a pass is considered good
- * enough to stop trying the remaining page segmentation modes.
- */
-private const val CONFIDENT_SCORE = 2400
-
-/**
- * Mean confidence (0..100) a pass must also reach before the remaining page
- * segmentation modes are skipped.
- */
-private const val CONFIDENT_MEAN = 85
-
-/**
  * Page segmentation modes tried in order: a full page first, then a single
  * uniform block for crops and columns, then sparse text for banners, headers
  * and scattered words. Every mode is scored and the best reading wins — an
  * earlier mode returning *some* text no longer blocks the later ones.
+ *
+ * Keep the full-page and single-block modes first: [canStopEarly] lets a clean
+ * page skip the rest only after both have run.
  */
 private val PAGE_SEG_MODES = listOf(
     TessBaseAPI.PageSegMode.PSM_AUTO,
@@ -1712,18 +1911,25 @@ private fun ensureTessData(context: Context) {
             "assets/tessdata/$lang.traineddata",
         )
         if (needsRefresh || !targetFile.exists() || targetFile.length() == 0L) {
+            // Copy to a temporary name and rename only once the whole model is
+            // written. A copy that fails part way then never leaves a broken model
+            // under the real name, where Tesseract would keep failing on it.
+            val partFile = File(tessDataDir, "$lang.traineddata.part")
             for (assetPath in possibleAssetPaths) {
                 try {
-                    context.assets.open(assetPath).use { input ->
-                        FileOutputStream(targetFile).use { output ->
+                    val copied = context.assets.open(assetPath).use { input ->
+                        FileOutputStream(partFile).use { output ->
                             input.copyTo(output)
                         }
                     }
-                    if (targetFile.exists() && targetFile.length() > 0L) {
-                        break
+                    if (copied > 0L && partFile.length() == copied) {
+                        targetFile.delete()
+                        if (partFile.renameTo(targetFile)) break
                     }
                 } catch (_: Exception) {
                     // Try next path
+                } finally {
+                    partFile.delete()
                 }
             }
         }

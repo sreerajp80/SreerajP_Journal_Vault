@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter/widgets.dart';
 
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
+import 'package:sreerajp_journal_vault/core/security/external_handoff_guard.dart';
 
 /// The two mutually exclusive app-level lock modes.
 enum AppLockMode {
@@ -17,18 +18,37 @@ enum AppLockMode {
 /// Call [ready] after construction to load persisted state from the database.
 /// When [observeLifecycle] is true the controller registers with [WidgetsBinding]
 /// and relocks automatically when the app is paused.
+///
+/// A pause caused by a system screen the app opened itself (see
+/// [ExternalHandoffGuard]) does not lock, unless the user stays away longer
+/// than [handoffGracePeriod].
 class AppLockController with WidgetsBindingObserver {
-  AppLockController({required this._database, this._observeLifecycle = true}) {
+  AppLockController({
+    required this._database,
+    this._observeLifecycle = true,
+    ExternalHandoffGuard? handoffGuard,
+    DateTime Function()? clock,
+  }) : _handoffGuard = handoffGuard ?? ExternalHandoffGuard.instance,
+       _clock = clock ?? DateTime.now {
     if (_observeLifecycle) {
       WidgetsBinding.instance.addObserver(this);
     }
   }
 
+  /// How long the user may stay on a system screen the app opened before the
+  /// app locks on return.
+  static const Duration handoffGracePeriod = Duration(minutes: 2);
+
   final AppDatabase _database;
   final bool _observeLifecycle;
+  final ExternalHandoffGuard _handoffGuard;
+  final DateTime Function() _clock;
 
   AppLockMode? _lockMode;
   bool _isLocked = false;
+
+  /// When the app was paused during a hand-off, or null if it was not.
+  DateTime? _handoffPausedAt;
   final List<void Function()> _onLockCallbacks = [];
 
   /// The currently active lock mode, or null if no lock is configured.
@@ -67,6 +87,9 @@ class AppLockController with WidgetsBindingObserver {
   /// foreground.
   Future<void> unlock() async {
     _isLocked = false;
+    // A fresh unlock starts clean: a hand-off pause recorded before it (for
+    // example the device-credential prompt itself) must not relock later.
+    _handoffPausedAt = null;
     await _database.appSecurityDao.updateLockState(
       const AppSecurityCompanion(isLocked: Value(false)),
     );
@@ -103,8 +126,25 @@ class AppLockController with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused) {
-      lock();
+    switch (state) {
+      case AppLifecycleState.paused:
+        if (_handoffGuard.isActive) {
+          // The app opened a system screen on purpose. Keep the first time
+          // stamp if Android reports more than one pause.
+          _handoffPausedAt ??= _clock();
+        } else {
+          _handoffPausedAt = null;
+          lock();
+        }
+      case AppLifecycleState.resumed:
+        final pausedAt = _handoffPausedAt;
+        _handoffPausedAt = null;
+        if (pausedAt != null &&
+            _clock().difference(pausedAt) > handoffGracePeriod) {
+          lock();
+        }
+      default:
+        break;
     }
   }
 

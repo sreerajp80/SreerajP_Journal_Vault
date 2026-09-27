@@ -5,7 +5,14 @@ import 'package:sreerajp_journal_vault/features/attachments/services/attachment_
 import 'package:sreerajp_journal_vault/features/attachments/services/attachment_open_service.dart';
 import 'package:sreerajp_journal_vault/features/attachments/services/attachment_picker_service.dart';
 import 'package:sreerajp_journal_vault/features/attachments/services/attachment_storage_migration_service.dart';
+import 'package:sreerajp_journal_vault/features/attachments/services/attachment_storage_overview_service.dart';
 import 'package:sreerajp_journal_vault/features/attachments/services/attachment_storage_picker.dart';
+
+/// Reads the storage settings and the total size of all attachments.
+final attachmentStorageOverviewServiceProvider =
+    Provider<AttachmentStorageOverviewService>((ref) {
+      return AttachmentStorageOverviewService(ref.watch(appDatabaseProvider));
+    });
 
 final attachmentCryptoStorageProvider = Provider<AttachmentCryptoStorage>((
   ref,

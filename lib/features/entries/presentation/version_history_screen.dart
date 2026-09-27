@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/core/theme/typography_controller.dart';
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/callout_embed.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/drawing_embed.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/image_embed.dart';
@@ -14,6 +15,7 @@ import 'package:sreerajp_journal_vault/features/entries/presentation/editor/inli
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/table_embed.dart';
 import 'package:sreerajp_journal_vault/features/entries/providers/entry_providers.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
+import 'package:sreerajp_journal_vault/core/security/keyboard_privacy_scope.dart';
 
 /// Screen that displays version history for an entry and allows restoring
 /// any previous revision.
@@ -295,7 +297,7 @@ class _RevisionPreviewScreenState
         title: Text(AppLocalizations.of(context).titleVersionPreview(title)),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16).withSafeBottom(context),
         child: DefaultTextStyle(
           style: entryBodyStyle,
           child: QuillEditor.basic(
@@ -303,6 +305,9 @@ class _RevisionPreviewScreenState
             focusNode: _previewFocusNode,
             scrollController: _previewScrollController,
             config: QuillEditorConfig(
+              enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+                context,
+              ),
               embedBuilders: _embedBuilders,
               customStyles: customStyles,
             ),

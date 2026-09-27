@@ -57,18 +57,39 @@ void main() {
       expect(await handle.file.exists(), isFalse);
     });
 
-    test('cleans active files after background timeout', () async {
+    test('background timeout cleans files handed to other apps only', () async {
       await manager.start();
-      final handle = await manager.createTempFile(
+      final handedOff = await manager.createTempFile(
         bytes: Uint8List.fromList([5, 4, 3]),
         fileName: 'archive.zip',
+      );
+      handedOff.markHandedOff();
+      // Still on screen in an in-app viewer, which deletes it itself.
+      final inApp = await manager.createTempFile(
+        bytes: Uint8List.fromList([1, 2]),
+        fileName: 'page.pdf',
       );
 
       manager.didChangeAppLifecycleState(AppLifecycleState.paused);
       await Future<void>.delayed(const Duration(milliseconds: 60));
 
-      expect(await handle.file.exists(), isFalse);
-      expect(handle.isReleased, isTrue);
+      expect(await handedOff.file.exists(), isFalse);
+      expect(handedOff.isReleased, isTrue);
+      expect(await inApp.file.exists(), isTrue);
+      expect(inApp.isReleased, isFalse);
+    });
+
+    test('released handles are no longer tracked', () async {
+      await manager.start();
+      final handle = await manager.createTempFile(
+        bytes: Uint8List.fromList([7]),
+        fileName: 'photo.jpg',
+      );
+      expect(manager.activeHandleCount, 1);
+
+      await handle.release();
+
+      expect(manager.activeHandleCount, 0);
     });
 
     test('releases active files when disposed', () async {

@@ -3,8 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/template_editor_screen.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
+import 'package:sreerajp_journal_vault/features/entries/providers/entry_providers.dart';
 
 /// Screen displaying and managing all custom entry templates created by the user.
 ///
@@ -73,7 +75,9 @@ class TemplateManagerScreen extends ConsumerWidget {
           }
 
           return ListView.separated(
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(
+              vertical: 8,
+            ).withSafeBottom(context),
             itemCount: templates.length,
             separatorBuilder: (_, _) => const Divider(height: 1),
             itemBuilder: (context, index) {
@@ -204,8 +208,9 @@ class _TemplateListTile extends ConsumerWidget {
         );
 
         if (confirmed == true && context.mounted) {
-          final db = ref.read(appDatabaseProvider);
-          await db.userTemplatesDao.deleteUserTemplate(template.id);
+          await ref
+              .read(userTemplateServiceProvider)
+              .deleteTemplate(template.id);
           ref.invalidate(allUserTemplatesProvider);
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(

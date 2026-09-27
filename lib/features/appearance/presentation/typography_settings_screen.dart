@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sreerajp_journal_vault/core/theme/typography_controller.dart';
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 /// Screen allowing customization of journal body typography (font family and font size).
@@ -38,7 +39,12 @@ class TypographySettingsScreen extends ConsumerWidget {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        padding: const EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          32,
+        ).withSafeBottom(context),
         children: [
           // ─── Live Preview Card ──────────────────────────────────────────
           _LivePreviewCard(typography: typography),

@@ -239,6 +239,9 @@ extension _BackupHealthScreenStatePart1 on _BackupHealthScreenState {
         ),
         const SizedBox(height: 12),
         TextField(
+          enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+            context,
+          ),
           controller: _passwordController,
           obscureText: true,
           decoration: InputDecoration(

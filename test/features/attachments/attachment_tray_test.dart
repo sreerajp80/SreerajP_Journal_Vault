@@ -95,6 +95,100 @@ void main() {
     await tester.pump();
     await tester.pumpAndSettle();
   });
+
+  testWidgets('Deleting an attachment removes its row, file and picture', (
+    tester,
+  ) async {
+    final storage = _NoopStorage();
+    final journalId = await database.journalsDao.createJournal(
+      JournalsCompanion.insert(title: 'Pictures'),
+    );
+    final entryId = await database.entriesDao.createEntry(
+      EntriesCompanion.insert(
+        journalId: journalId,
+        title: const Value('Entry'),
+        contentJson: const Value(
+          '[{"insert":"Hello\\n"},'
+          '{"insert":{"vault_image":"{\\"attachmentId\\":1,'
+          '\\"fileName\\":\\"photo.jpg\\",\\"widthFactor\\":1.0}"}},'
+          '{"insert":"\\n"}]',
+        ),
+      ),
+    );
+    await database.attachmentsDao.createAttachment(
+      AttachmentsCompanion.insert(
+        entryId: entryId,
+        fileName: 'photo.jpg',
+        mimeType: const Value('image/jpeg'),
+        encryptedPath: 'enc/photo.bin',
+        nonceBase64: 'abc',
+        keyReference: 'test-key-ref',
+        sizeBytes: 1024,
+      ),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          appDatabaseProvider.overrideWithValue(database),
+          attachmentCryptoStorageProvider.overrideWithValue(storage),
+          attachmentOpenServiceProvider.overrideWithValue(
+            _FailingOpenService(),
+          ),
+          appPinKeystoreProvider.overrideWithValue(_InMemoryAppPinKeystore()),
+          biometricAuthenticatorProvider.overrideWithValue(
+            _AlwaysSuccessBiometric(),
+          ),
+        ],
+        child: const JournalVaultApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('phone-lock-unlock-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Pictures'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Entry'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('vault-image-1')), findsOneWidget);
+
+    // Settles, and fails on any error raised while drawing — for example a
+    // caret left pointing at the removed picture.
+    Future<void> step(String name) async {
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull, reason: name);
+    }
+
+    // Cancel keeps everything.
+    await tester.tap(find.byKey(const Key('attachment-delete-1')));
+    await step('open dialog');
+    expect(find.text('Delete attachment?'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await step('cancel');
+    expect(await database.select(database.attachments).get(), hasLength(1));
+
+    await tester.tap(find.byKey(const Key('attachment-delete-1')));
+    await step('open dialog again');
+    await tester.tap(find.byKey(const Key('attachment-delete-confirm-1')));
+    await step('confirm');
+
+    expect(await database.select(database.attachments).get(), isEmpty);
+    expect(storage.deleted, ['enc/photo.bin']);
+    expect(find.byKey(const Key('attachment-tile-1')), findsNothing);
+    expect(find.byKey(const ValueKey('vault-image-1')), findsNothing);
+
+    // The text without the picture is auto-saved.
+    await tester.pump(const Duration(seconds: 3));
+    await step('autosave');
+    final saved = await database.entriesDao.getEntryById(entryId);
+    expect(saved.contentJson, isNot(contains('vault_image')));
+    expect(saved.contentJson, contains('Hello'));
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump();
+    await tester.pumpAndSettle();
+  });
 }
 
 class _FailingOpenService extends AttachmentOpenService {
@@ -119,8 +213,11 @@ class _NoopStorage implements AttachmentCryptoStorage {
     String? targetTreeUri,
   }) async {}
 
+  final List<String> deleted = [];
+
   @override
-  Future<void> deleteStoredFile(String encryptedPath) async {}
+  Future<void> deleteStoredFile(String encryptedPath) async =>
+      deleted.add(encryptedPath);
 
   @override
   Future<AttachmentTempFileHandle> decryptToTempFile({

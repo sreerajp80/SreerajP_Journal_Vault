@@ -1,6 +1,7 @@
 # Plan — Transliterate the About screen author name into Malayalam and Sanskrit
 
-**Status:** Awaiting approval
+**Status:** completed
+**Change log:** `change_log/20260918_044900_about-author-transliteration.md`
 
 ## Issue
 

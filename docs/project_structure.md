@@ -125,13 +125,14 @@ The fifteen features:
 | `import/` | Reading entries in from outside the app |
 | `insights/` | Counts, streaks and charts over the journal |
 | `journal_lock/` | Per-journal locking and the Keystore-backed secret store |
+| `journals/` | `JournalService`: create, update and list journals, their tags and entry lists (no UI of its own; the home screen lives in `lib/app/`) |
 | `lock_gate/` | The app-wide lock screen and the single active lock mode |
 | `permissions/` | The Permissions Center and the runtime permission flow |
-| `search/` | Search over entries, backed by FTS5 |
+| `search/` | Search over entries, backed by FTS5, and saved search presets (`SearchService`) |
 | `security/` | Security events and security settings |
 | `smart_tags/` | Tag suggestions from the live document text |
 | `sync/` | Encrypted sync and conflict resolution — **no transport yet**, UI is flag-gated |
-| `tags/` | Tag management |
+| `tags/` | Tag management (`TagService`) |
 | `timeline/` | The calendar view of entries |
 
 ---

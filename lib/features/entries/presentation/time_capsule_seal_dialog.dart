@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:sreerajp_journal_vault/core/l10n/formatting_locale.dart';
 
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
+import 'package:sreerajp_journal_vault/core/security/keyboard_privacy_scope.dart';
 
 /// Preset duration choices for quickly setting a time capsule unlock date.
 enum TimeCapsulePreset {
@@ -271,6 +272,9 @@ class _TimeCapsuleSealDialogState extends State<TimeCapsuleSealDialog> {
             const SizedBox(height: 16),
             TextField(
               key: const Key('time-capsule-teaser-field'),
+              enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+                context,
+              ),
               controller: _teaserController,
               decoration: InputDecoration(
                 labelText: l10n.descTimeCapsuleTeaser,

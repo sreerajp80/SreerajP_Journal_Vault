@@ -89,4 +89,14 @@ void main() {
       hasLength(2),
     );
   });
+
+  test('getLockedAttachmentRows pairs each lock with its attachment', () async {
+    await service.lockAttachment(attachmentId: attachmentId);
+
+    final rows = await service.getLockedAttachmentRows();
+
+    expect(rows, hasLength(1));
+    expect(rows.single.$1.attachmentId, attachmentId);
+    expect(rows.single.$2.fileName, 'a.bin');
+  });
 }

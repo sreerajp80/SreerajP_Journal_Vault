@@ -1,20 +1,18 @@
-import 'dart:convert';
-
-import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
-import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
 import 'package:sreerajp_journal_vault/core/l10n/formatting_locale.dart';
 import 'package:sreerajp_journal_vault/core/l10n/locale_controller.dart';
-import 'package:sreerajp_journal_vault/features/attachments/providers/attachment_providers.dart';
 import 'package:sreerajp_journal_vault/features/attachments/services/attachment_picker_service.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/image_embed.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/entry_editor_screen.dart';
 import 'package:sreerajp_journal_vault/features/export/presentation/open_encrypted_export_screen.dart';
 import 'package:sreerajp_journal_vault/features/share_receiver/domain/shared_intent_payload.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
+import 'package:sreerajp_journal_vault/core/security/keyboard_privacy_scope.dart';
+import 'package:sreerajp_journal_vault/features/journals/providers/journal_providers.dart';
+import 'package:sreerajp_journal_vault/features/share_receiver/providers/share_receiver_providers.dart';
 
 class QuickCaptureShareDialog extends ConsumerStatefulWidget {
   const QuickCaptureShareDialog({
@@ -75,8 +73,7 @@ class _QuickCaptureShareDialogState
   }
 
   Future<void> _loadJournals() async {
-    final db = ref.read(appDatabaseProvider);
-    final journals = await db.journalsDao.getAllJournals();
+    final journals = await ref.read(journalServiceProvider).allJournals();
     if (!mounted) return;
     setState(() {
       _journals = journals;
@@ -109,7 +106,6 @@ class _QuickCaptureShareDialogState
     setState(() => _saving = true);
 
     final l10n = AppLocalizations.of(context);
-    final db = ref.read(appDatabaseProvider);
     final journalTitle = _journals
         .firstWhere(
           (j) => j.id == _selectedJournalId,
@@ -118,49 +114,18 @@ class _QuickCaptureShareDialogState
         .title;
 
     try {
-      final title = _titleController.text.trim();
-      final content = _contentController.text;
-
-      // Construct Delta content JSON
-      final deltaOps = <Map<String, dynamic>>[];
-      if (content.isNotEmpty) {
-        deltaOps.add({'insert': '$content\n'});
-      } else {
-        deltaOps.add({'insert': '\n'});
-      }
-
-      final entryId = await db.entriesDao.createEntry(
-        EntriesCompanion.insert(
-          journalId: _selectedJournalId!,
-          title: Value(title),
-          contentJson: Value(jsonEncode(deltaOps)),
-        ),
-      );
-
-      // Import attachments
-      final mediaItems = _convertMediaItems();
-      final updatedOps = List<Map<String, dynamic>>.from(deltaOps);
-
-      for (final media in mediaItems) {
-        try {
-          final attachmentId = await ref
-              .read(attachmentImportServiceProvider)
-              .importToEntry(database: db, entryId: entryId, picked: media);
-          if (media.mimeType.startsWith('image/')) {
-            final embed = VaultImageEmbed.create(
+      await ref
+          .read(incomingEntryServiceProvider)
+          .saveSharedEntry(
+            journalId: _selectedJournalId!,
+            title: _titleController.text.trim(),
+            text: _contentController.text,
+            media: _convertMediaItems(),
+            imageInsert: (attachmentId, fileName) => VaultImageEmbed.create(
               attachmentId: attachmentId,
-              fileName: media.fileName,
-            );
-            updatedOps.add({'insert': embed.toJson()});
-            updatedOps.add({'insert': '\n'});
-          }
-        } catch (_) {}
-      }
-
-      await db.entriesDao.updateEntryById(
-        entryId,
-        EntriesCompanion(contentJson: Value(jsonEncode(updatedOps))),
-      );
+              fileName: fileName,
+            ).toJson(),
+          );
 
       if (!mounted) return;
       final messenger = ScaffoldMessenger.of(context);
@@ -377,6 +342,8 @@ class _QuickCaptureShareDialogState
                         ),
                         const SizedBox(height: 12),
                         TextField(
+                          enableIMEPersonalizedLearning:
+                              KeyboardPrivacyScope.allowLearning(context),
                           controller: _titleController,
                           decoration: InputDecoration(
                             labelText: l10n.labelShareEntryTitle,
@@ -386,6 +353,8 @@ class _QuickCaptureShareDialogState
                         ),
                         const SizedBox(height: 12),
                         TextField(
+                          enableIMEPersonalizedLearning:
+                              KeyboardPrivacyScope.allowLearning(context),
                           controller: _contentController,
                           maxLines: 4,
                           minLines: 2,

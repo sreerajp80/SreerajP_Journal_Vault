@@ -7,22 +7,8 @@ class _HomeTab extends ConsumerStatefulWidget {
   ConsumerState<_HomeTab> createState() => _HomeTabState();
 }
 
-class _JournalSummary {
-  const _JournalSummary({
-    required this.journal,
-    required this.tags,
-    required this.entryCount,
-    required this.lastUpdatedAt,
-  });
-
-  final Journal journal;
-  final List<Tag> tags;
-  final int entryCount;
-  final DateTime? lastUpdatedAt;
-}
-
 class _HomeTabState extends ConsumerState<_HomeTab> {
-  List<_JournalSummary>? _journals;
+  List<JournalSummary>? _journals;
 
   @override
   void initState() {
@@ -32,28 +18,7 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
 
   Future<void> _load() async {
     if (!mounted) return;
-    final db = ref.read(appDatabaseProvider);
-    final journals = await db.journalsDao.getAllJournals();
-    final items = <_JournalSummary>[];
-    for (final j in journals) {
-      final tags = await db.journalTagsDao.getTagsForJournal(j.id);
-      final entries = await db.entriesDao.getEntriesForJournal(j.id);
-      DateTime? lastUpdated;
-      for (final e in entries) {
-        if (lastUpdated == null || e.updatedAt.isAfter(lastUpdated)) {
-          lastUpdated = e.updatedAt;
-        }
-      }
-      lastUpdated ??= j.updatedAt;
-      items.add(
-        _JournalSummary(
-          journal: j,
-          tags: tags,
-          entryCount: entries.length,
-          lastUpdatedAt: lastUpdated,
-        ),
-      );
-    }
+    final items = await ref.read(journalServiceProvider).journalSummaries();
     if (mounted) setState(() => _journals = items);
   }
 
@@ -77,17 +42,14 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
         );
     if (result == null || !mounted) return;
 
-    final db = ref.read(appDatabaseProvider);
-    int journalId;
+    final journals = ref.read(journalServiceProvider);
 
     if (journal == null) {
-      journalId = await db.journalsDao.createJournal(
-        JournalsCompanion.insert(
-          title: result.title,
-          description: Value(result.desc.isEmpty ? null : result.desc),
-        ),
+      final journalId = await journals.createJournal(
+        title: result.title,
+        description: result.desc,
+        tagsText: result.tags,
       );
-      await _applyJournalTags(db, journalId, result.tags);
       // Lock if requested
       if (result.locked &&
           result.password != null &&
@@ -97,61 +59,17 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
           journalId: journalId,
           password: result.password!,
         );
-        await db.journalsDao.updateJournalById(
-          journalId,
-          JournalsCompanion(
-            isLocked: const Value(true),
-            credentialReference: Value(cred.credentialReference),
-            passwordSaltBase64: Value(cred.passwordSaltBase64),
-            passwordVerifierBase64: Value(cred.passwordVerifierBase64),
-            passwordIterations: Value(cred.passwordIterations),
-          ),
-        );
+        await journals.lockJournal(journalId, cred);
       }
     } else {
-      journalId = journal.id;
-      await db.journalsDao.updateJournalById(
-        journalId,
-        JournalsCompanion(
-          title: Value(result.title),
-          description: Value(result.desc.isEmpty ? null : result.desc),
-        ),
+      await journals.updateJournal(
+        journal.id,
+        title: result.title,
+        description: result.desc,
+        tagsText: result.tags,
       );
-      await _applyJournalTags(db, journalId, result.tags);
     }
     await _load();
-  }
-
-  /// Makes the journal's tags match [tagsText], a comma separated list.
-  ///
-  /// Only the difference is written: tags already on the journal are left
-  /// alone, names that were removed from the text are unlinked, and new names
-  /// are created if they do not exist yet. Unlinking never deletes the tag
-  /// itself — tags are global and may be in use elsewhere.
-  Future<void> _applyJournalTags(
-    AppDatabase db,
-    int journalId,
-    String tagsText,
-  ) async {
-    final wanted = tagsText
-        .split(',')
-        .map((t) => t.trim().toLowerCase())
-        .where((t) => t.isNotEmpty)
-        .toSet();
-
-    final current = await db.journalTagsDao.getTagsForJournal(journalId);
-    final currentNames = {for (final tag in current) tag.name: tag};
-
-    for (final tag in current) {
-      if (!wanted.contains(tag.name)) {
-        await db.journalTagsDao.removeTagFromJournal(journalId, tag.id);
-      }
-    }
-    for (final name in wanted) {
-      if (currentNames.containsKey(name)) continue;
-      final tagId = await db.tagsDao.getOrCreateTag(name);
-      await db.journalTagsDao.addTagToJournal(journalId, tagId);
-    }
   }
 
   Future<void> _deleteJournal(Journal journal) async {
@@ -176,18 +94,24 @@ class _HomeTabState extends ConsumerState<_HomeTab> {
       },
     );
     if (ok != true || !mounted) return;
-    final db = ref.read(appDatabaseProvider);
-    // Remove journal_tags (no cascade on journalId FK)
-    final tags = await db.journalTagsDao.getTagsForJournal(journal.id);
-    for (final tag in tags) {
-      await db.journalTagsDao.removeTagFromJournal(journal.id, tag.id);
+    // One transaction: the journal, its tags, its entries and their files all
+    // go, or nothing does.
+    try {
+      await ref.read(entryDeletionServiceProvider).deleteJournal(journal.id);
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'HomeTab: journal delete failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context).errorJournalDelete),
+          ),
+        );
+      }
     }
-    // Remove entries (no cascade on journalId FK)
-    final entries = await db.entriesDao.getEntriesForJournal(journal.id);
-    for (final entry in entries) {
-      await db.entriesDao.deleteEntryById(entry.id);
-    }
-    await db.journalsDao.deleteJournalById(journal.id);
     await _load();
   }
 

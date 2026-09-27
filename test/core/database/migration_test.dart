@@ -69,6 +69,14 @@ void main() {
 
   const ftsObjects = ['entries_fts', 'attachment_text_fts'];
 
+  /// The Wi-Fi Sync change triggers added in v12.
+  final syncTriggers = [
+    for (final table in syncTrackedTables) ...[
+      'sync_${table}_au',
+      'sync_${table}_ad',
+    ],
+  ];
+
   Future<bool> tableExists(AppDatabase db, String name) async {
     final rows = await db
         .customSelect(
@@ -117,6 +125,12 @@ void main() {
       }
     }
 
+    if (version < 12) {
+      for (final trigger in syncTriggers) {
+        await db.customStatement('DROP TRIGGER IF EXISTS $trigger');
+      }
+    }
+
     if (version < 7) {
       for (final column in v7Columns) {
         await db.customStatement(
@@ -153,6 +167,16 @@ void main() {
                 'assertion about it being recreated would be meaningless',
           );
         }
+      }
+    }
+
+    if (version < 12) {
+      for (final trigger in syncTriggers) {
+        expect(
+          remaining,
+          isNot(contains(trigger)),
+          reason: 'rewindTo($version) failed to drop trigger $trigger',
+        );
       }
     }
 
@@ -279,13 +303,24 @@ void main() {
       await db.close();
     });
 
-    test('reports schema version 11 after upgrading', () async {
+    test('v11 -> v12 creates the sync change triggers', () async {
+      await rewindTo(11);
+
+      final db = openDb();
+      for (final trigger in syncTriggers) {
+        expect(await tableExists(db, trigger), isTrue, reason: trigger);
+      }
+
+      await db.close();
+    });
+
+    test('reports schema version 12 after upgrading', () async {
       await rewindTo(1);
 
       final db = openDb();
       final rows = await db.customSelect('PRAGMA user_version').get();
 
-      expect(rows.single.read<int>('user_version'), 11);
+      expect(rows.single.read<int>('user_version'), 12);
 
       await db.close();
     });
@@ -370,6 +405,109 @@ void main() {
       );
 
       await db.close();
+    });
+  });
+
+  group('sync change triggers', () {
+    late AppDatabase db;
+
+    setUp(() => db = AppDatabase.forExecutor(NativeDatabase.memory()));
+    tearDown(() => db.close());
+
+    /// Gives [localId] of [table] synced metadata, as after a sync.
+    Future<void> synced(String table, int localId) async {
+      await db.syncMetadataDao.upsert(
+        SyncMetadataCompanion.insert(
+          recordTable: table,
+          localId: localId,
+          syncId: '$table-$localId',
+          deviceId: 'this-phone',
+          lastSyncedAt: Value(DateTime(2026, 9, 27)),
+        ),
+      );
+    }
+
+    Future<SyncMetadataData> meta(String table, int localId) async =>
+        (await db.syncMetadataDao.getByRecord(table, localId))!;
+
+    test('an update marks the record pending with a new version', () async {
+      final j = await db.journalsDao.createJournal(
+        JournalsCompanion.insert(title: 'Old'),
+      );
+      await synced('journals', j);
+
+      await db.journalsDao.updateJournalById(
+        j,
+        const JournalsCompanion(title: Value('New')),
+      );
+
+      final m = await meta('journals', j);
+      expect(m.lastSyncedAt, isNull);
+      expect(m.version, 2);
+      expect(m.isDeleted, isFalse);
+    });
+
+    test('a delete leaves a tombstone, cascades included', () async {
+      final j = await db.journalsDao.createJournal(
+        JournalsCompanion.insert(title: 'J'),
+      );
+      final e = await db.entriesDao.createEntry(
+        EntriesCompanion.insert(journalId: j),
+      );
+      final tag = await db.tagsDao.getOrCreateTag('t');
+      await db.tagsDao.addTagToEntry(e, tag);
+      final link = (await db.select(db.entryTags).get()).single.id;
+      await synced('entries', e);
+      await synced('entry_tags', link);
+
+      await db.entriesDao.deleteEntryById(e);
+
+      for (final (table, id) in [('entries', e), ('entry_tags', link)]) {
+        final m = await meta(table, id);
+        expect(m.isDeleted, isTrue, reason: table);
+        expect(m.lastSyncedAt, isNull, reason: table);
+      }
+    });
+
+    test('moving an attachment file does not mark it', () async {
+      final j = await db.journalsDao.createJournal(
+        JournalsCompanion.insert(title: 'J'),
+      );
+      final e = await db.entriesDao.createEntry(
+        EntriesCompanion.insert(journalId: j),
+      );
+      final a = await db.attachmentsDao.createAttachment(
+        AttachmentsCompanion.insert(
+          entryId: e,
+          fileName: 'photo.png',
+          encryptedPath: 'app_private/a.bin',
+          nonceBase64: 'n',
+          keyReference: 'k',
+          sizeBytes: 3,
+        ),
+      );
+      await synced('attachments', a);
+
+      await db.customStatement(
+        "UPDATE attachments SET encrypted_path = 'sd_card/a.bin' WHERE id = $a",
+      );
+      expect((await meta('attachments', a)).lastSyncedAt, isNotNull);
+
+      await db.customStatement(
+        "UPDATE attachments SET file_name = 'renamed.png' WHERE id = $a",
+      );
+      expect((await meta('attachments', a)).lastSyncedAt, isNull);
+    });
+
+    test('a row that was never synced is left alone', () async {
+      final j = await db.journalsDao.createJournal(
+        JournalsCompanion.insert(title: 'J'),
+      );
+      await db.journalsDao.updateJournalById(
+        j,
+        const JournalsCompanion(title: Value('K')),
+      );
+      expect(await db.syncMetadataDao.getByRecord('journals', j), isNull);
     });
   });
 }

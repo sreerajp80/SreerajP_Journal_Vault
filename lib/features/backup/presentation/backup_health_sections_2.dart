@@ -8,6 +8,9 @@ extension _BackupHealthScreenStatePart2 on _BackupHealthScreenState {
       builder: (ctx) => AlertDialog(
         title: Text(AppLocalizations.of(ctx).titleBackupPassword),
         content: TextField(
+          enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+            context,
+          ),
           controller: controller,
           obscureText: true,
           decoration: InputDecoration(

@@ -7,6 +7,9 @@ extension _EntryEditorScreenStatePart1 on _EntryEditorScreenState {
   bool get _isTyping => _editorFocusNode.hasFocus;
 
   void _handleEditorFocusChange() {
+    // Back in the entry body: a table cell edit is over, so the toolbar
+    // formats the entry again.
+    if (_editorFocusNode.hasFocus) _cellEditing.clear();
     if (mounted) _rebuild(() {});
   }
 
@@ -26,7 +29,8 @@ extension _EntryEditorScreenStatePart1 on _EntryEditorScreenState {
   }
 
   void _updateStats() {
-    final text = _quillController.document.toPlainText();
+    // Table words count too; see entryPlainText.
+    final text = entryPlainText(_quillController.document.toDelta().toJson());
     final words = EditorStatsBar.countWords(text);
     final chars = EditorStatsBar.countCharacters(text);
     if (words != _wordCount || chars != _characterCount) {
@@ -40,8 +44,7 @@ extension _EntryEditorScreenStatePart1 on _EntryEditorScreenState {
   }
 
   Future<void> _loadEntry(int id) async {
-    final database = ref.read(appDatabaseProvider);
-    final entry = await database.entriesDao.getEntryById(id);
+    final entry = await ref.read(entryEditorServiceProvider).loadEntry(id);
     if (!mounted) return;
     _titleController.text = entry.title ?? '';
     if (entry.contentJson != null &&
@@ -116,22 +119,18 @@ extension _EntryEditorScreenStatePart1 on _EntryEditorScreenState {
       );
     }
 
-    final database = ref.read(appDatabaseProvider);
-    final id = await database.entriesDao.createEntry(
-      EntriesCompanion.insert(
-        journalId: widget.journalId,
-        title: Value(resolvedTitle),
-        contentJson: Value(resolvedContentJson),
-      ),
+    final editorService = ref.read(entryEditorServiceProvider);
+    final id = await editorService.createEntry(
+      journalId: widget.journalId,
+      title: resolvedTitle,
+      contentJson: resolvedContentJson,
     );
 
     if (widget.initialAttachments != null &&
         widget.initialAttachments!.isNotEmpty) {
       for (final picked in widget.initialAttachments!) {
         try {
-          final attachmentId = await ref
-              .read(attachmentImportServiceProvider)
-              .importToEntry(database: database, entryId: id, picked: picked);
+          final attachmentId = await editorService.addAttachment(id, picked);
           if (picked.mimeType.startsWith('image/')) {
             final embed = VaultImageEmbed.create(
               attachmentId: attachmentId,
@@ -146,10 +145,7 @@ extension _EntryEditorScreenStatePart1 on _EntryEditorScreenState {
       final updatedJson = jsonEncode(
         _quillController.document.toDelta().toJson(),
       );
-      await database.entriesDao.updateEntryById(
-        id,
-        EntriesCompanion(contentJson: Value(updatedJson)),
-      );
+      await editorService.updateContentJson(id, updatedJson);
     }
 
     if (!mounted) return;
@@ -182,6 +178,9 @@ extension _EntryEditorScreenStatePart1 on _EntryEditorScreenState {
             const SizedBox(height: 12),
             TextField(
               key: const Key('save-as-template-name-field'),
+              enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+                context,
+              ),
               controller: nameController,
               autofocus: true,
               decoration: InputDecoration(
@@ -192,6 +191,9 @@ extension _EntryEditorScreenStatePart1 on _EntryEditorScreenState {
             const SizedBox(height: 8),
             TextField(
               key: const Key('save-as-template-desc-field'),
+              enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+                context,
+              ),
               controller: descController,
               decoration: InputDecoration(
                 labelText: l10n.labelTemplateDescription,
@@ -221,15 +223,14 @@ extension _EntryEditorScreenStatePart1 on _EntryEditorScreenState {
     if (confirmed == true && mounted) {
       final name = nameController.text.trim();
       final desc = descController.text.trim();
-      final db = ref.read(appDatabaseProvider);
-      await db.userTemplatesDao.createUserTemplate(
-        UserTemplatesCompanion.insert(
-          name: name,
-          description: Value(desc.isEmpty ? null : desc),
-          defaultTitle: Value(title.isEmpty ? null : title),
-          contentJson: contentJson,
-        ),
-      );
+      await ref
+          .read(userTemplateServiceProvider)
+          .createTemplate(
+            name: name,
+            description: desc,
+            defaultTitle: title,
+            contentJson: contentJson,
+          );
       ref.invalidate(allUserTemplatesProvider);
       if (mounted) {
         ScaffoldMessenger.of(
@@ -268,6 +269,7 @@ extension _EntryEditorScreenStatePart1 on _EntryEditorScreenState {
   }
 
   void _markDirty() {
+    _editGeneration++;
     _autoSaveTimer?.cancel();
     if (!_isDirty || _saveStatus != EditorSaveStatus.unsaved) {
       if (!mounted) return;
@@ -282,9 +284,44 @@ extension _EntryEditorScreenStatePart1 on _EntryEditorScreenState {
     });
   }
 
+  /// What a save writes, read from the screen in one go, before any await.
+  _EditorSnapshot _snapshot() {
+    final delta = _quillController.document.toDelta().toJson();
+    return (
+      title: _titleController.text.trim(),
+      contentJson: jsonEncode(delta),
+      // The search index needs the words inside tables as well.
+      plainText: entryPlainText(delta),
+      mood: _mood,
+    );
+  }
+
+  /// Writes [snapshot] for entry [entryId]. Uses only services read in
+  /// `initState`, never `ref` or widget state, so it may run on after the
+  /// screen has closed.
+  Future<void> _saveSnapshot(int entryId, _EditorSnapshot snapshot) async {
+    // Keeps the stored version as a revision, saves, and refreshes the
+    // outgoing backlinks, in one transaction.
+    await _editorService.saveContent(
+      entryId,
+      title: snapshot.title,
+      contentJson: snapshot.contentJson,
+      plainText: snapshot.plainText,
+    );
+
+    // Persist the mood rating if the user picked one. Clear when nulled.
+    final mood = snapshot.mood;
+    if (mood != null) {
+      await _insightsService.setMood(entryId: entryId, mood: mood);
+    } else {
+      await _insightsService.deleteMood(entryId);
+    }
+  }
+
   /// Saves the current content and creates a revision snapshot.
   Future<void> _saveContent({bool isAutoSave = false}) async {
-    if (_entryId == null) return;
+    final entryId = _entryId;
+    if (entryId == null) return;
     if (!isAutoSave) {
       _autoSaveTimer?.cancel();
     }
@@ -293,51 +330,18 @@ extension _EntryEditorScreenStatePart1 on _EntryEditorScreenState {
       _rebuild(() => _saveStatus = EditorSaveStatus.saving);
     }
 
-    final database = ref.read(appDatabaseProvider);
-    final json = jsonEncode(_quillController.document.toDelta().toJson());
-    final plainText = _quillController.document.toPlainText();
-
-    // Snapshot current state before saving (for version history).
-    try {
-      final currentEntry = await database.entriesDao.getEntryById(_entryId!);
-      if (currentEntry.contentJson != null &&
-          currentEntry.contentJson!.isNotEmpty &&
-          currentEntry.contentJson != '[]') {
-        final revisionService = ref.read(entryRevisionServiceProvider);
-        await revisionService.createRevision(currentEntry);
-      }
-    } catch (_) {
-      // Entry may not exist yet on first save — skip revision.
-    }
-
-    await database.entriesDao.updateEntryById(
-      _entryId!,
-      EntriesCompanion(
-        title: Value(_titleController.text.trim()),
-        contentJson: Value(json),
-        plainText: Value(plainText),
-        updatedAt: Value(DateTime.now()),
-      ),
-    );
-
-    // Refresh outbound backlinks from the saved plain text.
-    final targets = VaultBacklinkParser.parse(plainText);
-    await database.backlinksDao.replaceBacklinksForEntry(_entryId!, targets);
-
-    // Persist the mood rating if the user picked one. Clear when nulled.
-    final mood = _mood;
-    if (mood != null) {
-      await ref
-          .read(insightsServiceProvider)
-          .setMood(entryId: _entryId!, mood: mood);
-    } else {
-      await ref.read(insightsServiceProvider).deleteMood(_entryId!);
-    }
+    final generation = _editGeneration;
+    await _saveSnapshot(entryId, _snapshot());
 
     if (!mounted) return;
+    // A change made while the save ran is still unsaved: keep it dirty, so the
+    // next autosave, or closing the screen, saves it.
+    final changedMeanwhile = generation != _editGeneration;
     _rebuild(() {
-      _isDirty = false;
-      _saveStatus = EditorSaveStatus.saved;
+      _isDirty = changedMeanwhile;
+      _saveStatus = changedMeanwhile
+          ? EditorSaveStatus.unsaved
+          : EditorSaveStatus.saved;
       _lastSavedTime = DateTime.now();
     });
 
@@ -375,8 +379,17 @@ extension _EntryEditorScreenStatePart1 on _EntryEditorScreenState {
       ),
     );
     if (confirmed != true || !mounted) return;
-    final database = ref.read(appDatabaseProvider);
-    await database.entriesDao.deleteEntryById(_entryId!);
+    try {
+      await ref.read(entryDeletionServiceProvider).deleteEntry(_entryId!);
+    } catch (e, stackTrace) {
+      AppLogger.error(
+        'EntryEditorScreen: entry delete failed',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      if (mounted) _showMessage(AppLocalizations.of(context).errorEntryDelete);
+      return;
+    }
     if (mounted) Navigator.of(context).pop();
   }
 

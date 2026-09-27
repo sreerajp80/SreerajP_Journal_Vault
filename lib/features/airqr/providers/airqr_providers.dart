@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
-import 'package:sreerajp_journal_vault/core/security/screen_security_controller.dart';
 import 'package:sreerajp_journal_vault/core/theme/accent_color_controller.dart';
 import 'package:sreerajp_journal_vault/core/theme/theme_mode_controller.dart';
 import 'package:sreerajp_journal_vault/core/theme/typography_controller.dart';
@@ -24,8 +23,6 @@ class AirqrSettingsService {
     final appThemeMode = _ref.read(appThemeModeProvider);
     final typography = _ref.read(typographyProvider);
     final accentColor = _ref.read(accentColorProvider);
-    final screenSecStore = _ref.read(screenSecurityStoreProvider);
-    final isSecEnabled = await screenSecStore.read();
     final ritualService = _ref.read(ritualServiceProvider);
 
     final db = _ref.read(appDatabaseProvider);
@@ -59,7 +56,6 @@ class AirqrSettingsService {
       fontSize: typography.fontSize,
       accentColorArgb: accentColor.toARGB32(),
       accentPresetName: null,
-      isScreenSecurityEnabled: isSecEnabled,
       ritualLaunchOnStartup: ritualService?.getLaunchOnStartup() ?? false,
       ritualBreathTechnique:
           ritualService?.getBreathTechnique().name ?? 'boxBreathing',
@@ -70,7 +66,13 @@ class AirqrSettingsService {
   }
 
   /// Imports and applies settings from a received [AirqrPayload].
-  Future<void> applySettings(AirqrPayload payload) async {
+  ///
+  /// [fallbackTemplateName] names an imported template that arrives without
+  /// a name. The caller passes it in the user's language.
+  Future<void> applySettings(
+    AirqrPayload payload, {
+    required String fallbackTemplateName,
+  }) async {
     final data = payload.data;
 
     // 1. Theme Mode / Reading Theme
@@ -117,11 +119,9 @@ class AirqrSettingsService {
       await _ref.read(accentColorProvider.notifier).set(Color(accentArgb));
     }
 
-    // 3. Screen Security
-    final isSecEnabled = data['isScreenSecurityEnabled'] as bool?;
-    if (isSecEnabled != null) {
-      await _ref.read(screenSecurityProvider.notifier).setEnabled(isSecEnabled);
-    }
+    // 3. Screenshot blocking is never taken from another phone. Only the
+    // user's own Settings switch may change it. A payload from an older app
+    // version may still hold `isScreenSecurityEnabled`; it is ignored.
 
     // 4. Ritual Settings
     final ritualService = _ref.read(ritualServiceProvider);
@@ -150,7 +150,8 @@ class AirqrSettingsService {
     final rawTemplates = data['templates'] as List<dynamic>? ?? [];
     for (final t in rawTemplates) {
       if (t is Map<String, dynamic>) {
-        final name = t['name'] as String? ?? 'Custom Template';
+        final rawName = (t['name'] as String? ?? '').trim();
+        final name = rawName.isEmpty ? fallbackTemplateName : rawName;
         final contentJson = t['contentJson'] as String? ?? '';
         final description = t['description'] as String?;
         final defaultTitle = t['defaultTitle'] as String?;

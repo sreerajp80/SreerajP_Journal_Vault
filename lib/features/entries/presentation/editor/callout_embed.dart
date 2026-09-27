@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
+import 'package:sreerajp_journal_vault/core/security/keyboard_privacy_scope.dart';
 
 /// Custom embeddable block type for callout/admonition blocks.
 ///
@@ -168,6 +169,8 @@ class _CalloutBlockState extends State<_CalloutBlock> {
             child: widget.readOnly
                 ? Text(widget.text, style: theme.textTheme.bodyMedium)
                 : TextField(
+                    enableIMEPersonalizedLearning:
+                        KeyboardPrivacyScope.allowLearning(context),
                     controller: _controller,
                     focusNode: _focusNode,
                     decoration: InputDecoration(

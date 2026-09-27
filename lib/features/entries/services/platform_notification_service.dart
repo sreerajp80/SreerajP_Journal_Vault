@@ -29,7 +29,8 @@ class PlatformNotificationService {
       });
     } catch (e) {
       AppLogger.warning(
-        'PlatformNotificationService: showNotification failed: $e',
+        'PlatformNotificationService: showNotification failed',
+        error: e,
       );
     }
   }
@@ -40,7 +41,8 @@ class PlatformNotificationService {
       await _channel.invokeMethod('cancelNotification', {'id': entryId});
     } catch (e) {
       AppLogger.warning(
-        'PlatformNotificationService: cancelNotification failed: $e',
+        'PlatformNotificationService: cancelNotification failed',
+        error: e,
       );
     }
   }

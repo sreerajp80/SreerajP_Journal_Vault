@@ -1,6 +1,7 @@
 # Plan — Translate the app name into Malayalam and Sanskrit
 
-**Status:** Awaiting approval
+**Status:** completed
+**Change log:** `change_log/20260918_050600_localize-app-name.md`
 
 ## Issue
 

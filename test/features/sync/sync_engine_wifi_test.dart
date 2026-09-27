@@ -70,6 +70,7 @@ void main() {
           protocol: WifiSyncProtocol.forHost(host),
           encryption: encryption,
           deviceId: 'device-host-1',
+          role: SyncRole.sender,
         );
 
         final clientEngine = SyncEngine(
@@ -77,6 +78,7 @@ void main() {
           protocol: WifiSyncProtocol.forClient(client),
           encryption: encryption,
           deviceId: 'device-client-2',
+          role: SyncRole.receiver,
         );
 
         // 4. Run sync in parallel: Host pushes, Client pulls
@@ -105,6 +107,143 @@ void main() {
         await client.close();
         await host.stop();
       },
+    );
+
+    test(
+      'over the socket, a receiver with its own journals keeps entries apart',
+      () async {
+        // The client already has journals, so its row numbers differ.
+        await dbClient.journalsDao.createJournal(
+          JournalsCompanion.insert(title: 'Client one'),
+        );
+        await dbClient.journalsDao.createJournal(
+          JournalsCompanion.insert(title: 'Client two'),
+        );
+        final hostJournal = await dbHost.journalsDao.createJournal(
+          JournalsCompanion.insert(title: 'Host journal'),
+        );
+        await dbHost.entriesDao.createEntry(
+          EntriesCompanion.insert(
+            journalId: hostJournal,
+            title: const Value('Host entry'),
+          ),
+        );
+
+        final pairingCode = WifiSyncCrypto.generatePairingCode();
+        final host = await WifiSyncHost.start(code: pairingCode);
+        final client = await WifiSyncClient.connect(
+          host: '127.0.0.1',
+          port: host.port,
+          code: pairingCode,
+        );
+        await host.clientConnected;
+        final encryption = SyncEncryptionService();
+
+        final results = await Future.wait([
+          SyncEngine(
+            db: dbHost,
+            protocol: WifiSyncProtocol.forHost(host),
+            encryption: encryption,
+            deviceId: 'device-host-1',
+            role: SyncRole.sender,
+          ).performSync(syncPassword: pairingCode),
+          SyncEngine(
+            db: dbClient,
+            protocol: WifiSyncProtocol.forClient(client),
+            encryption: encryption,
+            deviceId: 'device-client-2',
+            role: SyncRole.receiver,
+          ).performSync(syncPassword: pairingCode),
+        ]);
+        expect(results, [SyncStatus.success, SyncStatus.success]);
+
+        final journals = await dbClient.journalsDao.getAllJournals();
+        final synced = journals.singleWhere((j) => j.title == 'Host journal');
+        final entries = await dbClient.entriesDao.getEntriesForJournal(
+          synced.id,
+        );
+        expect(entries.single.title, 'Host entry');
+        for (final own in journals.where((j) => j.id != synced.id)) {
+          expect(
+            await dbClient.entriesDao.getEntriesForJournal(own.id),
+            isEmpty,
+          );
+        }
+
+        await client.close();
+        await host.stop();
+      },
+    );
+
+    test(
+      'over the socket, an edit and a delete reach the client',
+      () async {
+        final journal = await dbHost.journalsDao.createJournal(
+          JournalsCompanion.insert(title: 'Trip'),
+        );
+        final edited = await dbHost.entriesDao.createEntry(
+          EntriesCompanion.insert(
+            journalId: journal,
+            title: const Value('Before'),
+          ),
+        );
+        final removed = await dbHost.entriesDao.createEntry(
+          EntriesCompanion.insert(
+            journalId: journal,
+            title: const Value('Goes away'),
+          ),
+        );
+
+        Future<void> syncOverSocket() async {
+          final code = WifiSyncCrypto.generatePairingCode();
+          final host = await WifiSyncHost.start(code: code);
+          final client = await WifiSyncClient.connect(
+            host: '127.0.0.1',
+            port: host.port,
+            code: code,
+          );
+          await host.clientConnected;
+          final encryption = SyncEncryptionService();
+          final results = await Future.wait([
+            SyncEngine(
+              db: dbHost,
+              protocol: WifiSyncProtocol.forHost(host),
+              encryption: encryption,
+              deviceId: 'device-host-1',
+              role: SyncRole.sender,
+            ).performSync(syncPassword: code, maxRetries: 0),
+            SyncEngine(
+              db: dbClient,
+              protocol: WifiSyncProtocol.forClient(client),
+              encryption: encryption,
+              deviceId: 'device-client-2',
+              role: SyncRole.receiver,
+            ).performSync(syncPassword: code, maxRetries: 0),
+          ]);
+          expect(results, [SyncStatus.success, SyncStatus.success]);
+          await client.close();
+          await host.stop();
+        }
+
+        await syncOverSocket();
+
+        await dbHost.entriesDao.updateEntryById(
+          edited,
+          const EntriesCompanion(title: Value('After')),
+        );
+        await dbHost.entriesDao.deleteEntryById(removed);
+        await syncOverSocket();
+
+        final titles = [
+          for (final e in await dbClient.select(dbClient.entries).get())
+            e.title,
+        ];
+        expect(titles, ['After']);
+        // The host received the acknowledgement: nothing is left pending.
+        expect(await dbHost.syncMetadataDao.pendingSyncIds(), isEmpty);
+      },
+      // Two sessions, each deriving its key with Argon2id on both sides.
+      timeout: const Timeout(Duration(minutes: 2)),
     );
   });
 }

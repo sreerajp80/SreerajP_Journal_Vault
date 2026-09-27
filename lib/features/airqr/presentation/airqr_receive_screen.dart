@@ -1,11 +1,9 @@
-import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-import 'package:sreerajp_journal_vault/core/database/app_database.dart';
-import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
 import 'package:sreerajp_journal_vault/core/logging/app_logger.dart';
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/features/airqr/domain/airqr_payload.dart';
 import 'package:sreerajp_journal_vault/features/airqr/presentation/airqr_payload_text.dart';
 import 'package:sreerajp_journal_vault/features/airqr/providers/airqr_providers.dart';
@@ -13,6 +11,8 @@ import 'package:sreerajp_journal_vault/features/airqr/services/airqr_codec.dart'
 import 'package:sreerajp_journal_vault/features/airqr/services/airqr_constants.dart';
 import 'package:sreerajp_journal_vault/features/airqr/services/airqr_receiver.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
+import 'package:sreerajp_journal_vault/core/security/keyboard_privacy_scope.dart';
+import 'package:sreerajp_journal_vault/features/share_receiver/providers/share_receiver_providers.dart';
 
 part 'airqr_receive_views.dart';
 

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
 import 'package:sreerajp_journal_vault/features/smart_tags/providers/smart_tag_providers.dart';
 import 'package:sreerajp_journal_vault/features/smart_tags/services/smart_tag_service.dart';
 import 'package:sreerajp_journal_vault/features/tags/domain/tag_colors.dart';
+import 'package:sreerajp_journal_vault/features/tags/providers/tag_providers.dart';
 
 /// A horizontal chip bar that shows smart tag suggestions for an entry.
 ///
@@ -55,8 +55,9 @@ class SmartTagChipBar extends ConsumerWidget {
     WidgetRef ref,
     TagSuggestion suggestion,
   ) async {
-    final db = ref.read(appDatabaseProvider);
-    await db.tagsDao.addTagToEntry(entryId, suggestion.tag.id);
+    await ref
+        .read(tagServiceProvider)
+        .addTagToEntry(entryId, suggestion.tag.id);
     // Invalidate suggestions so the accepted tag disappears.
     ref.invalidate(
       smartTagSuggestionsProvider((entryId: entryId, plainText: plainText)),

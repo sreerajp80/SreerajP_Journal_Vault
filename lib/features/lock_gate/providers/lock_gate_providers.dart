@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
 import 'package:sreerajp_journal_vault/core/l10n/locale_controller.dart';
+import 'package:sreerajp_journal_vault/core/security/external_handoff_guard.dart';
 import 'package:sreerajp_journal_vault/features/journal_lock/providers/journal_lock_providers.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/app_lock_controller.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/services/app_pin_keystore.dart';
@@ -74,7 +75,10 @@ class AppLockNotifier extends Notifier<AppLockState> {
   @override
   AppLockState build() {
     final db = ref.watch(appDatabaseProvider);
-    final controller = AppLockController(database: db);
+    final controller = AppLockController(
+      database: db,
+      handoffGuard: ref.watch(externalHandoffGuardProvider),
+    );
     _controller = controller;
     controller.addOnLockCallback(_onLocked);
     ref.onDispose(() {

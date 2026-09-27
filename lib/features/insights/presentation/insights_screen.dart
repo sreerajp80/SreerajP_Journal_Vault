@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/features/insights/providers/insights_providers.dart';
 import 'package:sreerajp_journal_vault/features/insights/services/insights_service.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
@@ -17,7 +18,7 @@ class InsightsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(AppLocalizations.of(context).titleInsights)),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16).withSafeBottom(context),
         children: const [
           _StreakCard(),
           SizedBox(height: 16),

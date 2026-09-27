@@ -24,22 +24,41 @@ class WifiSyncProtocol implements SyncProtocol {
     return false;
   }
 
+  /// Host only: sends [payload], then waits for the client's
+  /// acknowledgement. Throws when none arrives, so the host marks nothing as
+  /// synced and sends everything again next time.
   @override
   Future<SyncPushResult> push(SyncPayload payload) async {
-    final payloadJson = jsonEncode(payload.toJson());
-    if (isHost) {
-      await _host!.sendPayload(payloadJson);
-    } else if (isClient) {
-      await _client!.sendPayload(payloadJson);
-    } else {
-      throw const SyncTransportException('Sync transport not initialised.');
+    if (!isHost) {
+      throw const SyncTransportException('Only the host sends.');
     }
+    await _host!.sendPayload(jsonEncode(payload.toJson()));
 
+    final SyncAck ack;
+    try {
+      final reply = await _host.receivePayload();
+      ack = SyncAck.fromJson(jsonDecode(reply) as Map<String, dynamic>);
+    } on SyncTransportException {
+      rethrow;
+    } catch (_) {
+      throw const SyncTransportException(
+        'The other phone did not confirm the sync.',
+      );
+    }
     return SyncPushResult(
-      accepted: payload.records.length,
-      rejected: 0,
+      accepted: ack.applied,
+      rejected: ack.skipped,
       conflicts: 0,
     );
+  }
+
+  /// Client only: tells the host the payload was applied.
+  @override
+  Future<void> acknowledge(SyncAck ack) async {
+    if (!isClient) {
+      throw const SyncTransportException('Only the client acknowledges.');
+    }
+    await _client!.sendPayload(jsonEncode(ack.toJson()));
   }
 
   @override

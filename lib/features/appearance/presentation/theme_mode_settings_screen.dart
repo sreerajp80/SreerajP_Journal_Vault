@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sreerajp_journal_vault/core/theme/theme_mode_controller.dart';
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 /// Screen for choosing between Light, Sepia/Paper, Dark, OLED, and System theme modes.
@@ -17,7 +18,12 @@ class ThemeModeSettingsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.titleAppearanceThemeMode)),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        padding: const EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          32,
+        ).withSafeBottom(context),
         children: [
           Text(
             l10n.titleAppearanceThemeMode.toUpperCase(),

@@ -5,8 +5,10 @@ import 'package:intl/intl.dart';
 
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/core/l10n/formatting_locale.dart';
-import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
+import 'package:sreerajp_journal_vault/core/logging/app_logger.dart';
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/entry_editor_screen.dart';
+import 'package:sreerajp_journal_vault/features/entries/providers/entry_providers.dart';
 import 'package:sreerajp_journal_vault/features/entries/providers/time_capsule_providers.dart';
 import 'package:sreerajp_journal_vault/features/entries/services/time_capsule_service.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
@@ -136,8 +138,21 @@ class _TimeCapsuleSealedScreenState
     );
 
     if (confirmed == true && mounted) {
-      final db = ref.read(appDatabaseProvider);
-      await db.entriesDao.deleteEntryById(entryId);
+      try {
+        await ref.read(entryDeletionServiceProvider).deleteEntry(entryId);
+      } catch (e, stackTrace) {
+        AppLogger.error(
+          'TimeCapsuleSealedScreen: entry delete failed',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.errorEntryDelete)));
+        }
+        return;
+      }
       if (mounted) {
         Navigator.pop(context);
       }
@@ -193,7 +208,7 @@ class _TimeCapsuleSealedScreenState
           ).format(capsule.sealedAt);
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(24).withSafeBottom(context),
             child: Column(
               children: [
                 const SizedBox(height: 16),

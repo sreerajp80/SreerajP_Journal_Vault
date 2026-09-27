@@ -228,4 +228,17 @@ void main() {
 
     expect(await db.timeCapsulesDao.getCapsuleForEntry(entryId), isNull);
   });
+
+  test('getCapsuleEntry loads the sealed entry', () async {
+    final entryId = await db.entriesDao.createEntry(
+      EntriesCompanion.insert(
+        journalId: journalId,
+        title: const Value('Letter'),
+      ),
+    );
+
+    final entry = await service.getCapsuleEntry(entryId);
+
+    expect(entry.title, 'Letter');
+  });
 }

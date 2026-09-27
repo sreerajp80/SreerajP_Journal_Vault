@@ -5,6 +5,8 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sreerajp_journal_vault/app/app.dart';
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
+import 'package:sreerajp_journal_vault/core/security/keyboard_privacy_controller.dart';
+import 'package:sreerajp_journal_vault/core/security/keyboard_privacy_scope.dart';
 import 'package:sreerajp_journal_vault/core/security/screen_security_controller.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/app_lock_controller.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/providers/lock_gate_providers.dart';
@@ -31,6 +33,7 @@ void main() {
   Future<void> openSettings(
     WidgetTester tester, {
     ScreenSecurityStore? store,
+    KeyboardPrivacyStore? keyboardStore,
   }) async {
     await tester.binding.setSurfaceSize(const Size(800, 1600));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -45,6 +48,8 @@ void main() {
           appPinKeystoreProvider.overrideWithValue(_InMemoryAppPinKeystore()),
           if (store != null)
             screenSecurityStoreProvider.overrideWithValue(store),
+          if (keyboardStore != null)
+            keyboardPrivacyStoreProvider.overrideWithValue(keyboardStore),
         ],
       ),
     );
@@ -170,6 +175,88 @@ void main() {
     expect(find.text('Screenshot blocking is on'), findsOneWidget);
 
     await disposeApp(tester);
+  });
+
+  group('keyboard privacy', () {
+    const tileKey = Key('settings-keyboard-privacy');
+
+    bool switchValue(WidgetTester tester) =>
+        tester.widget<SwitchListTile>(find.byKey(tileKey)).value;
+
+    bool scopeEnabled(WidgetTester tester) => tester
+        .widget<KeyboardPrivacyScope>(find.byType(KeyboardPrivacyScope))
+        .enabled;
+
+    Future<void> tapSwitch(WidgetTester tester) async {
+      await tester.ensureVisible(find.byKey(tileKey));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(tileKey));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('is on by default and says what it is for', (tester) async {
+      await openSettings(tester);
+
+      expect(find.text('Keyboard privacy'), findsOneWidget);
+      expect(
+        find.textContaining('Asks your keyboard not to learn'),
+        findsOneWidget,
+      );
+      expect(switchValue(tester), isTrue);
+      expect(scopeEnabled(tester), isTrue);
+
+      await disposeApp(tester);
+    });
+
+    testWidgets('turning it off asks first, and cancelling keeps it on', (
+      tester,
+    ) async {
+      final store = InMemoryKeyboardPrivacyStore();
+      await openSettings(tester, keyboardStore: store);
+
+      await tapSwitch(tester);
+      expect(find.text('Let the keyboard learn?'), findsOneWidget);
+
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(switchValue(tester), isTrue);
+      expect(store.read(), isTrue);
+
+      await disposeApp(tester);
+    });
+
+    testWidgets('confirming lets text boxes allow learning', (tester) async {
+      final store = InMemoryKeyboardPrivacyStore();
+      await openSettings(tester, keyboardStore: store);
+
+      await tapSwitch(tester);
+      await tester.tap(
+        find.byKey(const Key('settings-keyboard-privacy-confirm')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(switchValue(tester), isFalse);
+      expect(store.read(), isFalse);
+      expect(scopeEnabled(tester), isFalse);
+      expect(find.text('Keyboard privacy is off'), findsOneWidget);
+
+      await disposeApp(tester);
+    });
+
+    testWidgets('turning it back on needs no confirmation', (tester) async {
+      final store = InMemoryKeyboardPrivacyStore(enabled: false);
+      await openSettings(tester, keyboardStore: store);
+
+      await tapSwitch(tester);
+
+      expect(find.text('Let the keyboard learn?'), findsNothing);
+      expect(store.read(), isTrue);
+      expect(scopeEnabled(tester), isTrue);
+      expect(find.text('Keyboard privacy is on'), findsOneWidget);
+
+      await disposeApp(tester);
+    });
   });
 }
 

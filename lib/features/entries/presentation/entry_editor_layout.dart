@@ -58,6 +58,8 @@ extension _EntryEditorLayout on _EntryEditorScreenState {
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
               child: TextField(
                 key: const Key('entry-title-field'),
+                enableIMEPersonalizedLearning:
+                    KeyboardPrivacyScope.allowLearning(context),
                 controller: _titleController,
                 decoration: InputDecoration(
                   labelText: l10n.labelEntryTitle,
@@ -72,19 +74,13 @@ extension _EntryEditorLayout on _EntryEditorScreenState {
             EditorToolbar(
               key: _toolbarKey,
               controller: _quillController,
+              cellEditing: _cellEditing,
               onInsertTab: _insertTab,
               onInsertTable: _insertTable,
               onInsertCallout: _insertCallout,
               onInsertImage: _entryId == null ? null : _insertImage,
               onInsertDrawing: _entryId == null ? null : _insertDrawing,
               onScanText: _scanTextFromPhoto,
-              onDictate: _dictate,
-              onToggleFocusParagraph: () =>
-                  _rebuild(() => _isFocusParagraph = !_isFocusParagraph),
-              isFocusParagraph: _isFocusParagraph,
-              onToggleDistractionFree: () =>
-                  _rebuild(() => _isDistractionFree = !_isDistractionFree),
-              isDistractionFree: _isDistractionFree,
             ),
             // Editor body
             Expanded(child: editorContent),

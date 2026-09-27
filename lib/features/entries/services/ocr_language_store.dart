@@ -43,7 +43,7 @@ class SharedPreferencesOcrLanguageStore implements OcrLanguageStore {
         return value;
       }
     } catch (e) {
-      AppLogger.warning('OcrLanguageStore: read failed: $e');
+      AppLogger.warning('OcrLanguageStore: read failed', error: e);
     }
     return OcrLanguageStore.defaultLanguage;
   }
@@ -55,7 +55,7 @@ class SharedPreferencesOcrLanguageStore implements OcrLanguageStore {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(OcrLanguageStore.prefKey, language);
     } catch (e) {
-      AppLogger.warning('OcrLanguageStore: save failed: $e');
+      AppLogger.warning('OcrLanguageStore: save failed', error: e);
     }
   }
 }

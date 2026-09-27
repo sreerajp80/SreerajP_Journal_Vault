@@ -75,6 +75,28 @@ Test suite as of the last full run: **555 passing, 0 failing** (2026-08-18).
       `plans/20260916_194242_on-device-dictation.md`. Voice notes dropped their unreliable live
       transcription. Needs a manual airplane-mode check on a real phone, and a fluent reader's
       review of the new Malayalam and Sanskrit strings.
+- [x] Voice notes, dictation, deleting, and stale files — built 2026-09-19. Plan:
+      `plans/20260919_094126_voice-dictation-and-stale-files.md`. Voice notes are saved as
+      normal encrypted attachments, so they show, play and can be deleted; old hidden notes are
+      moved on start. Dictation asks for the language first and never dead-ends on a missing
+      language. Attachments can be deleted from the tray. Deleting an entry or journal with
+      attachments works again and removes the files too. A startup sweep clears picker copies,
+      decrypted copies, recordings, staged backups, scan photos and orphaned encrypted files.
+      Needs a manual check on a real phone, and a fluent reader's review of the new Malayalam
+      and Sanskrit strings.
+- [x] Dictation straight into the entry — built 2026-09-19. Plan:
+      `plans/20260919_195847_dictation-direct-insert-and-cleanup.md`. Fixes dictated text being
+      lost (the phone's empty final result wiped each phrase). The dictation sheet is replaced by
+      a bar in the editor that inserts each phrase at the cursor; dictation is in the bottom
+      action bar too; filler sounds, doubled words and noise-only phrases are cleaned out.
+      Needs a manual check on a real phone, and a fluent reader's review of the new Malayalam
+      and Sanskrit strings.
+- [x] Dictation removed, "Keyboard privacy" switch — built 2026-09-24. Plan:
+      `plans/20260924_220251_remove-dictation-keyboard-privacy-setting.md`. The in-app speech to text is gone (users use
+      their keyboard's microphone); the earlier dictation entries above are history. Every text
+      box and the editor ask the keyboard not to learn while the switch is on (the default).
+      Needs a check on a real phone, and a fluent reader's review of the new Malayalam and
+      Sanskrit strings.
 - [x] C3 — Time capsules and letters to your future self (cryptographic date-gated key release, cleartext wiping, monotonic clock rollback protection, countdown timer, overview catalogue) — built 2026-08-24.
 
 ### C — guidelines conformance (2026-08-18)

@@ -37,6 +37,33 @@ class DateEntryCount {
 
 // ──────────────────────────── Database ────────────────────────────
 
+/// Tables whose edits and deletes Wi-Fi Sync tracks with triggers (schema
+/// 12). Must match `SyncEngine.syncableTables`; a test checks that it does.
+const List<String> syncTrackedTables = [
+  'journals',
+  'entries',
+  'tags',
+  'journal_tags',
+  'entry_tags',
+  'attachments',
+  'backlinks',
+  'entry_revisions',
+  'voice_notes',
+];
+
+/// When an update counts as a change for sync, for tables where not every
+/// column travels. Other tables count every update.
+const Map<String, String> _syncUpdateConditions = {
+  'attachments':
+      'old.file_name IS NOT new.file_name OR old.entry_id IS NOT new.entry_id '
+      'OR old.mime_type IS NOT new.mime_type '
+      'OR old.size_bytes IS NOT new.size_bytes',
+  'voice_notes':
+      'old.file_name IS NOT new.file_name OR old.entry_id IS NOT new.entry_id '
+      'OR old.duration_ms IS NOT new.duration_ms '
+      'OR old.transcript IS NOT new.transcript',
+};
+
 @DriftDatabase(
   tables: [
     Journals,
@@ -94,13 +121,14 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forExecutor(super.executor);
 
   @override
-  int get schemaVersion => 11;
+  int get schemaVersion => 12;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) async {
       await m.createAll();
       await _createFts5Tables();
+      await _createSyncTriggers();
     },
     onUpgrade: (m, from, to) async {
       if (from < 2) {
@@ -149,11 +177,54 @@ class AppDatabase extends _$AppDatabase {
       if (from < 11) {
         await m.createTable(userRitualCards);
       }
+      if (from < 12) {
+        await _createSyncTriggers();
+      }
     },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
     },
   );
+
+  /// Creates the triggers that mark an edit or a delete for Wi-Fi Sync.
+  ///
+  /// After an update, the row's `sync_metadata` gets a new version, a new
+  /// `last_modified_at`, and `last_synced_at = NULL`, which is how sync knows
+  /// the record is pending. After a delete, it also gets `is_deleted = 1`: a
+  /// tombstone that tells the other phone to delete its copy. A row without
+  /// metadata (never synced) is not touched; the next sync creates it.
+  ///
+  /// Attachments and voice notes count as changed only when a column that
+  /// travels changes. A storage move rewrites only `encrypted_path`, and must
+  /// not send every file again.
+  Future<void> _createSyncTriggers() async {
+    const now = "CAST(strftime('%s', 'now') AS INTEGER)";
+    for (final table in syncTrackedTables) {
+      final condition = _syncUpdateConditions[table];
+      await customStatement('''
+        CREATE TRIGGER IF NOT EXISTS sync_${table}_au AFTER UPDATE ON $table
+        ${condition == null ? '' : 'WHEN $condition'}
+        BEGIN
+          UPDATE sync_metadata
+          SET version = version + 1,
+              last_modified_at = $now,
+              last_synced_at = NULL
+          WHERE record_table = '$table' AND local_id = new.id;
+        END
+      ''');
+      await customStatement('''
+        CREATE TRIGGER IF NOT EXISTS sync_${table}_ad AFTER DELETE ON $table
+        BEGIN
+          UPDATE sync_metadata
+          SET version = version + 1,
+              last_modified_at = $now,
+              last_synced_at = NULL,
+              is_deleted = 1
+          WHERE record_table = '$table' AND local_id = old.id;
+        END
+      ''');
+    }
+  }
 
   /// Creates the FTS5 virtual table and synchronisation triggers.
   ///

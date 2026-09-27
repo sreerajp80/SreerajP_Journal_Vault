@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/features/help/presentation/attachments_ocr_help_screen.dart';
 import 'package:sreerajp_journal_vault/features/help/presentation/backup_restore_help_screen.dart';
 import 'package:sreerajp_journal_vault/features/help/presentation/biometrics_pin_help_screen.dart';
@@ -26,7 +27,12 @@ class HelpHomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.helpTitle)),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        padding: const EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          32,
+        ).withSafeBottom(context),
         children: [
           _buildHeaderCard(context, l10n),
           const SizedBox(height: 24),

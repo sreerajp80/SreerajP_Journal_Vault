@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/features/help/presentation/help_components.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
@@ -13,7 +14,12 @@ class BackupRestoreHelpScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.helpTopicBackupRestore)),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+        padding: const EdgeInsets.fromLTRB(
+          20,
+          20,
+          20,
+          40,
+        ).withSafeBottom(context),
         children: [
           HelpIntro(l10n.helpBackupIntro),
           const SizedBox(height: 24),

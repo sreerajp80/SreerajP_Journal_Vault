@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sreerajp_journal_vault/core/theme/accent_color_controller.dart';
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 /// Screen for choosing an Accent Color using presets or an interactive HSV color wheel.
@@ -60,7 +61,12 @@ class _AccentColorSettingsScreenState
     return Scaffold(
       appBar: AppBar(title: Text(l10n.titleAppearanceAccentColor)),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+        padding: const EdgeInsets.fromLTRB(
+          20,
+          20,
+          20,
+          32,
+        ).withSafeBottom(context),
         children: [
           _label(context, l10n.titleAppearanceLivePreview),
           const SizedBox(height: 14),

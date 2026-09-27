@@ -30,7 +30,6 @@ void main() {
         themeMode: 'dark',
         accentColorArgb: 0xFF1E88E5,
         accentPresetName: 'Ocean',
-        isScreenSecurityEnabled: true,
         ritualLaunchOnStartup: true,
         ritualBreathTechnique: 'box',
         ritualBreathCycles: 4,

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/features/ritual/domain/ritual_card.dart';
 import 'package:sreerajp_journal_vault/features/ritual/presentation/ritual_card_text.dart';
 import 'package:sreerajp_journal_vault/features/ritual/providers/ritual_providers.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
+import 'package:sreerajp_journal_vault/core/security/keyboard_privacy_scope.dart';
 
 /// Screen for creating or editing a user ritual card.
 ///
@@ -68,7 +70,7 @@ class _CreateRitualCardScreenState
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(20).withSafeBottom(context),
           children: [
             // Theme picker
             Text(
@@ -108,6 +110,9 @@ class _CreateRitualCardScreenState
 
             // Title
             TextFormField(
+              enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+                context,
+              ),
               controller: _titleController,
               maxLength: 100,
               decoration: InputDecoration(
@@ -126,6 +131,9 @@ class _CreateRitualCardScreenState
 
             // Prompt / Reflection question
             TextFormField(
+              enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+                context,
+              ),
               controller: _promptController,
               maxLines: 4,
               decoration: InputDecoration(
@@ -145,6 +153,9 @@ class _CreateRitualCardScreenState
 
             // Quote / Teaching
             TextFormField(
+              enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+                context,
+              ),
               controller: _quoteController,
               maxLines: 3,
               decoration: InputDecoration(
@@ -164,6 +175,9 @@ class _CreateRitualCardScreenState
 
             // Quote Author / Source
             TextFormField(
+              enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+                context,
+              ),
               controller: _authorController,
               decoration: InputDecoration(
                 labelText: l10n.labelRitualCardAuthor,

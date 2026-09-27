@@ -68,6 +68,9 @@ class BackupService {
       ),
     );
 
+    // Set once the file starts being written, so a failure can remove a
+    // half-written backup instead of leaving it in the backups list.
+    File? writtenFile;
     try {
       final backupDir = await _getBackupDirectory();
       final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');
@@ -114,6 +117,7 @@ class BackupService {
       );
 
       final file = File(backupPath);
+      writtenFile = file;
       await file.writeAsBytes(sealed, flush: true);
       final sizeBytes = await file.length();
 
@@ -139,6 +143,14 @@ class BackupService {
         filesFailed: fileReport.failed,
       );
     } catch (e) {
+      final partial = writtenFile;
+      if (partial != null) {
+        try {
+          if (partial.existsSync()) await partial.delete();
+        } catch (_) {
+          // Nothing more to do; the error below is what the user sees.
+        }
+      }
       await _db.backupLogsDao.updateLog(
         logId,
         BackupLogsCompanion(

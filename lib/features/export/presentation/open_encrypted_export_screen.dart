@@ -16,9 +16,13 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 import 'package:sreerajp_journal_vault/core/logging/app_logger.dart';
+import 'package:sreerajp_journal_vault/core/security/file_picker_cache.dart';
 import 'package:sreerajp_journal_vault/core/security/vault_envelope.dart';
 import 'package:sreerajp_journal_vault/core/security/vault_payload.dart';
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
+import 'package:sreerajp_journal_vault/core/security/keyboard_privacy_scope.dart';
+import 'package:sreerajp_journal_vault/core/security/external_handoff_guard.dart';
 
 /// A file the user pointed at, read into memory.
 class PickedSealedFile {
@@ -91,7 +95,12 @@ class _OpenEncryptedExportScreenState extends State<OpenEncryptedExportScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.titleOpenEncrypted)),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        padding: const EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          32,
+        ).withSafeBottom(context),
         children: [
           Text(l10n.descOpenEncryptedIntro, style: theme.textTheme.bodyMedium),
           const SizedBox(height: 16),
@@ -114,6 +123,9 @@ class _OpenEncryptedExportScreenState extends State<OpenEncryptedExportScreen> {
 
           TextField(
             key: const Key('open-encrypted-password-field'),
+            enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+              context,
+            ),
             controller: _passwordController,
             obscureText: true,
             enabled: !_busy,
@@ -246,7 +258,11 @@ class _OpenEncryptedExportScreenState extends State<OpenEncryptedExportScreen> {
   Future<PickedSealedFile?> _pickWithSystem() async {
     // `withData` is on: the file is opened in memory and never staged on disk
     // in the clear.
-    final result = await FilePicker.pickFiles(withData: true);
+    final result = await ExternalHandoffGuard.instance.run(
+      () => FilePicker.pickFiles(withData: true),
+    );
+    // The bytes are in memory now; the picker's copy in the cache can go.
+    await clearFilePickerCache();
     final file = result?.files.singleOrNull;
     final bytes = file?.bytes;
     if (file == null || bytes == null) return null;
@@ -258,10 +274,12 @@ class _OpenEncryptedExportScreenState extends State<OpenEncryptedExportScreen> {
     required String fileName,
     required Uint8List bytes,
   }) {
-    return FilePicker.saveFile(
-      dialogTitle: dialogTitle,
-      fileName: fileName,
-      bytes: bytes,
+    return ExternalHandoffGuard.instance.run(
+      () => FilePicker.saveFile(
+        dialogTitle: dialogTitle,
+        fileName: fileName,
+        bytes: bytes,
+      ),
     );
   }
 }

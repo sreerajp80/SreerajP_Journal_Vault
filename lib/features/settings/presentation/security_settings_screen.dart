@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sreerajp_journal_vault/core/config/app_flavor_config.dart';
+import 'package:sreerajp_journal_vault/core/security/keyboard_privacy_controller.dart';
 import 'package:sreerajp_journal_vault/core/security/screen_security_controller.dart';
+import 'package:sreerajp_journal_vault/features/entries/providers/ocr_providers.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/app_lock_controller.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/providers/lock_gate_providers.dart';
 import 'package:sreerajp_journal_vault/features/security/presentation/auto_lock_profiles_screen.dart';
@@ -11,6 +13,7 @@ import 'package:sreerajp_journal_vault/features/security/providers/security_prov
 import 'package:sreerajp_journal_vault/features/settings/presentation/locked_attachments_screen.dart';
 import 'package:sreerajp_journal_vault/features/sync/presentation/conflict_resolution_screen.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
+import 'package:sreerajp_journal_vault/core/security/keyboard_privacy_scope.dart';
 
 class SecuritySettingsScreen extends ConsumerWidget {
   const SecuritySettingsScreen({super.key});
@@ -86,6 +89,8 @@ class SecuritySettingsScreen extends ConsumerWidget {
             ),
           ),
           const ScreenSecurityTile(),
+          const KeyboardPrivacyTile(),
+          const ScanCameraTile(),
           ListTile(
             key: const Key('settings-tamper-alerts'),
             title: Text(l10n.labelSettingsTamperAlerts),
@@ -175,18 +180,50 @@ class SecuritySettingsScreen extends ConsumerWidget {
       await ref.read(appLockProvider.notifier).setPin(pin);
     }
 
+    // Switching locks the app straight away, and locking closes every open
+    // screen, this one included (see JournalVaultApp), so this page does not
+    // pop itself. The app-level messenger outlives this page, so it is taken
+    // before the switch and the confirmation shows over the lock gate.
+    if (!context.mounted) return;
+    final messenger = ScaffoldMessenger.of(context);
     await ref.read(appLockProvider.notifier).switchLockMode(mode);
+    messenger.showSnackBar(
+      SnackBar(content: Text(l10n.descSettingsLockModeUpdated(modeLabel))),
+    );
+  }
+}
 
-    if (context.mounted) {
-      // Switching locks the app straight away. The lock gate replaces the
-      // shell underneath, so this pushed page must close — otherwise it
-      // would keep sitting on top of the gate.
-      final messenger = ScaffoldMessenger.of(context);
-      Navigator.of(context).pop();
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.descSettingsLockModeUpdated(modeLabel))),
-      );
-    }
+/// Switch that decides which camera the editor's "Take photo" scan option
+/// opens.
+///
+/// Off — the default — is the phone's own camera app, whose picture reads
+/// best. A few camera apps also keep their own copy of the shot in the device
+/// gallery, so turning this on keeps every scan inside the app instead.
+class ScanCameraTile extends ConsumerWidget {
+  const ScanCameraTile({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final state = ref.watch(ocrInAppCameraProvider);
+    // While loading, or if the value could not be read, show the default.
+    final enabled = state.value ?? false;
+
+    return Semantics(
+      toggled: enabled,
+      label: l10n.labelSettingsScanInAppCamera,
+      child: SwitchListTile(
+        key: const Key('settings-scan-in-app-camera'),
+        title: Text(l10n.labelSettingsScanInAppCamera),
+        subtitle: Text(l10n.descSettingsScanInAppCamera),
+        value: enabled,
+        onChanged: state.isLoading
+            ? null
+            : (value) => ref
+                  .read(ocrInAppCameraProvider.notifier)
+                  .setUseInAppCamera(value),
+      ),
+    );
   }
 }
 
@@ -284,6 +321,87 @@ class ScreenSecurityTile extends ConsumerWidget {
   }
 }
 
+/// Switch that asks the keyboard not to learn from what is typed in the app.
+///
+/// On by default. The subtitle says what it is for. Turning it off asks for
+/// confirmation first, because the keyboard may then remember journal words
+/// and suggest them in other apps. A change applies the next time a text box
+/// is tapped, when the keyboard connects again.
+class KeyboardPrivacyTile extends ConsumerWidget {
+  const KeyboardPrivacyTile({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final enabled = ref.watch(keyboardPrivacyProvider);
+
+    return Semantics(
+      toggled: enabled,
+      label: l10n.labelSettingsKeyboardPrivacy,
+      child: SwitchListTile(
+        key: const Key('settings-keyboard-privacy'),
+        title: Text(l10n.labelSettingsKeyboardPrivacy),
+        subtitle: Text(l10n.descSettingsKeyboardPrivacy),
+        value: enabled,
+        onChanged: (value) => _setKeyboardPrivacy(context, ref, value),
+      ),
+    );
+  }
+
+  Future<void> _setKeyboardPrivacy(
+    BuildContext context,
+    WidgetRef ref,
+    bool enabled,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+
+    if (!enabled) {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(l10n.bodySettingsKeyboardPrivacyOff),
+          content: Text(l10n.bodySettingsKeyboardPrivacyOffBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(l10n.actionCommonCancel),
+            ),
+            TextButton(
+              key: const Key('settings-keyboard-privacy-confirm'),
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: Text(l10n.actionSettingsKeyboardPrivacyOff),
+            ),
+          ],
+        ),
+      );
+      if (ok != true) return;
+    }
+
+    try {
+      await ref.read(keyboardPrivacyProvider.notifier).setEnabled(enabled);
+    } on KeyboardPrivacyPersistenceException {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.errorSettingsKeyboardPrivacySave)),
+        );
+      }
+      return;
+    }
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            enabled
+                ? l10n.bodySettingsKeyboardPrivacyUpdatedOn
+                : l10n.bodySettingsKeyboardPrivacyUpdatedOff,
+          ),
+        ),
+      );
+    }
+  }
+}
+
 class PinSetupDialog extends StatefulWidget {
   const PinSetupDialog({super.key});
 
@@ -327,12 +445,18 @@ class _PinSetupDialogState extends State<PinSetupDialog> {
         children: [
           TextField(
             key: const Key('settings-pin-field'),
+            enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+              context,
+            ),
             controller: _pin,
             obscureText: true,
             decoration: InputDecoration(labelText: l10n.labelLockPin),
           ),
           TextField(
             key: const Key('settings-pin-confirm-field'),
+            enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+              context,
+            ),
             controller: _confirm,
             obscureText: true,
             decoration: InputDecoration(labelText: l10n.labelLockConfirmPin),

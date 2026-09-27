@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
-import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
 import 'package:sreerajp_journal_vault/core/utils/date_formatters.dart';
 import 'package:sreerajp_journal_vault/features/security/providers/security_providers.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
@@ -26,18 +25,9 @@ class _LockedAttachmentsScreenState
   }
 
   Future<void> _load() async {
-    final db = ref.read(appDatabaseProvider);
-    final svc = ref.read(attachmentLockServiceProvider);
-    final locks = await svc.getLockedAttachments();
-    final pairs = <(AttachmentLock, Attachment)>[];
-    for (final l in locks) {
-      try {
-        final a = await db.attachmentsDao.getAttachmentById(l.attachmentId);
-        pairs.add((l, a));
-      } catch (_) {
-        /* attachment missing — skip */
-      }
-    }
+    final pairs = await ref
+        .read(attachmentLockServiceProvider)
+        .getLockedAttachmentRows();
     if (mounted) setState(() => _entries = pairs);
   }
 

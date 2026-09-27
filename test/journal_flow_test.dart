@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_quill/flutter_quill.dart' show QuillEditor;
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sreerajp_journal_vault/app/app.dart';
@@ -97,6 +98,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Add entry'), findsNothing);
+    expect(find.byKey(const Key('journal-import-button')), findsNothing);
 
     await tester.enterText(
       find.byKey(const Key('journal-unlock-password-field')),
@@ -113,6 +115,37 @@ void main() {
     await tester.tap(find.byKey(const Key('journal-unlock-button')));
     await tester.pumpAndSettle();
 
+    expect(find.text('Add entry'), findsOneWidget);
+    expect(find.byKey(const Key('journal-import-button')), findsOneWidget);
+
+    await disposeApp(tester);
+  });
+
+  testWidgets('Journal screen import button opens import for that journal', (
+    WidgetTester tester,
+  ) async {
+    await testDatabase.journalsDao.createJournal(
+      JournalsCompanion.insert(title: 'Travel'),
+    );
+    await pumpApp(tester);
+    await unlockPhoneLock(tester);
+
+    await tester.tap(find.text('Travel'));
+    await tester.pumpAndSettle();
+
+    final importButton = find.byKey(const Key('journal-import-button'));
+    expect(importButton, findsOneWidget);
+    expect(find.byTooltip('Import into journal'), findsOneWidget);
+
+    await tester.tap(importButton);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Import Files'), findsOneWidget);
+    expect(find.text('Import into "Travel"'), findsOneWidget);
+
+    // Coming back lands on the same journal screen.
+    await tester.pageBack();
+    await tester.pumpAndSettle();
     expect(find.text('Add entry'), findsOneWidget);
 
     await disposeApp(tester);
@@ -416,6 +449,94 @@ void main() {
     expect(find.text('Add entry'), findsNothing);
 
     await disposeApp(tester);
+  });
+
+  // Locking swaps only the bottom screen for the lock gate. These tests keep
+  // a screen or dialog open while the app locks, and check that it is closed
+  // rather than left on top of the lock gate.
+  group('locking closes open screens', () {
+    Finder lockGateButton() =>
+        find.byKey(const Key('phone-lock-unlock-button')).hitTestable();
+
+    testWidgets('an open journal is closed when the app locks', (
+      WidgetTester tester,
+    ) async {
+      await testDatabase.journalsDao.createJournal(
+        JournalsCompanion.insert(title: 'Travel'),
+      );
+      await pumpApp(tester);
+      await unlockPhoneLock(tester);
+
+      await tester.tap(find.text('Travel'));
+      await tester.pumpAndSettle();
+      expect(find.text('Add entry'), findsOneWidget);
+
+      await cycleLifecyclePauseResume(tester);
+
+      expect(lockGateButton(), findsOneWidget);
+      expect(find.text('Add entry'), findsNothing);
+
+      await unlockPhoneLock(tester);
+      expect(find.text('Travel'), findsOneWidget);
+      expect(find.text('Add entry'), findsNothing);
+
+      await disposeApp(tester);
+    });
+
+    testWidgets('an open dialog is closed when the app locks', (
+      WidgetTester tester,
+    ) async {
+      await pumpApp(tester);
+      await unlockPhoneLock(tester);
+
+      await tester.tap(find.text('New journal'));
+      await tester.pumpAndSettle();
+      expect(find.text('Lock journal'), findsOneWidget);
+
+      await cycleLifecyclePauseResume(tester);
+
+      expect(lockGateButton(), findsOneWidget);
+      expect(find.text('Lock journal'), findsNothing);
+
+      await disposeApp(tester);
+    });
+
+    testWidgets('an open editor saves its text as the app locks', (
+      WidgetTester tester,
+    ) async {
+      final journalId = await testDatabase.journalsDao.createJournal(
+        JournalsCompanion.insert(title: 'Travel'),
+      );
+      final entryId = await testDatabase.entriesDao.createEntry(
+        EntriesCompanion.insert(
+          journalId: journalId,
+          title: const Value('Day one'),
+          contentJson: const Value('[{"insert":"Start\\n"}]'),
+          plainText: const Value('Start'),
+        ),
+      );
+      await pumpApp(tester);
+      await unlockPhoneLock(tester);
+
+      await tester.tap(find.text('Travel'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Day one'));
+      await tester.pumpAndSettle();
+      final controller = tester
+          .widget<QuillEditor>(find.byType(QuillEditor))
+          .controller;
+      controller.replaceText(0, 0, 'Typed just now ', null);
+      await tester.pump();
+
+      await cycleLifecyclePauseResume(tester);
+
+      expect(lockGateButton(), findsOneWidget);
+      expect(find.byType(QuillEditor), findsNothing);
+      final saved = await testDatabase.entriesDao.getEntryById(entryId);
+      expect(saved.plainText, contains('Typed just now'));
+
+      await disposeApp(tester);
+    });
   });
 }
 

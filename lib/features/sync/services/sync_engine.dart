@@ -3,24 +3,44 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
+import 'package:sreerajp_journal_vault/core/logging/app_logger.dart';
 import 'package:sreerajp_journal_vault/features/backup/services/backup_attachment_cipher.dart';
 import 'package:sreerajp_journal_vault/features/sync/services/sync_encryption_service.dart';
 import 'package:sreerajp_journal_vault/features/sync/services/sync_id_generator.dart';
 import 'package:sreerajp_journal_vault/features/sync/services/sync_protocol.dart';
+import 'package:sreerajp_journal_vault/features/sync/services/sync_record_applier.dart';
+import 'package:sreerajp_journal_vault/features/sync/services/sync_references.dart';
+import 'package:sreerajp_journal_vault/features/sync/services/sync_schema_guard.dart';
 
 part 'sync_engine_records.dart';
 
 /// Sync status reported to UI listeners.
 enum SyncStatus { idle, syncing, success, failed, conflict }
 
-/// Orchestrates the full sync lifecycle: track → push → pull → resolve.
+/// Which side of a one-way sync this phone is.
+enum SyncRole {
+  /// The host: sends its pending records, and nothing else.
+  sender,
+
+  /// The client: receives and applies, and sends back only an
+  /// acknowledgement. Its own pending changes stay pending.
+  receiver,
+}
+
+/// Orchestrates one sync, host to client.
+///
+/// Sync is one way: the [SyncRole.sender] (host) sends every record that
+/// changed there since it was last sent, and the [SyncRole.receiver] (client)
+/// applies them. For the client's changes to travel, that phone must be the
+/// host.
 ///
 /// The engine:
 /// 1. Ensures every local record has a deterministic sync ID.
-/// 2. Collects records modified since the last sync.
-/// 3. Encrypts and pushes them via the [SyncProtocol].
-/// 4. Pulls remote changes, decrypts, and merges or flags conflicts.
-/// 5. Logs every sync attempt for the health dashboard.
+/// 2. Sender: encrypts and sends its pending records, waits for the client's
+///    acknowledgement, and only then marks the sent records as synced.
+/// 3. Receiver: decrypts and applies in one transaction, marks only what it
+///    applied as synced, and acknowledges.
+/// 4. Logs every sync attempt for the health dashboard.
 class SyncEngine {
   final AppDatabase db;
   final SyncProtocol protocol;
@@ -28,34 +48,52 @@ class SyncEngine {
   final String deviceId;
   final BackupAttachmentCipher? attachmentCipher;
 
+  /// Whether this phone sends (host) or receives (client).
+  final SyncRole role;
+
+  /// The most file bytes one push sends; [maxFileBytesPerSync] unless a test
+  /// sets a smaller limit.
+  final int maxFileBytes;
+
   SyncStatus _status = SyncStatus.idle;
   SyncStatus get status => _status;
 
   /// Number of consecutive failures for exponential back-off.
   int _consecutiveFailures = 0;
 
-  /// Tables that participate in sync, in dependency order.
-  static const syncableTables = [
-    'journals',
-    'entries',
-    'tags',
-    'journal_tags',
-    'entry_tags',
-    'attachments',
-    'backlinks',
-    'entry_revisions',
-    'voice_notes',
-  ];
+  /// The most file bytes one sync sends. The whole payload travels as one
+  /// line, capped at 150 MB (`WifiSyncConstants.payloadLineCap`), and base64
+  /// makes data a third larger.
+  static const int maxFileBytesPerSync = 100 * 1024 * 1024;
+
+  /// Records left out of the last push because their file did not fit or
+  /// could not be read. They are not marked as synced, so a later sync sends
+  /// them.
+  final Set<String> _leftOutSyncIds = <String>{};
+
+  /// Records in the last push, with the version that was sent. Only these are
+  /// marked as synced, and only while their version is unchanged, so an edit
+  /// made during the sync stays pending.
+  final Map<String, int> _sentVersions = <String, int>{};
+
+  /// What the last pull did, for the acknowledgement and the sync log.
+  _PullCounts _lastPull = _PullCounts();
+
+  /// Tables that participate in sync, in dependency order. The same list
+  /// drives the database triggers that mark edits and deletes.
+  static const syncableTables = syncTrackedTables;
 
   SyncEngine({
     required this.db,
     required this.protocol,
     required this.encryption,
     required this.deviceId,
+    required this.role,
     this.attachmentCipher,
+    this.maxFileBytes = maxFileBytesPerSync,
   });
 
-  /// Runs a full bidirectional sync cycle with retry support.
+  /// Runs one sync in this phone's [role], with retry support.
   ///
   /// Returns the final [SyncStatus]. On transient failures, the engine
   /// retries up to [maxRetries] times with exponential back-off.
@@ -84,20 +122,36 @@ class SyncEngine {
         // ── Phase 1: Ensure all local records have sync metadata ──
         await _ensureSyncMetadata();
 
-        // ── Phase 2: Push local changes ──
-        final pushResult = await _pushLocalChanges(key);
-        totalPushed += pushResult.accepted;
-        totalConflicts += pushResult.conflicts;
+        if (role == SyncRole.sender) {
+          // ── Phase 2: Send pending records; returns after the client's
+          // acknowledgement, or throws without one ──
+          final pushResult = await _pushLocalChanges(key);
+          totalPushed += pushResult.accepted;
+          totalConflicts += pushResult.conflicts;
 
-        // ── Phase 3: Pull remote changes ──
-        final pullResult = await _pullRemoteChanges(key);
-        totalPulled += pullResult.records.length;
+          // ── Phase 3: Mark only what was sent, and only if unchanged ──
+          final now = DateTime.now();
+          for (final sent in _sentVersions.entries) {
+            await _db.syncMetadataDao.markSyncedAtVersion(
+              sent.key,
+              sent.value,
+              now,
+            );
+          }
+        } else {
+          // ── Phase 2: Receive and apply; marks what it applied ──
+          final pullResult = await _pullRemoteChanges(key);
+          totalPulled += pullResult.records.length;
+          totalConflicts += _lastPull.conflicts;
 
-        // ── Phase 4: Update sync timestamps ──
-        final now = DateTime.now();
-        final unsynced = await _db.syncMetadataDao.getUnsyncedRecords();
-        for (final record in unsynced) {
-          await _db.syncMetadataDao.markSynced(record.syncId, now);
+          // ── Phase 3: Tell the host it may mark the records as sent ──
+          await _protocol.acknowledge(
+            SyncAck(
+              applied: _lastPull.applied,
+              skipped: _lastPull.total,
+              conflicts: _lastPull.conflicts,
+            ),
+          );
         }
 
         _consecutiveFailures = 0;

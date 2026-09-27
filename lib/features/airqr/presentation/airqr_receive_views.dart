@@ -11,16 +11,18 @@ extension _AirqrReceiveScreenStatePart1 on _AirqrReceiveScreenState {
 
     try {
       if (payload.kind == AirqrConstants.kindSettings) {
-        await ref.read(airqrSettingsServiceProvider).applySettings(payload);
+        await ref
+            .read(airqrSettingsServiceProvider)
+            .applySettings(
+              payload,
+              fallbackTemplateName: l10n.labelImportedTemplateName,
+            );
         if (!mounted) return;
         _rebuild(() {
           _isImporting = false;
           _importSuccessMessage = l10n.bodyAirqrSettingsApplied;
         });
       } else if (payload.kind == AirqrConstants.kindEntry) {
-        final db = ref.read(appDatabaseProvider);
-        final journals = await db.journalsDao.getAllJournals();
-        final journalId = journals.isNotEmpty ? journals.first.id : 1;
         final title =
             payload.data['title'] as String? ??
             l10n.descAirqrImportedEntryTitle;
@@ -28,23 +30,15 @@ extension _AirqrReceiveScreenStatePart1 on _AirqrReceiveScreenState {
         final plainText = payload.data['plainText'] as String? ?? '';
         final mood = payload.data['mood'] as String?;
 
-        final entryId = await db.entriesDao.createEntry(
-          EntriesCompanion.insert(
-            journalId: journalId,
-            title: Value(title),
-            contentJson: Value(contentJson),
-            plainText: Value(plainText),
-          ),
-        );
-
-        if (mood != null && mood.isNotEmpty) {
-          final moodInt = int.tryParse(mood);
-          if (moodInt != null && moodInt >= 1 && moodInt <= 5) {
-            await db.entryMoodsDao.upsertMood(
-              EntryMoodsCompanion.insert(entryId: entryId, mood: moodInt),
+        await ref
+            .read(incomingEntryServiceProvider)
+            .importReceivedEntry(
+              title: title,
+              contentJson: contentJson,
+              plainText: plainText,
+              mood: mood,
+              fallbackJournalTitle: l10n.descAirqrImportedJournalTitle,
             );
-          }
-        }
 
         if (!mounted) return;
         _rebuild(() {
@@ -52,30 +46,16 @@ extension _AirqrReceiveScreenStatePart1 on _AirqrReceiveScreenState {
           _importSuccessMessage = l10n.bodyAirqrEntryImported;
         });
       } else if (payload.kind == AirqrConstants.kindJournal) {
-        final db = ref.read(appDatabaseProvider);
-        final title =
-            payload.data['title'] as String? ??
-            l10n.descAirqrImportedJournalTitle;
-        final desc = payload.data['description'] as String?;
-        final journalId = await db.journalsDao.createJournal(
-          JournalsCompanion.insert(title: title, description: Value(desc)),
-        );
-
-        final entries = payload.data['entries'] as List<dynamic>? ?? [];
-        for (final e in entries) {
-          if (e is Map<String, dynamic>) {
-            await db.entriesDao.createEntry(
-              EntriesCompanion.insert(
-                journalId: journalId,
-                title: Value(
-                  e['title'] as String? ?? l10n.descAirqrImportedEntryTitle,
-                ),
-                contentJson: Value(e['contentJson'] as String? ?? ''),
-                plainText: Value(e['plainText'] as String? ?? ''),
-              ),
+        await ref
+            .read(incomingEntryServiceProvider)
+            .importReceivedJournal(
+              title:
+                  payload.data['title'] as String? ??
+                  l10n.descAirqrImportedJournalTitle,
+              description: payload.data['description'] as String?,
+              entries: payload.data['entries'] as List<dynamic>? ?? [],
+              fallbackEntryTitle: l10n.descAirqrImportedEntryTitle,
             );
-          }
-        }
 
         if (!mounted) return;
         _rebuild(() {
@@ -264,6 +244,9 @@ extension _AirqrReceiveScreenStatePart1 on _AirqrReceiveScreenState {
             ),
             const SizedBox(height: 20),
             TextField(
+              enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+                context,
+              ),
               controller: _codeTextController,
               decoration: InputDecoration(
                 labelText: l10n.labelSyncPairingCode,
@@ -327,7 +310,7 @@ extension _AirqrReceiveScreenStatePart1 on _AirqrReceiveScreenState {
     }
 
     return ListView(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20).withSafeBottom(context),
       children: [
         Center(
           child: Container(

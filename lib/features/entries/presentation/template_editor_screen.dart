@@ -2,14 +2,17 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:drift/drift.dart' as drift;
 
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
 import 'package:sreerajp_journal_vault/core/theme/typography_controller.dart';
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/editor/rich_paste_config.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/template_token_text.dart';
 import 'package:sreerajp_journal_vault/features/entries/templates/template_token_engine.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
+import 'package:sreerajp_journal_vault/core/security/keyboard_privacy_scope.dart';
+import 'package:sreerajp_journal_vault/features/entries/providers/entry_providers.dart';
 
 /// Screen allowing the user to create or edit a custom entry template.
 ///
@@ -93,6 +96,8 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
     _quillController = QuillController(
       document: doc,
       selection: const TextSelection.collapsed(offset: 0),
+      // Paste keeps the formatting, links and tables of copied rich text.
+      config: RichPaste.controllerConfig(() => _quillController),
     );
   }
 
@@ -143,7 +148,7 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
 
     setState(() => _isSaving = true);
     final l10n = AppLocalizations.of(context);
-    final db = ref.read(appDatabaseProvider);
+    final templates = ref.read(userTemplateServiceProvider);
 
     final name = _nameController.text.trim();
     final description = _descriptionController.text.trim();
@@ -153,27 +158,19 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
     try {
       if (widget.existingTemplate != null) {
         final existing = widget.existingTemplate!;
-        await db.userTemplatesDao.updateUserTemplate(
-          existing.copyWith(
-            name: name,
-            description: drift.Value(description.isEmpty ? null : description),
-            defaultTitle: drift.Value(
-              defaultTitle.isEmpty ? null : defaultTitle,
-            ),
-            contentJson: deltaJson,
-            updatedAt: DateTime.now(),
-          ),
+        await templates.updateTemplate(
+          existing,
+          name: name,
+          description: description,
+          defaultTitle: defaultTitle,
+          contentJson: deltaJson,
         );
       } else {
-        await db.userTemplatesDao.createUserTemplate(
-          UserTemplatesCompanion.insert(
-            name: name,
-            description: drift.Value(description.isEmpty ? null : description),
-            defaultTitle: drift.Value(
-              defaultTitle.isEmpty ? null : defaultTitle,
-            ),
-            contentJson: deltaJson,
-          ),
+        await templates.createTemplate(
+          name: name,
+          description: description,
+          defaultTitle: defaultTitle,
+          contentJson: deltaJson,
         );
       }
 
@@ -225,11 +222,18 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
           children: [
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                padding: const EdgeInsets.fromLTRB(
+                  16,
+                  12,
+                  16,
+                  16,
+                ).withSafeBottom(context),
                 children: [
                   // Template Name
                   TextFormField(
                     key: const Key('template-name-field'),
+                    enableIMEPersonalizedLearning:
+                        KeyboardPrivacyScope.allowLearning(context),
                     controller: _nameController,
                     decoration: InputDecoration(
                       labelText: l10n.labelTemplateName,
@@ -245,6 +249,8 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
                   // Template Description
                   TextFormField(
                     key: const Key('template-description-field'),
+                    enableIMEPersonalizedLearning:
+                        KeyboardPrivacyScope.allowLearning(context),
                     controller: _descriptionController,
                     decoration: InputDecoration(
                       labelText: l10n.labelTemplateDescription,
@@ -258,6 +264,8 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
                   // Default Entry Title
                   TextFormField(
                     key: const Key('template-default-title-field'),
+                    enableIMEPersonalizedLearning:
+                        KeyboardPrivacyScope.allowLearning(context),
                     controller: _defaultTitleController,
                     focusNode: _defaultTitleFocusNode,
                     decoration: InputDecoration(
@@ -393,6 +401,10 @@ class _TemplateEditorScreenState extends ConsumerState<TemplateEditorScreen> {
                                 focusNode: _bodyFocusNode,
                                 scrollController: _bodyScrollController,
                                 config: QuillEditorConfig(
+                                  enableIMEPersonalizedLearning:
+                                      KeyboardPrivacyScope.allowLearning(
+                                        context,
+                                      ),
                                   placeholder: l10n.descTemplateContent,
                                   customStyles: customStyles,
                                   // Same selection aids as the entry editor:

@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
-import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
 import 'package:sreerajp_journal_vault/core/l10n/formatting_locale.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/entry_editor_screen.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/time_capsule_sealed_screen.dart';
@@ -125,7 +124,11 @@ class TimeCapsulesListScreen extends ConsumerWidget {
                 isOpened: true,
                 gapAfter: false,
               ),
-              const SliverToBoxAdapter(child: SizedBox(height: 12)),
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 12 + MediaQuery.paddingOf(context).bottom,
+                ),
+              ),
             ],
           );
         },
@@ -231,9 +234,8 @@ class _CapsuleTile extends ConsumerWidget {
 
     return FutureBuilder<Entry>(
       future: ref
-          .read(appDatabaseProvider)
-          .entriesDao
-          .getEntryById(capsule.entryId),
+          .read(timeCapsuleServiceProvider)
+          .getCapsuleEntry(capsule.entryId),
       builder: (context, snapshot) {
         final entry = snapshot.data;
         final title = entry?.title != null && entry!.title!.isNotEmpty

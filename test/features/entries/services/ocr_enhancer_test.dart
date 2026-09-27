@@ -179,6 +179,29 @@ void main() {
         expect(result.getPixel(50, 25).r, lessThan(25));
       });
 
+      test('keeps grainy paper light when ink covers little of the page', () {
+        // Paper with grain from 190 to 210, and ink over only 2% of the page —
+        // the usual case for a photo with a few lines of text. Choosing the
+        // black point from the darkest 5% would put it inside the paper grain
+        // and turn the paper into fake ink.
+        final image = img.Image(width: 100, height: 100);
+        for (final pixel in image) {
+          final value = pixel.y < 2 ? 40 : 190 + (pixel.x % 21);
+          pixel.setRgb(value, value, value);
+        }
+
+        final result = normalizeOcrLevels(image);
+
+        var darkestPaper = 255;
+        for (final pixel in result) {
+          if (pixel.y >= 2 && pixel.r < darkestPaper) {
+            darkestPaper = pixel.r.toInt();
+          }
+        }
+        expect(darkestPaper, greaterThan(180));
+        expect(result.getPixel(50, 0).r, lessThan(25));
+      });
+
       test('leaves a nearly flat image untouched', () {
         final image = img.grayscale(
           img.Image(width: 50, height: 50)..clear(img.ColorRgb8(128, 128, 128)),
@@ -201,6 +224,123 @@ void main() {
         ),
         throwsA(isA<FileSystemException>()),
       );
+    });
+  });
+
+  group('enlargeForOcr', () {
+    test('2x doubles both edges', () {
+      final out = enlargeForOcr(img.Image(width: 1000, height: 800), 2);
+      expect(out.width, 2000);
+      expect(out.height, 1600);
+    });
+
+    test('3x stops at the long-edge cap', () {
+      final out = enlargeForOcr(img.Image(width: 2000, height: 1600), 3);
+      expect(out.width, kOcrEnlargedMaxLongEdge);
+      expect(out.height, 3600);
+    });
+
+    test('an image already past the cap is shrunk to it', () {
+      final out = enlargeForOcr(img.Image(width: 6000, height: 3000), 2);
+      expect(out.width, kOcrEnlargedMaxLongEdge);
+    });
+  });
+
+  group('enlarge through the isolate worker', () {
+    test('1x keeps the normal 4000 px limit', () {
+      final sourcePath = writeTestImage(width: 4800, height: 2400);
+      final result = processOcrImageIsolate(
+        OcrEnhanceParams(
+          sourcePath: sourcePath,
+          targetPath: '${tempDir.path}/one_x.png',
+          generatePreview: false,
+        ),
+      );
+      expect(result.width, kOcrMaxOutputLongEdge);
+    });
+
+    test('2x scales the output up', () {
+      final sourcePath = writeTestImage(width: 600, height: 400);
+      final result = processOcrImageIsolate(
+        OcrEnhanceParams(
+          sourcePath: sourcePath,
+          targetPath: '${tempDir.path}/two_x.png',
+          enlargeFactor: 2,
+          generatePreview: false,
+        ),
+      );
+      expect(result.width, 1200);
+      expect(result.height, 800);
+    });
+  });
+
+  group('sharpenForOcr', () {
+    img.Image edge() {
+      final image = img.Image(width: 40, height: 20);
+      img.fill(image, color: img.ColorRgb8(90, 90, 90));
+      img.fillRect(
+        image,
+        x1: 20,
+        y1: 0,
+        x2: 39,
+        y2: 19,
+        color: img.ColorRgb8(170, 170, 170),
+      );
+      return image;
+    }
+
+    test('0 leaves every pixel unchanged', () {
+      final image = edge();
+      final before = image.getBytes();
+      final out = sharpenForOcr(image, 0);
+      expect(out.getBytes(), before);
+    });
+
+    test('100 widens the step across an edge', () {
+      final out = sharpenForOcr(edge(), 100);
+      // Just left of the edge gets darker, just right gets lighter.
+      expect(out.getPixel(18, 10).r, lessThan(90));
+      expect(out.getPixel(21, 10).r, greaterThan(170));
+    });
+  });
+
+  group('flattenScreenPhoto', () {
+    test('light text on a dark screen comes out dark on light', () {
+      final image = img.Image(width: 200, height: 120);
+      img.fill(image, color: img.ColorRgb8(25, 25, 25));
+      img.fillRect(
+        image,
+        x1: 40,
+        y1: 50,
+        x2: 160,
+        y2: 58,
+        color: img.ColorRgb8(230, 230, 230),
+      );
+      final out = flattenScreenPhoto(image);
+      expect(out.getPixel(10, 10).r, greaterThan(200)); // background
+      expect(out.getPixel(100, 54).r, lessThan(80)); // text stroke
+    });
+
+    test('evens out a glare gradient across the background', () {
+      final image = img.Image(width: 300, height: 120);
+      for (final pixel in image) {
+        // Background brightens from 150 on the left to 250 on the right.
+        final v = 150 + (100 * pixel.x / 299).round();
+        pixel.setRgb(v, v, v);
+      }
+      img.fillRect(
+        image,
+        x1: 30,
+        y1: 55,
+        x2: 270,
+        y2: 60,
+        color: img.ColorRgb8(20, 20, 20),
+      );
+      final out = flattenScreenPhoto(image);
+      final left = out.getPixel(10, 10).r;
+      final right = out.getPixel(290, 10).r;
+      expect((left - right).abs(), lessThan(30));
+      expect(out.getPixel(150, 57).r, lessThan(left - 100));
     });
   });
 }

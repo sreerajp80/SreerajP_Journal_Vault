@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sreerajp_journal_vault/core/l10n/locale_controller.dart';
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/features/appearance/presentation/accent_color_settings_screen.dart';
 import 'package:sreerajp_journal_vault/features/appearance/presentation/language_settings_screen.dart';
 import 'package:sreerajp_journal_vault/features/appearance/presentation/theme_mode_settings_screen.dart';
@@ -23,7 +24,12 @@ class AppearanceScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.titleSettingsSectionAppearance)),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+        padding: const EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          32,
+        ).withSafeBottom(context),
         children: [
           _AppearanceCard(
             key: const Key('appearance-card-language'),

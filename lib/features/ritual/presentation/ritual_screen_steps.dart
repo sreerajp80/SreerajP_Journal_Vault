@@ -124,8 +124,7 @@ extension _RitualScreenStatePart1 on _RitualScreenState {
 
   Future<void> _openJournalEditor(BuildContext context, RitualCard card) async {
     final l10n = AppLocalizations.of(context);
-    final db = ref.read(appDatabaseProvider);
-    final journals = await db.journalsDao.getAllJournals();
+    final journals = await ref.read(journalServiceProvider).allJournals();
     if (!mounted) return;
 
     if (journals.isEmpty) {

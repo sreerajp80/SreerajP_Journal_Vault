@@ -41,6 +41,12 @@ extension _OcrEnhanceScreenStatePart2 on _OcrEnhanceScreenState {
             filter: OcrEnhanceFilter.enhance,
             icon: Icons.tonality,
           ),
+          const SizedBox(width: 8),
+          _buildFilterChip(
+            label: l10n.labelOcrEnhanceFilterScreen,
+            filter: OcrEnhanceFilter.screen,
+            icon: Icons.monitor,
+          ),
         ],
       ),
     );
@@ -173,6 +179,74 @@ extension _OcrEnhanceScreenStatePart2 on _OcrEnhanceScreenState {
           ],
         ),
 
+        // Sharpen Slider
+        Row(
+          children: [
+            const Icon(Icons.details, color: Colors.amber, size: 20),
+            const SizedBox(width: 10),
+            SizedBox(
+              width: 70,
+              child: Text(
+                l10n.labelOcrEnhanceSharpen,
+                style: const TextStyle(color: Colors.white70, fontSize: 12),
+              ),
+            ),
+            Expanded(
+              child: SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  activeTrackColor: Colors.amber,
+                  inactiveTrackColor: Colors.white24,
+                  thumbColor: Colors.amber,
+                  overlayColor: Colors.amber.withValues(alpha: 0.2),
+                  trackHeight: 3,
+                ),
+                child: Slider(
+                  key: const Key('ocr-sharpen-slider'),
+                  value: _sharpen.toDouble(),
+                  max: 100,
+                  divisions: 20,
+                  onChanged: (val) {
+                    _rebuild(() => _sharpen = val.round());
+                    _scheduleEnhancement();
+                  },
+                ),
+              ),
+            ),
+            SizedBox(
+              width: 38,
+              child: Text(
+                '$_sharpen',
+                textAlign: TextAlign.right,
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ),
+          ],
+        ),
+
+        // Enlarge chips: give small text more pixels before reading
+        Row(
+          children: [
+            const Icon(Icons.zoom_in, color: Colors.amber, size: 20),
+            const SizedBox(width: 10),
+            SizedBox(
+              width: 70,
+              child: Text(
+                l10n.labelOcrEnhanceEnlarge,
+                style: const TextStyle(color: Colors.white70, fontSize: 12),
+              ),
+            ),
+            Expanded(
+              child: Wrap(
+                spacing: 8,
+                children: [
+                  for (final factor in kOcrEnlargeFactors)
+                    _buildEnlargeChip(l10n, factor),
+                ],
+              ),
+            ),
+          ],
+        ),
+
         // Reset Button
         Align(
           alignment: Alignment.centerRight,
@@ -187,12 +261,39 @@ extension _OcrEnhanceScreenStatePart2 on _OcrEnhanceScreenState {
               l10n.actionOcrCameraReset,
               style: const TextStyle(color: Colors.white70, fontSize: 12),
             ),
-            onPressed: (_brightness != 0 || _contrast != 0)
+            onPressed:
+                (_brightness != 0 ||
+                    _contrast != 0 ||
+                    _sharpen != 0 ||
+                    _enlargeFactor != 1)
                 ? _resetAdjustments
                 : null,
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildEnlargeChip(AppLocalizations l10n, int factor) {
+    final isSelected = _enlargeFactor == factor;
+    return ChoiceChip(
+      key: Key('ocr-enlarge-$factor'),
+      selected: isSelected,
+      showCheckmark: false,
+      label: Text(l10n.labelOcrEnhanceScale(factor)),
+      labelStyle: TextStyle(
+        color: isSelected ? Colors.black : Colors.white,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        fontSize: 12,
+      ),
+      backgroundColor: const Color(0xFF242424),
+      selectedColor: Colors.amber,
+      onSelected: (selected) {
+        if (!selected || isSelected) return;
+        HapticFeedback.selectionClick();
+        _rebuild(() => _enlargeFactor = factor);
+        _scheduleEnhancement(immediate: true);
+      },
     );
   }
 

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import 'package:sreerajp_journal_vault/core/security/screen_security_controller.dart';
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/features/airqr/domain/airqr_payload.dart';
 import 'package:sreerajp_journal_vault/features/airqr/presentation/airqr_payload_text.dart';
 import 'package:sreerajp_journal_vault/features/airqr/services/airqr_codec.dart';
@@ -23,11 +24,16 @@ class AirqrSendScreen extends ConsumerStatefulWidget {
 class _AirqrSendScreenState extends ConsumerState<AirqrSendScreen> {
   late final AirqrSendController _controller;
 
+  /// Read in [initState]: `ref` may not be used in [dispose].
+  late final ScreenSecurityController _screenSecurity;
+
   @override
   void initState() {
     super.initState();
-    // Protect pairing screen with FLAG_SECURE
-    ref.read(screenSecurityProvider.notifier).setEnabled(true);
+    // The QR codes carry the pairing secret: block screenshots while this
+    // screen is open, without changing the user's saved choice.
+    _screenSecurity = ref.read(screenSecurityProvider.notifier);
+    _screenSecurity.holdOn();
 
     _controller = AirqrSendController(payload: widget.payload);
     _controller.start();
@@ -36,6 +42,7 @@ class _AirqrSendScreenState extends ConsumerState<AirqrSendScreen> {
   @override
   void dispose() {
     _controller.dispose();
+    _screenSecurity.releaseHold();
     super.dispose();
   }
 
@@ -92,7 +99,10 @@ class _AirqrSendScreenState extends ConsumerState<AirqrSendScreen> {
           final frame = _controller.currentFrame;
 
           return ListView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 16,
+            ).withSafeBottom(context),
             children: [
               // Payload Header Card
               Container(

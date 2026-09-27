@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:sreerajp_journal_vault/core/security/external_handoff_guard.dart';
 
 /// Result of a biometric / device-credential authentication attempt.
 enum BiometricAuthResult {
@@ -48,10 +49,13 @@ class LocalAuthBiometricAuthenticator implements BiometricAuthenticator {
   @override
   Future<BiometricAuthResult> authenticate({required String reason}) async {
     try {
-      final ok = await _localAuth.authenticate(
-        localizedReason: reason,
-        // local_auth 3.0 replaced AuthenticationOptions.stickyAuth with this.
-        persistAcrossBackgrounding: true,
+      // The device-credential screen pauses the app; it must not relock it.
+      final ok = await ExternalHandoffGuard.instance.run(
+        () => _localAuth.authenticate(
+          localizedReason: reason,
+          // local_auth 3.0 replaced AuthenticationOptions.stickyAuth with this.
+          persistAcrossBackgrounding: true,
+        ),
       );
       return ok ? BiometricAuthResult.success : BiometricAuthResult.failed;
     } on LocalAuthException catch (e) {

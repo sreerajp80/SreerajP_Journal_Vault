@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:logger/logger.dart';
 import 'package:sreerajp_journal_vault/core/config/app_flavor_config.dart';
@@ -52,6 +54,45 @@ void main() {
     });
   });
 
+  group('release builds', () {
+    test(
+      'a prod-level logger with ProductionFilter passes info, drops debug',
+      () {
+        // DevelopmentFilter — the package default — would drop both outside
+        // debug mode. The filter must honour the level on its own.
+        final filter = ProductionFilter()..level = Level.info;
+        LogEvent event(Level level) => LogEvent(level, 'm');
+
+        expect(filter.shouldLog(event(Level.info)), isTrue);
+        expect(filter.shouldLog(event(Level.error)), isTrue);
+        expect(filter.shouldLog(event(Level.debug)), isFalse);
+      },
+    );
+
+    test('only the error type is logged, never its text', () {
+      final recorder = _RecordingLogger();
+      AppLogger.debugOverrideLogger(recorder);
+
+      AppLogger.error(
+        'save failed',
+        error: const FileSystemException('cannot open', 'diary/secret.pdf'),
+      );
+
+      expect(recorder.errors.single, 'FileSystemException');
+      expect('${recorder.errors.single}', isNot(contains('secret')));
+    });
+
+    test('warning and fatal also log only the error type', () {
+      final recorder = _RecordingLogger();
+      AppLogger.debugOverrideLogger(recorder);
+
+      AppLogger.warning('parse failed', error: const FormatException('bad'));
+      AppLogger.fatal('crash', error: StateError('secret.txt'));
+
+      expect(recorder.errors, ['FormatException', 'StateError']);
+    });
+  });
+
   group('flavor gating', () {
     test('verbose logging is off unless the flavor is dev', () {
       // Tests run without --flavor, so FLUTTER_APP_FLAVOR falls back to prod.
@@ -64,6 +105,7 @@ void main() {
 
 class _RecordingLogger implements Logger {
   final List<Level> levels = [];
+  final List<Object?> errors = [];
 
   @override
   void log(
@@ -74,6 +116,7 @@ class _RecordingLogger implements Logger {
     DateTime? time,
   }) {
     levels.add(level);
+    if (error != null) errors.add(error);
   }
 
   @override
@@ -106,7 +149,7 @@ class _RecordingLogger implements Logger {
     Object? error,
     StackTrace? stackTrace,
     DateTime? time,
-  }) => log(Level.warning, message);
+  }) => log(Level.warning, message, error: error);
 
   @override
   void e(
@@ -114,7 +157,7 @@ class _RecordingLogger implements Logger {
     Object? error,
     StackTrace? stackTrace,
     DateTime? time,
-  }) => log(Level.error, message);
+  }) => log(Level.error, message, error: error);
 
   @override
   void f(
@@ -122,7 +165,7 @@ class _RecordingLogger implements Logger {
     Object? error,
     StackTrace? stackTrace,
     DateTime? time,
-  }) => log(Level.fatal, message);
+  }) => log(Level.fatal, message, error: error);
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

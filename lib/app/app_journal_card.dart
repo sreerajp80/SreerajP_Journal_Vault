@@ -8,7 +8,7 @@ class _JournalCard extends StatelessWidget {
     required this.onDelete,
   });
 
-  final _JournalSummary summary;
+  final JournalSummary summary;
   final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -228,16 +228,25 @@ class _JournalFormDialogState extends State<_JournalFormDialog> {
           mainAxisSize: MainAxisSize.min,
           children: [
             TextFormField(
+              enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+                context,
+              ),
               controller: _title,
               decoration: InputDecoration(labelText: l10n.labelJournalTitle),
             ),
             TextFormField(
+              enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+                context,
+              ),
               controller: _desc,
               decoration: InputDecoration(
                 labelText: l10n.labelJournalDescription,
               ),
             ),
             TextFormField(
+              enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+                context,
+              ),
               controller: _tags,
               decoration: InputDecoration(labelText: l10n.labelJournalTags),
             ),
@@ -252,6 +261,8 @@ class _JournalFormDialogState extends State<_JournalFormDialog> {
               if (_lockJournal) ...[
                 TextFormField(
                   key: const Key('journal-password-field'),
+                  enableIMEPersonalizedLearning:
+                      KeyboardPrivacyScope.allowLearning(context),
                   controller: _password,
                   obscureText: true,
                   decoration: InputDecoration(
@@ -260,6 +271,8 @@ class _JournalFormDialogState extends State<_JournalFormDialog> {
                 ),
                 TextFormField(
                   key: const Key('journal-password-confirm-field'),
+                  enableIMEPersonalizedLearning:
+                      KeyboardPrivacyScope.allowLearning(context),
                   controller: _confirmPassword,
                   obscureText: true,
                   decoration: InputDecoration(

@@ -150,7 +150,7 @@ String _renderBlock(
       }
 
     case TableBlock():
-      return _renderTable(block.rows);
+      return _renderTable(block.cells);
 
     case CalloutBlock():
       return _renderCallout(block, labels);
@@ -207,19 +207,23 @@ String? _safeHref(String url) {
   return escapeHtmlAttribute(trimmed);
 }
 
-String _renderTable(List<List<String>> rows) {
+String _renderTable(List<List<List<InlineSpan>>> rows) {
   if (rows.isEmpty) return '';
   final width = rows.fold<int>(0, (m, row) => row.length > m ? row.length : m);
   if (width == 0) return '';
 
-  String cellAt(List<String> row, int i) => i < row.length ? row[i] : '';
+  // A cell keeps its inline styling, rendered (and escaped) exactly like a
+  // paragraph's. A line break inside a cell becomes <br>; the newline can
+  // only have come from the text, so no markup is split by this.
+  String cellAt(List<List<InlineSpan>> row, int i) =>
+      i < row.length ? _renderSpans(row[i]).replaceAll('\n', '<br>') : '';
 
   final buffer = StringBuffer('<table>');
   // The first row is the header, matching how the Markdown renderer treats it,
   // so the two formats describe the same table.
   buffer.write('<thead><tr>');
   for (var i = 0; i < width; i++) {
-    buffer.write('<th>${escapeHtml(cellAt(rows.first, i))}</th>');
+    buffer.write('<th>${cellAt(rows.first, i)}</th>');
   }
   buffer.write('</tr></thead>');
 
@@ -228,7 +232,7 @@ String _renderTable(List<List<String>> rows) {
     for (final row in rows.skip(1)) {
       buffer.write('<tr>');
       for (var i = 0; i < width; i++) {
-        buffer.write('<td>${escapeHtml(cellAt(row, i))}</td>');
+        buffer.write('<td>${cellAt(row, i)}</td>');
       }
       buffer.write('</tr>');
     }

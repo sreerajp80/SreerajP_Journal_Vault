@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/features/security/providers/security_providers.dart';
 import 'package:sreerajp_journal_vault/features/security/presentation/security_event_text.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
@@ -43,7 +44,7 @@ class SecurityEventsScreen extends ConsumerWidget {
             );
           }
           return ListView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16).withSafeBottom(context),
             itemCount: events.length,
             itemBuilder: (context, index) =>
                 _SecurityEventTile(event: events[index]),

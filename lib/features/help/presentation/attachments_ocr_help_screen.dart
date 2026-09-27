@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/features/help/presentation/help_components.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
@@ -13,7 +14,12 @@ class AttachmentsOcrHelpScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.helpTopicAttachmentsOcr)),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
+        padding: const EdgeInsets.fromLTRB(
+          20,
+          20,
+          20,
+          40,
+        ).withSafeBottom(context),
         children: [
           HelpIntro(l10n.helpAttachmentsIntro),
           const SizedBox(height: 24),
@@ -25,6 +31,8 @@ class AttachmentsOcrHelpScreen extends StatelessWidget {
               HelpBullet(l10n.helpAttachmentsOcrBullet2),
               HelpBullet(l10n.helpAttachmentsOcrBullet3),
               HelpBullet(l10n.helpOcrPhoneCamera),
+              HelpBullet(l10n.helpOcrAutoEnglish),
+              HelpBullet(l10n.helpOcrEditTools),
             ],
           ),
           HelpSection(

@@ -8,7 +8,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sreerajp_journal_vault/core/logging/app_logger.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/ocr_enhance_screen.dart';
+import 'package:sreerajp_journal_vault/features/entries/services/image_edit_service.dart';
+import 'package:sreerajp_journal_vault/features/entries/services/ocr_temp_file_sweeper.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
+import 'package:sreerajp_journal_vault/core/security/external_handoff_guard.dart';
 
 part 'ocr_camera_overlays.dart';
 part 'ocr_camera_controls.dart';
@@ -33,6 +36,8 @@ class OcrCameraScreen extends StatefulWidget {
     this.initialController,
     this.imagePicker,
     this.controllerFactory,
+    this.tempFileSweeper = const CacheOcrTempFileSweeper(),
+    this.imageEditService = const CropperImageEditService(),
   });
 
   /// Injected camera list (used for testing or pre-enumerated cameras).
@@ -44,9 +49,16 @@ class OcrCameraScreen extends StatefulWidget {
   /// Injected image picker (used for testing gallery fallback).
   final ImagePicker? imagePicker;
 
+  /// Injected cropper service for crop-first flow (used for testing).
+  final ImageEditService? imageEditService;
+
   /// Builds the camera controller (used for testing). Defaults to a real
   /// [CameraController] on the chosen camera.
   final CameraController Function(CameraDescription camera)? controllerFactory;
+
+  /// Deletes the photo once its text has been read or the scan is cancelled.
+  /// The photo lives only in the app's private cache, never in the gallery.
+  final OcrTempFileSweeper tempFileSweeper;
 
   @override
   State<OcrCameraScreen> createState() => _OcrCameraScreenState();
@@ -196,11 +208,13 @@ class _OcrCameraScreenState extends State<OcrCameraScreen>
   ///
   /// `max` is the full size the camera reports, which is what OCR wants — a
   /// page photographed at 1080p leaves body text with too few pixels per
-  /// character for the recogniser. It is not supported everywhere, so the last
-  /// attempt falls back to a preset every device can start.
+  /// character for the recogniser. It is not supported everywhere, so the
+  /// later attempts step down: 4K first, which still reads small print, and
+  /// 1080p only as the last resort every device can start.
   static const List<ResolutionPreset> _resolutionAttempts = <ResolutionPreset>[
     ResolutionPreset.max,
     ResolutionPreset.max,
+    ResolutionPreset.ultraHigh,
     ResolutionPreset.veryHigh,
   ];
 

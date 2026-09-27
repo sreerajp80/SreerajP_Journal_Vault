@@ -4,9 +4,11 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:sreerajp_journal_vault/features/entries/services/image_edit_service.dart';
+import 'package:sreerajp_journal_vault/features/entries/services/ocr_blur_detector.dart';
 import 'package:sreerajp_journal_vault/features/entries/services/ocr_capture_downscaler.dart';
 import 'package:sreerajp_journal_vault/features/entries/services/ocr_enhancer.dart';
 import 'package:sreerajp_journal_vault/features/entries/services/ocr_service.dart';
+import 'package:sreerajp_journal_vault/features/entries/services/ocr_temp_file_sweeper.dart';
 
 // Test doubles for ocr_enhance_screen_test.dart, kept apart so that file stays
 // under the size limit.
@@ -21,6 +23,20 @@ class PassThroughCaptureDownscaler implements OcrCaptureDownscaler {
   Future<String> downscale(String imagePath) async {
     received.add(imagePath);
     return imagePath;
+  }
+}
+
+/// Stands in for the native blur detector, which needs a real platform codec.
+class FakeOcrBlurDetector implements OcrBlurDetector {
+  FakeOcrBlurDetector({this.blurry = false});
+
+  final bool blurry;
+  final List<String> received = <String>[];
+
+  @override
+  Future<bool> isBlurry(String imagePath) async {
+    received.add(imagePath);
+    return blurry;
   }
 }
 
@@ -122,4 +138,86 @@ class FakeImageEditService implements ImageEditService {
     cropCallCount++;
     return sourcePath;
   }
+}
+
+/// Hands out a fixed temp folder instead of asking the platform for one.
+class FakeOcrTempFileSweeper implements OcrTempFileSweeper {
+  FakeOcrTempFileSweeper(this.directory);
+
+  final Directory directory;
+  final List<String?> deleted = <String?>[];
+  int sweepCount = 0;
+
+  @override
+  Future<Directory> tempDirectory() async => directory;
+
+  @override
+  Future<void> deleteNow(String? path) async => deleted.add(path);
+
+  @override
+  Future<int> sweepStale() async {
+    sweepCount++;
+    return 0;
+  }
+}
+
+/// Records every image it is given and hands back a new "cropped" file.
+class RecordingImageEditService implements ImageEditService {
+  RecordingImageEditService(this.croppedPath);
+
+  final String croppedPath;
+  final List<String> sources = <String>[];
+
+  @override
+  Future<String?> cropAndRotate({
+    required String sourcePath,
+    required String toolbarTitle,
+    required Color toolbarColor,
+    required Color toolbarWidgetColor,
+    required Brightness statusBarBrightness,
+    required Color activeControlColor,
+  }) async {
+    sources.add(sourcePath);
+    File(croppedPath).writeAsStringSync('cropped');
+    return croppedPath;
+  }
+}
+
+/// Enhancer that records every call and fails with [error] once [failFrom]
+/// calls have succeeded.
+class RecordingOcrEnhancer implements OcrEnhancer {
+  RecordingOcrEnhancer({this.previewBytes, this.error, this.failFrom = 0});
+
+  final Uint8List? previewBytes;
+  final Object? error;
+  final int failFrom;
+  final List<OcrEnhanceParams> calls = <OcrEnhanceParams>[];
+
+  @override
+  Future<OcrEnhanceResult> enhance(OcrEnhanceParams params) async {
+    calls.add(params);
+    if (error != null && calls.length > failFrom) throw error!;
+    File(params.targetPath).writeAsStringSync('enhanced');
+    return OcrEnhanceResult(
+      targetPath: params.targetPath,
+      width: 200,
+      height: 200,
+      previewBytes: previewBytes,
+    );
+  }
+}
+
+/// OCR service whose every read runs past its time limit.
+class TimingOutOcrService implements OcrService {
+  @override
+  Future<String> extractTextFromImage(
+    String imagePath, {
+    String language = 'eng+mal',
+    int? requestId,
+  }) async {
+    throw const OcrTimeoutException();
+  }
+
+  @override
+  Future<void> cancelRequests(List<int> requestIds) async {}
 }

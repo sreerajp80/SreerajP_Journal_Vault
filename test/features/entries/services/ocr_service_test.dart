@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/services.dart';
@@ -85,6 +86,7 @@ class _FakeOcrService implements OcrService {
   final bool shouldThrow;
   String? lastProcessedPath;
   String? lastLanguage;
+  int? lastRequestId;
   final List<int> cancelledRequestIds = <int>[];
 
   @override
@@ -95,6 +97,7 @@ class _FakeOcrService implements OcrService {
   }) async {
     lastProcessedPath = imagePath;
     lastLanguage = language;
+    lastRequestId = requestId;
     if (shouldThrow) {
       throw Exception('OCR extraction failed');
     }
@@ -315,6 +318,43 @@ void main() {
       expect(lastCall, isNull);
     });
 
+    group('when the platform never answers', () {
+      final calls = <MethodCall>[];
+
+      setUp(() {
+        calls.clear();
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(ocrChannel, (call) {
+              calls.add(call);
+              if (call.method == 'extractText') {
+                return Completer<String>().future;
+              }
+              return Future<void>.value();
+            });
+      });
+
+      test('gives up with OcrTimeoutException and cancels the job', () async {
+        const service = NativeOcrService(timeout: Duration(milliseconds: 50));
+
+        await expectLater(
+          service.extractTextFromImage('/tmp/stuck.png', requestId: 42),
+          throwsA(isA<OcrTimeoutException>()),
+        );
+        final cancel = calls.singleWhere((c) => c.method == 'cancelOcr');
+        expect(cancel.arguments['requestIds'], <int>[42]);
+      });
+
+      test('cancels nothing when the call had no id', () async {
+        const service = NativeOcrService(timeout: Duration(milliseconds: 50));
+
+        await expectLater(
+          service.extractTextFromImage('/tmp/stuck.png'),
+          throwsA(isA<OcrTimeoutException>()),
+        );
+        expect(calls.where((c) => c.method == 'cancelOcr'), isEmpty);
+      });
+    });
+
     test('invokes native extractText with specific language', () async {
       const service = NativeOcrService();
       final result = await service.extractTextFromImage(
@@ -325,6 +365,40 @@ void main() {
       expect(result, 'മാതൃവാണി');
       expect(lastCall?.arguments['language'], 'mal');
     });
+
+    test('routes English recognition to fallbackService (ML Kit)', () async {
+      final fallback = _FakeOcrService(textToReturn: 'ML Kit English text');
+      final service = NativeOcrService(fallbackService: fallback);
+
+      final result = await service.extractTextFromImage(
+        '/tmp/english_screen.jpg',
+        language: 'eng',
+        requestId: 99,
+      );
+
+      expect(result, 'ML Kit English text');
+      expect(fallback.lastProcessedPath, '/tmp/english_screen.jpg');
+      expect(fallback.lastLanguage, 'eng');
+      expect(fallback.lastRequestId, 99);
+      expect(lastCall, isNull); // Native Tesseract channel was not called
+    });
+
+    test(
+      'falls back to native Tesseract if ML Kit returns empty for English',
+      () async {
+        final fallback = _FakeOcrService();
+        final service = NativeOcrService(fallbackService: fallback);
+
+        final result = await service.extractTextFromImage(
+          '/tmp/english_screen.jpg',
+          language: 'eng',
+        );
+
+        expect(result, 'English text and മലയാളം');
+        expect(lastCall?.method, 'extractText');
+        expect(lastCall?.arguments['language'], 'eng');
+      },
+    );
 
     test(
       'falls back to fallbackService when native plugin is missing',

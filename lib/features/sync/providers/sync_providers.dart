@@ -5,6 +5,7 @@ import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
 import 'package:sreerajp_journal_vault/features/sync/services/conflict_resolution_service.dart';
 import 'package:sreerajp_journal_vault/features/sync/services/sync_encryption_service.dart';
 import 'package:sreerajp_journal_vault/features/sync/services/sync_engine.dart';
+import 'package:sreerajp_journal_vault/features/backup/providers/backup_providers.dart';
 
 // ─────────────── Core service providers ───────────────
 
@@ -17,7 +18,11 @@ final conflictResolutionServiceProvider = Provider<ConflictResolutionService>((
 ) {
   final db = ref.read(appDatabaseProvider);
   final encryption = ref.read(syncEncryptionServiceProvider);
-  return ConflictResolutionService(db: db, encryption: encryption);
+  return ConflictResolutionService(
+    db: db,
+    encryption: encryption,
+    cipher: ref.read(backupAttachmentCipherProvider),
+  );
 });
 
 // ─────────────── Sync state providers ───────────────

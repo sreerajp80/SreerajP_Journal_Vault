@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/features/about/application/about_metadata.dart';
 import 'package:sreerajp_journal_vault/features/about/presentation/made_with_love.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
@@ -42,7 +43,12 @@ class AboutScreen extends ConsumerWidget {
         data: (metadata) {
           final description = metadata.description.resolve(lang);
           return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            padding: const EdgeInsets.fromLTRB(
+              16,
+              16,
+              16,
+              0,
+            ).withSafeBottom(context),
             children: [
               Text(
                 metadata.appName.resolve(lang),

@@ -18,15 +18,10 @@ class SyncMetadataDao extends DatabaseAccessor<AppDatabase>
           ))
           .getSingleOrNull();
 
+  /// Every record that changed here since it was last synced, tombstones
+  /// (`is_deleted`) included: a delete must reach the other phone too.
   Future<List<SyncMetadataData>> getUnsyncedRecords() =>
-      (select(syncMetadata)
-            ..where(
-              (t) =>
-                  t.lastSyncedAt.isNull() |
-                  t.lastModifiedAt.isBiggerThan(t.lastSyncedAt),
-            )
-            ..where((t) => t.isDeleted.equals(false)))
-          .get();
+      (select(syncMetadata)..where((t) => t.lastSyncedAt.isNull())).get();
 
   Future<List<SyncMetadataData>> getModifiedSince(DateTime since) => (select(
     syncMetadata,
@@ -36,6 +31,36 @@ class SyncMetadataDao extends DatabaseAccessor<AppDatabase>
       (update(syncMetadata)..where((t) => t.syncId.equals(syncId))).write(
         SyncMetadataCompanion(lastSyncedAt: Value(syncedAt)),
       );
+
+  /// Marks [syncId] synced only while its version is still [version], so a
+  /// change made after the version was read stays pending.
+  Future<void> markSyncedAtVersion(
+    String syncId,
+    int version,
+    DateTime syncedAt,
+  ) =>
+      (update(syncMetadata)
+            ..where((t) => t.syncId.equals(syncId) & t.version.equals(version)))
+          .write(SyncMetadataCompanion(lastSyncedAt: Value(syncedAt)));
+
+  /// Sync IDs of every record that changed here since it was last synced.
+  Future<Set<String>> pendingSyncIds() async => {
+    for (final row in await (select(
+      syncMetadata,
+    )..where((t) => t.lastSyncedAt.isNull())).get())
+      row.syncId,
+  };
+
+  /// Marks every pending record synced except those in [keepPending].
+  Future<void> markPendingSyncedExcept(
+    Set<String> keepPending,
+    DateTime syncedAt,
+  ) async {
+    for (final syncId in await pendingSyncIds()) {
+      if (keepPending.contains(syncId)) continue;
+      await markSynced(syncId, syncedAt);
+    }
+  }
 
   Future<void> markDeleted(String syncId) =>
       (update(syncMetadata)..where((t) => t.syncId.equals(syncId))).write(
@@ -64,6 +89,29 @@ class SyncConflictsDao extends DatabaseAccessor<AppDatabase>
 
   Future<int> createConflict(SyncConflictsCompanion companion) =>
       into(syncConflicts).insert(companion);
+
+  /// Stores a new conflict, replacing any open one for the same record: only
+  /// the latest pair of versions can be chosen from. [onReplaced] runs for
+  /// each replaced conflict first, so its stored file can be removed.
+  Future<int> replaceOpenConflict(
+    SyncConflictsCompanion companion, {
+    required Future<void> Function(SyncConflict old) onReplaced,
+  }) async {
+    final open =
+        await (select(syncConflicts)..where(
+              (t) =>
+                  t.syncId.equals(companion.syncId.value) &
+                  t.status.equals('pending'),
+            ))
+            .get();
+    for (final old in open) {
+      await onReplaced(old);
+      await (update(syncConflicts)..where((t) => t.id.equals(old.id))).write(
+        const SyncConflictsCompanion(status: Value('superseded')),
+      );
+    }
+    return into(syncConflicts).insert(companion);
+  }
 
   Future<List<SyncConflict>> getPendingConflicts() =>
       (select(syncConflicts)

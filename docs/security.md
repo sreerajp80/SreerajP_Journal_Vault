@@ -61,7 +61,8 @@ Last reviewed: 2026-08-16 · Reviewer: Sreeraj P (with Claude)
 - **Rooted or compromised device.** Root defeats Keystore protections in practice. No root
   detection is implemented and none is planned.
 - **A compromised OS or malicious keyboard.** Anything with system privileges can read what the
-  user types.
+  user types. A keyboard sees every key pressed, in every app; the app cannot stop a keyboard
+  that ignores its requests. What the app does do is in section 10 (keyboard learning).
 - **Physical hardware attacks.** Chip-off, JTAG, cold-boot.
 - **Forensic memory capture of a running, unlocked app.** Decrypted content is in memory while
   a journal is open, by necessity.
@@ -85,17 +86,12 @@ Last reviewed: 2026-08-16 · Reviewer: Sreeraj P (with Claude)
 | Database encryption key | The SQLCipher raw key | Android Keystore, wrapped copy in SharedPreferences | 32 bytes from `SecureRandom`, AES-GCM wrapped under a Keystore key |
 | Search index | Entry title + plain text | FTS5 tables in the same DB | Same protection as the DB — encrypted with it, page for page |
 | Backups | Full export archive | User-chosen location | AES-256-GCM encrypted ZIP |
-| Voice notes | Recorded audio | Same path as attachments | Same as attachments |
-| Dictation | Live microphone audio and the recognised text | Nowhere — the audio stays inside the on-device recogniser; the text lives only in the dictation sheet until the user inserts it into the entry | On-device recognition only (see the note below); never logged |
+| Voice notes | Recorded audio | An attachment (`audio/mp4`), same path as other attachments. While recording, a plain `.m4a` sits in `cache/voice_rec/` | Same as attachments. The plain recording is deleted after saving, on discard, when the sheet closes, and by the startup sweep |
+| Picked files (transient) | Any file the user picks: attachments, imports, backups, sealed exports | `cache/file_picker/` (the `file_picker` plugin's copy) | Deleted straight after the bytes are read, and by the startup sweep |
 
-> **Note on dictation.** `speech_to_text` wraps Android's `SpeechRecognizer`. When on-device
-> recognition is missing, the plugin silently uses the default recogniser, which on most phones
-> is an online service. So `DictationService` first asks `MainActivity` (channel
-> `sreerajp.journal_vault/speech`, `SpeechRecognizer.isOnDeviceRecognitionAvailable`, API 31+)
-> and refuses to start when the answer is no. `PluginSpeechEngine.listen` always passes
-> `onDevice: true`. Network or server errors from the recogniser end dictation and are never
-> retried. Tests: `test/features/entries/services/dictation_service_test.dart` and
-> `speech_engine_test.dart`. Voice notes no longer run speech recognition at all.
+> **Dictation removed (2026-09-24).** The app has no speech recognition of its own any more.
+> Users who want to speak text use their keyboard's microphone button. Where that audio goes
+> depends on the keyboard and its settings, which the app cannot control. See `plans/20260924_220251_remove-dictation-keyboard-privacy-setting.md`.
 
 > **Note on the FTS index.** `entries_fts` holds a copy of entry titles and plain text. Any
 > control applied to the entries table must be applied to the FTS tables too, or the index
@@ -191,6 +187,17 @@ Last reviewed: 2026-08-16 · Reviewer: Sreeraj P (with Claude)
 - Fallback behavior: biometric failure falls back to device credential.
 - Background lock rule: `AppLockController` observes lifecycle and relocks. Auto-lock profiles
   (immediate / 30 s / custom) are user-configurable.
+- Locking closes every open screen: when the app locks, `JournalVaultApp` pops every route above
+  the home route, so no entry, journal or dialog stays on top of the lock gate. An open editor
+  saves its unsaved text as it closes. Any new navigator (for example a nested one per tab) must
+  be cleared the same way.
+- System screen exception: a pause caused by a system screen the app opened itself (file picker,
+  save dialog, camera, gallery, device-credential prompt, another app opening an attachment, a
+  link) does not relock, because the call is wrapped in `ExternalHandoffGuard.run`
+  (`lib/core/security/external_handoff_guard.dart`). If the user stays away longer than
+  `AppLockController.handoffGracePeriod` (2 minutes), the app locks on return. Any other pause
+  (Home, app switch) still locks at once. Every new call that opens a system screen must be
+  wrapped the same way.
 - Session-expiry rule: governed by the active auto-lock profile.
 - Protected-route strategy: a lock gate wraps the whole app shell; there are no unprotected
   routes past it.
@@ -219,7 +226,7 @@ and cover the Flutter engine, this app's method channels, `androidx.documentfile
 classes, plus `-dontwarn com.google.android.play.core.**`.
 
 > **Not yet runtime-verified.** R8 has never run against this app on a device. Plugins with
-> native code (`pdfrx`, `just_audio`, `record`, `speech_to_text`,
+> native code (`pdfrx`, `just_audio`, `record`,
 > `local_auth`, `permission_handler`, `file_picker`) could still fail with
 > `ClassNotFoundException` in a release build. See the smoke-test list in
 > [`release_process.md`](release_process.md).
@@ -237,7 +244,13 @@ means `false`. Re-verify before every release.
 - Logger: `AppLogger` (`lib/core/logging/app_logger.dart`), added 2026-07-25.
 - Verbose gate: `AppFlavorConfig.enableVerboseLogging`, true only for the `dev` flavor. An
   unflavored build defaults to `prod`, so verbose logging is never enabled by accident.
-- Log level in production: `info` and above.
+- Log level in production: `info` and above. Until 2026-09-19 this was not true: the logger used
+  the `logger` package's default `DevelopmentFilter`, which drops every line outside debug
+  builds, so release builds logged nothing. It now uses `ProductionFilter`.
+- Error objects: `warning`, `error` and `fatal` log only the error's **type**, never its text,
+  in every flavor (dev too, since 2026-09-27), because an exception's text can hold a file name
+  or path. An error must be passed as `error:`, never put into the message with `$e`;
+  `test/core/logging/no_raw_error_in_log_message_test.dart` enforces this.
 - Output: **console only, no log file.** Deliberate — a log file in an encrypted journal app is
   another place for content to leak, and nothing needs post-hoc log retrieval. This is why
   section 13 has no log-file retention row.
@@ -276,6 +289,21 @@ Operation name, screen or flow name, error category, non-sensitive counts and id
   first frame; a missing or unreadable value means protected. The Settings switch reaches the
   native side through the `sreerajp.journal_vault/screen_security` MethodChannel, which saves the
   value and applies or clears the flag on the live window at once.
+- **Sync conflicts are stored decoded.** When an item changed on both phones, both versions are
+  kept as plain JSON in `sync_conflicts`, inside the SQLCipher-encrypted database. They are no
+  longer sealed with the pairing code, which does not outlive the session and made "Keep remote"
+  impossible. A file sent with the other phone's version is stored under this phone's key until
+  the conflict is resolved; the startup orphan sweep counts it as in use (since 2026-09-27).
+- **Only the user's own Settings switch changes the saved choice.** It is never taken from
+  another phone: AirQR settings do not carry it, and a received value from an older app version
+  is ignored (since 2026-09-27).
+- **Screens that show a pairing secret hold protection on only while open.** The AirQR send
+  screen and the Wi-Fi Sync host screen call `ScreenSecurityController.holdOn()` in `initState` and
+  `releaseHold()` in `dispose`. This uses the channel method `applyScreenSecurity`, which changes
+  the live window only and saves nothing, so the user's choice is back when the screen closes,
+  and the next app start applies the saved choice. Any new screen that shows a secret must do the
+  same, never `setEnabled(true)`. Screenshot blocking does not stop AirQR: another phone's camera
+  still reads the QR codes on the screen.
 - `android:debuggable`: false in release (verified — section 8.3).
 - Cleartext traffic: off. minSdk 28 makes `usesCleartextTraffic` default to `false`, the manifest
   does not change it, and there is no network security config. Wi-Fi Sync is a raw TCP socket
@@ -289,6 +317,18 @@ Operation name, screen or flow name, error category, non-sensitive counts and id
   fonts, OCR language models and icon sources — no secret, key or personal data. Audit steps:
   [`release_process.md`](release_process.md) section 6.6.
 - Root detection: none, and none planned. Rooted devices are out of scope (section 3).
+- Keyboard learning: while the "Keyboard privacy" switch in Settings → Security is on (the
+  default), every text box asks the keyboard not to learn from what is typed
+  (`enableIMEPersonalizedLearning: false`, Android's `IME_FLAG_NO_PERSONALIZED_LEARNING`), so
+  journal text does not end up in the keyboard's personal dictionary or suggestions in other
+  apps. Trusted keyboards (Gboard, Samsung Keyboard, SwiftKey) respect it. Turning the switch
+  off needs confirmation. The choice is a plain SharedPreferences bool (`keyboard_privacy`; a
+  missing or unreadable value means on), read in `main()` before the first frame, and passed to
+  every text box by `KeyboardPrivacyScope.allowLearning(context)`. The journal editor gets it
+  through a patched copy of `flutter_quill` ([`dependencies.md`](dependencies.md) section 5).
+  Password fields (`obscureText: true`) are password boxes as well, which keyboards do not learn
+  from. `tool/check_keyboard_incognito.sh` (run in CI) fails when a text box, an editor, or the
+  patch stops following the setting.
 
 ### iOS / Windows / Linux / macOS
 
@@ -308,7 +348,7 @@ two; the rest arrive transitively from plugins.
 | `USE_BIOMETRIC` | app | Biometric app unlock | Falls back to device credential or PIN |
 | `READ_EXTERNAL_STORAGE` (maxSdk 32) | app | Attachment import on older Android | Permissions screen explains and links to settings |
 | `READ_MEDIA_IMAGES` / `_VIDEO` / `_AUDIO` | `file_picker` | Attachment import on API 33+ | As above |
-| `RECORD_AUDIO` | app (also `record`) | Voice notes and on-device dictation | Voice notes and dictation unavailable; rest of app works |
+| `RECORD_AUDIO` | app (also `record`) | Voice notes | Voice notes unavailable; rest of app works |
 | `CAMERA` | app | Capturing a page for on-device OCR (`uses-feature` marked not required) | OCR falls back to picking an existing photo |
 | `USE_FINGERPRINT` | `local_auth` | Legacy biometric API | Falls back |
 | `ACCESS_NETWORK_STATE` | Wi-Fi Sync | **Declared** — lets Wi-Fi Sync see whether a local network is up | Wi-Fi Sync unavailable; rest of app works |
@@ -386,9 +426,32 @@ Reviewed 2026-07-25. This is an honest snapshot, not a clean bill of health.
 action that clears the database, cache, temp files, and secure storage entries. A search of
 `lib/` on 2026-07-25 found no such action anywhere. See section 17.
 
-Temporary files are handled correctly: `AttachmentTempFileManager` creates them in
-`getTemporaryDirectory()`, deletes them on close and on background, and sweeps orphans at
-startup for the case where the process died mid-view.
+Temporary files (checked and fixed 2026-09-19 —
+`plans/20260919_094126_voice-dictation-and-stale-files.md`). Until then the startup sweep and the
+background hook of `AttachmentTempFileManager` existed but were never called, and the file
+picker's plain copies were never deleted. Now:
+
+| Plain file | Where | Deleted |
+|---|---|---|
+| Decrypted attachment (viewer, inline image, export, backup) | `cache/attachment_temp/` | By its owner when done |
+| Decrypted attachment handed to another app | `cache/attachment_temp/` | 5 minutes after the app goes to the background; at once if no app could open it |
+| Picked file (attachment, import, backup, sealed export) | `cache/file_picker/` | Straight after the bytes are read |
+| Staged backup being restored | `cache/restore_staging/` | When a new file is picked or the restore screen closes |
+| Voice recording in progress | `cache/voice_rec/` | After saving, on discard, or when the sheet closes |
+| Scan photos | `cache/` (`CAP…`, `image_picker…`, `ocr_…`, picker `<uuid>/` folders) | When the enhance screen closes |
+| Half-written backup | `documents/backups/` | When writing the backup fails |
+
+`runStartupMaintenance` (`lib/app/startup_maintenance.dart`) runs once before the first screen
+and clears every folder above that an earlier run left behind, whatever the reason (crash, kill,
+power loss). It also deletes **orphaned encrypted files**: files in
+`documents/encrypted_attachments/` that no attachment or voice note row points at and that are
+older than one hour. Earlier builds deleted an entry's rows but not its files. Such files cannot
+be decrypted — the nonce was in the deleted row — but they were still the user's content, left on
+the device after the user deleted it. SD card files are not swept: the storage bridge has no
+"list files" call.
+
+Deleting now removes files as well as rows: `EntryDeletionService` deletes the rows of an entry,
+a journal, or one attachment in a single transaction, then deletes their encrypted files.
 
 ### Purge on uninstall
 
@@ -637,6 +700,8 @@ Complete before every release. Nothing below may be ticked from memory.
 - [ ] `FLAG_SECURE` still applied by default — with "Block Screenshots" on, a screenshot of the
       running app must fail; with it off, a screenshot must succeed; the choice must survive a
       restart.
+- [ ] With "Block Screenshots" off, open AirQR Send: a screenshot fails there. Leave the screen:
+      a screenshot succeeds again, and Settings still shows the switch off.
 - [ ] Permission list re-read from the merged release manifest; nothing new appeared.
 - [ ] `--obfuscate --split-debug-info` present in the build command actually used.
 - [ ] Debug symbols archived against the released version number.

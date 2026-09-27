@@ -57,7 +57,7 @@ String renderMarkdown(
 
       case TableBlock():
         buffer.writeln();
-        buffer.write(_renderTable(block.rows));
+        buffer.write(_renderTable(block.cells));
         previousStyle = null;
         previousIndent = 0;
 
@@ -244,21 +244,24 @@ String _escapeMarkdown(String text) => text
 ///
 /// The first row becomes the header, because a pipe table has no way to say
 /// "no header" and most renderers will not draw the table without one.
-String _renderTable(List<List<String>> rows) {
+String _renderTable(List<List<List<InlineSpan>>> rows) {
   if (rows.isEmpty) return '';
 
   final width = rows.fold<int>(0, (m, row) => row.length > m ? row.length : m);
   if (width == 0) return '';
 
-  String renderRow(List<String> row) {
+  String renderRow(List<List<InlineSpan>> row) {
     final cells = List.generate(width, (i) {
-      final cell = i < row.length ? row[i] : '';
-      // A pipe inside a cell would end it early; a newline would end the row.
+      // A cell keeps its inline styling, rendered like a paragraph's.
+      final cell = i < row.length ? _renderSpans(row[i]) : '';
+      // A pipe inside a cell would end it early; a newline would end the row,
+      // so a line break inside the cell is written as <br>, which every
+      // Markdown renderer with tables understands.
       return cell
           .replaceAll('|', r'\|')
-          .replaceAll('\n', ' ')
-          .replaceAll('\r', ' ')
-          .trim();
+          .replaceAll('\r', '')
+          .trim()
+          .replaceAll('\n', '<br>');
     });
     return '| ${cells.join(' | ')} |';
   }

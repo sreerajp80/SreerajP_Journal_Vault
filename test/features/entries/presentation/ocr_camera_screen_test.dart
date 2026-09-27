@@ -2,9 +2,12 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/ocr_camera_screen.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/ocr_enhance_screen.dart';
+import 'package:sreerajp_journal_vault/features/entries/services/image_edit_service.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 class _FakeImagePicker extends Fake implements ImagePicker {
@@ -34,15 +37,17 @@ class _TestApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      supportedLocales: const [Locale('en')],
-      home: child,
+    return ProviderScope(
+      child: MaterialApp(
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [Locale('en')],
+        home: child,
+      ),
     );
   }
 }
@@ -317,6 +322,127 @@ void main() {
       },
     );
   });
+
+  group('OcrCameraScreen crop-first capture flow', () {
+    setUp(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('flutter.baseflow.com/permissions/methods'),
+            (MethodCall call) async {
+              if (call.method == 'requestPermissions') {
+                return {1: 1}; // Granted
+              }
+              return null;
+            },
+          );
+    });
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel('flutter.baseflow.com/permissions/methods'),
+            null,
+          );
+    });
+
+    testWidgets(
+      'capturing photo opens cropper first and cancels back to viewfinder when crop cancelled',
+      (tester) async {
+        final fakeCropper = _FakeImageEditService();
+        final fakeController = _FakeCameraController();
+
+        await tester.pumpWidget(
+          _TestApp(
+            child: OcrCameraScreen(
+              cameras: const [
+                CameraDescription(
+                  name: '0',
+                  lensDirection: CameraLensDirection.back,
+                  sensorOrientation: 90,
+                ),
+              ],
+              controllerFactory: (_) => fakeController,
+              imageEditService: fakeCropper,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Shutter button is present
+        expect(find.byKey(const Key('ocr-camera-shutter-btn')), findsOneWidget);
+
+        // Tap shutter button
+        await tester.tap(find.byKey(const Key('ocr-camera-shutter-btn')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 500));
+        await tester.pumpAndSettle();
+
+        expect(fakeController.takePictureCalled, isTrue);
+        expect(fakeCropper.lastSourcePath, '/path/to/captured_document.jpg');
+        // Because crop was cancelled (returned null), screen remains on camera viewfinder
+        expect(find.byKey(const Key('ocr-camera-shutter-btn')), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'capturing photo opens cropper first and proceeds to enhance screen when crop confirmed',
+      (tester) async {
+        final fakeCropper = _FakeImageEditService(
+          pathToReturn: '/path/to/cropped_document.jpg',
+        );
+        final fakeController = _FakeCameraController();
+
+        await tester.pumpWidget(
+          _TestApp(
+            child: OcrCameraScreen(
+              cameras: const [
+                CameraDescription(
+                  name: '0',
+                  lensDirection: CameraLensDirection.back,
+                  sensorOrientation: 90,
+                ),
+              ],
+              controllerFactory: (_) => fakeController,
+              imageEditService: fakeCropper,
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Tap shutter button
+        await tester.tap(find.byKey(const Key('ocr-camera-shutter-btn')));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 500));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 100));
+
+        expect(fakeController.takePictureCalled, isTrue);
+        expect(fakeCropper.lastSourcePath, '/path/to/captured_document.jpg');
+        // Because crop was confirmed, OcrEnhanceScreen was pushed
+        expect(find.byType(OcrEnhanceScreen), findsOneWidget);
+      },
+    );
+  });
+}
+
+class _FakeImageEditService implements ImageEditService {
+  _FakeImageEditService({this.pathToReturn});
+
+  final String? pathToReturn;
+  String? lastSourcePath;
+
+  @override
+  Future<String?> cropAndRotate({
+    required String sourcePath,
+    required String toolbarTitle,
+    required Color toolbarColor,
+    required Color toolbarWidgetColor,
+    required Brightness statusBarBrightness,
+    required Color activeControlColor,
+  }) async {
+    lastSourcePath = sourcePath;
+    return pathToReturn;
+  }
 }
 
 class _FakeCameraController extends ValueNotifier<CameraValue>
@@ -340,6 +466,9 @@ class _FakeCameraController extends ValueNotifier<CameraValue>
               exposurePointSupported: true,
             ),
       );
+
+  @override
+  Future<void> initialize() async {}
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;

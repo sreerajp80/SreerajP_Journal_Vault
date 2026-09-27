@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
+import 'package:sreerajp_journal_vault/core/security/stale_file_sweeper.dart';
 import 'package:uuid/uuid.dart';
 
 /// Result of a completed voice note recording.
@@ -20,13 +21,14 @@ class VoiceNoteRecordingResult {
 
 /// Service that manages voice note recording.
 ///
-/// It does not transcribe. `record` holds the microphone while recording, so a
-/// speech recogniser cannot hear at the same time. Speech to text is
-/// `DictationService`, which also makes sure recognition stays on the device.
+/// It does not transcribe. The app has no speech to text of its own; users who
+/// want it use their keyboard's microphone button.
 ///
-/// Recordings are saved as AAC-encoded M4A files in the app's temporary
-/// directory. Callers are responsible for encrypting and persisting the
-/// recording via the attachment crypto storage layer.
+/// Recordings are saved as AAC-encoded M4A files in their own folder,
+/// [voiceRecordingDirectoryName], inside the app's cache. They are plain
+/// audio, so they must not outlive the recording: `VoiceNoteSaver` encrypts
+/// and deletes them, [cancelRecording] deletes them, and the startup sweep
+/// clears any left by a crash.
 class VoiceNoteService {
   VoiceNoteService();
 
@@ -49,8 +51,12 @@ class VoiceNoteService {
     if (!hasPermission) return false;
 
     final tempDir = await getTemporaryDirectory();
+    final recordingDir = Directory(
+      p.join(tempDir.path, voiceRecordingDirectoryName),
+    );
+    await recordingDir.create(recursive: true);
     final fileName = 'voice_${const Uuid().v4()}.m4a';
-    _currentPath = p.join(tempDir.path, fileName);
+    _currentPath = p.join(recordingDir.path, fileName);
 
     await _recorder.start(const RecordConfig(), path: _currentPath!);
 
@@ -67,8 +73,15 @@ class VoiceNoteService {
 
     final path = await _recorder.stop();
     _isRecording = false;
+    final expected = _currentPath;
+    _currentPath = null;
 
-    if (path == null || !File(path).existsSync()) return null;
+    if (path == null || !File(path).existsSync()) {
+      // Nothing usable; do not leave a partial file behind.
+      if (expected != null) await _deleteQuietly(expected);
+      _recordingStartTime = null;
+      return null;
+    }
 
     final durationMs = _recordingStartTime != null
         ? DateTime.now().difference(_recordingStartTime!).inMilliseconds
@@ -87,14 +100,24 @@ class VoiceNoteService {
   /// Cancels an in-progress recording and deletes the partial file.
   Future<void> cancelRecording() async {
     if (!_isRecording) return;
-    await _recorder.stop();
     _isRecording = false;
-    if (_currentPath != null) {
-      final file = File(_currentPath!);
-      if (file.existsSync()) await file.delete();
-    }
+    final path = _currentPath;
     _currentPath = null;
     _recordingStartTime = null;
+    try {
+      await _recorder.stop();
+    } finally {
+      if (path != null) await _deleteQuietly(path);
+    }
+  }
+
+  Future<void> _deleteQuietly(String path) async {
+    try {
+      final file = File(path);
+      if (file.existsSync()) await file.delete();
+    } catch (_) {
+      // The startup sweep removes it next time.
+    }
   }
 
   /// Releases resources.

@@ -29,8 +29,7 @@ class _SearchTabState extends ConsumerState<_SearchTab> {
 
   Future<void> _loadPresets() async {
     if (!mounted) return;
-    final db = ref.read(appDatabaseProvider);
-    final presets = await db.searchPresetsDao.getAllPresets();
+    final presets = await ref.read(searchServiceProvider).allPresets();
     if (mounted) setState(() => _presets = presets);
   }
 
@@ -47,17 +46,18 @@ class _SearchTabState extends ConsumerState<_SearchTab> {
     }
     setState(() => _query = trimmed);
 
-    final db = ref.read(appDatabaseProvider);
     final unlockedIds = ref.read(unlockedJournalIdsProvider);
 
-    final allJournals = await db.journalsDao.getAllJournals();
+    final allJournals = await ref.read(journalServiceProvider).allJournals();
     final journalMap = {for (final j in allJournals) j.id: j};
 
     final journalResults = allJournals
         .where((j) => j.title.toLowerCase().contains(trimmed.toLowerCase()))
         .toList();
 
-    final ftsResults = await db.searchEntries(trimmed);
+    final ftsResults = await ref
+        .read(searchServiceProvider)
+        .searchEntries(trimmed);
     final entryResults = ftsResults.where((r) {
       final journal = journalMap[r.journalId];
       if (journal == null) return false;
@@ -87,14 +87,9 @@ class _SearchTabState extends ConsumerState<_SearchTab> {
       builder: (_) => const _SavePresetDialog(),
     );
     if (name == null || name.isEmpty || !mounted) return;
-    final db = ref.read(appDatabaseProvider);
-    await db.searchPresetsDao.createPreset(
-      SearchPresetsCompanion.insert(
-        name: name,
-        query: _query,
-        resultType: Value(_filterEntries ? 'entries' : null),
-      ),
-    );
+    await ref
+        .read(searchServiceProvider)
+        .createPreset(name: name, query: _query, entriesOnly: _filterEntries);
     await _loadPresets();
   }
 
@@ -105,6 +100,9 @@ class _SearchTabState extends ConsumerState<_SearchTab> {
       appBar: AppBar(
         title: TextField(
           key: const Key('search-query-field'),
+          enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+            context,
+          ),
           controller: _queryCtrl,
           decoration: InputDecoration(
             hintText: l10n.descSearch,
@@ -232,6 +230,9 @@ class _SavePresetDialogState extends State<_SavePresetDialog> {
       title: Text(l10n.titleSearchSavePreset),
       content: TextField(
         key: const Key('search-preset-name-field'),
+        enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+          context,
+        ),
         controller: _ctrl,
         decoration: InputDecoration(labelText: l10n.labelSearchPresetName),
       ),

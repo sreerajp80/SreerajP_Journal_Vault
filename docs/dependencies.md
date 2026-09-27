@@ -69,15 +69,23 @@ section 7.
 
 ### Editor and media
 
+> **Removed 2026-09-19: `speech_to_text`.** It kept one recogniser for the life of the app; after
+> the phone restarted its speech service, every dictation failed with
+> `error_server_disconnected`, and it could quietly fall back to the online recogniser. Dictation
+> now uses the app's own on-device listener (`OnDeviceDictation.kt`, `NativeSpeechEngine`). See
+> `plans/20260919_121359_fix-dictation-on-device-listening.md`. That listener was removed too on
+> 2026-09-24, with all in-app dictation (`plans/20260924_220251_remove-dictation-keyboard-privacy-setting.md`).
+
 | Package | Used for | Where |
 |---|---|---|
-| `flutter_quill` | The rich-text entry editor and its Delta document format | `lib/features/entries/presentation/editor/` |
+| `flutter_quill` | The rich-text entry editor and its Delta document format. **A patched local copy** — see section 5 | `lib/features/entries/presentation/editor/`; the copy is in `third_party/flutter_quill/` |
+| `html` | Parses the HTML on the clipboard when rich text is pasted, so formatting, links and tables are kept. Pure Dart (a parser only), no networking. Already came in through `flutter_quill`; listed directly since 2026-09-25 because our code imports it | `lib/features/entries/services/html_to_delta.dart` |
+| `url_launcher` | Opens a link tapped in a read-only table cell, the same way the editor opens a link in the entry body — it hands the link to the phone's browser or mail app; the app itself makes no connection. Already came in through `flutter_quill`; listed directly since 2026-09-25 | `lib/features/entries/presentation/editor/table_cell_editor.dart` |
 | `record` | Voice note recording | `lib/features/entries/services/voice_note_service.dart` |
-| `speech_to_text` | On-device dictation into the editor. Always called with `onDevice: true`, and only after the app's own `sreerajp.journal_vault/speech` channel confirms on-device recognition exists — the plugin otherwise falls back to the online system recogniser. Not used by voice notes | `lib/features/entries/services/speech_engine.dart`, `dictation_service.dart` |
 | `image_picker` | Gallery image selection and fallback photo capture for OCR | `lib/features/entries/presentation/entry_editor_screen.dart` |
 | `image_cropper` | Crop-and-rotate UI before OCR scanning, wraps Android uCrop (offline) | `lib/features/entries/services/image_edit_service.dart` |
 | `google_mlkit_text_recognition` | On-device fallback text extraction from images | `lib/features/entries/services/ocr_service.dart` |
-| `tesseract4android` (native) | On-device, 100% offline Tesseract 5 OCR text extraction supporting English, Malayalam, and bilingual recognition via native MethodChannel | `android/app/build.gradle.kts`, `MainActivity.kt`, `lib/features/entries/services/ocr_service.dart` |
+| `tesseract4android` (native) | On-device, 100% offline Tesseract 5 OCR text extraction supporting English, Malayalam, and bilingual recognition via native MethodChannel. Version 4.9.0 bundles Tesseract 5.5.1 and Leptonica; the Leptonica Java wrappers are also used to clean photos before reading | `android/app/build.gradle.kts`, `MainActivity.kt`, `lib/features/entries/services/ocr_service.dart` |
 | `image` | Pure-Dart image decode, resize, grayscale and contrast. Prepares a photo before OCR so thin marks (`.`, `=`, `,`, `:`) are large and clear enough to be recognised. No networking dependency | `lib/features/entries/services/ocr_image_preprocessor.dart` |
 | `just_audio` | In-app audio attachment playback | `lib/features/attachments/presentation/audio_attachment_view.dart` |
 | `pdfrx` | In-app PDF attachment viewing (PDFium-based, open source) | `.../pdf_attachment_view.dart` |
@@ -216,6 +224,28 @@ open and refuses to start if plain SQLite answers — but that is a safety net, 
 
 Verify after any change to it: `flutter test test/core/database/encrypted_database_test.dart`,
 and check the built APK carries `lib/<abi>/libsqlcipher.so` and no `libsqlite3.so`.
+
+### `flutter_quill` — a patched copy (recorded 2026-09-24)
+
+`third_party/flutter_quill/` is `flutter_quill` 11.5.1 from pub.dev (MIT licence, kept in its
+`LICENSE` file), used through `dependency_overrides:` in `pubspec.yaml`. Only `lib/`, the
+licence, `pubspec.yaml`, `README.md` and `CHANGELOG.md` are copied.
+
+**The patch** adds one option, `enableIMEPersonalizedLearning` (default `true`, as upstream
+would have it), every change marked `// JOURNAL VAULT PATCH`:
+`lib/src/editor/config/editor_config.dart` (field, constructor, `copyWith`),
+`lib/src/editor/raw_editor/config/raw_editor_config.dart` (field, constructor),
+`lib/src/editor/editor.dart` (passes it on) and
+`lib/src/editor/raw_editor/raw_editor_state_text_input_client_mixin.dart` (puts it in the
+keyboard's `TextInputConfiguration`). The app sets it from the "Keyboard privacy" switch.
+Upstream has no such option, and Flutter's default lets the keyboard learn. Plans:
+`plans/20260924_212832_keyboard_incognito.md`, `plans/20260924_220251_remove-dictation-keyboard-privacy-setting.md`.
+
+To upgrade `flutter_quill`: copy the new version over `third_party/flutter_quill/` (the same
+files), repeat the patch, then run `sh tool/check_keyboard_incognito.sh` and
+`flutter test test/features/entries/presentation/entry_editor_keyboard_test.dart`. If upstream
+adds the option, drop the copy and the override and set the option instead. The analyzer skips
+`third_party/**` (see `analysis_options.yaml`).
 
 ---
 

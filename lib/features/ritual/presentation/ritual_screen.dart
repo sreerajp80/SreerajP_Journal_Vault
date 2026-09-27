@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/entry_editor_screen.dart';
+import 'package:sreerajp_journal_vault/features/journals/providers/journal_providers.dart';
 import 'package:sreerajp_journal_vault/features/ritual/domain/ritual_card.dart';
 import 'package:sreerajp_journal_vault/features/ritual/domain/spaced_repetition.dart';
 import 'package:sreerajp_journal_vault/features/ritual/presentation/ritual_deck_screen.dart';
@@ -185,7 +186,7 @@ class _RitualScreenState extends ConsumerState<RitualScreen> {
     final themeName = card.theme.nameIn(l10n);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(24).withSafeBottom(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

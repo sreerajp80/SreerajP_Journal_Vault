@@ -89,6 +89,11 @@ jobs:
       - name: Check manifest permission policy
         run: sh tool/check_no_internet_permission.sh
 
+      # Every text box, and the patched flutter_quill editor, asks the
+      # keyboard not to learn from what is typed.
+      - name: Check keyboard incognito request
+        run: sh tool/check_keyboard_incognito.sh
+
   sanskrit-check:
     name: Sanskrit is Sanskrit, not Hindi
     runs-on: ubuntu-latest

@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'package:sreerajp_journal_vault/app/app.dart';
+import 'package:sreerajp_journal_vault/app/startup_maintenance.dart';
 import 'package:sreerajp_journal_vault/app/vault_unavailable_app.dart';
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/core/database/database_open_failure.dart';
 import 'package:sreerajp_journal_vault/core/database/encrypted_database_opener.dart';
 import 'package:sreerajp_journal_vault/core/l10n/locale_controller.dart';
 import 'package:sreerajp_journal_vault/core/logging/app_logger.dart';
+import 'package:sreerajp_journal_vault/core/security/keyboard_privacy_controller.dart';
 import 'package:sreerajp_journal_vault/core/security/screen_security_controller.dart';
 import 'package:sreerajp_journal_vault/features/attachments/domain/attachment_open_router.dart';
 import 'package:sreerajp_journal_vault/features/attachments/providers/attachment_providers.dart';
@@ -35,6 +37,10 @@ void main() async {
   // ever flashes the wrong language at startup (standard §8.4).
   final languageStore = await openAppLanguageStore();
   final startupLocale = languageStore.read().locale;
+
+  // Read before the first frame too, so no text box is built with the wrong
+  // keyboard privacy value.
+  final keyboardPrivacyStore = await openKeyboardPrivacyStore();
 
   // The vault is encrypted at rest with a key held in the Android Keystore.
   // A journal from an older, unencrypted install is converted on the way in.
@@ -66,6 +72,13 @@ void main() async {
   final tempFileManager = AttachmentTempFileManager(
     cacheDirectoryProvider: getTemporaryDirectory,
   );
+
+  // Clears files an earlier run left behind: plain copies in the cache and
+  // encrypted files no entry uses any more. Never throws.
+  await runStartupMaintenance(
+    database: database,
+    tempFileManager: tempFileManager,
+  );
   final cryptoStorage = AesGcmAttachmentCryptoStorage(
     algorithm: AesGcm.with256bits(),
     keyManager: keyManager,
@@ -90,6 +103,7 @@ void main() async {
       database: database,
       overrides: [
         appLanguageStoreProvider.overrideWithValue(languageStore),
+        keyboardPrivacyStoreProvider.overrideWithValue(keyboardPrivacyStore),
         attachmentCryptoStorageProvider.overrideWithValue(cryptoStorage),
         // Backup decrypts attachments on the way out and encrypts them again
         // for this device on the way back in, so a restored backup opens on a

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/features/ritual/domain/ritual_card.dart';
 import 'package:sreerajp_journal_vault/features/ritual/domain/spaced_repetition.dart';
 import 'package:sreerajp_journal_vault/features/ritual/presentation/create_ritual_card_screen.dart';
@@ -82,7 +83,7 @@ class _RitualDeckScreenState extends ConsumerState<RitualDeckScreen> {
                 right: 16,
                 top: 16,
                 bottom: 80,
-              ),
+              ).withSafeBottom(context),
               itemCount: filteredCards.length,
               itemBuilder: (context, index) {
                 final card = filteredCards[index];

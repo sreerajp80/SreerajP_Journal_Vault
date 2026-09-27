@@ -1,13 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/features/backup/domain/backup_format.dart';
 import 'package:sreerajp_journal_vault/features/backup/domain/restore_models.dart';
 import 'package:sreerajp_journal_vault/features/backup/providers/backup_providers.dart';
+import 'package:sreerajp_journal_vault/features/backup/services/backup_file_picker.dart';
 import 'package:sreerajp_journal_vault/features/backup/services/backup_service.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/providers/lock_gate_providers.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/services/biometric_authenticator.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
+import 'package:sreerajp_journal_vault/core/security/keyboard_privacy_scope.dart';
 
 part 'restore_backup_steps.dart';
 
@@ -44,6 +49,11 @@ class _RestoreBackupScreenState extends ConsumerState<RestoreBackupScreen> {
   String? _selectedPath;
   String? _selectedFileName;
 
+  /// The picker that staged a copy of a backup chosen from outside the app.
+  /// Kept so the copy can be deleted when the screen closes, where `ref` can
+  /// no longer be used.
+  BackupFilePicker? _stagingPicker;
+
   BackupPreview? _preview;
   RestoreMode _mode = RestoreMode.merge;
   bool _busy = false;
@@ -58,6 +68,10 @@ class _RestoreBackupScreenState extends ConsumerState<RestoreBackupScreen> {
 
   @override
   void dispose() {
+    // The staged copy of an outside backup is not needed once the screen is
+    // gone. In-app backups are never staged, so they are never touched here.
+    final stagingPicker = _stagingPicker;
+    if (stagingPicker != null) unawaited(stagingPicker.discardStagedCopy());
     _passwordController.dispose();
     _pinController.dispose();
     super.dispose();
@@ -101,6 +115,8 @@ class _RestoreBackupScreenState extends ConsumerState<RestoreBackupScreen> {
             if (_needsPin) ...[
               TextField(
                 key: const Key('restore-pin-field'),
+                enableIMEPersonalizedLearning:
+                    KeyboardPrivacyScope.allowLearning(context),
                 controller: _pinController,
                 obscureText: true,
                 keyboardType: TextInputType.number,
@@ -181,7 +197,12 @@ class _RestoreBackupScreenState extends ConsumerState<RestoreBackupScreen> {
           sliver: backupList,
         ),
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          padding: const EdgeInsets.fromLTRB(
+            16,
+            0,
+            16,
+            16,
+          ).withSafeBottom(context),
           sliver: SliverList.list(
             children: [
               const SizedBox(height: 8),
@@ -203,6 +224,8 @@ class _RestoreBackupScreenState extends ConsumerState<RestoreBackupScreen> {
 
               TextField(
                 key: const Key('restore-password-field'),
+                enableIMEPersonalizedLearning:
+                    KeyboardPrivacyScope.allowLearning(context),
                 controller: _passwordController,
                 obscureText: true,
                 decoration: InputDecoration(
@@ -276,7 +299,9 @@ class _RestoreBackupScreenState extends ConsumerState<RestoreBackupScreen> {
   // ─────────────────────────── actions ───────────────────────────
 
   Future<void> _pickFile() async {
-    final picked = await ref.read(backupFilePickerProvider).pickBackupFile();
+    final picker = ref.read(backupFilePickerProvider);
+    _stagingPicker = picker;
+    final picked = await picker.pickBackupFile();
     if (picked == null || !mounted) return;
     setState(() {
       _selectedPath = picked.path;

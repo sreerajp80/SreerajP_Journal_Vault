@@ -7,9 +7,6 @@ enum _ScanSource {
   /// from the camera plugin.
   phoneCamera,
 
-  /// The camera built into this app. The photo never leaves the app.
-  inAppCamera,
-
   /// A photo already on the device.
   gallery,
 }
@@ -38,12 +35,8 @@ extension _EntryEditorScreenStatePart3 on _EntryEditorScreenState {
     final int attachmentId;
     try {
       attachmentId = await ref
-          .read(attachmentImportServiceProvider)
-          .importToEntry(
-            database: ref.read(appDatabaseProvider),
-            entryId: _entryId!,
-            picked: picked,
-          );
+          .read(entryEditorServiceProvider)
+          .addAttachment(_entryId!, picked);
     } catch (_) {
       // The import service has already removed the encrypted file it wrote, so
       // there is nothing left behind to clean up here.
@@ -75,6 +68,34 @@ extension _EntryEditorScreenStatePart3 on _EntryEditorScreenState {
     _rebuild(() => _attachmentRefreshToken++);
   }
 
+  /// Takes the pictures of a just-deleted attachment out of the text, so no
+  /// broken image is left behind. The change is auto-saved like any other edit.
+  void _removeAttachmentEmbeds(int attachmentId) {
+    final offsets = attachmentEmbedOffsets(
+      _quillController.document,
+      attachmentId,
+    );
+    if (offsets.isEmpty) return;
+    // The caret moves back by one for every picture removed before it, so it
+    // never points into a line that no longer exists.
+    final caret = _quillController.selection.isValid
+        ? _quillController.selection.baseOffset
+        : 0;
+    final removedBefore = offsets.where((offset) => offset < caret).length;
+    // From the end, so the earlier offsets stay valid.
+    for (final offset in offsets.reversed) {
+      _quillController.replaceText(offset, 1, '', null, ignoreFocus: true);
+    }
+    final maxOffset = _quillController.document.length - 1;
+    _quillController.updateSelection(
+      TextSelection.collapsed(
+        offset: (caret - removedBefore).clamp(0, maxOffset),
+      ),
+      ChangeSource.local,
+    );
+    _rebuild(() => _isDirty = true);
+  }
+
   /// Opens the drawing canvas, saves the sketch as an encrypted attachment,
   /// and embeds it into the entry.
   Future<void> _insertDrawing() async {
@@ -99,12 +120,8 @@ extension _EntryEditorScreenStatePart3 on _EntryEditorScreenState {
     final int attachmentId;
     try {
       attachmentId = await ref
-          .read(attachmentImportServiceProvider)
-          .importToEntry(
-            database: ref.read(appDatabaseProvider),
-            entryId: _entryId!,
-            picked: picked,
-          );
+          .read(entryEditorServiceProvider)
+          .addAttachment(_entryId!, picked);
     } catch (_) {
       if (mounted) {
         _showMessage(AppLocalizations.of(context).errorDrawingSave);
@@ -161,12 +178,8 @@ extension _EntryEditorScreenStatePart3 on _EntryEditorScreenState {
     final int newAttachmentId;
     try {
       newAttachmentId = await ref
-          .read(attachmentImportServiceProvider)
-          .importToEntry(
-            database: ref.read(appDatabaseProvider),
-            entryId: _entryId!,
-            picked: picked,
-          );
+          .read(entryEditorServiceProvider)
+          .addAttachment(_entryId!, picked);
     } catch (_) {
       if (mounted) {
         _showMessage(AppLocalizations.of(context).errorDrawingSave);
@@ -191,17 +204,10 @@ extension _EntryEditorScreenStatePart3 on _EntryEditorScreenState {
       ignoreFocus: true,
     );
 
-    // Clean up old attachment row and file if different
+    // The old drawing is not deleted yet: Undo can put it back. It is
+    // removed when the screen closes, if the saved entry no longer shows it.
     if (data.attachmentId > 0 && data.attachmentId != newAttachmentId) {
-      try {
-        final db = ref.read(appDatabaseProvider);
-        final oldAttachment = await db.attachmentsDao.getAttachmentById(
-          data.attachmentId,
-        );
-        await db.attachmentsDao.deleteAttachmentById(data.attachmentId);
-        final crypto = ref.read(attachmentCryptoStorageProvider);
-        await crypto.deleteStoredFile(oldAttachment.encryptedPath);
-      } catch (_) {}
+      _supersededDrawingIds.add(data.attachmentId);
     }
 
     _rebuild(() {
@@ -219,7 +225,9 @@ extension _EntryEditorScreenStatePart3 on _EntryEditorScreenState {
     XFile? photo;
     try {
       // No size limits: the full photo is what makes small print readable.
-      photo = await ImagePicker().pickImage(source: ImageSource.camera);
+      photo = await ExternalHandoffGuard.instance.run(
+        () => ImagePicker().pickImage(source: ImageSource.camera),
+      );
     } catch (e, stackTrace) {
       AppLogger.error(
         'EntryEditorScreen: phone camera unavailable, using in-app camera',
@@ -235,6 +243,7 @@ extension _EntryEditorScreenStatePart3 on _EntryEditorScreenState {
 
     if (photo == null || !mounted) return null;
 
+    final sweeper = ref.read(ocrTempFileSweeperProvider);
     try {
       return await Navigator.of(context).push<String>(
         MaterialPageRoute(
@@ -244,10 +253,7 @@ extension _EntryEditorScreenStatePart3 on _EntryEditorScreenState {
     } finally {
       // The camera app wrote this copy into our cache for us; it is not
       // needed once the text has been read.
-      try {
-        final file = File(photo.path);
-        if (file.existsSync()) file.deleteSync();
-      } catch (_) {}
+      unawaited(sweeper.deleteNow(photo.path));
     }
   }
 
@@ -266,12 +272,6 @@ extension _EntryEditorScreenStatePart3 on _EntryEditorScreenState {
               onTap: () => Navigator.pop(sheetContext, _ScanSource.phoneCamera),
             ),
             ListTile(
-              key: const Key('entry-ocr-source-in-app-camera'),
-              leading: const Icon(Icons.document_scanner_outlined),
-              title: Text(l10n.actionOcrInAppCamera),
-              onTap: () => Navigator.pop(sheetContext, _ScanSource.inAppCamera),
-            ),
-            ListTile(
               key: const Key('entry-ocr-source-gallery'),
               leading: const Icon(Icons.photo_library_outlined),
               title: Text(l10n.labelEntryEditorScanSourceGallery),
@@ -284,8 +284,20 @@ extension _EntryEditorScreenStatePart3 on _EntryEditorScreenState {
 
     if (scanSource == null || !mounted) return;
 
+    // Clear photos an earlier scan left behind when the app was closed part
+    // way. They are plain, unencrypted copies of private pages.
+    unawaited(ref.read(ocrTempFileSweeperProvider).sweepStale());
+
+    // The Settings switch decides which camera "Take photo" opens. Off — the
+    // default — is the phone's own camera app, which takes the better picture;
+    // on keeps every scan inside the app.
+    final useInAppCamera =
+        widget.imagePicker == null &&
+        await ref.read(ocrCameraSourceStoreProvider).read();
+    if (!mounted) return;
+
     final String? pickedResult;
-    if (scanSource == _ScanSource.inAppCamera && widget.imagePicker == null) {
+    if (scanSource == _ScanSource.phoneCamera && useInAppCamera) {
       pickedResult = await Navigator.of(context).push<String>(
         MaterialPageRoute(builder: (_) => const OcrCameraScreen()),
       );
@@ -293,8 +305,8 @@ extension _EntryEditorScreenStatePart3 on _EntryEditorScreenState {
       if (widget.imagePicker != null) {
         // Preserves test fake injection when testing EntryEditorScreen
         try {
-          final picked = await widget.imagePicker!.pickImage(
-            source: ImageSource.camera,
+          final picked = await ExternalHandoffGuard.instance.run(
+            () => widget.imagePicker!.pickImage(source: ImageSource.camera),
           );
           pickedResult = picked?.path;
         } catch (e, stackTrace) {
@@ -312,14 +324,22 @@ extension _EntryEditorScreenStatePart3 on _EntryEditorScreenState {
     } else {
       final picker = widget.imagePicker ?? ImagePicker();
       try {
-        final picked = await picker.pickImage(source: ImageSource.gallery);
+        final picked = await ExternalHandoffGuard.instance.run(
+          () => picker.pickImage(source: ImageSource.gallery),
+        );
         if (picked != null && widget.imagePicker == null) {
           if (!mounted) return;
-          pickedResult = await Navigator.of(context).push<String>(
-            MaterialPageRoute(
-              builder: (_) => OcrEnhanceScreen(imagePath: picked.path),
-            ),
-          );
+          final sweeper = ref.read(ocrTempFileSweeperProvider);
+          try {
+            pickedResult = await Navigator.of(context).push<String>(
+              MaterialPageRoute(
+                builder: (_) => OcrEnhanceScreen(imagePath: picked.path),
+              ),
+            );
+          } finally {
+            // The picker's private copy; the user's photo stays in the gallery.
+            unawaited(sweeper.deleteNow(picked.path));
+          }
         } else {
           pickedResult = picked?.path;
         }
@@ -424,24 +444,6 @@ extension _EntryEditorScreenStatePart3 on _EntryEditorScreenState {
         } catch (_) {}
       }
     }
-  }
-
-  /// Opens the dictation sheet and puts the spoken text at the caret.
-  Future<void> _dictate() async {
-    final text = await showDictationSheet(context);
-    if (text == null || !mounted) return;
-    _insertExtractedText(_withLeadingSpace(text));
-  }
-
-  /// Adds a space before [text] when the caret sits right after a word, so
-  /// dictated text does not run into what was already typed.
-  String _withLeadingSpace(String text) {
-    final selection = _quillController.selection;
-    if (!selection.isValid || selection.start <= 0) return text;
-    final plain = _quillController.document.toPlainText();
-    if (selection.start > plain.length) return text;
-    final before = plain[selection.start - 1];
-    return before.trim().isEmpty ? text : ' $text';
   }
 
   void _insertExtractedText(String extractedText) {

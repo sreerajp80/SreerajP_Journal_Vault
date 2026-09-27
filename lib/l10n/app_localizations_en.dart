@@ -442,6 +442,18 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get descSyncConflictDeletedRemote =>
+      'Deleted on the other device. Keeping remote deletes it here too.';
+
+  @override
+  String get descSyncConflictDeletedLocal =>
+      'You deleted this on this device. Keeping remote brings it back.';
+
+  @override
+  String get errorSyncConflictMissingParent =>
+      'Cannot keep the remote version: an item it belongs to is not on this device. Sync again, then try once more.';
+
+  @override
   String get titleSyncConflictDetails => 'Conflict Details';
 
   @override
@@ -801,6 +813,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get labelEntryTableDimensionHelp => '1–20';
 
   @override
+  String get actionTableAddRow => 'Add row';
+
+  @override
+  String get actionTableAddColumn => 'Add column';
+
+  @override
+  String get actionTableDeleteRow => 'Delete row';
+
+  @override
+  String get actionTableDeleteColumn => 'Delete column';
+
+  @override
+  String get actionTableDelete => 'Delete table';
+
+  @override
+  String get actionConvertToTable => 'Convert to table';
+
+  @override
+  String get actionPasteMarkdown => 'Paste as Markdown';
+
+  @override
+  String get actionPastePlainText => 'Paste as plain text';
+
+  @override
+  String get tooltipTableAddRow => 'Add row';
+
+  @override
+  String get tooltipTableAddColumn => 'Add column';
+
+  @override
+  String get tooltipTableResizeColumn => 'Resize column';
+
+  @override
+  String get labelTableCell => 'Table cell';
+
+  @override
   String get titleEntryCalloutType => 'Callout type';
 
   @override
@@ -1136,6 +1184,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Stops screenshots, screen recording and the preview shown in the recent apps list';
 
   @override
+  String get labelSettingsScanInAppCamera => 'In-app camera';
+
+  @override
+  String get descSettingsScanInAppCamera =>
+      'Take photo uses this app\'s own camera, so no copy of the photo can reach the device gallery. Off, it opens your phone\'s camera app, which takes the clearer picture';
+
+  @override
   String get bodySettingsScreenSecurityOff => 'Turn off screenshot blocking?';
 
   @override
@@ -1155,6 +1210,33 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errorSettingsScreenSecuritySave =>
       'Could not change screenshot blocking';
+
+  @override
+  String get labelSettingsKeyboardPrivacy => 'Keyboard privacy';
+
+  @override
+  String get descSettingsKeyboardPrivacy =>
+      'Asks your keyboard not to learn the words you type here, so private words don\'t show up as suggestions in other apps. Your keyboard\'s own settings still apply.';
+
+  @override
+  String get bodySettingsKeyboardPrivacyOff => 'Let the keyboard learn?';
+
+  @override
+  String get bodySettingsKeyboardPrivacyOffBody =>
+      'Your keyboard may remember words from your journal, such as names and places, and suggest them in other apps. Turn this off only if you want better suggestions while writing.';
+
+  @override
+  String get actionSettingsKeyboardPrivacyOff => 'Allow learning';
+
+  @override
+  String get bodySettingsKeyboardPrivacyUpdatedOn => 'Keyboard privacy is on';
+
+  @override
+  String get bodySettingsKeyboardPrivacyUpdatedOff => 'Keyboard privacy is off';
+
+  @override
+  String get errorSettingsKeyboardPrivacySave =>
+      'Could not change keyboard privacy';
 
   @override
   String get labelSettingsTamperAlerts => 'Tamper Alerts';
@@ -1448,7 +1530,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bodyRestoreConfirmReplaceBody =>
-      'Every journal, entry and attachment on this device will be deleted and replaced by the backup. A safety backup of what is here now is taken first.';
+      'Every journal, entry and attachment on this device will be deleted and replaced by the backup. A safety backup of what is here now is taken first. When this device next sends changes by Wi-Fi Sync, the other device\'s copies are replaced the same way.';
 
   @override
   String get bodyRestoreConfirmMerge => 'Merge this backup?';
@@ -2105,7 +2187,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpFaqA3 =>
-      'Camera & Photos: To take photos or import images/attachments into your entries.\nMicrophone: To record voice notes and to dictate text (recognised on the device).\nStorage/Media: To save encrypted backups and export PDFs.';
+      'Camera & Photos: To take photos or import images/attachments into your entries.\nMicrophone: To record voice notes.\nStorage/Media: To save encrypted backups and export PDFs.';
 
   @override
   String get helpFaqQ4 => 'Can I transfer my journal to a new phone?';
@@ -2413,6 +2495,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get labelTemplateCategoryCustom => 'My templates';
+
+  @override
+  String get labelImportedTemplateName => 'Imported template';
 
   @override
   String get actionTemplateCollapseAll => 'Collapse all';
@@ -3310,6 +3395,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get actionEditorGotoLineEnd => '⇥';
+
+  @override
+  String get actionEditorBold => 'Bold';
+
+  @override
+  String get actionEditorItalic => 'Italic';
+
+  @override
+  String get actionEditorUnderline => 'Underline';
+
+  @override
+  String get actionEditorStrike => 'Strike';
 
   @override
   String get bodyOcrCameraPermissionDenied =>
@@ -5276,6 +5373,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tooltipExportJournal => 'Export this journal';
 
   @override
+  String get tooltipImportJournal => 'Import into journal';
+
+  @override
   String get titleExportChooseJournal => 'Export from journal';
 
   @override
@@ -5763,58 +5863,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get tooltipEditorDictate => 'Dictate';
+  String get errorVoiceNoteSaveFailed =>
+      'Could not save the voice note. Try again.';
 
   @override
-  String get titleDictation => 'Dictation';
+  String get labelVoiceNoteSaving => 'Saving…';
 
   @override
-  String get labelDictationListening => 'Listening…';
-
-  @override
-  String get labelDictationPaused => 'Paused';
-
-  @override
-  String get tooltipDictationPause => 'Pause';
-
-  @override
-  String get tooltipDictationResume => 'Resume';
-
-  @override
-  String get tooltipDictationLanguage => 'Speech language';
-
-  @override
-  String get labelDictationDeviceDefault => 'Device language';
-
-  @override
-  String get labelDictationEditHint => 'Edit text';
-
-  @override
-  String get actionDictationInsert => 'Insert';
-
-  @override
-  String get emptyDictationSpeak =>
-      'Start speaking. Your words will appear here.';
-
-  @override
-  String get descDictationPrivacy =>
-      'Speech is recognised on this device. No audio is saved or sent.';
-
-  @override
-  String get errorDictationOfflineUnavailable =>
-      'Offline speech recognition is not available on this device. Dictation works only on the device, so it cannot be used here.';
-
-  @override
-  String get errorDictationLanguageUnavailable =>
-      'The offline speech model for this language is not installed. Install it in your phone\'s speech settings, or pick another language.';
-
-  @override
-  String get errorDictationFailed =>
-      'Speech recognition stopped unexpectedly. Try again.';
-
-  @override
-  String get helpDictationSanskritUnsupported =>
-      'Sanskrit speech cannot be recognised offline yet. Speak in English or Malayalam.';
+  String labelVoiceNoteFileName(String timestamp) {
+    return 'Voice note $timestamp';
+  }
 
   @override
   String get tooltipOcrPreviewText => 'Preview text';
@@ -5828,5 +5886,70 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpOcrPhoneCamera =>
-      '\"Take photo\" opens your phone\'s own camera app for the clearest photos. A few camera apps also keep their own copy in the gallery. Choose \"In-app camera\" if the photo must never leave this app.';
+      '\"Take photo\" opens your phone\'s own camera app for the clearest photos. A few camera apps also keep their own copy in the gallery. If the photo must never leave this app, turn on \"In-app camera\" in Settings under Security.';
+
+  @override
+  String get errorOcrPhotoBlurry =>
+      'Photo looks blurry. Retake it for better text.';
+
+  @override
+  String get errorOcrEnhanceFailed => 'Could not apply this change. Try again.';
+
+  @override
+  String get errorOcrPhotoUnreadable =>
+      'Could not open this photo. Try another one.';
+
+  @override
+  String get errorOcrTimedOut =>
+      'Reading the text took too long. Crop to just the text and try again.';
+
+  @override
+  String get helpOcrAutoEnglish =>
+      'With \"English + മലയാളം\" chosen, a page that is almost all English is read again with English alone, for better accuracy. Hold the phone still and use even light: a sharp photo without shadows reads best.';
+
+  @override
+  String get labelOcrEnhanceFilterScreen => 'Screen';
+
+  @override
+  String get labelOcrEnhanceEnlarge => 'Enlarge';
+
+  @override
+  String labelOcrEnhanceScale(int factor) {
+    return '$factor×';
+  }
+
+  @override
+  String get labelOcrEnhanceSharpen => 'Sharpen';
+
+  @override
+  String get descOcrEnhancePreviewZoom =>
+      'Photo preview. Pinch or double-tap to zoom in.';
+
+  @override
+  String get helpOcrEditTools =>
+      'Small or hard-to-read text? On the edit screen, open \"Adjust\": \"Enlarge\" (2× or 3×) gives small letters more pixels, and \"Sharpen\" makes blurry edges crisper. For a photo of a computer or phone screen, choose the \"Screen\" filter. Pinch or double-tap the photo to zoom in and check the letters, and use the text preview to compare before you insert.';
+
+  @override
+  String get tooltipEntryDeleteAttachment => 'Delete attachment';
+
+  @override
+  String get bodyEntryDeleteAttachment => 'Delete attachment?';
+
+  @override
+  String bodyEntryDeleteAttachmentBody(String fileName) {
+    return '\"$fileName\" will be removed from this entry and from this device. This cannot be undone.';
+  }
+
+  @override
+  String get errorEntryDeleteAttachment => 'Could not delete the attachment.';
+
+  @override
+  String get errorEntryDelete => 'Could not delete the entry.';
+
+  @override
+  String get errorJournalDelete =>
+      'Could not delete the journal. Nothing was removed.';
+
+  @override
+  String get bodyVoiceNoteDiscardConfirm => 'Stop and discard this recording?';
 }

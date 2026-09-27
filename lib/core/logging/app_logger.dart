@@ -34,7 +34,10 @@ class AppLogger {
     final verbose = AppFlavorConfig.instance.enableVerboseLogging;
 
     _logger = Logger(
-      // Prod ships info and above. trace/debug are compiled past at runtime.
+      // The package's default filter, DevelopmentFilter, drops every line in
+      // a release build. ProductionFilter honours [level] in every build.
+      filter: ProductionFilter(),
+      // Prod ships info and above. trace/debug are dropped at runtime.
       level: verbose ? Level.trace : Level.info,
       printer: PrettyPrinter(
         colors: verbose,
@@ -50,6 +53,11 @@ class AppLogger {
 
   /// Replaces the logger, for tests.
   static void debugOverrideLogger(Logger? logger) => _logger = logger;
+
+  /// The error as logged: only its type name, in every flavor. An error's
+  /// text can hold a file name or path, and those are private journal data,
+  /// which must not be logged even in debug builds.
+  static Object? _loggable(Object? error) => error?.runtimeType.toString();
 
   /// Masks a value that may contain user data, keeping only its length.
   /// Use when a diagnostic genuinely needs to distinguish empty from non-empty.
@@ -67,11 +75,11 @@ class AppLogger {
   static void info(String message) => _logger?.i(message);
 
   static void warning(String message, {Object? error}) =>
-      _logger?.w(message, error: error);
+      _logger?.w(message, error: _loggable(error));
 
   static void error(String message, {Object? error, StackTrace? stackTrace}) =>
-      _logger?.e(message, error: error, stackTrace: stackTrace);
+      _logger?.e(message, error: _loggable(error), stackTrace: stackTrace);
 
   static void fatal(String message, {Object? error, StackTrace? stackTrace}) =>
-      _logger?.f(message, error: error, stackTrace: stackTrace);
+      _logger?.f(message, error: _loggable(error), stackTrace: stackTrace);
 }

@@ -139,6 +139,7 @@ void main() {
       'labelInsightsDateRange',
       'labelInsightsMoodOutOfFive',
       'labelInsightsYearsAgo',
+      'labelOcrEnhanceScale',
       'descAutoLock',
       'descEntryStats',
       'labelEntryMood',

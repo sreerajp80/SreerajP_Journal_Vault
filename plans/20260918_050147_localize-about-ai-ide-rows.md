@@ -1,6 +1,7 @@
 # Localize the About screen `aiUsed` and `ideUsed` values
 
-**Status:** Awaiting approval
+**Status:** completed
+**Change log:** `change_log/20260918_050453_localize-about-ai-ide-rows.md`
 
 ## Issue
 

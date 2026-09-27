@@ -2,9 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_quill/quill_delta.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:image_picker/image_picker.dart';
@@ -12,22 +13,25 @@ import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
 import 'package:sreerajp_journal_vault/core/l10n/formatting_locale.dart';
 import 'package:sreerajp_journal_vault/core/l10n/locale_controller.dart';
-import 'package:sreerajp_journal_vault/core/links/vault_backlink_parser.dart';
 import 'package:sreerajp_journal_vault/core/logging/app_logger.dart';
 import 'package:sreerajp_journal_vault/core/theme/typography_controller.dart';
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/features/attachments/domain/attachment_open_models.dart';
 import 'package:sreerajp_journal_vault/features/attachments/presentation/attachment_viewer_screen.dart';
 import 'package:sreerajp_journal_vault/features/attachments/providers/attachment_providers.dart';
 import 'package:sreerajp_journal_vault/features/attachments/services/attachment_picker_service.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/editor/attachment_embed_finder.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/callout_embed.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/drawing/drawing_canvas_screen.dart';
-import 'package:sreerajp_journal_vault/features/entries/presentation/editor/dictation_sheet.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/drawing_embed.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/editor_markdown_shortcuts.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/editor_stats_bar.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/editor_toolbar.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/image_embed.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/inline_image_store.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/editor/rich_paste_config.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/editor/selection_menu_anchors.dart';
+import 'package:sreerajp_journal_vault/features/entries/presentation/editor/table_cell_editing.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/table_embed.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/editor/voice_note_recorder.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/entry_template_text.dart';
@@ -35,9 +39,11 @@ import 'package:sreerajp_journal_vault/features/entries/presentation/ocr_camera_
 import 'package:sreerajp_journal_vault/features/entries/presentation/ocr_enhance_screen.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/version_history_screen.dart';
 import 'package:sreerajp_journal_vault/features/entries/providers/entry_providers.dart';
+import 'package:sreerajp_journal_vault/features/entries/services/entry_deletion_service.dart';
+import 'package:sreerajp_journal_vault/features/entries/services/entry_plain_text.dart';
+import 'package:sreerajp_journal_vault/features/entries/services/markdown_to_delta.dart';
 import 'package:sreerajp_journal_vault/features/entries/providers/image_edit_providers.dart';
 import 'package:sreerajp_journal_vault/features/entries/providers/ocr_providers.dart';
-import 'package:sreerajp_journal_vault/features/entries/services/voice_note_service.dart';
 import 'package:sreerajp_journal_vault/features/entries/templates/entry_templates.dart';
 import 'package:sreerajp_journal_vault/features/entries/templates/template_token_engine.dart';
 import 'package:sreerajp_journal_vault/features/insights/providers/insights_providers.dart';
@@ -53,12 +59,24 @@ import 'package:sreerajp_journal_vault/features/permissions/domain/app_permissio
 import 'package:sreerajp_journal_vault/features/permissions/providers/permissions_providers.dart';
 import 'package:sreerajp_journal_vault/features/security/providers/security_providers.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
+import 'package:sreerajp_journal_vault/core/security/keyboard_privacy_scope.dart';
+import 'package:sreerajp_journal_vault/core/security/external_handoff_guard.dart';
+import 'package:sreerajp_journal_vault/features/entries/services/entry_editor_service.dart';
+import 'package:sreerajp_journal_vault/features/insights/services/insights_service.dart';
 
 part 'entry_editor_widgets.dart';
 part 'entry_editor_actions.dart';
 part 'entry_editor_actions_2.dart';
 part 'entry_editor_actions_3.dart';
 part 'entry_editor_layout.dart';
+
+/// What one save writes: the editor's title, text, search text and mood.
+typedef _EditorSnapshot = ({
+  String title,
+  String contentJson,
+  String plainText,
+  int? mood,
+});
 
 class EntryEditorScreen extends ConsumerStatefulWidget {
   const EntryEditorScreen({
@@ -101,7 +119,8 @@ class EntryEditorScreen extends ConsumerStatefulWidget {
   ConsumerState<EntryEditorScreen> createState() => _EntryEditorScreenState();
 }
 
-class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
+class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen>
+    with WidgetsBindingObserver {
   /// Lets the extensions in this library's part files rebuild the
   /// widget: `setState` is protected, so they cannot call it directly.
   void _rebuild(VoidCallback fn) => setState(fn);
@@ -131,10 +150,33 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
   /// Custom embed builders for tables, callouts and inline images.
   late final List<EmbedBuilder> _embedBuilders;
 
+  /// Points the formatting toolbar at a table cell while one is being edited.
+  final TableCellEditingController _cellEditing = TableCellEditingController();
+
   /// Bumped whenever an attachment is added, so the tray reloads. The tray
   /// reads the database once on mount; without this an image inserted into the
   /// body would not appear in the list below until the screen was reopened.
   int _attachmentRefreshToken = 0;
+
+  /// Attachments of drawings that were replaced by an edited copy while this
+  /// screen was open. They stay until the screen closes, so Undo can still
+  /// show them; then those the saved entry no longer shows are deleted.
+  final Set<int> _supersededDrawingIds = <int>{};
+
+  /// Read in [initState]: `ref` may not be used in [dispose].
+  late final EntryDeletionService _deletionService;
+
+  /// Read in [initState], so a save still running when the screen closes, and
+  /// the save made by [dispose], never touch `ref`.
+  late final EntryEditorService _editorService;
+
+  /// Read in [initState]; see [_editorService].
+  late final InsightsService _insightsService;
+
+  /// Counts changes. A save remembers the count it saved, and clears the
+  /// dirty flag only if nothing changed while it ran, so a change typed during
+  /// a save is never marked as saved.
+  int _editGeneration = 0;
 
   /// Subscribes to document delta events. We don't use
   /// [QuillController.addListener] for the dirty flag because that fires on
@@ -188,12 +230,23 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
   @override
   void initState() {
     super.initState();
-    _quillController = QuillController.basic();
+    _quillController = QuillController.basic(
+      // Paste keeps the formatting, links and tables of copied rich text.
+      config: RichPaste.controllerConfig(() => _quillController),
+    );
     _titleController = TextEditingController();
     _imageStore = buildInlineImageStore(ref);
+    _deletionService = ref.read(entryDeletionServiceProvider);
+    _editorService = ref.read(entryEditorServiceProvider);
+    _insightsService = ref.read(insightsServiceProvider);
+    WidgetsBinding.instance.addObserver(this);
     _editorFocusNode.addListener(_handleEditorFocusChange);
     _embedBuilders = [
-      TableEmbedBuilder(),
+      TableEmbedBuilder(
+        cellEditing: _cellEditing,
+        cellControllerConfig: (cell) =>
+            RichPaste.controllerConfig(cell, inlineOnly: true),
+      ),
       CalloutEmbedBuilder(),
       VaultImageEmbedBuilder(store: _imageStore),
       DrawingEmbedBuilder(store: _imageStore, onEditDrawing: _editDrawing),
@@ -206,20 +259,70 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // The 2.5-second timer does not run while the app is in the background,
+    // and Android may end the app there. Save what is on screen now.
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      if (_isDirty && _entryId != null) {
+        _autoSaveTimer?.cancel();
+        _saveContent(isAutoSave: true);
+      }
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _autoSaveTimer?.cancel();
+    // Unsaved edits are saved now, from a snapshot taken before the
+    // controllers go away. The save runs on after the screen is gone.
+    final pendingSave = _isDirty && _entryId != null
+        ? _saveSnapshot(_entryId!, _snapshot())
+        : Future<void>.value();
     if (_trackingChanges) {
       _titleController.removeListener(_handleTitleChange);
     }
     _docChangeSub?.cancel();
     // Deletes the decrypted copies of every inline image this screen showed.
     unawaited(_imageStore.dispose());
+    unawaited(
+      _finishAfterClose(
+        pendingSave,
+        _deletionService,
+        _entryId,
+        Set<int>.of(_supersededDrawingIds),
+      ),
+    );
     _quillController.dispose();
     _titleController.dispose();
     _editorFocusNode.removeListener(_handleEditorFocusChange);
     _editorFocusNode.dispose();
     _editorScrollController.dispose();
+    _cellEditing.dispose();
     super.dispose();
+  }
+
+  /// Runs after the screen has closed: waits for the save on close, then
+  /// removes replaced drawings, so the clean-up reads the text just saved.
+  /// Takes everything it needs as arguments; the state is gone by then.
+  static Future<void> _finishAfterClose(
+    Future<void> pendingSave,
+    EntryDeletionService deletionService,
+    int? entryId,
+    Set<int> supersededDrawingIds,
+  ) async {
+    try {
+      await pendingSave;
+    } catch (e) {
+      AppLogger.error('EntryEditor: save on close failed', error: e);
+    }
+    if (entryId != null && supersededDrawingIds.isNotEmpty) {
+      await deletionService.deleteUnreferencedAttachments(
+        entryId,
+        supersededDrawingIds,
+      );
+    }
   }
 
   Future<({int rows, int cols})?> _showTableSizeDialog() async {
@@ -242,6 +345,8 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
+                enableIMEPersonalizedLearning:
+                    KeyboardPrivacyScope.allowLearning(context),
                 decoration: InputDecoration(
                   labelText: l10n.labelEntryTableRows,
                   helperText: l10n.labelEntryTableDimensionHelp,
@@ -251,6 +356,8 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
                 onChanged: (v) => rows = parseDim(v),
               ),
               TextField(
+                enableIMEPersonalizedLearning:
+                    KeyboardPrivacyScope.allowLearning(context),
                 decoration: InputDecoration(
                   labelText: l10n.labelEntryTableColumns,
                   helperText: l10n.labelEntryTableDimensionHelp,
@@ -306,10 +413,16 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
         focusNode: _editorFocusNode,
         scrollController: _editorScrollController,
         config: QuillEditorConfig(
+          enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+            context,
+          ),
           // enableAlwaysIndentOnTab is left at its default of false on
           // purpose: a hardware Tab must type a real tab character rather than
           // re-indent the block, matching the toolbar's Tab button.
           embedBuilders: _embedBuilders,
+          // A tap on a table belongs to the table's cells, not the entry.
+          onTapDown: _cellEditing.entryTapHooks.onTapDown,
+          onTapUp: _cellEditing.entryTapHooks.onTapUp,
           customStyles: customStyles,
           placeholder: AppLocalizations.of(context).descEditorPlaceholder,
           contextMenuBuilder: _buildSelectionContextMenu,
@@ -361,6 +474,9 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
             child: TextField(
               key: const Key('entry-title-field'),
+              enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+                context,
+              ),
               controller: _titleController,
               decoration: InputDecoration(
                 labelText: l10n.labelEntryTitle,
@@ -375,6 +491,7 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
           EditorToolbar(
             key: _toolbarKey,
             controller: _quillController,
+            cellEditing: _cellEditing,
             onInsertTab: _insertTab,
             onInsertTable: _insertTable,
             onInsertCallout: _insertCallout,
@@ -383,13 +500,6 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
             onInsertImage: _entryId == null ? null : _insertImage,
             onInsertDrawing: _entryId == null ? null : _insertDrawing,
             onScanText: _scanTextFromPhoto,
-            onDictate: _dictate,
-            onToggleFocusParagraph: () =>
-                setState(() => _isFocusParagraph = !_isFocusParagraph),
-            isFocusParagraph: _isFocusParagraph,
-            onToggleDistractionFree: () =>
-                setState(() => _isDistractionFree = !_isDistractionFree),
-            isDistractionFree: _isDistractionFree,
           ),
           // Editor body
           Expanded(child: editorContent),
@@ -414,7 +524,9 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
             if (_entryId != null)
               SmartTagChipBar(
                 entryId: _entryId!,
-                plainText: _quillController.document.toPlainText(),
+                plainText: entryPlainText(
+                  _quillController.document.toDelta().toJson(),
+                ),
               ),
             // Linked-from panel: inbound references to this entry.
             if (_entryId != null) _LinkedFromPanel(entryId: _entryId!),
@@ -423,6 +535,7 @@ class _EntryEditorScreenState extends ConsumerState<EntryEditorScreen> {
               _AttachmentTray(
                 entryId: _entryId!,
                 refreshToken: _attachmentRefreshToken,
+                onAttachmentDeleted: _removeAttachmentEmbeds,
               ),
           ],
           // Bottom action bar. The mood picker lives behind its button rather

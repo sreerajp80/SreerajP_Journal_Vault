@@ -118,6 +118,7 @@ flutter gen-l10n                       # regenerate AppLocalizations after editi
 dart run build_runner build --delete-conflicting-outputs   # after changing Drift tables
 dart format lib test integration_test  # format before committing
 sh tool/check_sanskrit_markers.sh      # Sanskrit must contain no Hindi markers
+sh tool/check_keyboard_incognito.sh    # every text box follows the Keyboard privacy switch
 
 # Production release APK, split per ABI (sideload distribution)
 flutter build apk --flavor prod --release \
@@ -248,6 +249,10 @@ and defaults to `prod`. Never use `kDebugMode` or `kReleaseMode` as a stand-in f
   network-status packages, and anything source-available rather than open source.
 - Before adding a package, check its own `pubspec.yaml` for networking dependencies, say why it
   is needed, and confirm it fits the hard rules above.
+- `flutter_quill` is a patched local copy in `third_party/flutter_quill/` (it adds an
+  `enableIMEPersonalizedLearning` option). Every new `TextField`, `TextFormField` and
+  `QuillEditorConfig` passes `enableIMEPersonalizedLearning:
+  KeyboardPrivacyScope.allowLearning(context)`. See `docs/dependencies.md` section 5.
 - Some versions are pinned on purpose (the `win32` / `file_picker` conflict). Read
   [`docs/dependencies.md`](docs/dependencies.md) before changing any version.
 

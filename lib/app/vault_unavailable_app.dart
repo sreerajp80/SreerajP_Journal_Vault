@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:sreerajp_journal_vault/core/database/database_open_failure.dart';
 import 'package:sreerajp_journal_vault/core/l10n/app_locales.dart';
 import 'package:sreerajp_journal_vault/core/theme/script_fonts.dart';
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 /// Shown instead of the app when the encrypted vault cannot be opened.
@@ -63,7 +64,7 @@ class VaultUnavailableScreen extends StatelessWidget {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(24).withSafeBottom(context),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,

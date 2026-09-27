@@ -270,6 +270,10 @@ class TimeCapsuleService {
       _db.timeCapsulesDao.watchCapsuleForEntry(entryId);
 
   /// Gets all time capsules.
+  /// The entry a capsule seals. Throws when it does not exist.
+  Future<Entry> getCapsuleEntry(int entryId) =>
+      _db.entriesDao.getEntryById(entryId);
+
   Future<List<TimeCapsule>> getAllCapsules() =>
       _db.timeCapsulesDao.getAllCapsules();
 

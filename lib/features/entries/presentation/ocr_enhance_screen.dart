@@ -9,17 +9,34 @@ import 'package:sreerajp_journal_vault/core/logging/app_logger.dart';
 import 'package:sreerajp_journal_vault/features/entries/providers/image_edit_providers.dart';
 import 'package:sreerajp_journal_vault/features/entries/providers/ocr_providers.dart';
 import 'package:sreerajp_journal_vault/features/entries/services/image_edit_service.dart';
+import 'package:sreerajp_journal_vault/features/entries/services/ocr_blur_detector.dart';
 import 'package:sreerajp_journal_vault/features/entries/services/ocr_capture_downscaler.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/ocr_text_preview_sheet.dart';
 import 'package:sreerajp_journal_vault/features/entries/services/ocr_enhancer.dart';
 import 'package:sreerajp_journal_vault/features/entries/services/ocr_language_store.dart';
 import 'package:sreerajp_journal_vault/features/entries/services/ocr_service.dart';
+import 'package:sreerajp_journal_vault/features/entries/services/ocr_temp_file_sweeper.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 part 'ocr_enhance_tools.dart';
 part 'ocr_enhance_tools_2.dart';
 
 enum _EnhanceToolTab { none, filters, adjust }
+
+/// Largest pinch-zoom on the preview.
+const double _kPreviewMaxZoom = 8.0;
+
+/// Zoom level a double-tap jumps to.
+const double _kDoubleTapZoom = 2.5;
+
+/// Width the photo is decoded at for display before the working copy is ready.
+/// Showing a 50 MP capture at full size would cost hundreds of megabytes.
+const int _kInitialPreviewDecodeWidth = 2048;
+
+/// Source of recognition request ids for every enhance screen in this run of
+/// the app. Ids are never reused, so a late cancel meant for a closed screen can
+/// never drop a request from the next one.
+int _lastOcrRequestId = 0;
 
 /// Interactive screen for rotating, cropping, filtering, and adjusting brightness/contrast
 /// of document photos before their text is read.
@@ -36,6 +53,8 @@ class OcrEnhanceScreen extends ConsumerStatefulWidget {
     this.imageEditService,
     this.captureDownscaler,
     this.languageStore,
+    this.blurDetector,
+    this.tempFileSweeper,
   });
 
   /// Path to the captured or imported document photo.
@@ -56,6 +75,12 @@ class OcrEnhanceScreen extends ConsumerStatefulWidget {
   /// Optional injected OCR language store (used for testing).
   final OcrLanguageStore? languageStore;
 
+  /// Optional injected blur detector (used for testing).
+  final OcrBlurDetector? blurDetector;
+
+  /// Optional injected temp file sweeper (used for testing).
+  final OcrTempFileSweeper? tempFileSweeper;
+
   @override
   ConsumerState<OcrEnhanceScreen> createState() => _OcrEnhanceScreenState();
 }
@@ -74,6 +99,18 @@ class _OcrEnhanceScreenState extends ConsumerState<OcrEnhanceScreen> {
   int _contrast = 0;
   OcrEnhanceFilter _selectedFilter = OcrEnhanceFilter.original;
   bool _invert = false;
+
+  /// Scale-up factor for small text: 1, 2 or 3.
+  int _enlargeFactor = 1;
+
+  /// Unsharp-mask strength, 0 (off) to 100.
+  int _sharpen = 0;
+
+  /// Pan and zoom of the preview, so a double-tap can zoom in and back out.
+  final TransformationController _zoomController = TransformationController();
+
+  /// Where the last double-tap landed, so zooming centres on that spot.
+  Offset? _doubleTapPosition;
   String _selectedLanguage = OcrLanguageStore.defaultLanguage;
 
   /// True once the user has picked a language on this screen, so a slow read
@@ -102,8 +139,12 @@ class _OcrEnhanceScreenState extends ConsumerState<OcrEnhanceScreen> {
   Timer? _debounceTimer;
   final List<String> _tempFilesToDelete = [];
 
-  /// Labels each recognition run. Only the newest one is kept; older ones are
-  /// cancelled so they do not hold the single recognition queue.
+  /// Folder this screen writes its working files into. Set before the first
+  /// enhancement runs.
+  Directory _tempDir = Directory.systemTemp;
+
+  /// Labels the newest recognition run, taken from [_lastOcrRequestId]. Older
+  /// runs are cancelled so they do not hold the single recognition queue.
   int _ocrRequestCounter = 0;
   final Set<int> _pendingOcrRequests = <int>{};
 
@@ -125,6 +166,7 @@ class _OcrEnhanceScreenState extends ConsumerState<OcrEnhanceScreen> {
     // screen is instant even when many preview files were made.
     unawaited(_deleteTempFiles(List<String>.of(_tempFilesToDelete)));
     _tempFilesToDelete.clear();
+    _zoomController.dispose();
     super.dispose();
   }
 
@@ -148,6 +190,7 @@ class _OcrEnhanceScreenState extends ConsumerState<OcrEnhanceScreen> {
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
         ),
         actions: [
+          _buildAppBarLanguageSelector(l10n),
           IconButton(
             key: const Key('ocr-text-preview-btn'),
             icon: const Icon(Icons.text_snippet_outlined),

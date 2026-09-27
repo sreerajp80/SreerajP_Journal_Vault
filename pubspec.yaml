@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 2.0.0+25
+version: 2.1.9+35
 
 environment:
   sdk: ^3.12.2
@@ -53,6 +53,14 @@ dependencies:
   # with no error at all. See docs/dependencies.md.
   sqlite3: ^3.5.0
   flutter_quill: ^11.5.0
+  # The next two already come in through flutter_quill; they are listed so
+  # our own code may import them. Neither adds network code.
+  # - html: parses pasted HTML so it can become rich text
+  #   (lib/features/entries/services/html_to_delta.dart).
+  # - url_launcher: opens a link tapped in a read-only table cell, the same
+  #   way the editor opens links in the entry body.
+  html: ^0.15.6
+  url_launcher: ^6.3.2
   file_picker: ^11.0.2
   cryptography: ^2.7.0
   crypto: ^3.0.6
@@ -71,7 +79,6 @@ dependencies:
   device_info_plus: ^12.1.0
   table_calendar: ^3.2.0
   record: ^7.1.1
-  speech_to_text: ^7.0.0
   uuid: ^4.5.1
   local_auth: ^3.0.2
   local_auth_android: ^2.0.9
@@ -104,6 +111,15 @@ dev_dependencies:
   local_auth_platform_interface: ^1.1.0
   drift_dev: ^2.29.0
   flutter_launcher_icons: ^0.14.4
+
+# A patched copy of flutter_quill 11.5.1, the rich-text editor. One line is
+# changed: the editor asks the keyboard not to learn from what is typed
+# (enableIMEPersonalizedLearning: false). Upstream has no option for it.
+# Upgrading flutter_quill means repeating the patch in a new copy, or dropping
+# the copy once upstream offers the option. See docs/dependencies.md.
+dependency_overrides:
+  flutter_quill:
+    path: third_party/flutter_quill
 
 flutter_launcher_icons:
   android: "ic_launcher"

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:sreerajp_journal_vault/core/l10n/locale_controller.dart';
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 /// Settings → Appearance → Language (engineering standard §8.4).
@@ -26,7 +27,9 @@ class LanguageSettingsScreen extends ConsumerWidget {
           ref.read(localeControllerProvider.notifier).setLanguage(language);
         },
         child: ListView(
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(
+            vertical: 8,
+          ).withSafeBottom(context),
           children: [
             for (final language in AppLanguage.values)
               RadioListTile<AppLanguage>(

@@ -160,6 +160,16 @@ TODO — the full state-by-state table is not yet documented. Note that the engi
 (section 12.4 table) requires that under `Sensitive Data Extension`, `paused` MUST flush unsaved
 data and trigger the app lock.
 
+What is in place since 2026-09-27:
+
+- **`paused` / `hidden` flush unsaved text.** The entry editor observes the lifecycle and saves
+  a dirty entry at once, without waiting for its 2.5-second autosave.
+- **Closing the editor saves.** Its `dispose` saves unsaved text from a snapshot, using services
+  read in `initState`, so the save finishes after the screen is gone.
+- **Locking closes every open screen.** `JournalVaultApp` owns the one navigator
+  (`navigatorKey`) and, when `appLockProvider` turns locked, pops every route above the home
+  route. Swapping `MaterialApp.home` alone would leave pushed screens on top of the lock gate.
+
 ---
 
 ## 7. Offline Behavior
@@ -206,6 +216,9 @@ with key material fetched over a `MethodChannel` to the Android Keystore.
 ### Rules
 
 - Widgets must not know: SQL, crypto primitives, file paths, method channels
+- Widgets never call a DAO or read `appDatabaseProvider`; they use a service exposed by a
+  provider. The only exception is the start-up override in `lib/app/app.dart`.
+  `test/architecture/no_dao_in_presentation_test.dart` enforces this (since 2026-09-27).
 - Services must not know: navigation, user-facing copy
 - Repositories abstract: TODO — this app uses DAOs directly rather than a repository layer.
   Record whether that is a deliberate choice.
@@ -302,10 +315,48 @@ TODO — not yet audited. FTS5 covers entry title and plain text; other query pa
 
 - Attachment key manager: vends Keystore-backed AES keys for attachment encryption
 - Journal secret store: persists Keystore-wrapped journal secrets
-- On-device speech check: `sreerajp.journal_vault/speech` (`onDeviceSpeechStatus`) reports whether
-  `SpeechRecognizer` can work offline and which languages it has. `PluginSpeechEngine`
-  (`lib/features/entries/services/speech_engine.dart`) reads it; `DictationService` will not
-  start without it. The recogniser itself is the `speech_to_text` plugin in on-device mode
+- On-device OCR: `sreerajp.journal_vault/ocr` (`extractText`, `cancelOcr`) runs Tesseract 5.5.1
+  from `tesseract4android` in `MainActivity.kt`. Each scan adds a white border, and a dark photo
+  is also read inverted. Two candidates are read, each with three page segmentation modes:
+  first the untouched photo with Tesseract's default Otsu thresholding, then — only if that was
+  not already confident — a Leptonica-cleaned copy (grayscale, background normalisation for
+  shadows on light photos only, deskew up to 7°) with Sauvola adaptive thresholding. The page
+  modes are tried full page, single block, then sparse text; a confident reading may skip the
+  rest only after the first two have run (`canStopEarly` in `OcrPassRules.kt`), because the
+  full-page mode can drop a column of short keys such as a cheat sheet's `q` or `-N`. Readings
+  are scored by the sum of (word confidence − 45), so noise lowers a score; lines with low
+  average confidence and no confident word are dropped as noise. With `eng+mal`, a page that is
+  under 10% Malayalam is read again with a separate cached English-only recognizer.
+  `NativeOcrService` (`lib/features/entries/services/ocr_service.dart`)
+  calls it. Before any reading, `NativeOcrBlurDetector` (`ocr_blur_detector.dart`) scores the
+  photo's sharpness in Dart, and the scan screen suggests a retake if it looks blurry.
+  The edit screen before reading (`OcrEnhanceScreen`, image work in `OcrEnhancer`) offers
+  crop, rotate, invert, filters (Original, Document, Grayscale, High Contrast, Screen),
+  brightness, contrast, sharpen (unsharp mask) and enlarge (1×/2×/3×). The Screen filter is
+  for photos of a monitor or phone: it inverts a dark screen, divides out uneven light
+  estimated from a heavily blurred small copy, softens the pixel grid and stretches the
+  levels. The output's long edge is capped at 4000 px (the same as the working copy made from
+  the camera photo), or 4500 px when enlarged; an image over 25 MP is refused before decoding
+  instead of running out of memory. Crop works on the unfiltered image with only the rotation
+  applied, so filters and sliders run once, on the cropped result. A failed change or an
+  unreadable photo is shown to the user. The preview
+  is up to 2400 px so pinch-zoom (up to 8×, double-tap 2.5×) shows real letter detail.
+  Robustness limits: the native side decodes with a sample size so no image passes 4500 px on
+  the long edge, applies EXIF rotation, and catches every `Throwable` (including out-of-memory)
+  so a read always answers (`OcrImageLoading.kt`). Dart waits at most 3 minutes
+  (`kOcrRecognitionTimeout`), then cancels the job and tells the user. Recognition request ids
+  are unique for the whole app run, so a late cancel never drops a newer read. Language models
+  are copied to a `.part` file and renamed only when complete. The Tesseract engines are freed
+  on the OCR thread when the activity is destroyed
+- OCR photos and privacy: the in-app camera asks CameraX for its highest resolution (then 4K,
+  then 1080p as fallbacks) and writes into the app's private cache, never the gallery. The
+  "Take photo" default is the phone's own camera app, which takes the better photo but on some
+  phones also keeps its own gallery copy; the in-app camera switch in Settings avoids that.
+  Every scan photo and working file is a plain (unencrypted) cache file, so
+  `OcrTempFileSweeper` (`ocr_temp_file_sweeper.dart`) deletes the capture and the picker's copy
+  as soon as the enhance screen closes, and each new scan — and each app start — sweeps scan
+  files and the gallery picker's `<uuid>/` folders older than 60 seconds left by an earlier scan
+  that was cut short. It only ever deletes inside the cache and never logs a path
 - `local_auth`: device credential and biometric prompts
 
 ---
@@ -422,6 +473,9 @@ TODO — not yet audited. FTS5 covers entry title and plain text; other query pa
 | Database encryption | SQLCipher, Keystore raw key | Closes the last plaintext store of journal text; no password to forget | Slower reads, FTS5 most of all; losing the Keystore key loses the vault |
 | Attachment storage | Encrypted files outside the DB | Keeps the database small; allows SD-card migration | Two things to keep consistent — DB rows and files on disk |
 | Secure storage | Native Keystore method channel | Avoids a plugin dependency; direct Keystore control | Custom native code to maintain and test |
+| Table cells (2026-09-25) | Rich cells: format v2 `{"v":2,"rows":…,"cells":…,"colWidths":…}` in the table embed, read and written only through `TableData` (`lib/features/entries/domain/table_data.dart`). `cells` holds each cell as Quill text ops with inline formatting only; `rows` repeats them as plain text. A table with no formatting is still written in the older list / envelope format | Formatting and links inside tables, from typing and from paste; no schema change (the table lives in the entry's content JSON) | An older app version (a second device on Wi-Fi Sync) shows the words but, if it edits the table, saves it as plain text and the cell formatting is lost |
+| Table cell editing (2026-09-25) | One live `QuillEditor` for the tapped cell only; other cells drawn as formatted text. The toolbar is pointed at that cell through `TableCellEditingController`. The entry editor ignores taps that start inside a table (`isTableTap`) | Large pasted tables stay fast; the same toolbar formats cells and body | flutter_quill writes a table back with `ignoreFocus`, which does not rebuild the embed, so the builder re-finds its node after each write-back (`_embedAt`) |
+| Rich paste (2026-09-25) | Our own HTML walker (`html_to_delta.dart`) over the `html` parser, hooked in through `QuillClipboardConfig.onClipboardPaste` | flutter_quill's bundled HTML converter merged paragraphs, lost inline code and flattened tables; a walker we own is small and fully tested | Our code to maintain; unusual HTML may paste less faithfully than in a browser |
 
 ---
 
@@ -449,6 +503,88 @@ when the profile was declared; worked through the same day.
 | `security.md` blank | Filled — see [`security.md`](security.md). |
 | `release_process.md` blank | Filled — see [`release_process.md`](release_process.md). |
 | **Resolved as compliant:** secrets in SharedPreferences | Read `MainActivity.kt`: `wrapPayload()` AES-GCM-encrypts under a Keystore-resident key with `setRandomizedEncryptionRequired(true)`. Only `iv:ciphertext` is stored. Satisfies §15.2 — no change needed. |
+
+### Closed on 2026-09-19 — voice notes, deleting, stale files
+
+See `plans/20260919_094126_voice-dictation-and-stale-files.md` and
+[`security.md`](security.md), "Temporary files".
+
+| Gap | How it was closed |
+|---|---|
+| Voice notes went to `voice_notes`, which no screen reads — they could not be played or deleted | Saved as normal attachments (`audio/mp4`) by `VoiceNoteSaver`. Old rows are moved once on start by `LegacyVoiceNoteMover` (same file, nonce and key). The table stays for backup compatibility |
+| No way to delete an attachment | Delete button in the entry's attachment tray; a picture of it in the text is removed too |
+| Deleting an entry that had an attachment failed: `attachments.entry_id` has no `ON DELETE CASCADE` and foreign keys are on. A journal delete could stop half way | `EntryDeletionService` deletes attachment rows first, all in one transaction, then the files. No schema change |
+| Deleted entries left their encrypted files on the device | Files are deleted after the rows; older leftovers are removed by the startup orphan sweep |
+| `AttachmentTempFileManager.start()` and its background hook were never called | Called from `runStartupMaintenance` before the first screen |
+| `file_picker` kept a plain copy of every picked file | Cleared straight after each pick; swept on start |
+
+~~**Still open:** Wi-Fi Sync reads an attachment's file path from the wrong column, so the file
+is never sent.~~ Closed 2026-09-27; see "Closed on 2026-09-27 — Wi-Fi Sync IDs and attachment
+files" below.
+
+### Closed on 2026-09-24 — keyboard privacy
+
+| Gap | How it was closed |
+|---|---|
+| Keyboard learns journal text | Since 2026-09-24 every text box and the editor ask the keyboard not to learn while "Keyboard privacy" is on (the default). `KeyboardPrivacyScope` in `MaterialApp.builder` carries the choice; `keyboardPrivacyProvider` (`lib/core/security/keyboard_privacy_controller.dart`) holds it. |
+
+### Closed on 2026-09-27 — review items 5–8
+
+See `plans/20260927_121959_review-items-5-to-8.md`.
+
+| Gap | How it was closed |
+|---|---|
+| 20 widget files read and wrote the database directly | Moved behind services: `JournalService`, `EntryEditorService`, `TagService`, `UserTemplateService`, `SearchService`, `IncomingEntryService`, `AttachmentStorageOverviewService`, plus small additions to `AttachmentLockService`, `TimeCapsuleService`, `SecurityEventService` use and a `syncEngineBuilderProvider`. Behaviour unchanged. A guard test keeps it this way |
+| Re-editing a drawing deleted the old picture at once, so Undo showed a placeholder | The old drawing is kept while the editor is open and removed on close by `EntryDeletionService.deleteUnreferencedAttachments`, only if the saved entry no longer shows it. A revision from before the re-edit still shows a placeholder after that (accepted) |
+| Wi-Fi Sync put remote table and column names into SQL unchecked | `SyncSchemaGuard` allows only `SyncEngine.syncableTables` and real columns of this app's schema; other records are skipped |
+| Error text reached logs through `$e` in messages, and in full in dev builds | Errors are passed as `error:` and logged by type only, in every flavor. `test/core/logging/no_raw_error_in_log_message_test.dart` enforces it |
+
+### Closed on 2026-09-27 — lost typing, and screens over the lock gate
+
+See `plans/20260927_125327_lost-typing-and-lock-over-screens.md`.
+
+| Gap | How it was closed |
+|---|---|
+| Text typed in the last 2.5 seconds was lost on Back, or when Android ended the app in the background | The editor saves on `dispose` and on `paused`/`hidden`. A save clears the dirty flag only if nothing changed while it ran |
+| Locking swapped only the bottom screen, so an open entry, journal or dialog stayed usable on top of the lock gate | Locking pops every pushed route (`navigatorKey.popUntil`); the editor saves as it closes. Tests in `test/journal_flow_test.dart` ("locking closes open screens") |
+
+### Closed on 2026-09-27 — Wi-Fi Sync IDs and attachment files
+
+See `plans/20260927_131308_wifi-sync-id-mapping-and-attachments.md`.
+
+| Gap | How it was closed |
+|---|---|
+| Synced rows kept the other phone's row IDs in `journal_id`, `entry_id`, `tag_id`, `source_entry_id`, `target_id`, and inside entry text (picture embeds, `[[entry:N]]` links), so entries could land in the wrong journal | The sender sends sync IDs (`{"$ref": ...}`) instead of row IDs (`sync_references.dart`); the receiver resolves them to its own IDs (`SyncReferenceResolver`), applies records parents first in one transaction, skips a record whose parent is missing, rewrites IDs in text afterwards, and maps a tag to a local tag of the same name |
+| Attachment files were never sent (wrong column name), and an update could overwrite a good local file's path and key | The file's bytes are sent (up to 100 MB per sync; the rest waits for a later sync) and stored under the receiver's key. Device file columns are never sent, and an update without a file never changes the local file |
+
+~~**Still open:** edits and deletes are never sent.~~ Closed 2026-09-27; see "Closed on
+2026-09-27 — sync edits and deletes" below. Sync stays one way (host → client) by decision.
+
+### Closed on 2026-09-27 — screenshot setting and AirQR
+
+See `plans/20260927_133428_airqr-screenshot-setting.md`.
+
+| Gap | How it was closed |
+|---|---|
+| Applying AirQR settings copied the sending phone's "Block Screenshots" value, so it could silently turn blocking off | The value is no longer sent, and a received one is ignored. Only the Settings switch changes it |
+| The AirQR send and Wi-Fi Sync host screens saved "blocking on" over the user's choice, for good | They hold protection on for the live window only while open (`holdOn` / `releaseHold`, channel method `applyScreenSecurity`), and the saved choice is untouched |
+
+### Closed on 2026-09-27 — sync edits and deletes
+
+See `plans/20260927_190211_sync-edits-deletes-one-way.md`. Decided with the user: one way (only
+the host sends), a delete on the host deletes on the client, an item changed on both phones goes
+to the conflict screen, and everything that syncs also syncs edits and deletes.
+
+| Gap | How it was closed |
+|---|---|
+| Nothing marked an edit or a delete | Schema 12: `sync_{table}_au` / `_ad` triggers on every synced table set `last_synced_at = NULL` (pending), bump `version`, and on delete set `is_deleted` (a tombstone). Attachment and voice-note triggers ignore file-path-only changes (storage moves) |
+| The client marked its own changes as synced while "pushing" to a host that ignores them | `SyncRole`: the host only sends, the client only receives. The client marks only what it applied; its own pending changes stay pending |
+| The host marked records as synced before the client applied them | The client sends an encrypted acknowledgement after its transaction commits; the host marks only the records it sent, and only while their version is unchanged |
+| "Keep remote" could never work (other-phone data sealed with the expired pairing code) | Conflicts store both sides as decoded JSON inside SQLCipher; deleted sides, attachment files, and missing parents are handled (`SyncRecordApplier`, shared by sync and conflict resolution) |
+| Apply decisions relied on version numbers alone | A received record is applied unless it is pending here; then it is a conflict |
+
+Limits, on purpose: one way; one "sent" mark per item (two phones); a replace-mode restore
+spreads to the client (the restore confirmation says so).
 
 ### Still open — release-blocking
 

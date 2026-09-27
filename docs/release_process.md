@@ -123,7 +123,7 @@ Enabled. Rules in `android/app/proguard-rules.pro`.
 > - [ ] Open a PDF attachment (`pdfrx`)
 > - [ ] Play an audio attachment (`just_audio`)
 > - [ ] Record a voice note (`record`)
-> - [ ] Speech-to-text transcription (`speech_to_text`)
+> - [ ] Keyboard privacy: with it on, a made-up word typed in an entry is not suggested in another app
 > - [ ] Biometric and device-credential unlock (`local_auth`)
 > - [ ] Pick a file to attach (`file_picker`)
 > - [ ] Grant and deny a permission (`permission_handler`)

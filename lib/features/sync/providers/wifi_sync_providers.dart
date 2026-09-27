@@ -11,6 +11,7 @@ import 'package:sreerajp_journal_vault/features/sync/services/sync_engine.dart';
 import 'package:sreerajp_journal_vault/features/sync/services/wifi_sync_crypto.dart';
 import 'package:sreerajp_journal_vault/features/sync/services/wifi_sync_protocol.dart';
 import 'package:sreerajp_journal_vault/features/sync/services/wifi_sync_transport.dart';
+import 'package:sreerajp_journal_vault/features/sync/services/sync_protocol.dart';
 
 const String _prefDeviceIdKey = 'vault_sync_device_id';
 
@@ -24,6 +25,23 @@ final syncDeviceIdProvider = FutureProvider<String>((ref) async {
   }
   return id;
 });
+
+/// Builds a [SyncEngine] over a connected [SyncProtocol], with this phone's
+/// database, sync encryption, device ID and attachment cipher. Used by both
+/// the host screen and the client, so neither has to know the database.
+final syncEngineBuilderProvider =
+    Provider<Future<SyncEngine> Function(SyncProtocol protocol, SyncRole role)>(
+      (ref) {
+        return (protocol, role) async => SyncEngine(
+          db: ref.read(appDatabaseProvider),
+          protocol: protocol,
+          role: role,
+          encryption: ref.read(syncEncryptionServiceProvider),
+          deviceId: await ref.read(syncDeviceIdProvider.future),
+          attachmentCipher: ref.read(backupAttachmentCipherProvider),
+        );
+      },
+    );
 
 /// List of local non-loopback IPv4 addresses.
 final localIpv4ListProvider = FutureProvider<List<String>>((ref) async {
@@ -166,18 +184,9 @@ class WifiSyncClientNotifier extends Notifier<ClientSyncState> {
 
       state = state.copyWith(step: ClientSyncStep.syncing);
 
-      final protocol = WifiSyncProtocol.forClient(client);
-      final db = ref.read(appDatabaseProvider);
-      final encryption = ref.read(syncEncryptionServiceProvider);
-      final deviceId = await ref.read(syncDeviceIdProvider.future);
-      final cipher = ref.read(backupAttachmentCipherProvider);
-
-      final engine = SyncEngine(
-        db: db,
-        protocol: protocol,
-        encryption: encryption,
-        deviceId: deviceId,
-        attachmentCipher: cipher,
+      final engine = await ref.read(syncEngineBuilderProvider)(
+        WifiSyncProtocol.forClient(client),
+        SyncRole.receiver,
       );
 
       // Perform sync using the derived session pairing code

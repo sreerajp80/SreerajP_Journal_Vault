@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import 'package:sreerajp_journal_vault/core/l10n/formatting_locale.dart';
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/features/airqr/presentation/airqr_landing_screen.dart';
 import 'package:sreerajp_journal_vault/features/sync/presentation/conflict_resolution_screen.dart';
 import 'package:sreerajp_journal_vault/features/sync/presentation/sync_client_screen.dart';
@@ -27,7 +28,10 @@ class SyncLandingScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.titleSyncLanding)),
       body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ).withSafeBottom(context),
         children: [
           // Header card
           Card(

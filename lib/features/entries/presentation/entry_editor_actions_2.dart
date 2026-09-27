@@ -81,9 +81,8 @@ extension _EntryEditorScreenStatePart2 on _EntryEditorScreenState {
     }
 
     final journal = await ref
-        .read(appDatabaseProvider)
-        .journalsDao
-        .getJournalById(widget.journalId);
+        .read(entryEditorServiceProvider)
+        .loadJournal(widget.journalId);
     if (!mounted) return;
 
     await Navigator.push(
@@ -159,8 +158,9 @@ extension _EntryEditorScreenStatePart2 on _EntryEditorScreenState {
 
   Future<void> _reloadContent() async {
     if (_entryId == null) return;
-    final database = ref.read(appDatabaseProvider);
-    final entry = await database.entriesDao.getEntryById(_entryId!);
+    final entry = await ref
+        .read(entryEditorServiceProvider)
+        .loadEntry(_entryId!);
     _titleController.text = entry.title ?? '';
     final json = entry.contentJson;
     if (json != null && json.isNotEmpty && json != '[]') {
@@ -190,56 +190,21 @@ extension _EntryEditorScreenStatePart2 on _EntryEditorScreenState {
     if (mounted) _rebuild(() => _isDirty = true);
   }
 
-  void _showVoiceNoteRecorder() {
-    showModalBottomSheet(
-      context: context,
-      builder: (_) =>
-          VoiceNoteRecorder(onRecordingComplete: _handleVoiceNoteComplete),
-    );
-  }
-
-  Future<void> _handleVoiceNoteComplete(
-    VoiceNoteRecordingResult result,
-    String transcript,
-  ) async {
-    if (_entryId == null) return;
-
-    final cryptoStorage = ref.read(attachmentCryptoStorageProvider);
-    final sourceBytes = await File(result.filePath).readAsBytes();
-    final payload = await cryptoStorage.encryptAndStore(
-      sourceBytes: sourceBytes,
-      sourceFileName: result.fileName,
-    );
-    await File(result.filePath).delete();
-
-    final database = ref.read(appDatabaseProvider);
-    try {
-      await database.voiceNotesDao.createVoiceNote(
-        VoiceNotesCompanion.insert(
-          entryId: _entryId!,
-          fileName: result.fileName,
-          encryptedPath: payload.encryptedPath,
-          nonceBase64: payload.nonceBase64,
-          keyReference: payload.keyReference,
-          durationMs: result.durationMs,
-          transcript: Value(transcript.isNotEmpty ? transcript : null),
+  /// Records a voice note and saves it as an attachment of this entry.
+  Future<void> _showVoiceNoteRecorder() async {
+    final outcome = await showVoiceNoteRecorder(context, entryId: _entryId);
+    if (outcome == null || !mounted) return;
+    final l10n = AppLocalizations.of(context);
+    if (outcome.saved) {
+      // The note is now an attachment, so the tray has to read its list again.
+      _rebuild(() => _attachmentRefreshToken++);
+      _showMessage(
+        l10n.labelEntryVoiceNoteSaved(
+          (outcome.durationMs / 1000).toStringAsFixed(0),
         ),
       );
-    } catch (_) {
-      await cryptoStorage.deleteStoredFile(payload.encryptedPath);
-      rethrow;
-    }
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(context).labelEntryVoiceNoteSaved(
-              (result.durationMs / 1000).toStringAsFixed(0),
-            ),
-          ),
-        ),
-      );
+    } else {
+      _showMessage(l10n.errorVoiceNoteSaveFailed);
     }
   }
 
@@ -262,6 +227,7 @@ extension _EntryEditorScreenStatePart2 on _EntryEditorScreenState {
             _rebuild(() {
               _mood = v;
               _isDirty = true;
+              _editGeneration++;
             });
           },
         ),
@@ -282,45 +248,87 @@ extension _EntryEditorScreenStatePart2 on _EntryEditorScreenState {
     ];
     if (!_quillController.selection.isCollapsed) {
       buttonItems.addAll([
-        _formatContextMenuItem('Bold', Attribute.bold),
-        _formatContextMenuItem('Italic', Attribute.italic),
-        _formatContextMenuItem('Underline', Attribute.underline),
-        _formatContextMenuItem('Strike', Attribute.strikeThrough),
+        _formatContextMenuItem(l10n.actionEditorBold, Attribute.bold),
+        _formatContextMenuItem(l10n.actionEditorItalic, Attribute.italic),
+        _formatContextMenuItem(l10n.actionEditorUnderline, Attribute.underline),
+        _formatContextMenuItem(
+          l10n.actionEditorStrike,
+          Attribute.strikeThrough,
+        ),
       ]);
+
+      // "Convert to table" — offered when the selected text looks like
+      // tab-separated or pipe-separated tabular data.
+      final sel = _quillController.selection;
+      final plainText = _quillController.document.toPlainText();
+      final selectedText = plainText.substring(
+        sel.start.clamp(0, plainText.length),
+        sel.end.clamp(0, plainText.length),
+      );
+      if (_looksLikeTabularText(selectedText)) {
+        buttonItems.add(
+          ContextMenuButtonItem(
+            label: l10n.actionConvertToTable,
+            onPressed: () {
+              _convertSelectionToTable(selectedText);
+              ContextMenuController.removeAny();
+            },
+          ),
+        );
+      }
     }
     buttonItems.addAll(state.contextMenuButtonItems);
+    // "Paste as plain text" and "Paste as Markdown" sit right after Paste,
+    // and only when Paste is offered (the clipboard has something in it).
+    // Paste itself keeps the formatting of copied rich text.
+    final pasteIndex = buttonItems.indexWhere(
+      (item) => item.type == ContextMenuButtonType.paste,
+    );
+    if (pasteIndex >= 0) {
+      buttonItems.insertAll(pasteIndex + 1, [
+        ContextMenuButtonItem(
+          label: l10n.actionPastePlainText,
+          onPressed: () {
+            ContextMenuController.removeAny();
+            unawaited(_pastePlainText());
+          },
+        ),
+        ContextMenuButtonItem(
+          label: l10n.actionPasteMarkdown,
+          onPressed: () {
+            ContextMenuController.removeAny();
+            unawaited(_pasteAsMarkdown());
+          },
+        ),
+      ]);
+    }
     return TextFieldTapRegion(
       child: AdaptiveTextSelectionToolbar.buttonItems(
         buttonItems: buttonItems,
-        anchors: _adjustedSelectionAnchors(state.contextMenuAnchors),
+        anchors: _adjustedSelectionAnchors(context, state.contextMenuAnchors),
       ),
     );
   }
 
-  /// When the selection's natural above-anchor would render the popup on top
-  /// of the formatting toolbar, force flutter's fallback path so the popup
-  /// flips below the selection instead.
+  /// Keeps the popup between the formatting toolbar and the keyboard, so it
+  /// neither covers the toolbar nor lands off-screen after "Select all".
   TextSelectionToolbarAnchors _adjustedSelectionAnchors(
+    BuildContext context,
     TextSelectionToolbarAnchors anchors,
   ) {
-    final secondary = anchors.secondaryAnchor;
-    if (secondary == null) return anchors;
     final toolbarBox =
         _toolbarKey.currentContext?.findRenderObject() as RenderBox?;
     if (toolbarBox == null || !toolbarBox.attached) return anchors;
     final toolbarBottom =
         toolbarBox.localToGlobal(Offset.zero).dy + toolbarBox.size.height;
-    // Approximate popup height; if the above-anchor isn't at least this far
-    // below the toolbar, the popup would overlap it. Setting primaryAnchor.dy
-    // to 0 makes flutter's "fits above" check fail, falling back to secondary.
-    const popupHeight = 56.0;
-    if (anchors.primaryAnchor.dy < toolbarBottom + popupHeight) {
-      return TextSelectionToolbarAnchors(
-        primaryAnchor: Offset(anchors.primaryAnchor.dx, 0),
-        secondaryAnchor: secondary,
-      );
-    }
-    return anchors;
+    final screenBottom =
+        MediaQuery.sizeOf(context).height -
+        MediaQuery.viewInsetsOf(context).bottom;
+    return clampSelectionMenuAnchors(
+      anchors,
+      visibleTop: toolbarBottom,
+      visibleBottom: screenBottom,
+    );
   }
 
   /// Builds one of the two caret-jump items in the selection popup.
@@ -448,5 +456,109 @@ extension _EntryEditorScreenStatePart2 on _EntryEditorScreenState {
     }
 
     return true;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Text-to-table conversion
+  // ---------------------------------------------------------------------------
+
+  /// Returns true when [text] looks like tab-separated or pipe-separated
+  /// tabular data: at least two lines, and at least one delimiter character.
+  bool _looksLikeTabularText(String text) {
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return false;
+    final lines = trimmed.split('\n');
+    if (lines.length < 2) return false;
+    return trimmed.contains('\t') || trimmed.contains('|');
+  }
+
+  /// Pastes only the clipboard's words, with no formatting, tables or links,
+  /// even when the clipboard holds rich text. Replaces any selected text;
+  /// one Undo removes it.
+  Future<void> _pastePlainText() async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    final text = data?.text;
+    if (!mounted || text == null || text.isEmpty) return;
+    final selection = _quillController.selection;
+    final start = selection.start;
+    _quillController.replaceText(
+      start,
+      selection.end - start,
+      text,
+      TextSelection.collapsed(offset: start + text.length),
+    );
+  }
+
+  /// Pastes the clipboard text as Markdown: headings, lists, tables and links
+  /// become formatted text. Replaces any selected text; one Undo removes it.
+  Future<void> _pasteAsMarkdown() async {
+    final data = await Clipboard.getData(Clipboard.kTextPlain);
+    final text = data?.text;
+    if (!mounted || text == null || text.trim().isEmpty) return;
+
+    final ops = const MarkdownToDelta().convert(text);
+    // Like a normal paste, don't add a line break after the last line
+    // unless it carries a block style (a list item or heading, say).
+    final last = ops.last;
+    if (ops.length > 1 &&
+        last['insert'] == '\n' &&
+        last['attributes'] == null) {
+      ops.removeLast();
+    }
+    final delta = Delta.fromJson(ops);
+    final selection = _quillController.selection;
+    final start = selection.start;
+    _quillController.replaceText(
+      start,
+      selection.end - start,
+      delta,
+      TextSelection.collapsed(offset: start + delta.length),
+    );
+  }
+
+  /// Replaces the current selection with a [TableEmbed] built from the
+  /// tab-separated or pipe-separated [text].
+  void _convertSelectionToTable(String text) {
+    final trimmed = text.trim();
+    // Decide the delimiter: prefer tab, fall back to pipe.
+    final delimiter = trimmed.contains('\t') ? '\t' : '|';
+    final lines = trimmed.split('\n');
+    final rows = <List<String>>[];
+    int maxCols = 0;
+
+    for (final line in lines) {
+      final cells = line.split(delimiter).map((c) => c.trim()).toList();
+      rows.add(cells);
+      if (cells.length > maxCols) maxCols = cells.length;
+    }
+
+    // Pad shorter rows so every row has the same column count.
+    for (final row in rows) {
+      while (row.length < maxCols) {
+        row.add('');
+      }
+    }
+
+    // Bound dimensions to match the insert-table dialog limits.
+    if (rows.length > 20) rows.removeRange(20, rows.length);
+    if (maxCols > 20) {
+      for (int r = 0; r < rows.length; r++) {
+        rows[r] = rows[r].sublist(0, 20);
+      }
+    }
+
+    final sel = _quillController.selection;
+    final start = sel.start;
+    final length = sel.end - sel.start;
+    final embed = TableEmbed.fromRows(rows);
+
+    _quillController.replaceText(start, length, embed, null);
+    // Insert a trailing newline so the cursor has somewhere to land.
+    _quillController.replaceText(
+      start + 1,
+      0,
+      '\n',
+      TextSelection.collapsed(offset: start + 2),
+    );
   }
 }

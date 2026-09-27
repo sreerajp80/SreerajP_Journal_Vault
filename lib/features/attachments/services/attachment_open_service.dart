@@ -109,14 +109,26 @@ class AttachmentOpenService {
   }
 
   /// Hands a prepared session to another app via the platform file opener.
+  ///
+  /// On success the decrypted copy stays for the other app to read, and the
+  /// temp file manager sweeps it after this app goes to the background. When
+  /// no app could take it, the copy is deleted at once — unless an in-app
+  /// viewer still shows it, in which case the viewer deletes it on close.
   Future<AttachmentOpenPrepared> openExternally(
-    AttachmentOpenSession session,
-  ) async {
+    AttachmentOpenSession session, {
+    bool keepOnFailure = false,
+  }) async {
     final prepared = AttachmentOpenPrepared(
       tempFilePath: session.filePath,
       mimeType: session.mimeType,
     );
-    await _router.open(prepared);
+    try {
+      await _router.open(prepared);
+    } catch (_) {
+      if (!keepOnFailure) await session.close();
+      rethrow;
+    }
+    session.handle.markHandedOff();
     return prepared;
   }
 

@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 
+import 'package:sreerajp_journal_vault/core/security/file_picker_cache.dart';
 import 'package:sreerajp_journal_vault/features/import/providers/import_providers.dart';
 import 'package:sreerajp_journal_vault/features/import/services/import_service.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
+import 'package:sreerajp_journal_vault/core/security/external_handoff_guard.dart';
 
 /// Screen for importing files into a journal.
 ///
@@ -152,12 +154,16 @@ class _ImportScreenState extends ConsumerState<ImportScreen> {
   }
 
   Future<void> _pickAndImport(ImportService importService) async {
-    final result = await FilePicker.pickFiles(
-      allowMultiple: true,
-      type: FileType.custom,
-      allowedExtensions: ['txt', 'md', 'markdown', 'docx'],
-      withData: true,
+    final result = await ExternalHandoffGuard.instance.run(
+      () => FilePicker.pickFiles(
+        allowMultiple: true,
+        type: FileType.custom,
+        allowedExtensions: ['txt', 'md', 'markdown', 'docx'],
+        withData: true,
+      ),
     );
+    // The bytes are in memory now; the picker's plain copies can go.
+    await clearFilePickerCache();
 
     if (result == null || result.files.isEmpty) return;
 

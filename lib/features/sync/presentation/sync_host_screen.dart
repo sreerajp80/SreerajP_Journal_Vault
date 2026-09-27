@@ -3,10 +3,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
 import 'package:sreerajp_journal_vault/core/logging/app_logger.dart';
 import 'package:sreerajp_journal_vault/core/security/screen_security_controller.dart';
-import 'package:sreerajp_journal_vault/features/backup/providers/backup_providers.dart';
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/features/sync/providers/sync_providers.dart';
 import 'package:sreerajp_journal_vault/features/sync/providers/wifi_sync_providers.dart';
 import 'package:sreerajp_journal_vault/features/sync/services/sync_engine.dart';
@@ -35,11 +34,18 @@ class _SyncHostScreenState extends ConsumerState<SyncHostScreen> {
   /// read back out of the text, which would break in another language.
   bool _syncFeedbackIsError = false;
 
+  /// Read in [initState]: `ref` may not be used in [dispose].
+  late final ScreenSecurityController _screenSecurity;
+  late final WifiSyncHostNotifier _host;
+
   @override
   void initState() {
     super.initState();
-    // Protect pairing code screen with FLAG_SECURE
-    ref.read(screenSecurityProvider.notifier).setEnabled(true);
+    // The pairing code is on screen: block screenshots while this screen is
+    // open, without changing the user's saved choice.
+    _screenSecurity = ref.read(screenSecurityProvider.notifier);
+    _screenSecurity.holdOn();
+    _host = ref.read(wifiSyncHostProvider.notifier);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(wifiSyncHostProvider.notifier).startHost();
     });
@@ -47,7 +53,8 @@ class _SyncHostScreenState extends ConsumerState<SyncHostScreen> {
 
   @override
   void dispose() {
-    ref.read(wifiSyncHostProvider.notifier).stopHost();
+    _host.stopHost();
+    _screenSecurity.releaseHold();
     super.dispose();
   }
 
@@ -63,18 +70,9 @@ class _SyncHostScreenState extends ConsumerState<SyncHostScreen> {
     });
 
     try {
-      final protocol = WifiSyncProtocol.forHost(host);
-      final db = ref.read(appDatabaseProvider);
-      final encryption = ref.read(syncEncryptionServiceProvider);
-      final deviceId = await ref.read(syncDeviceIdProvider.future);
-      final cipher = ref.read(backupAttachmentCipherProvider);
-
-      final engine = SyncEngine(
-        db: db,
-        protocol: protocol,
-        encryption: encryption,
-        deviceId: deviceId,
-        attachmentCipher: cipher,
+      final engine = await ref.read(syncEngineBuilderProvider)(
+        WifiSyncProtocol.forHost(host),
+        SyncRole.sender,
       );
 
       final status = await engine.performSync(syncPassword: pairingCode);
@@ -138,7 +136,10 @@ class _SyncHostScreenState extends ConsumerState<SyncHostScreen> {
         ],
       ),
       body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 16,
+        ).withSafeBottom(context),
         children: [
           // Phase status badge
           _HostPhaseStatusBadge(phase: hostState.phase),

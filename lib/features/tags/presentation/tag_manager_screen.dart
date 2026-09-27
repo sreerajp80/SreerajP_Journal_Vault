@@ -5,6 +5,8 @@ import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
 import 'package:sreerajp_journal_vault/features/tags/domain/tag_colors.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
+import 'package:sreerajp_journal_vault/core/security/keyboard_privacy_scope.dart';
+import 'package:sreerajp_journal_vault/features/tags/providers/tag_providers.dart';
 
 /// Lists every tag in the vault and lets the user rename, recolour or delete
 /// one.
@@ -99,14 +101,14 @@ class _TagTile extends ConsumerWidget {
     _TagAction action,
   ) async {
     final l10n = AppLocalizations.of(context);
-    final db = ref.read(appDatabaseProvider);
+    final tags = ref.read(tagServiceProvider);
     final messenger = ScaffoldMessenger.of(context);
 
     switch (action) {
       case _TagAction.rename:
         final name = await _promptForName(context, tag.name);
         if (name == null) return;
-        final ok = await db.tagsDao.renameTag(tag.id, name);
+        final ok = await tags.renameTag(tag.id, name);
         if (!ok) {
           messenger.showSnackBar(SnackBar(content: Text(l10n.errorTagsRename)));
           return;
@@ -115,15 +117,15 @@ class _TagTile extends ConsumerWidget {
       case _TagAction.color:
         final picked = await _promptForColor(context, colorForTag(tag));
         if (picked == null) return;
-        await db.tagsDao.setTagColor(tag.id, picked.toARGB32());
+        await tags.setTagColor(tag.id, picked.toARGB32());
 
       case _TagAction.resetColor:
-        await db.tagsDao.setTagColor(tag.id, null);
+        await tags.setTagColor(tag.id, null);
 
       case _TagAction.delete:
         final confirmed = await _confirmDelete(context, tag.name);
         if (confirmed != true) return;
-        await db.tagsDao.deleteTagWithLinks(tag.id);
+        await tags.deleteTag(tag.id);
         messenger.showSnackBar(
           SnackBar(content: Text(l10n.bodyTagsDeleted(tag.name))),
         );
@@ -240,6 +242,9 @@ class _RenameTagDialogState extends State<_RenameTagDialog> {
       title: Text(l10n.titleTagsRename),
       content: TextField(
         key: const Key('tag-rename-field'),
+        enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+          context,
+        ),
         controller: _controller,
         autofocus: true,
         decoration: InputDecoration(labelText: l10n.labelTagsName),

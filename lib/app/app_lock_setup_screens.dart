@@ -100,6 +100,8 @@ class _FirstLaunchSetupScreenState
               const SizedBox(height: 8),
               TextField(
                 key: const Key('first-launch-pin-field'),
+                enableIMEPersonalizedLearning:
+                    KeyboardPrivacyScope.allowLearning(context),
                 controller: _pin,
                 obscureText: true,
                 keyboardType: const TextInputType.numberWithOptions(),
@@ -107,6 +109,8 @@ class _FirstLaunchSetupScreenState
               ),
               TextField(
                 key: const Key('first-launch-pin-confirm-field'),
+                enableIMEPersonalizedLearning:
+                    KeyboardPrivacyScope.allowLearning(context),
                 controller: _confirm,
                 obscureText: true,
                 keyboardType: const TextInputType.numberWithOptions(),
@@ -202,12 +206,18 @@ class _AppLockPinSetupScreenState
             const SizedBox(height: 16),
             TextField(
               key: const Key('pin-setup-field'),
+              enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+                context,
+              ),
               controller: _pin,
               obscureText: true,
               decoration: InputDecoration(labelText: l10n.labelLockPin),
             ),
             TextField(
               key: const Key('pin-setup-confirm-field'),
+              enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+                context,
+              ),
               controller: _confirm,
               obscureText: true,
               decoration: InputDecoration(labelText: l10n.labelLockConfirmPin),
@@ -333,7 +343,10 @@ class _LockGateScreenState extends ConsumerState<_LockGateScreen> {
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24,
+                vertical: 32,
+              ).withSafeBottom(context),
               child: _LockGateEntrance(
                 child: Center(
                   child: ConstrainedBox(
@@ -414,6 +427,9 @@ class _LockGateScreenState extends ConsumerState<_LockGateScreen> {
       children: [
         TextField(
           key: const Key('app-lock-pin-field'),
+          enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+            context,
+          ),
           controller: _pinController,
           obscureText: !_pinVisible,
           textAlign: TextAlign.center,

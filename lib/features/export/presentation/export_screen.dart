@@ -1,14 +1,12 @@
 import 'dart:convert';
 
-import 'package:drift/drift.dart' show Value;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:sreerajp_journal_vault/core/database/app_database.dart';
-import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
 import 'package:sreerajp_journal_vault/core/logging/app_logger.dart';
 import 'package:sreerajp_journal_vault/core/security/vault_envelope.dart';
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/features/export/presentation/export_text.dart';
 import 'package:sreerajp_journal_vault/features/export/providers/export_providers.dart';
 import 'package:sreerajp_journal_vault/features/export/services/export_format.dart';
@@ -17,6 +15,9 @@ import 'package:sreerajp_journal_vault/features/export/services/export_scope.dar
 import 'package:sreerajp_journal_vault/features/export/services/export_service.dart';
 import 'package:sreerajp_journal_vault/features/export/services/html_pdf_service.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
+import 'package:sreerajp_journal_vault/core/security/keyboard_privacy_scope.dart';
+import 'package:sreerajp_journal_vault/core/security/external_handoff_guard.dart';
+import 'package:sreerajp_journal_vault/features/security/providers/security_providers.dart';
 
 part 'export_screen_actions.dart';
 
@@ -92,7 +93,12 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.titleExport)),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+        padding: const EdgeInsets.fromLTRB(
+          16,
+          8,
+          16,
+          32,
+        ).withSafeBottom(context),
         children: [
           Text(
             l10n.descExportFromJournal(widget.journalTitle),
@@ -207,6 +213,9 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
             const SizedBox(height: 8),
             TextField(
               key: const Key('export-password-field'),
+              enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+                context,
+              ),
               controller: _passwordController,
               obscureText: true,
               enabled: !_isExporting,
@@ -222,6 +231,9 @@ class _ExportScreenState extends ConsumerState<ExportScreen> {
             const SizedBox(height: 12),
             TextField(
               key: const Key('export-password-confirm-field'),
+              enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+                context,
+              ),
               controller: _confirmController,
               obscureText: true,
               enabled: !_isExporting,

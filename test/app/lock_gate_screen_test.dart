@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sreerajp_journal_vault/app/app.dart';
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
+import 'package:sreerajp_journal_vault/core/security/keyboard_privacy_controller.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/providers/lock_gate_providers.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/services/app_pin_keystore.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/services/app_pin_service.dart';
@@ -25,6 +26,7 @@ void main() {
     WidgetTester tester, {
     required String lockMode,
     AppPinKeystore? keystore,
+    KeyboardPrivacyStore? keyboardStore,
   }) async {
     await tester.binding.setSurfaceSize(const Size(800, 1600));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -46,6 +48,8 @@ void main() {
           appPinKeystoreProvider.overrideWithValue(
             keystore ?? _InMemoryAppPinKeystore(),
           ),
+          if (keyboardStore != null)
+            keyboardPrivacyStoreProvider.overrideWithValue(keyboardStore),
         ],
       ),
     );
@@ -93,6 +97,35 @@ void main() {
     await tester.tap(find.byIcon(Icons.visibility_rounded));
     await tester.pumpAndSettle();
     expect(tester.widget<TextField>(field).obscureText, isFalse);
+    // A shown PIN is no longer a password box, so with keyboard privacy on
+    // (the default) it must still ask the keyboard not to learn.
+    expect(
+      tester.widget<TextField>(field).enableIMEPersonalizedLearning,
+      isFalse,
+    );
+
+    await disposeApp(tester);
+  });
+
+  testWidgets('the PIN box follows keyboard privacy when it is off', (
+    tester,
+  ) async {
+    final keystore = _InMemoryAppPinKeystore();
+    await tester.runAsync(
+      () => AppPinService(keystore: keystore).setPin('1234'),
+    );
+    await pumpLockGate(
+      tester,
+      lockMode: 'app_lock',
+      keystore: keystore,
+      keyboardStore: InMemoryKeyboardPrivacyStore(enabled: false),
+    );
+
+    final field = find.byKey(const Key('app-lock-pin-field'));
+    expect(
+      tester.widget<TextField>(field).enableIMEPersonalizedLearning,
+      isTrue,
+    );
 
     await disposeApp(tester);
   });

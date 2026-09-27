@@ -13,8 +13,7 @@
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
     <uses-permission android:name="android.permission.CAMERA" />
-    <!-- Voice notes (record) and on-device dictation (speech_to_text). Dictation
-         runs only on the on-device recogniser; see MainActivity.reportOnDeviceSpeechStatus. -->
+    <!-- Voice notes (record) only. The app has no speech to text of its own. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-feature
         android:name="android.hardware.camera"
@@ -98,10 +97,6 @@
 
          In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
     <queries>
-        <!-- Lets the app see the system speech recogniser (Android 11+). -->
-        <intent>
-            <action android:name="android.speech.RecognitionService" />
-        </intent>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>

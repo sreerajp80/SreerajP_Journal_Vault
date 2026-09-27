@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/features/security/providers/security_providers.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
+import 'package:sreerajp_journal_vault/core/security/keyboard_privacy_scope.dart';
 
 /// CRUD screen for the [AutoLockProfiles] table. Surfaces the active
 /// profile and lets the user create / edit / delete profiles. Activating a
@@ -245,11 +246,17 @@ class _AutoLockProfileFormDialogState
         children: [
           TextField(
             key: const Key('auto-lock-profile-name-field'),
+            enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+              context,
+            ),
             controller: _name,
             decoration: InputDecoration(labelText: l10n.labelAutoLockName),
           ),
           TextField(
             key: const Key('auto-lock-profile-timeout-field'),
+            enableIMEPersonalizedLearning: KeyboardPrivacyScope.allowLearning(
+              context,
+            ),
             controller: _timeout,
             keyboardType: TextInputType.number,
             decoration: InputDecoration(labelText: l10n.labelAutoLockTimeout),

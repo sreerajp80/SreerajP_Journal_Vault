@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:sreerajp_journal_vault/features/entries/services/ocr_service.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
 
 // Layer: presentation. Shows the text read from the edited photo, on demand.
@@ -42,6 +43,9 @@ class _OcrTextPreviewSheetState extends State<OcrTextPreviewSheet> {
   late String _language;
   bool _isReading = true;
   bool _failed = false;
+
+  /// True when the failure was the read running past its time limit.
+  bool _timedOut = false;
   String _text = '';
 
   /// Only the newest read may update the sheet.
@@ -65,6 +69,7 @@ class _OcrTextPreviewSheetState extends State<OcrTextPreviewSheet> {
     void reset() {
       _isReading = true;
       _failed = false;
+      _timedOut = false;
       _text = '';
     }
 
@@ -73,8 +78,12 @@ class _OcrTextPreviewSheetState extends State<OcrTextPreviewSheet> {
 
     String? text;
     var failed = false;
+    var timedOut = false;
     try {
       text = await widget.readText(_language);
+    } on OcrTimeoutException {
+      failed = true;
+      timedOut = true;
     } catch (_) {
       // The screen has already logged the failure.
       failed = true;
@@ -86,6 +95,7 @@ class _OcrTextPreviewSheetState extends State<OcrTextPreviewSheet> {
     setState(() {
       _isReading = false;
       _failed = failed;
+      _timedOut = timedOut;
       _text = text ?? '';
     });
   }
@@ -216,7 +226,11 @@ class _OcrTextPreviewSheetState extends State<OcrTextPreviewSheet> {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 24),
         child: Text(
-          _failed ? l10n.errorEntryEditorOcr : l10n.bodyOcrEnhanceLiveTextNone,
+          _timedOut
+              ? l10n.errorOcrTimedOut
+              : _failed
+              ? l10n.errorEntryEditorOcr
+              : l10n.bodyOcrEnhanceLiveTextNone,
           textAlign: TextAlign.center,
           style: const TextStyle(
             color: Colors.white54,

@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod/misc.dart' show Override;
@@ -10,22 +9,30 @@ import 'package:sreerajp_journal_vault/core/database/app_database.dart';
 import 'package:sreerajp_journal_vault/core/database/database_providers.dart';
 import 'package:sreerajp_journal_vault/core/l10n/app_locales.dart';
 import 'package:sreerajp_journal_vault/core/l10n/locale_controller.dart';
+import 'package:sreerajp_journal_vault/core/logging/app_logger.dart';
+import 'package:sreerajp_journal_vault/core/security/keyboard_privacy_controller.dart';
+import 'package:sreerajp_journal_vault/core/security/keyboard_privacy_scope.dart';
 import 'package:sreerajp_journal_vault/core/theme/accent_color_controller.dart';
 import 'package:sreerajp_journal_vault/core/theme/script_fonts.dart';
 import 'package:sreerajp_journal_vault/core/theme/theme_mode_controller.dart';
 import 'package:sreerajp_journal_vault/core/utils/date_formatters.dart';
+import 'package:sreerajp_journal_vault/core/utils/safe_insets.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/entry_editor_screen.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/entry_template_chooser_dialog.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/template_manager_screen.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/time_capsule_sealed_screen.dart';
 import 'package:sreerajp_journal_vault/features/entries/presentation/time_capsules_list_screen.dart';
+import 'package:sreerajp_journal_vault/features/entries/providers/entry_providers.dart';
 import 'package:sreerajp_journal_vault/features/entries/providers/time_capsule_providers.dart';
 import 'package:sreerajp_journal_vault/features/entries/templates/entry_templates.dart';
 import 'package:sreerajp_journal_vault/features/export/presentation/export_screen.dart';
+import 'package:sreerajp_journal_vault/features/import/presentation/import_screen.dart';
 import 'package:sreerajp_journal_vault/features/insights/presentation/insights_screen.dart';
 import 'package:sreerajp_journal_vault/features/journal_lock/providers/journal_lock_providers.dart';
 import 'package:sreerajp_journal_vault/features/journal_lock/services/journal_password_service.dart';
 import 'package:sreerajp_journal_vault/features/journal_lock/services/journal_secret_store.dart';
+import 'package:sreerajp_journal_vault/features/journals/domain/journal_summary.dart';
+import 'package:sreerajp_journal_vault/features/journals/providers/journal_providers.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/app_lock_controller.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/providers/lock_gate_providers.dart';
 import 'package:sreerajp_journal_vault/features/lock_gate/services/biometric_authenticator.dart';
@@ -40,6 +47,7 @@ import 'package:sreerajp_journal_vault/features/share_receiver/presentation/quic
 import 'package:sreerajp_journal_vault/features/share_receiver/providers/share_receiver_providers.dart';
 import 'package:sreerajp_journal_vault/features/timeline/presentation/timeline_screen.dart';
 import 'package:sreerajp_journal_vault/l10n/app_localizations.dart';
+import 'package:sreerajp_journal_vault/features/search/providers/search_providers.dart';
 
 part 'app_home_tab.dart';
 part 'app_journal_card.dart';
@@ -144,12 +152,26 @@ class JournalVaultApp extends ConsumerStatefulWidget {
 }
 
 class _JournalVaultAppState extends ConsumerState<JournalVaultApp> {
+  /// The app's one navigator. Every screen after the home screen is pushed on
+  /// it, so locking must clear it; see the listener in [build].
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+
   @override
   Widget build(BuildContext context) {
+    // Locking swaps only the bottom screen (home) for the lock gate. Screens
+    // pushed on top of it — an entry, a journal, a dialog — would stay on
+    // screen above the lock gate, so they are all closed the moment the app
+    // locks. An open editor saves its unsaved text as it closes.
+    ref.listen<AppLockState>(appLockProvider, (previous, next) {
+      if (previous != null && !previous.isLocked && next.isLocked) {
+        _navigatorKey.currentState?.popUntil((route) => route.isFirst);
+      }
+    });
     final lockState = ref.watch(appLockProvider);
     final appThemeMode = ref.watch(appThemeModeProvider);
     final accentColor = ref.watch(accentColorProvider);
     final appLanguage = ref.watch(localeControllerProvider);
+    final keyboardPrivacy = ref.watch(keyboardPrivacyProvider);
 
     Widget home;
     if (!lockState.bootstrapped) {
@@ -185,6 +207,7 @@ class _JournalVaultAppState extends ConsumerState<JournalVaultApp> {
     };
 
     return MaterialApp(
+      navigatorKey: _navigatorKey,
       onGenerateTitle: (context) => AppLocalizations.of(context).titleApp,
       theme: lightTheme,
       darkTheme: darkTheme,
@@ -195,6 +218,11 @@ class _JournalVaultAppState extends ConsumerState<JournalVaultApp> {
       localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: appSupportedLocales,
       localeResolutionCallback: resolveAppLocale,
+      // Wraps the navigator, so every page and dialog sees the choice.
+      builder: (context, child) => KeyboardPrivacyScope(
+        enabled: keyboardPrivacy,
+        child: child ?? const SizedBox.shrink(),
+      ),
       home: home,
     );
   }
